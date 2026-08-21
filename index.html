@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Industrial Stainher – Andina V4</title>
+<style>
+:root{--bg:#071018;--panel:#0d1c29;--panel2:#0a1621;--text:#e9f3f8;--muted:#8da3b2;--line:#1d3849;--cyan:#36c5f0;--green:#23d18b;--amber:#f5b942;--red:#ff5d5d;--blue:#5aa9ff}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#071018,#09141e);color:var(--text)}
+.app{min-height:100vh;display:grid;grid-template-columns:245px 1fr}.sidebar{background:#08131d;border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:18px}
+.brand{border-bottom:1px solid var(--line);padding:4px 8px 14px}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}.brand h1{margin:6px 0 3px;font-size:21px}.muted{color:var(--muted);font-size:12px}
+.nav{display:grid;gap:7px}.nav button{display:flex;gap:9px;align-items:center;background:transparent;border:1px solid transparent;color:var(--muted);padding:10px;border-radius:10px;cursor:pointer;text-align:left}.nav button.active,.nav button:hover{background:#0f2635;color:var(--text);border-color:#18394d}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}.nav button.active .dot{background:var(--cyan);box-shadow:0 0 10px var(--cyan)}.sidebox{margin-top:auto;background:#0b1c28;border:1px solid var(--line);border-radius:12px;padding:12px}.sidebox .big{font-size:24px;font-weight:700;margin:4px 0}
+.main{padding:18px;min-width:0}.top{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}.top h2{margin:4px 0 3px;font-size:25px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+button,.filebtn{border:1px solid var(--line);background:#0c1b27;color:var(--text);padding:9px 12px;border-radius:9px;cursor:pointer;font-weight:600}.primary{background:#0e3b4f!important;border-color:#24677f!important}.filebtn input{display:none}
+.status{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 0;padding:9px 11px;background:#091720;border:1px solid var(--line);border-radius:10px}.status span{display:flex;gap:7px;align-items:center;font-size:12px;color:var(--muted)}.green{background:var(--green)}.amber{background:var(--amber)}.red{background:var(--red)}.blue{background:var(--blue)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0}.kpi{background:linear-gradient(180deg,#0d1d2a,#0a1721);border:1px solid var(--line);border-radius:12px;padding:13px;border-left:3px solid var(--cyan)}.kpi .lab{font-size:10px;color:var(--muted);text-transform:uppercase}.kpi .val{font-size:27px;font-weight:700;margin-top:5px}
+.filters{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:8px;background:#0a1721;border:1px solid var(--line);padding:10px;border-radius:12px;margin-bottom:13px}input,select,textarea{width:100%;background:#08131d;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 10px}textarea{min-height:76px;resize:vertical}
+.grid2{display:grid;grid-template-columns:2fr minmax(330px,1fr);gap:13px}.panel{background:linear-gradient(180deg,#0b1925,#09151f);border:1px solid var(--line);border-radius:12px;padding:13px}.sectionTitle{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.sectionTitle h3{margin:0;font-size:15px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:#0d1b27;border:1px solid var(--line);border-radius:11px;padding:12px;cursor:pointer}.card:hover{border-color:var(--cyan)}.card.active{outline:2px solid var(--cyan)}.head{display:flex;justify-content:space-between;gap:10px}.name{font-weight:700}.area{font-size:12px;color:var(--muted);margin-top:2px}.badge{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:11px;font-weight:700}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.metric{background:#09151f;border:1px solid #173143;border-radius:8px;padding:8px}.lab{font-size:10px;color:var(--muted);text-transform:uppercase}.value{font-weight:700;margin-top:3px}.track{height:7px;background:#061019;border-radius:999px;overflow:hidden;margin-top:6px}.fill{height:100%;background:var(--cyan)}
+.detail{position:sticky;top:14px;align-self:start}.detail h3{margin:0}.detailgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.cell{background:#09151f;border:1px solid var(--line);border-radius:8px;padding:9px}.block{margin-top:12px}.links{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.links a{color:var(--cyan);text-decoration:none;border:1px solid var(--line);padding:6px 8px;border-radius:7px;font-size:11px}
+.editgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.wide{grid-column:1/-1}.areas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.areaBox{background:#0a1721;border:1px solid var(--line);border-radius:11px;padding:10px}.areaBox h4{margin:0 0 8px}.node{background:#0d1c29;border:1px solid #17384b;border-radius:9px;padding:9px;margin-top:7px;cursor:pointer}.node:hover{border-color:var(--cyan)}
+.alerts{display:grid;gap:8px}.alert{display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:8px;align-items:center;background:#0a1721;border:1px solid var(--line);border-radius:9px;padding:9px;cursor:pointer}.dead-over{color:var(--red)}.dead-soon{color:var(--amber)}.dead-ok{color:var(--green)}.hidden{display:none!important}.notice{border:1px dashed var(--line);border-radius:9px;padding:10px;color:var(--muted);font-size:11px}.toast{position:fixed;right:16px;bottom:16px;background:#061019;border:1px solid var(--line);padding:10px 13px;border-radius:9px;display:none;z-index:20}.modalBack{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:18px;z-index:30}.modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#0b1925;border:1px solid var(--line);border-radius:14px;padding:15px}
+
+.historyToolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.historyFilters{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:8px;margin:10px 0}
+.historyKpis{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:10px 0 12px}
+.hkpi{background:#09151f;border:1px solid var(--line);border-radius:9px;padding:10px;border-top:2px solid var(--cyan)}
+.hkpi .lab{font-size:10px;color:var(--muted);text-transform:uppercase}.hkpi .val{font-size:21px;font-weight:700;margin-top:4px}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.historyTable{width:100%;border-collapse:collapse;min-width:1180px;background:#09151f}
+.historyTable th,.historyTable td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:11px}
+.historyTable th{position:sticky;top:0;background:#0d1c29;color:#cde8f3;text-transform:uppercase;letter-spacing:.04em;z-index:1}
+.historyTable tr:hover td{background:#0d1b27}.historyTable .actionsCell{white-space:nowrap}
+.historyTable button{padding:5px 7px;font-size:10px}
+.historyNote{margin-top:10px;padding:10px;background:#08131d;border:1px dashed var(--line);border-radius:9px;color:var(--muted);font-size:11px;line-height:1.45}
+.eventTag{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 7px;font-size:10px;font-weight:700}
+@media(max-width:1150px){.historyKpis{grid-template-columns:repeat(3,1fr)}.historyFilters{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.historyKpis,.historyFilters{grid-template-columns:1fr 1fr}}
+@media(max-width:1150px){.kpis{grid-template-columns:repeat(3,1fr)}.filters{grid-template-columns:1fr 1fr 1fr}.areas{grid-template-columns:repeat(2,1fr)}}@media(max-width:930px){.app{grid-template-columns:1fr}.sidebar{display:none}.grid2{grid-template-columns:1fr}.detail{position:static}}@media(max-width:650px){.main{padding:11px}.kpis{grid-template-columns:1fr 1fr}.filters,.cards,.areas,.editgrid,.detailgrid{grid-template-columns:1fr}.wide{grid-column:auto}.alert{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+ <div class="brand"><div class="eyebrow">Control operacional</div><h1>STAINHER</h1><div class="muted">Contrato Andina · V4 Industrial</div></div>
+ <div class="nav">
+  <button class="navBtn active" data-view="overview"><span class="dot" style="background:var(--cyan)"></span>Resumen operacional</button>
+  <button class="navBtn" data-view="areas"><span class="dot"></span>Mapa por áreas</button>
+  <button class="navBtn" data-view="alerts"><span class="dot"></span>Alarmas y vencimientos</button>
+  <button class="navBtn" data-view="maintenance"><span class="dot"></span>Mantenimiento / OT</button>
+  <button class="navBtn" data-view="history"><span class="dot"></span>Bitácora histórica / KPI</button>
+ </div>
+ <div class="sidebox"><div class="muted">Disponibilidad global</div><div id="sideDisp" class="big">0%</div><div class="track"><div id="sideBar" class="fill"></div></div></div>
+</aside>
+<main class="main">
+ <div class="top">
+  <div><div class="eyebrow">Centro de control industrial</div><h2>Mapa Operacional Stainher – Codelco Andina</h2><div class="muted">Disponibilidad · criticidad · OT · mantenciones · alertas</div></div>
+  <div class="actions"><button id="addBtn" class="primary">+ Nuevo equipo</button><label class="filebtn">Cargar CSV<input id="csvFile" type="file" accept=".csv"></label><button id="exportBtn">Exportar CSV</button><button id="saveLocalBtn">Guardar local</button><button id="resetBtn">Restaurar</button></div>
+ </div>
+ <div class="status"><span><i class="dot green"></i>Operativo</span><span><i class="dot amber"></i>Seguimiento</span><span><i class="dot red"></i>Atención alta</span><span><i class="dot blue"></i>Ingeniería</span></div>
+ <div class="kpis">
+  <div class="kpi"><div class="lab">Equipos</div><div id="sTotal" class="val">0</div></div><div class="kpi"><div class="lab">Operativos</div><div id="sOper" class="val">0</div></div><div class="kpi"><div class="lab">Atención alta</div><div id="sHigh" class="val">0</div></div><div class="kpi"><div class="lab">OT abiertas</div><div id="sOT" class="val">0</div></div><div class="kpi"><div class="lab">Mant. vencidas</div><div id="sOver" class="val">0</div></div><div class="kpi"><div class="lab">Disponibilidad</div><div id="sDisp" class="val">0%</div></div>
+ </div>
+ <div class="filters"><input id="search" placeholder="Buscar equipo, área, OT, responsable..."><select id="filterEstado"><option value="">Todos los estados</option><option>Operativo</option><option>Seguimiento</option><option>Atención alta</option><option>Ingeniería</option></select><select id="filterArea"><option value="">Todas las áreas</option></select><select id="filterCrit"><option value="">Toda criticidad</option><option>Alta</option><option>Media</option><option>Baja</option></select><select id="filterOT"><option value="">Todas las OT</option><option>Abierta</option><option>Cerrada</option></select></div>
+
+ <section id="overview" class="view"><div class="grid2">
+  <div class="panel"><div class="sectionTitle"><h3>Estado de equipos</h3><span class="muted">Seleccione un equipo</span></div><div id="cards" class="cards"></div><div id="empty" class="notice hidden">No hay coincidencias.</div></div>
+  <aside class="panel detail"><h3 id="dName">Seleccione un equipo</h3><div id="dArea" class="muted">El detalle aparecerá aquí.</div>
+   <div id="detailContent" class="hidden">
+    <div class="block"><div class="lab">Estado</div><div id="dBadge"></div></div>
+    <div class="detailgrid"><div class="cell"><div class="lab">Criticidad</div><div id="dCrit" class="value"></div></div><div class="cell"><div class="lab">Disponibilidad</div><div id="dDisp" class="value"></div></div><div class="cell"><div class="lab">OT</div><div id="dOT" class="value"></div></div><div class="cell"><div class="lab">Próxima mantención</div><div id="dMaint" class="value"></div></div></div>
+    <div class="block"><div class="lab">Situación</div><div id="dSituacion"></div></div><div class="block"><div class="lab">Pendiente</div><div id="dPendiente"></div></div><div class="block"><div class="lab">Próxima actividad</div><div id="dProxima"></div></div><div id="dLinks" class="links"></div>
+    <div class="editgrid"><div><div class="lab">Estado</div><select id="eEstado"><option>Operativo</option><option>Seguimiento</option><option>Atención alta</option><option>Ingeniería</option></select></div><div><div class="lab">Prioridad %</div><input id="ePrioridad" type="number"></div><div><div class="lab">Criticidad</div><select id="eCrit"><option>Alta</option><option>Media</option><option>Baja</option></select></div><div><div class="lab">Disponibilidad %</div><input id="eDisp" type="number"></div><div><div class="lab">Último registro</div><input id="eUltimo"></div><div><div class="lab">Próxima mantención</div><input id="eMant"></div><div><div class="lab">N° OT</div><input id="eOTNum"></div><div><div class="lab">Estado OT</div><select id="eOTEstado"><option>Abierta</option><option>Cerrada</option></select></div><div class="wide"><div class="lab">Responsable</div><input id="eResponsable"></div><div class="wide"><div class="lab">Próxima actividad</div><input id="eProxima"></div><div class="wide"><div class="lab">Situación</div><textarea id="eSituacion"></textarea></div><div class="wide"><div class="lab">Pendiente</div><textarea id="ePendiente"></textarea></div><div class="wide"><div class="lab">Documento URL</div><input id="eDoc"></div><div class="wide"><div class="lab">Foto URL</div><input id="eFoto"></div></div>
+    <div class="actions" style="margin-top:10px"><button id="saveBtn" class="primary">Guardar cambios</button><button id="deleteBtn">Eliminar equipo</button></div>
+   </div>
+  </aside>
+ </div></section>
+ <section id="areas" class="view hidden"><div class="panel"><div class="sectionTitle"><h3>Mapa operacional por áreas</h3><span class="muted">Esquema lógico</span></div><div id="areaBoard" class="areas"></div></div></section>
+ <section id="alerts" class="view hidden"><div class="panel"><div class="sectionTitle"><h3>Alarmas y vencimientos</h3><span class="muted">Rojo vencido · ámbar ≤ 7 días</span></div><div id="alertsList" class="alerts"></div></div></section>
+ <section id="maintenance" class="view hidden"><div class="panel"><div class="sectionTitle"><h3>Mantenimiento y OT</h3><span class="muted">Resumen operacional</span></div><div id="maintList" class="alerts"></div></div></section>
+ <section id="history" class="view hidden">
+  <div class="panel">
+   <div class="sectionTitle">
+    <div><h3>Bitácora histórica de intervenciones y fallas</h3><span class="muted">Registro por equipo para análisis de confiabilidad y mantenibilidad</span></div>
+    <div class="historyToolbar">
+      <button id="addHistoryBtn" class="primary">+ Registrar evento</button>
+      <label class="filebtn">Importar bitácora CSV<input id="historyCsvFile" type="file" accept=".csv"></label>
+      <button id="exportHistoryBtn">Exportar bitácora</button>
+    </div>
+   </div>
+   <div class="historyFilters">
+    <select id="hEquipo"><option value="">Todos los equipos</option></select>
+    <select id="hTipo"><option value="">Todos los eventos</option><option>Falla</option><option>Emergencia</option><option>Mantención correctiva</option><option>Mantención preventiva</option><option>Inspección</option><option>Mejora</option></select>
+    <input id="hDesde" type="date" title="Desde">
+    <input id="hHasta" type="date" title="Hasta">
+   </div>
+   <div class="historyKpis">
+    <div class="hkpi"><div class="lab">N° fallas</div><div id="kFailures" class="val">0</div></div>
+    <div class="hkpi"><div class="lab">MTTR</div><div id="kMTTR" class="val">N/D</div></div>
+    <div class="hkpi"><div class="lab">MTBF</div><div id="kMTBF" class="val">N/D</div></div>
+    <div class="hkpi"><div class="lab">Disponibilidad</div><div id="kAvail" class="val">N/D</div></div>
+    <div class="hkpi"><div class="lab">Horas detención</div><div id="kDown" class="val">0 h</div></div>
+    <div class="hkpi"><div class="lab">T. medio respuesta</div><div id="kResponse" class="val">N/D</div></div>
+   </div>
+   <div class="tableWrap">
+    <table class="historyTable">
+     <thead><tr><th>Equipo / Evento</th><th>Inicio falla</th><th>Inicio intervención</th><th>Restitución</th><th>OT</th><th>Detención</th><th>Causa</th><th>Acción realizada</th><th>Responsable</th><th>Gestión</th></tr></thead>
+     <tbody id="historyBody"></tbody>
+    </table>
+   </div>
+   <div id="emptyHistory" class="notice hidden">No existen eventos en la bitácora para los filtros seleccionados.</div>
+   <div class="historyNote">
+    <b>Criterio KPI:</b> MTTR = promedio de horas desde el inicio de la intervención hasta la restitución del servicio para eventos marcados como falla.
+    MTBF = promedio de horas operativas entre la restitución de una falla y el inicio de la siguiente falla del mismo equipo.
+    Disponibilidad operacional = (horas posibles del período − horas de detención) / horas posibles del período.
+    Para obtener indicadores confiables, registra siempre las tres fechas/horas y marca correctamente si el evento cuenta como falla y si produjo detención.
+   </div>
+  </div>
+ </section>
+
+</main></div>
+<div id="toast" class="toast"></div>
+<div id="modalBack" class="modalBack hidden"><div class="modal"><div class="sectionTitle"><h3>Nuevo equipo</h3><span class="muted">Agregar registro</span></div><div class="editgrid"><div><div class="lab">Equipo</div><input id="nEquipo"></div><div><div class="lab">Área</div><input id="nArea"></div><div><div class="lab">Estado</div><select id="nEstado"><option>Operativo</option><option>Seguimiento</option><option>Atención alta</option><option>Ingeniería</option></select></div><div><div class="lab">Criticidad</div><select id="nCrit"><option>Alta</option><option>Media</option><option>Baja</option></select></div><div><div class="lab">Prioridad %</div><input id="nPrioridad" value="50"></div><div><div class="lab">Disponibilidad %</div><input id="nDisp" value="100"></div><div><div class="lab">Próxima mantención</div><input id="nMant" placeholder="dd-mm-aaaa"></div><div><div class="lab">N° OT</div><input id="nOT"></div><div><div class="lab">Estado OT</div><select id="nOTEstado"><option>Abierta</option><option>Cerrada</option></select></div><div><div class="lab">Responsable</div><input id="nResp"></div><div class="wide"><div class="lab">Situación</div><textarea id="nSituacion"></textarea></div><div class="wide"><div class="lab">Pendiente</div><textarea id="nPendiente"></textarea></div></div><div class="actions" style="margin-top:10px"><button id="createBtn" class="primary">Crear equipo</button><button id="cancelAddBtn">Cancelar</button></div></div></div>
+
+<div id="historyModalBack" class="modalBack hidden">
+ <div class="modal">
+  <div class="sectionTitle"><h3 id="historyModalTitle">Registrar evento</h3><span class="muted">Falla, intervención, mantenimiento o mejora</span></div>
+  <div class="editgrid">
+   <div><div class="lab">Equipo</div><select id="hnEquipo"></select></div>
+   <div><div class="lab">Tipo de evento</div><select id="hnTipo"><option>Falla</option><option>Emergencia</option><option>Mantención correctiva</option><option>Mantención preventiva</option><option>Inspección</option><option>Mejora</option></select></div>
+   <div><div class="lab">¿Cuenta como falla KPI?</div><select id="hnEsFalla"><option>Sí</option><option>No</option></select></div>
+   <div><div class="lab">¿Produjo detención?</div><select id="hnDetencion"><option>Sí</option><option>No</option></select></div>
+   <div><div class="lab">Fecha/hora inicio falla-evento</div><input id="hnFalla" type="datetime-local"></div>
+   <div><div class="lab">Fecha/hora inicio intervención</div><input id="hnIntervencion" type="datetime-local"></div>
+   <div><div class="lab">Fecha/hora restitución / término</div><input id="hnRestitucion" type="datetime-local"></div>
+   <div><div class="lab">N° OT / Aviso</div><input id="hnOT"></div>
+   <div class="wide"><div class="lab">Responsable / Técnicos</div><input id="hnResponsable"></div>
+   <div class="wide"><div class="lab">Descripción del evento</div><textarea id="hnDescripcion"></textarea></div>
+   <div class="wide"><div class="lab">Causa / causa raíz</div><textarea id="hnCausa"></textarea></div>
+   <div class="wide"><div class="lab">Acción realizada / solución</div><textarea id="hnAccion"></textarea></div>
+   <div class="wide"><div class="lab">Observaciones</div><textarea id="hnObs"></textarea></div>
+  </div>
+  <div class="actions" style="margin-top:10px"><button id="saveHistoryEventBtn" class="primary">Guardar evento</button><button id="cancelHistoryBtn">Cancelar</button></div>
+ </div>
+</div>
+
+<script>
+const HISTORY_HEADERS=['Equipo','TipoEvento','EsFalla','Detencion','FechaHoraFalla','FechaHoraInicioIntervencion','FechaHoraRestitucion','OTNumero','Descripcion','Causa','Accion','Responsable','Observaciones'];
+const HISTORY_KEY='stainher_dashboard_v4_history';
+let historyEditIndex=null;
+const INITIAL_DATA=[{"Equipo": "Jaula ASEA", "Area": "Concentradora", "Estado": "Atención alta", "Prioridad": "95", "Criticidad": "Alta", "Disponibilidad": "35", "UltimoRegistro": "21-06-2026", "ProximaMantencion": "25-08-2026", "OTNumero": "OT-ASEA-001", "OTEstado": "Abierta", "Situacion": "Evaluación del regulador de voltaje y seguimiento del cable viajante.", "Pendiente": "Revisar protección general, regulador y tren de rodillos.", "Responsable": "Supervisor de turno", "ProximaActividad": "Revisión regulador y protecciones", "DocumentoURL": "", "FotoURL": ""}, {"Equipo": "Jaula ALIMAK", "Area": "Nodo 3500 · DOMO", "Estado": "Seguimiento", "Prioridad": "78", "Criticidad": "Alta", "Disponibilidad": "82", "UltimoRegistro": "07-05-2026", "ProximaMantencion": "30-08-2026", "OTNumero": "OT-ALIMAK-014", "OTEstado": "Abierta", "Situacion": "Operativa con seguimiento del sistema de transmisión.", "Pendiente": "Instalar segundo piñón y verificar desgaste.", "Responsable": "Supervisor de turno", "ProximaActividad": "Cambio segundo piñón", "DocumentoURL": "", "FotoURL": ""}, {"Equipo": "Ascensor OTIS", "Area": "Nodo 3700 · Barrio Cívico", "Estado": "Seguimiento", "Prioridad": "72", "Criticidad": "Media", "Disponibilidad": "88", "UltimoRegistro": "13-04-2026", "ProximaMantencion": "28-08-2026", "OTNumero": "OT-3700-022", "OTEstado": "Abierta", "Situacion": "Seguimiento de alimentación eléctrica y sistema de puertas.", "Pendiente": "Verificar protecciones y comportamiento de puertas.", "Responsable": "Supervisor de turno", "ProximaActividad": "Verificación eléctrica y puertas", "DocumentoURL": "", "FotoURL": ""}, {"Equipo": "Molino ASEA", "Area": "Concentradora", "Estado": "Atención alta", "Prioridad": "92", "Criticidad": "Alta", "Disponibilidad": "50", "UltimoRegistro": "15-04-2026", "ProximaMantencion": "22-08-2026", "OTNumero": "OT-MOL-003", "OTEstado": "Abierta", "Situacion": "Brechas asociadas a adecuaciones de seguridad y certificación.", "Pendiente": "Continuar proyecto de adecuación y seguimiento de inspecciones.", "Responsable": "Administrador / Ingeniería", "ProximaActividad": "Proyecto paracaídas-limitador", "DocumentoURL": "", "FotoURL": ""}, {"Equipo": "Ascensor EILA 2", "Area": "Edificio corporativo", "Estado": "Seguimiento", "Prioridad": "64", "Criticidad": "Media", "Disponibilidad": "90", "UltimoRegistro": "11-04-2026", "ProximaMantencion": "05-09-2026", "OTNumero": "OT-EILA2-007", "OTEstado": "Cerrada", "Situacion": "Seguimiento de acciones derivadas de informe técnico.", "Pendiente": "Verificar cierre de acciones y condición del equipo.", "Responsable": "Supervisor de turno", "ProximaActividad": "Cierre acciones informe", "DocumentoURL": "", "FotoURL": ""}, {"Equipo": "Hilton Servicio", "Area": "Montacarga", "Estado": "Ingeniería", "Prioridad": "55", "Criticidad": "Media", "Disponibilidad": "75", "UltimoRegistro": "27-01-2026", "ProximaMantencion": "12-09-2026", "OTNumero": "OT-HIL-011", "OTEstado": "Abierta", "Situacion": "Gestión de repuestos y trabajos pendientes.", "Pendiente": "Revisar repuestos y programación.", "Responsable": "Planificación", "ProximaActividad": "Revisión repuestos", "DocumentoURL": "", "FotoURL": ""}, {"Equipo": "OTIS Planta Norte", "Area": "Planta", "Estado": "Atención alta", "Prioridad": "86", "Criticidad": "Alta", "Disponibilidad": "20", "UltimoRegistro": "02-04-2026", "ProximaMantencion": "20-08-2026", "OTNumero": "OT-PN-005", "OTEstado": "Abierta", "Situacion": "Condición pendiente de normalización para ejecutar mantenimiento.", "Pendiente": "Normalizar alimentación y liberar equipo.", "Responsable": "Mandante / Supervisor", "ProximaActividad": "Normalizar alimentación", "DocumentoURL": "", "FotoURL": ""}, {"Equipo": "Tercer Panel PTP", "Area": "PTP", "Estado": "Ingeniería", "Prioridad": "48", "Criticidad": "Media", "Disponibilidad": "70", "UltimoRegistro": "05-06-2026", "ProximaMantencion": "15-09-2026", "OTNumero": "OT-PTP-002", "OTEstado": "Abierta", "Situacion": "Información técnica en revisión para definir alcance.", "Pendiente": "Completar análisis técnico e intervención.", "Responsable": "Ingeniería / Planificación", "ProximaActividad": "Definir alcance técnico", "DocumentoURL": "", "FotoURL": ""}], STORAGE_KEY='stainher_dashboard_v4';let data=loadLocal()||JSON.parse(JSON.stringify(INITIAL_DATA)),selectedIndex=null;let history=loadHistory();const $=id=>document.getElementById(id);
+function loadLocal(){try{let r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):null}catch(e){return null}}function loadHistory(){try{let r=localStorage.getItem(HISTORY_KEY);return r?JSON.parse(r):[]}catch(e){return []}}function saveHistory(){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(history))}catch(e){alert('No fue posible guardar la bitácora localmente')}}function saveLocal(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));toast('Datos guardados localmente')}catch(e){alert('No fue posible guardar localmente')}}function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function norm(s){return String(s??'').trim()}function num(v){return Math.max(0,Math.min(100,Number(v)||0))}
+function color(s){return s==='Operativo'?'var(--green)':s==='Seguimiento'?'var(--amber)':s==='Atención alta'?'var(--red)':s==='Ingeniería'?'var(--blue)':'var(--muted)'}function toast(m){let t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',1600)}
+function parseDate(s){let m=String(s||'').match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);return m?new Date(+m[3],+m[2]-1,+m[1],12):null}function maint(s){let d=parseDate(s);if(!d)return{cls:'dead-ok',text:'Sin fecha válida',days:null,rank:3};let n=new Date();n.setHours(12,0,0,0);let diff=Math.ceil((d-n)/86400000);if(diff<0)return{cls:'dead-over',text:`Vencida hace ${Math.abs(diff)} día(s)`,days:diff,rank:0};if(diff<=7)return{cls:'dead-soon',text:`Vence en ${diff} día(s)`,days:diff,rank:1};return{cls:'dead-ok',text:`Vigente · ${diff} día(s)`,days:diff,rank:2}}
+function updateStats(){let avg=data.length?Math.round(data.reduce((a,x)=>a+num(x.Disponibilidad),0)/data.length):0;$('sTotal').textContent=data.length;$('sOper').textContent=data.filter(x=>x.Estado==='Operativo').length;$('sHigh').textContent=data.filter(x=>x.Estado==='Atención alta').length;$('sOT').textContent=data.filter(x=>x.OTEstado==='Abierta').length;$('sOver').textContent=data.filter(x=>{let m=maint(x.ProximaMantencion);return m.days!==null&&m.days<0}).length;$('sDisp').textContent=avg+'%';$('sideDisp').textContent=avg+'%';$('sideBar').style.width=avg+'%'}
+function updateAreas(){let cur=$('filterArea').value,a=[...new Set(data.map(x=>norm(x.Area)).filter(Boolean))].sort();$('filterArea').innerHTML='<option value="">Todas las áreas</option>'+a.map(v=>`<option>${esc(v)}</option>`).join('');if(a.includes(cur))$('filterArea').value=cur}
+function filtered(){let q=norm($('search').value).toLowerCase(),fs=$('filterEstado').value,fa=$('filterArea').value,fc=$('filterCrit').value,fo=$('filterOT').value;return data.map((x,i)=>({x,i})).filter(({x})=>{let hay=[x.Equipo,x.Area,x.Estado,x.Criticidad,x.OTNumero,x.OTEstado,x.Responsable,x.Situacion,x.Pendiente,x.ProximaActividad].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!fs||x.Estado===fs)&&(!fa||x.Area===fa)&&(!fc||x.Criticidad===fc)&&(!fo||x.OTEstado===fo)})}
+function card(x,i){let m=maint(x.ProximaMantencion);return`<div class="card ${selectedIndex===i?'active':''}" data-index="${i}"><div class="head"><div><div class="name">${esc(x.Equipo)}</div><div class="area">${esc(x.Area)}</div></div><span class="badge"><i class="dot" style="background:${color(x.Estado)}"></i>${esc(x.Estado)}</span></div><div class="metrics"><div class="metric"><div class="lab">Disponibilidad</div><div class="value">${num(x.Disponibilidad)}%</div><div class="track"><div class="fill" style="width:${num(x.Disponibilidad)}%"></div></div></div><div class="metric"><div class="lab">Criticidad</div><div class="value">${esc(x.Criticidad)}</div><div class="lab">Prioridad ${num(x.Prioridad)}%</div></div><div class="metric"><div class="lab">OT</div><div class="value">${esc(x.OTNumero||'—')}</div><div class="lab">${esc(x.OTEstado||'—')}</div></div><div class="metric"><div class="lab">Mantención</div><div class="value ${m.cls}">${esc(x.ProximaMantencion||'—')}</div><div class="lab">${esc(m.text)}</div></div></div></div>`}
+function renderOverview(){let r=filtered();$('cards').innerHTML=r.map(({x,i})=>card(x,i)).join('');$('empty').classList.toggle('hidden',r.length>0);document.querySelectorAll('.card').forEach(e=>e.onclick=()=>select(+e.dataset.index))}
+function renderAreas(){let by={};filtered().forEach(({x,i})=>(by[x.Area]??=[]).push({x,i}));$('areaBoard').innerHTML=Object.keys(by).sort().map(a=>`<div class="areaBox"><h4>${esc(a)}</h4>${by[a].map(({x,i})=>{let m=maint(x.ProximaMantencion);return`<div class="node" data-index="${i}"><div class="head"><b>${esc(x.Equipo)}</b><i class="dot" style="background:${color(x.Estado)}"></i></div><div class="area">${esc(x.Estado)} · ${esc(x.Criticidad)} · Disp. ${num(x.Disponibilidad)}%</div><div class="area ${m.cls}">${esc(m.text)}</div></div>`}).join('')}</div>`).join('')||'<div class="notice">No hay registros.</div>';document.querySelectorAll('.node').forEach(e=>e.onclick=()=>{select(+e.dataset.index);switchView('overview')})}
+function renderAlerts(){let r=filtered().map(({x,i})=>({x,i,m:maint(x.ProximaMantencion)})).sort((a,b)=>a.m.rank-b.m.rank);$('alertsList').innerHTML=r.map(({x,i,m})=>`<div class="alert" data-index="${i}"><div><b>${esc(x.Equipo)}</b><div class="area">${esc(x.Area)} · ${esc(x.Responsable||'—')}</div></div><div>${esc(x.OTNumero||'Sin OT')}<div class="area">${esc(x.OTEstado||'—')}</div></div><div class="${m.cls}"><b>${esc(m.text)}</b></div></div>`).join('');document.querySelectorAll('#alertsList .alert').forEach(e=>e.onclick=()=>{select(+e.dataset.index);switchView('overview')})}
+function renderMaint(){let r=filtered();$('maintList').innerHTML=r.map(({x,i})=>`<div class="alert" data-index="${i}"><div><b>${esc(x.Equipo)}</b><div class="area">${esc(x.Area)}</div></div><div><b>${esc(x.OTNumero||'Sin OT')}</b><div class="area">${esc(x.OTEstado||'—')}</div></div><div>${esc(x.ProximaActividad||'Sin actividad')}</div></div>`).join('');document.querySelectorAll('#maintList .alert').forEach(e=>e.onclick=()=>{select(+e.dataset.index);switchView('overview')})}
+
+function dt(v){if(!v)return null;let d=new Date(v);return isNaN(d)?null:d}
+function hoursBetween(a,b){let da=dt(a),db=dt(b);return da&&db&&db>=da?(db-da)/3600000:null}
+function fmtHours(v){return v===null||!isFinite(v)?'N/D':(v<10?v.toFixed(1):v.toFixed(0))+' h'}
+function fmtDT(v){if(!v)return'—';let d=dt(v);if(!d)return esc(v);return d.toLocaleString('es-CL',{dateStyle:'short',timeStyle:'short'})}
+function historyEquipmentOptions(){
+  let cur=$('hEquipo').value;
+  let names=[...new Set([...data.map(x=>x.Equipo),...history.map(x=>x.Equipo)].filter(Boolean))].sort();
+  $('hEquipo').innerHTML='<option value="">Todos los equipos</option>'+names.map(x=>`<option>${esc(x)}</option>`).join('');
+  if(names.includes(cur))$('hEquipo').value=cur;
+  $('hnEquipo').innerHTML=data.map(x=>`<option>${esc(x.Equipo)}</option>`).join('');
+}
+function filteredHistory(){
+  let eq=$('hEquipo').value,tp=$('hTipo').value,from=$('hDesde').value,to=$('hHasta').value;
+  let fromD=from?new Date(from+'T00:00'):null,toD=to?new Date(to+'T23:59:59'):null;
+  return history.map((x,i)=>({x,i})).filter(({x})=>{
+    let d=dt(x.FechaHoraFalla);
+    return(!eq||x.Equipo===eq)&&(!tp||x.TipoEvento===tp)&&(!fromD||!d||d>=fromD)&&(!toD||!d||d<=toD);
+  }).sort((a,b)=>(dt(b.x.FechaHoraFalla)||0)-(dt(a.x.FechaHoraFalla)||0));
+}
+function calcHistoryKpis(){
+  let rows=filteredHistory().map(r=>r.x),failures=rows.filter(x=>x.EsFalla==='Sí');
+  $('kFailures').textContent=failures.length;
+  let repair=failures.map(x=>hoursBetween(x.FechaHoraInicioIntervencion,x.FechaHoraRestitucion)).filter(v=>v!==null);
+  let response=failures.map(x=>hoursBetween(x.FechaHoraFalla,x.FechaHoraInicioIntervencion)).filter(v=>v!==null);
+  let down=failures.filter(x=>x.Detencion==='Sí').map(x=>hoursBetween(x.FechaHoraFalla,x.FechaHoraRestitucion)).filter(v=>v!==null);
+  let mttr=repair.length?repair.reduce((a,b)=>a+b,0)/repair.length:null;
+  let rsp=response.length?response.reduce((a,b)=>a+b,0)/response.length:null;
+  let totalDown=down.reduce((a,b)=>a+b,0);
+  $('kMTTR').textContent=fmtHours(mttr);$('kResponse').textContent=fmtHours(rsp);$('kDown').textContent=fmtHours(totalDown);
+  let by={};failures.forEach(x=>(by[x.Equipo]??=[]).push(x));let intervals=[];
+  Object.values(by).forEach(arr=>{
+    arr.sort((a,b)=>(dt(a.FechaHoraFalla)||0)-(dt(b.FechaHoraFalla)||0));
+    for(let j=1;j<arr.length;j++){let v=hoursBetween(arr[j-1].FechaHoraRestitucion,arr[j].FechaHoraFalla);if(v!==null)intervals.push(v)}
+  });
+  let mtbf=intervals.length?intervals.reduce((a,b)=>a+b,0)/intervals.length:null;
+  $('kMTBF').textContent=fmtHours(mtbf);
+  let allRows=rows.filter(x=>dt(x.FechaHoraFalla));
+  let avail=null;
+  if(allRows.length){
+    let from=$('hDesde').value?new Date($('hDesde').value+'T00:00'):new Date(Math.min(...allRows.map(x=>dt(x.FechaHoraFalla))));
+    let to=$('hHasta').value?new Date($('hHasta').value+'T23:59:59'):new Date();
+    if(to<from)avail=null;else{
+      let eqs=$('hEquipo').value?[$('hEquipo').value]:[...new Set(allRows.map(x=>x.Equipo))];
+      let possible=((to-from)/3600000)*Math.max(1,eqs.length);
+      if(possible>0)avail=Math.max(0,Math.min(100,(possible-totalDown)/possible*100));
+    }
+  }
+  $('kAvail').textContent=avail===null?'N/D':avail.toFixed(2)+'%';
+}
+function renderHistory(){
+  historyEquipmentOptions();let rows=filteredHistory();calcHistoryKpis();
+  $('historyBody').innerHTML=rows.map(({x,i})=>{
+    let down=x.Detencion==='Sí'?hoursBetween(x.FechaHoraFalla,x.FechaHoraRestitucion):0;
+    return `<tr><td><b>${esc(x.Equipo)}</b><br><span class="eventTag">${esc(x.TipoEvento)}</span> ${x.EsFalla==='Sí'?'<span class="eventTag">Falla KPI</span>':''}<br><span class="muted">${esc(x.Descripcion||'')}</span></td><td>${fmtDT(x.FechaHoraFalla)}</td><td>${fmtDT(x.FechaHoraInicioIntervencion)}</td><td>${fmtDT(x.FechaHoraRestitucion)}</td><td>${esc(x.OTNumero||'—')}</td><td>${x.Detencion==='Sí'?fmtHours(down):'No'}</td><td>${esc(x.Causa||'—')}</td><td>${esc(x.Accion||'—')}</td><td>${esc(x.Responsable||'—')}</td><td class="actionsCell"><button data-he="${i}">Editar</button> <button data-hd="${i}">Eliminar</button></td></tr>`
+  }).join('');
+  $('emptyHistory').classList.toggle('hidden',rows.length>0);
+  document.querySelectorAll('[data-he]').forEach(b=>b.onclick=()=>openHistoryModal(+b.dataset.he));
+  document.querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>deleteHistoryEvent(+b.dataset.hd));
+}
+function clearHistoryModal(){
+  ['hnFalla','hnIntervencion','hnRestitucion','hnOT','hnResponsable','hnDescripcion','hnCausa','hnAccion','hnObs'].forEach(id=>$(id).value='');
+  $('hnTipo').value='Falla';$('hnEsFalla').value='Sí';$('hnDetencion').value='Sí';
+}
+function openHistoryModal(index=null){
+  historyEquipmentOptions();historyEditIndex=index;clearHistoryModal();
+  if(index!==null&&history[index]){
+    let x=history[index];$('historyModalTitle').textContent='Editar evento';
+    $('hnEquipo').value=x.Equipo;$('hnTipo').value=x.TipoEvento;$('hnEsFalla').value=x.EsFalla;$('hnDetencion').value=x.Detencion;
+    $('hnFalla').value=x.FechaHoraFalla||'';$('hnIntervencion').value=x.FechaHoraInicioIntervencion||'';$('hnRestitucion').value=x.FechaHoraRestitucion||'';
+    $('hnOT').value=x.OTNumero||'';$('hnResponsable').value=x.Responsable||'';$('hnDescripcion').value=x.Descripcion||'';$('hnCausa').value=x.Causa||'';$('hnAccion').value=x.Accion||'';$('hnObs').value=x.Observaciones||'';
+  }else{$('historyModalTitle').textContent='Registrar evento';if($('hEquipo').value)$('hnEquipo').value=$('hEquipo').value}
+  $('historyModalBack').classList.remove('hidden');
+}
+function saveHistoryEvent(){
+  let obj={Equipo:$('hnEquipo').value,TipoEvento:$('hnTipo').value,EsFalla:$('hnEsFalla').value,Detencion:$('hnDetencion').value,FechaHoraFalla:$('hnFalla').value,FechaHoraInicioIntervencion:$('hnIntervencion').value,FechaHoraRestitucion:$('hnRestitucion').value,OTNumero:$('hnOT').value,Descripcion:$('hnDescripcion').value,Causa:$('hnCausa').value,Accion:$('hnAccion').value,Responsable:$('hnResponsable').value,Observaciones:$('hnObs').value};
+  if(!obj.Equipo||!obj.FechaHoraFalla){alert('Equipo y fecha/hora del evento son obligatorios.');return}
+  if(obj.EsFalla==='Sí'&&obj.FechaHoraRestitucion&&dt(obj.FechaHoraRestitucion)<dt(obj.FechaHoraFalla)){alert('La restitución no puede ser anterior al inicio de la falla.');return}
+  if(historyEditIndex===null)history.push(obj);else history[historyEditIndex]=obj;
+  saveHistory();$('historyModalBack').classList.add('hidden');renderHistory();toast('Evento guardado en bitácora');
+}
+function deleteHistoryEvent(i){if(history[i]&&confirm('¿Eliminar este registro histórico?')){history.splice(i,1);saveHistory();renderHistory();toast('Registro eliminado')}}
+function historyCsvEscape(v){let s=String(v??'');return/[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function exportHistory(){
+  let txt='\uFEFF'+[HISTORY_HEADERS.join(';'),...history.map(x=>HISTORY_HEADERS.map(k=>historyCsvEscape(x[k])).join(';'))].join('\r\n');
+  let blob=new Blob([txt],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Bitacora_Intervenciones_KPI.csv';a.click();URL.revokeObjectURL(a.href)
+}
+function importHistoryCSV(text){
+  text=text.replace(/^\uFEFF/,'');let lines=text.split(/\r?\n/).filter(x=>x.trim());if(!lines.length)return[];
+  let d=(lines[0].match(/;/g)||[]).length>=(lines[0].match(/,/g)||[]).length?';':',',h=splitCSV(lines[0],d).map(norm),out=[];
+  for(let n=1;n<lines.length;n++){let v=splitCSV(lines[n],d),o={};h.forEach((k,i)=>o[k]=norm(v[i]||''));if(o.Equipo&&o.FechaHoraFalla)out.push(o)}return out
+}
+
+function renderAll(){updateStats();updateAreas();renderOverview();renderAreas();renderAlerts();renderMaint();renderHistory()}
+function select(i){selectedIndex=i;let x=data[i];if(!x)return;$('detailContent').classList.remove('hidden');$('dName').textContent=x.Equipo;$('dArea').textContent=x.Area;$('dBadge').innerHTML=`<span class="badge"><i class="dot" style="background:${color(x.Estado)}"></i>${esc(x.Estado)} · Prioridad ${num(x.Prioridad)}%</span>`;$('dCrit').textContent=x.Criticidad||'—';$('dDisp').textContent=num(x.Disponibilidad)+'%';$('dOT').textContent=(x.OTNumero||'—')+' · '+(x.OTEstado||'—');let m=maint(x.ProximaMantencion);$('dMaint').innerHTML=`<span class="${m.cls}">${esc(x.ProximaMantencion||'—')} · ${esc(m.text)}</span>`;$('dSituacion').textContent=x.Situacion||'—';$('dPendiente').textContent=x.Pendiente||'—';$('dProxima').textContent=x.ProximaActividad||'—';let links=[];if(x.DocumentoURL)links.push(`<a href="${esc(x.DocumentoURL)}" target="_blank">Documento</a>`);if(x.FotoURL)links.push(`<a href="${esc(x.FotoURL)}" target="_blank">Foto</a>`);$('dLinks').innerHTML=links.join('');[['eEstado','Estado'],['ePrioridad','Prioridad'],['eCrit','Criticidad'],['eDisp','Disponibilidad'],['eUltimo','UltimoRegistro'],['eMant','ProximaMantencion'],['eOTNum','OTNumero'],['eOTEstado','OTEstado'],['eResponsable','Responsable'],['eProxima','ProximaActividad'],['eSituacion','Situacion'],['ePendiente','Pendiente'],['eDoc','DocumentoURL'],['eFoto','FotoURL']].forEach(([id,k])=>$(id).value=x[k]||'');renderAll()}
+$('saveBtn').onclick=()=>{if(selectedIndex===null)return;let x=data[selectedIndex];Object.assign(x,{Estado:$('eEstado').value,Prioridad:String(num($('ePrioridad').value)),Criticidad:$('eCrit').value,Disponibilidad:String(num($('eDisp').value)),UltimoRegistro:$('eUltimo').value,ProximaMantencion:$('eMant').value,OTNumero:$('eOTNum').value,OTEstado:$('eOTEstado').value,Responsable:$('eResponsable').value,ProximaActividad:$('eProxima').value,Situacion:$('eSituacion').value,Pendiente:$('ePendiente').value,DocumentoURL:$('eDoc').value,FotoURL:$('eFoto').value});saveLocal();select(selectedIndex);toast('Cambios guardados')}
+$('deleteBtn').onclick=()=>{if(selectedIndex===null)return;if(confirm('¿Eliminar '+data[selectedIndex].Equipo+'?')){data.splice(selectedIndex,1);selectedIndex=null;$('detailContent').classList.add('hidden');saveLocal();renderAll()}}
+function switchView(id){document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.navBtn').forEach(b=>b.classList.toggle('active',b.dataset.view===id))}document.querySelectorAll('.navBtn').forEach(b=>b.onclick=()=>switchView(b.dataset.view))
+;['search','filterEstado','filterArea','filterCrit','filterOT'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',renderAll))
+$('addBtn').onclick=()=>$('modalBack').classList.remove('hidden');$('cancelAddBtn').onclick=()=>$('modalBack').classList.add('hidden');$('createBtn').onclick=()=>{let eq=norm($('nEquipo').value),area=norm($('nArea').value);if(!eq||!area){alert('Equipo y área son obligatorios.');return}data.push({Equipo:eq,Area:area,Estado:$('nEstado').value,Prioridad:String(num($('nPrioridad').value)),Criticidad:$('nCrit').value,Disponibilidad:String(num($('nDisp').value)),UltimoRegistro:'',ProximaMantencion:$('nMant').value,OTNumero:$('nOT').value,OTEstado:$('nOTEstado').value,Situacion:$('nSituacion').value,Pendiente:$('nPendiente').value,Responsable:$('nResp').value,ProximaActividad:'',DocumentoURL:'',FotoURL:''});saveLocal();$('modalBack').classList.add('hidden');renderAll();select(data.length-1)}
+function splitCSV(line,d){let a=[],cur='',q=false;for(let i=0;i<line.length;i++){let c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}else if(c===d&&!q){a.push(cur);cur=''}else cur+=c}a.push(cur);return a}
+$('csvFile').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let text=r.result.replace(/^\uFEFF/,''),lines=text.split(/\r?\n/).filter(x=>x.trim()),d=(lines[0].match(/;/g)||[]).length>=(lines[0].match(/,/g)||[]).length?';':',',h=splitCSV(lines[0],d).map(norm),out=[];for(let n=1;n<lines.length;n++){let v=splitCSV(lines[n],d),o={};h.forEach((k,i)=>o[k]=norm(v[i]||''));if(o.Equipo)out.push(o)}if(!out.length){alert('CSV sin registros válidos');return}data=out;selectedIndex=null;saveLocal();renderAll();toast('CSV cargado')};r.readAsText(f,'UTF-8');e.target.value=''}
+function csvEsc(v){let s=String(v??'');return/[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+$('exportBtn').onclick=()=>{let h=["Equipo", "Area", "Estado", "Prioridad", "Criticidad", "Disponibilidad", "UltimoRegistro", "ProximaMantencion", "OTNumero", "OTEstado", "Situacion", "Pendiente", "Responsable", "ProximaActividad", "DocumentoURL", "FotoURL"],text='\uFEFF'+[h.join(';'),...data.map(x=>h.map(k=>csvEsc(x[k])).join(';'))].join('\r\n'),blob=new Blob([text],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Equipos_Dashboard_Industrial_V4.csv';a.click();URL.revokeObjectURL(a.href)}
+
+$('addHistoryBtn').onclick=()=>openHistoryModal(null);
+$('cancelHistoryBtn').onclick=()=>$('historyModalBack').classList.add('hidden');
+$('saveHistoryEventBtn').onclick=saveHistoryEvent;
+['hEquipo','hTipo','hDesde','hHasta'].forEach(id=>$(id).addEventListener('change',renderHistory));
+$('exportHistoryBtn').onclick=exportHistory;
+$('historyCsvFile').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let imported=importHistoryCSV(r.result);if(!imported.length){alert('No se encontraron registros válidos en la bitácora CSV.');return}history=imported;saveHistory();renderHistory();toast('Bitácora importada')};r.readAsText(f,'UTF-8');e.target.value=''};
+
+$('saveLocalBtn').onclick=()=>{saveLocal();saveHistory();};$('resetBtn').onclick=()=>{if(confirm('¿Restaurar datos iniciales?')){data=JSON.parse(JSON.stringify(INITIAL_DATA));selectedIndex=null;localStorage.removeItem(STORAGE_KEY);saveLocal();$('detailContent').classList.add('hidden');renderAll()}}
+renderAll();
+</script></body></html>
