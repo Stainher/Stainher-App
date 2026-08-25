@@ -1,6 +1,6 @@
 # STAINHER Dashboard V1 — carga manual de averías
 
-Esta versión usa Supabase como backend y **no requiere API de Smartsheet**.
+Esta versión usa Supabase como backend 
 
 ## Módulos
 - Inicio con KPIs y parque de equipos.
