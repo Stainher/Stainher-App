@@ -11235,6 +11235,41 @@ table th,table td{overflow-wrap:anywhere}
   #modalRoot .modal{max-height:calc(100dvh - 12px)!important}
 }
 </style>
+<style id="v1523-mobile-grid-bottom-fix">
+/* V15.23 · ajuste final de filtros de fecha y navegación inferior móvil. */
+@media(max-width:900px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .main{
+    padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important
+  }
+  #v151MobileBottom,.v151-mobile-bottom{
+    left:0!important;right:0!important;bottom:0!important;
+    width:100%!important;max-width:100vw!important;
+    border-radius:16px 16px 0 0!important;
+    padding:5px 6px calc(5px + env(safe-area-inset-bottom,0px))!important;
+    margin:0!important;transform:none!important;
+    box-sizing:border-box!important
+  }
+  #page-correctivo{width:100%!important;max-width:100%!important;overflow-x:clip!important}
+  #page-correctivo .v1519-filter-grid{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    margin-inline:0!important;overflow:hidden!important
+  }
+  #page-correctivo .v1519-filter-grid>label{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    overflow:hidden!important
+  }
+  #page-correctivo .v1519-filter-grid :where(input[type="date"],select,.field){
+    display:block!important;inline-size:100%!important;width:100%!important;
+    max-inline-size:100%!important;max-width:100%!important;min-inline-size:0!important;min-width:0!important;
+    margin-inline:0!important;box-sizing:border-box!important;overflow:hidden!important
+  }
+}
+@media(max-width:600px){
+  #page-correctivo .v1519-filter-grid{grid-template-columns:minmax(0,1fr)!important}
+}
+</style>
 <script id="v1523-responsive-grid-core-script">
 /* Encapsula las tablas heredadas que no tenían región de desplazamiento. */
 const V1523_SCROLL_ANCESTORS='.v1523-scroll-region,.admin-table,.v12-form-table-wrap,.v12-form-table,.v157-scroll,.v1517-own-table,.v1519-prev-detail,.v1519-gantt-wrap,.v1520-table-wrap,.v1520-turn-matrix,.v1520-gantt,.v1520-cal-scroll,.v1520-turn-calendar,.v1512-turn-wrap,.v1512-clean-table-wrap,.gantt-wrap,.v1523-audit-wrap,[style*="overflow:auto"],[style*="overflow: auto"],[style*="overflow-x:auto"],[style*="overflow-x: auto"]';
