@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <!-- Stainher App V15.21 · 28-08-2026 · Desarrollado por Ismael Gálvez -->
-  <title>Stainher App V15.21</title>
+  <!-- Stainher App V15.23 · 30-08-2026 · Desarrollado por Ismael Gálvez -->
+  <title>Stainher App V15.23</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1724,7 +1724,7 @@ generateTerrainPdfV95=async function(e){
 
 // Reaplicar visibilidad después de cada render global.
 const _renderAllV10=renderAll;renderAll=function(){_renderAllV10();applyRoleVisibilityV10();setTimeout(cleanInicioV10,0)};
-setTimeout(()=>{applyRoleVisibilityV10();cleanInicioV10();},0);
+/* Arranque diferido V10 retirado: la capa V15.23 aplica visibilidad una sola vez. */
 </script>
 
 <style id="v11-style">
@@ -2014,7 +2014,7 @@ function downloadTerrainBlankV11(){const d={};const doc=buildTerrainPdfV11(d,tru
 
 // Re-render global con versión V11.
 const _renderAllV11=renderAll;renderAll=function(){_renderAllV11();applyPermissionsV11();setTimeout(()=>{cleanHomeV11();removeEdpPreventivoV11('#page-correctivo');removeEdpPreventivoV11('#page-vehiculos');removeEdpPreventivoV11('#page-dotacion');removeEdpPreventivoV11('#page-liderazgo')},0)};
-setTimeout(()=>{applyPermissionsV11();cleanHomeV11()},0);
+/* Arranque diferido V11 retirado: evita limpiar Inicio después del render final. */
 
 </script>
 
@@ -2161,7 +2161,7 @@ openLeadershipGoalV95=function(){
 // Aplicar correcciones al cargar/renderizar.
 const _applyPermissionsV11Fix=applyPermissionsV11;
 applyPermissionsV11=function(){_applyPermissionsV11Fix();sanitizeMetaV11Fix();cleanHomeV11()};
-setTimeout(()=>{applyPermissionsV11();sanitizeMetaV11Fix();cleanHomeV11()},50);
+/* Inicialización heredada desactivada: V15.23 aplica permisos una sola vez. */
 </script>
 
 <!-- ================================================================== -->
@@ -2251,7 +2251,7 @@ function previewProtV12(){const doc=buildProtPdfV12(protDataV12());if(doc)window
 async function generateProtV12(e){e.preventDefault();const d=protDataV12();if(!d.supervisor_nombre||!d.fecha||!d.area||!d.ejecutor||!V12_SIG.protSigSupV12||!V12_SIG.protSigEjeV12)return toast('Completa supervisor, fecha, área, ejecutor y ambas firmas.','error');try{await v12Register(v12Control(9),d.fecha,'protSupV12');const doc=buildProtPdfV12(d);doc.save(`Control_9_Proteccion_Auditiva_Respiratoria_${d.fecha}.pdf`);closeModal();await renderLiderazgoV95();toast('PDF combinado generado y cumplimiento registrado','success')}catch(err){toast(err.message||String(err),'error')}}
 
 // Refuerzo de metadatos y versión.
-setTimeout(()=>{document.querySelectorAll('#page-usuarios .global-meta,#page-usuarios .contract-name').forEach(x=>x.remove());sanitizeMetaV11Fix?.()},100);
+/* Limpieza heredada desactivada: el renderer activo controla su propio DOM. */
 </script>
 
 <style id="v13-style">
@@ -2571,7 +2571,7 @@ buildTerrainPdfV11=function(d,blank=false){
 };
 
 // ----------------------- versión y limpieza final ---------------------
-setTimeout(async()=>{sanitizeMetaV11Fix?.();applyPermissionsV11?.();v13CleanHomeLayout();if(!document.querySelector('#page-inicio')?.classList.contains('hidden'))await renderHomeAlertsV95();},100);
+/* Inicialización V13 desactivada para evitar doble consulta de Inicio. */
 </script>
 
 
@@ -2835,7 +2835,7 @@ v12Register=async function(ctrl,date,selId,turno=''){
 };
 
 // ----------------------- Ajuste final de versión ----------------------
-setTimeout(async()=>{v13CleanHomeLayout();if(!document.querySelector('#page-inicio')?.classList.contains('hidden'))await renderHomeAlertsV95();},120);
+/* Inicialización V14 desactivada para evitar doble consulta de Inicio. */
 </script>
 
 
@@ -2929,7 +2929,7 @@ function v15InstallPasswordRecovery(){
 }
 async function v15ForgotPassword(){const email=document.getElementById('email')?.value?.trim();if(!email)return toast('Ingresa tu correo primero.','error');const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)return toast(error.message,'error');toast('Supabase envió el enlace de recuperación al correo indicado.','success')}
 function v15OpenPasswordChange(){document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Nueva contraseña</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><form id="v15PassForm" class="form-grid"><label class="full">Nueva contraseña<input class="field" name="p1" type="password" minlength="8" required></label><label class="full">Repetir contraseña<input class="field" name="p2" type="password" minlength="8" required></label><div class="full notice">La contraseña no se muestra ni se almacena en el dashboard. Se actualiza directamente en Supabase Auth.</div><div class="full"><button class="btn primary">Actualizar contraseña</button></div></form></div></div>`;document.getElementById('v15PassForm').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));if(f.p1!==f.p2)return toast('Las contraseñas no coinciden.','error');const {error}=await sb.auth.updateUser({password:f.p1});if(error)return toast(error.message,'error');try{await sb.from('perfiles').update({debe_cambiar_password:false}).eq('id',state.session.user.id)}catch(_){ }closeModal();toast('Contraseña actualizada','success')}}
-sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(v15OpenPasswordChange,250)});
+/* El listener de recuperación se instala una sola vez en el núcleo de arranque V15.23. */
 
 // ----------- Centro de notificaciones -----------
 function v15InstallBell(){if(document.getElementById('v15NotifyBtn'))return;const b=document.createElement('button');b.id='v15NotifyBtn';b.className='v15-notify-btn hidden';b.innerHTML='🔔<span id="v15NotifyCount" class="v15-notify-count hidden">0</span>';b.onclick=v15OpenNotifications;document.body.appendChild(b)}
@@ -3000,7 +3000,7 @@ openSyncProfileModal=function(uid,email){_openSyncProfileModalV15Base(uid,email)
 async function v15AdminSendRecovery(email){if(!isAdmin())return;const ok=confirm(`¿Enviar enlace de recuperación de contraseña a ${email}?`);if(!ok)return;const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)return toast(error.message,'error');await v15Notify('Recuperación de contraseña solicitada',`Se envió un enlace de recuperación a ${email}`,'normal',null);toast('Correo de recuperación solicitado a Supabase','success')}
 const _loadUsersV15Base=loadUsers;
 loadUsers=async function(){await _loadUsersV15Base();if(!isAdmin())return;document.querySelectorAll('#usersTable tbody tr').forEach(tr=>{const email=tr.children?.[1]?.textContent?.trim();const cell=tr.lastElementChild;if(!email||!cell||cell.querySelector('.v15-reset-pass'))return;const b=document.createElement('button');b.className='btn v15-reset-pass';b.style.marginLeft='6px';b.textContent='Restablecer contraseña';b.onclick=()=>v15AdminSendRecovery(email);cell.appendChild(b)})};
-setTimeout(()=>{v15InstallPasswordRecovery();v15InstallBell();if(state.session)v15LoadNotifications();},250);
+/* Instalación diferida heredada desactivada; showApp V15.23 la realiza una vez. */
 </script>
 
 
@@ -3241,7 +3241,7 @@ const _renderAllV151Base=renderAll;
 renderAll=function(){_renderAllV151Base();setTimeout(()=>{v151InstallMobileNav();v151UpdateMobileNav();v151RemoveWrongMeta(document.getElementById('page-turnos'));v151RemoveWrongMeta(document.getElementById('page-solicitudes'))},80)};
 const _showAppV151Base=showApp;
 showApp=function(){_showAppV151Base();setTimeout(v151InstallMobileNav,80)};
-setTimeout(()=>{v151InstallMobileNav();if(state.session){renderHomeAlertsV95?.()}},300);
+/* Inicialización móvil heredada desactivada; applyPermissions V15.23 la centraliza. */
 </script>
 
 
@@ -3772,12 +3772,7 @@ showApp=function(){
     renderHomeAlertsV95?.();
   },120);
 };
-setTimeout(()=>{
-  v152MobileFix();
-  v152BindHomeRefresh();
-  v152PlaceBell();
-  if(state.session)renderHomeAlertsV95?.();
-},350);
+/* Inicialización V15.2 desactivada para evitar carreras de renderizado. */
 </script>
 
 
@@ -4227,7 +4222,7 @@ const _v154ShowApp=showApp;showApp=function(){_v154ShowApp();v154UpdateLoginMode
 v15ForgotPassword=async function(){const email=document.getElementById('email')?.value?.trim();if(!email)return toast('Ingresa tu correo primero.','error');const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:V154_PUBLIC_URL+'?recovery=1'});if(error)return toast(error.message,'error');toast('Se envió el enlace de recuperación a tu correo.','success')}
 v15AdminSendRecovery=async function(email){if(!isAdmin())return;if(!confirm(`¿Enviar enlace de recuperación a ${email}?`))return;const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:V154_PUBLIC_URL+'?recovery=1'});if(error)return toast(error.message,'error');toast('Enlace de recuperación enviado.','success')}
 async function v154HandleRecovery(){const u=new URL(location.href);if(u.searchParams.get('recovery')==='1'||location.hash.includes('type=recovery'))setTimeout(v15OpenPasswordChange,500)}
-sb.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')setTimeout(v15OpenPasswordChange,250)});setTimeout(v154HandleRecovery,400);
+/* Recuperación delegada al arranque consolidado; evita dos modales y dos sesiones compitiendo. */
 
 const V154_MODULE_ORDER=['inicio','preventivo','correctivo','equipos','vehiculos','dotacion','turnos','solicitudes','liderazgo','contrato','sistema','usuarios'];
 const V154_LABELS={inicio:'Inicio',preventivo:'Preventivo',correctivo:'Correctivo',equipos:'Equipos',vehiculos:'Vehículos',dotacion:'Dotación',turnos:'Turnos y Novedades',solicitudes:'Solicitudes',liderazgo:'Liderazgo en Terreno',contrato:'Administración del Contrato',sistema:'Sistema',usuarios:'Usuarios'};
@@ -5757,7 +5752,7 @@ function v157RemoveContractHeader(){
   });
 }
 const v157HeaderObserver=new MutationObserver(()=>requestAnimationFrame(v157RemoveContractHeader));
-setTimeout(()=>v157HeaderObserver.observe(document.getElementById('appView')||document.body,{childList:true,subtree:true}),200);
+/* Observación continua retirada; el encabezado final se construye directamente. */
 
 /* =========================================================
    2. USUARIO ABAJO IZQUIERDA + MENÚ
@@ -8717,7 +8712,7 @@ v1512Version=v1513Version;v1511Version=v1513Version;v1510Version=v1513Version;v1
 /* Hooks finales */
 const _v1513RenderAll=renderAll;
 renderAll=function(){_v1513RenderAll();setTimeout(()=>{v1513NormalizeUI();const nav=document.querySelector('[data-page="solicitudes"]');if(nav)nav.classList.remove('hidden')},220)};
-setTimeout(v1513NormalizeUI,250);
+/* Normalizador histórico V15.13 desactivado. */
 /* V15.18: normalizador histórico V15.13 desactivado */
 </script>
 <!-- ================================================================== -->
@@ -9748,7 +9743,7 @@ v1517Version=v1518Version;v1516Version=v1518Version;v1515Version=v1518Version;v1
 
 /* Render final, idempotente. */
 const _v1518RenderAllBase=renderAll;renderAll=function(){_v1518RenderAllBase();applyPermissionsV11();v1518Version();v1518DecorateSidebar();v1518BuildMobileNav();v1517CleanTurnActions?.();v1518ArrangeCorrectivo();v1514SetGlobalHeader?.(v1514ActivePage())};
-setTimeout(()=>{if(state.session){applyPermissionsV11();v1518Version()}},0);
+/* Bootstrap V15.18 desactivado; V15.23 es el único bootstrap visual. */
 
 
 
@@ -9948,7 +9943,7 @@ v15LoadNotifications=async function(){if(!state.session)return;try{let r=await s
 v154GoNotification=async function(id,module){const n=(state.v15Notifications||[]).find(x=>String(x.id)===String(id));if(module==='solicitudes'&&n?.referencia_id){const q=await sb.from('solicitudes_v15').select('estado,etapa').eq('id',n.referencia_id).maybeSingle();if(!q.error&&q.data&&(['aprobada','rechazada','cancelada','anulada'].includes(q.data.estado)||q.data.etapa==='finalizada')){await sb.from('notificaciones_v15').update({resuelta:true,descartada:true,leida:true,resuelta_at:new Date().toISOString(),leida_at:new Date().toISOString(),resolucion:'solicitud finalizada'}).eq('id',id);closeModal();await v15LoadNotifications();toast('Esta solicitud ya fue finalizada.','info');return}}await sb.from('notificaciones_v15').update({leida:true,leida_at:new Date().toISOString()}).eq('id',id);closeModal();v1519Navigate(module);await v15LoadNotifications()};
 v1517NotifyHR=async function(data){const q=await sb.rpc('asignar_rrhh_solicitud_v1519',{p_id:String(data.id)});if(q.error)throw q.error;return q.data};
 const _v1519RequestActionsBase=v1517RequestActions;v1517RequestActions=function(x){const uid=String(state.session?.user?.id||''),role=v11Role(),pending=x.estado==='pendiente'&&(x.etapa||'aprobador')==='aprobador',assigned=String(x.aprobador_user_id||'')===uid||(!x.aprobador_user_id&&role==='administrador'&&x.solicitante_rol!=='administrador'),rrhh=x.estado==='pendiente_rrhh'&&x.etapa==='rrhh'&&role==='recursos_humanos'&&(!x.rrhh_user_id||String(x.rrhh_user_id)===uid);let out='';if(pending&&assigned)out+=`<button class="btn primary" onclick="v1517ApproveRequest('${x.id}')">Aprobar</button><button class="btn" onclick="v1517RejectRequest('${x.id}')">Rechazar</button>`;if(rrhh)out+=`<button class="btn primary" onclick="v1517HrSignRequest('${x.id}')">Firmar RR.HH.</button>`;const own=String(x.solicitante_user_id||'')===uid;if(own&&x.estado==='pendiente'&&(x.etapa||'aprobador')==='aprobador')out+=`<button class="btn" onclick="v1518CancelRequest('${x.id}')">Cancelar mi solicitud</button>`;return out};
-const _v1519VacationDataBase=v1517VacationReceiptData;v1517VacationReceiptData=async function(id){const r=await _v1519VacationDataBase(id);try{const d=await sb.from('dotacion_contrato').select('nombre,rut,cargo,user_id').eq('user_id',r.solicitante_user_id).maybeSingle();if(!d.error&&d.data){r.solicitante_rut=d.data.rut||'';r.solicitante_cargo=d.data.cargo||'';if(!r.perfiles?.nombre&&d.data.nombre)r.perfiles={...(r.perfiles||{}),nombre:d.data.nombre}}}catch(_){}return r};
+const _v1519VacationDataBase=v1517VacationReceiptData;v1517VacationReceiptData=async function(id){const r=await _v1519VacationDataBase(id);try{const [d,p]=await Promise.all([sb.from('dotacion_contrato').select('nombre,rut,cargo,user_id').eq('user_id',r.solicitante_user_id).maybeSingle(),sb.from('perfiles').select('id,nombre,email,rol').eq('id',r.solicitante_user_id).maybeSingle()]);if(!p.error&&p.data)r.perfiles={...(r.perfiles||{}),...p.data};if(!d.error&&d.data){r.solicitante_rut=d.data.rut||'';r.solicitante_cargo=d.data.cargo||'';if(!r.perfiles?.nombre&&d.data.nombre)r.perfiles={...(r.perfiles||{}),nombre:d.data.nombre}}if(!r.perfiles?.email&&String(r.solicitante_user_id)===String(state.session?.user?.id)&&state.session?.user?.email)r.perfiles={...(r.perfiles||{}),email:state.session.user.email}}catch(_){}return r};
 v1517VacationPdf=function(r){const C=ensurePdf(),doc=new C({unit:'mm',format:'a4'});installCorporatePdfV95(doc,'Comprobante de Vacaciones','Solicitud finalizada · Tres firmas');doc.autoTable({startY:35,theme:'grid',styles:{fontSize:9,textColor:[25,31,40]},body:[['Trabajador',r.perfiles?.nombre||'Nombre no registrado'],['RUT',r.solicitante_rut||'RUT no registrado'],['Cargo / perfil',r.solicitante_cargo||v1519RoleLabel(r.perfiles?.rol||'')||'Cargo no registrado'],['Inicio',fmtDateCL(r.fecha_inicio)],['Término',fmtDateCL(r.fecha_fin)],['Estado','APROBADA'],['Comentario',r.comentario||'']]});let y=doc.lastAutoTable.finalY+10;const boxes=[{x:14,w:55,label:'Solicitante',name:r.perfiles?.nombre||'',sig:r.firma_solicitante},{x:77.5,w:55,label:v1519RoleLabel(r.aprobador_rol||'Aprobador'),name:r.aprobador_nombre||'',sig:r.firma_aprobador},{x:141,w:55,label:'Recursos Humanos',name:r.rrhh_nombre||'',sig:r.firma_rrhh}];boxes.forEach(b=>{doc.setTextColor(25,31,40);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(b.label,b.x,y);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(b.name||'Nombre no registrado',b.x,y+4,{maxWidth:b.w});doc.rect(b.x,y+7,b.w,32);if(b.sig)try{doc.addImage(b.sig,'PNG',b.x+3,y+10,b.w-6,25)}catch(_){}});return doc};
 async function v1519EmailStatus(modulo,ref){const q=await sb.from('email_envios_v1518').select('*').eq('modulo',modulo).eq('referencia_id',String(ref)).order('created_at',{ascending:false}).limit(1);return q.error?null:q.data?.[0]||null}
 const _v1519RenderRequestsBase=renderSolicitudesV15;renderSolicitudesV15=async function(){await _v1519RenderRequestsBase();const p=document.getElementById('page-solicitudes');if(!p)return;for(const card of p.querySelectorAll('.v152-request-card')){const idx=[...p.querySelectorAll('.v152-request-card')].indexOf(card),r=(state.v154Requests||[])[idx];if(!r||r.tipo!=='vacaciones'||r.estado!=='aprobada')continue;const st=await v1519EmailStatus('vacaciones',r.id),div=document.createElement('div');div.className='wide v1518-email-status';if(st?.estado==='enviado')div.innerHTML=`✅ Correo enviado a ${esc(st.destinatario)} · ${st.enviado_at?new Date(st.enviado_at).toLocaleString('es-CL'):''}`;else div.innerHTML=`⚠️ Correo no enviado${st?.ultimo_error?' · '+esc(st.ultimo_error):''} <button class="btn" onclick="v1519RetryVacationEmail('${r.id}')">Reintentar envío</button>`;card.appendChild(div)}};
@@ -10043,7 +10038,7 @@ const V1519_CHANGES=[['Preventivo','Rango Desde/Hasta único, Gantt sincronizada
 const _v1519SystemChangesBase=renderSistema;renderSistema=function(){_v1519SystemChangesBase();const p=document.getElementById('page-sistema');if(!p)return;p.querySelectorAll('.v1513-changes,.v1514-changes,.v1515-changes,.v1516-changes,.v1517-changes,.v1518-changes,.v1519-changes').forEach(x=>x.remove());[...p.querySelectorAll('.panel')].forEach(x=>{if(/Últimas modificaciones/i.test(x.textContent||''))x.remove()});const d=document.createElement('details');d.className='panel v1513-changes v1519-changes';d.innerHTML=`<summary>Últimas modificaciones · ${V1519_VERSION}</summary><div class="v1513-changes-body"><div class="v1513-version-meta"><span>Versión actual: ${V1519_VERSION}</span><span>Actualización: ${V1519_DATE}</span></div>${V1519_CHANGES.map(([g,t])=>`<div class="v1513-change-group"><b>${esc(g)}</b><small>${esc(t)}</small></div>`).join('')}</div>`;p.prepend(d);v1519Version()};
 
 /* Un solo bootstrap final; todo lo anterior queda como librería histórica inactiva. */
-setTimeout(()=>{if(state.session){applyPermissionsV11();v1519Version()}},0);
+/* Bootstrap V15.19 desactivado; V15.23 es el único bootstrap visual. */
 </script>
 
 <style id="v1520-clean-styles">
@@ -10171,7 +10166,7 @@ const _v1520SystemRenderer=renderSistema;renderSistema=async function(){await _v
 
 /* Dispatcher final: un único punto activo para los módulos recompilados. */
 v1519RenderModule=function(pg){if(pg==='inicio')renderInicio?.();else if(pg==='preventivo')renderPreventivo();else if(pg==='correctivo')renderCorrectivoShell?.();else if(pg==='equipos')renderEquipos?.();else if(pg==='vehiculos')renderStandaloneVehiculos?.();else if(pg==='dotacion')renderStandaloneDotacion?.();else if(pg==='turnos')renderTurnosV15();else if(pg==='solicitudes')renderSolicitudesV15();else if(pg==='liderazgo')renderLiderazgoV95?.();else if(pg==='contrato')renderContrato();else if(pg==='sistema')renderSistema?.();else if(pg==='usuarios')renderUsuarios?.()};
-setTimeout(()=>{if(state.session){v1520Version();applyPermissionsV11?.()}},0);
+/* Bootstrap V15.20 desactivado; V15.23 es el único bootstrap visual. */
 </script>
 
 
@@ -10258,8 +10253,7 @@ renderSistema=async function(){
 </script>
 
 <script id="v1520-bootstrap">
-/* ÚNICO ARRANQUE V15.21: recuperación se procesa antes del inicio normal. */
-v1515Bootstrap();
+/* El arranque se difiere hasta que el núcleo consolidado V15.23 esté instalado. */
 </script>
 
 
@@ -10324,8 +10318,463 @@ function v1521Identity(){document.querySelectorAll('.login-brand p,.brand-subtit
 
 /* Evita duplicidad visual de tabs Correctivo y normaliza responsive final */
 function v1521Polish(){v1521Version();v1521EnsureAccountActions();v1521Identity();const p=document.getElementById('page-correctivo');if(p){const blocks=[...p.querySelectorAll('.v1519-corr-tabs,.v1516-corr-top-tabs,.v1518-corr-actions')];blocks.slice(1).forEach(x=>x.remove())}}
-const _v1521Dispatch=v1519RenderModule;v1519RenderModule=function(pg){const r=_v1521Dispatch(pg);setTimeout(v1521Polish,80);return r};setTimeout(v1521Polish,120);
+const _v1521Dispatch=v1519RenderModule;v1519RenderModule=function(pg){const r=_v1521Dispatch(pg);setTimeout(v1521Polish,80);return r};
 </script>
 
+<style id="v1522-consolidated-style">
+/* V15.22: capa responsiva única y no destructiva */
+html,body{max-width:100%;overflow-x:hidden}main,.content,.page{min-width:0;max-width:100%}
+.page{padding-bottom:calc(118px + env(safe-area-inset-bottom,0px))!important}
+#page-correctivo .v1519-filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;align-items:end!important}
+#page-correctivo .v1519-filter-grid label{min-width:0!important;margin:0!important}
+#page-correctivo .v1519-filter-grid .field{width:100%!important;min-width:0!important;box-sizing:border-box!important}
+.vehicle-card,.inventory-grid,.v1519-inventory-details,.v1519-inventory-body,.v1519-inventory-row{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.v1519-inventory-row{grid-template-columns:minmax(0,1fr) minmax(100px,150px)!important;align-items:center!important;gap:10px!important}
+.v1519-inventory-row .field{min-width:0!important;width:100%!important;font-size:14px!important;line-height:1.25!important;white-space:normal!important;text-overflow:ellipsis!important}
+.v1519-inventory-state{font-size:13px!important;line-height:1.25!important;overflow-wrap:anywhere!important;text-align:left!important}
+.v1519-inventory-details summary{font-size:16px!important;gap:8px!important}.v1519-inventory-details summary small{font-size:12px!important}
+.v1522-home-shifts{display:grid;gap:14px;margin-top:12px}.v1522-home-group{min-width:0}.v1522-home-group h4{margin:0 0 8px;color:var(--text)}
+.v1522-home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}.v1522-home-person{min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:#0d141b}.v1522-home-person b{display:block;overflow-wrap:anywhere}.v1522-home-person small{color:var(--muted)}
+.v1522-manager{margin-top:2px}.v1522-manager.hidden{display:none!important}
+.notice.error{overflow-wrap:anywhere}
+@media(max-width:760px){
+  #page-correctivo .v1519-filter-grid{grid-template-columns:1fr!important;gap:10px!important}
+  .vehicle-fields{grid-template-columns:1fr!important}.vehicle-fields label,.vehicle-fields input{font-size:14px!important}
+  .v1519-inventory-row{grid-template-columns:1fr!important}.v1519-inventory-row .field{font-size:13px!important;padding:9px 10px!important}.v1519-inventory-state{font-size:12px!important}
+  .v1522-home-grid{grid-template-columns:1fr!important}
+}
+</style>
+<script id="v1522-consolidated-core">
+const V1522_VERSION='V15.22',V1522_DATE='30-08-2026';
+function v1522Version(){document.title=`Stainher App ${V1522_VERSION}`;document.querySelectorAll('.v151-mobile-title small,.v1514-global-meta span:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child').forEach(x=>{if(/V15\./.test(x.textContent||''))x.textContent=(x.textContent||'').replace(/V15\.\d+(?:\.\d+)*/g,V1522_VERSION)})}
+v1521Version=v1522Version;v1520Version=v1522Version;v1519Version=v1522Version;
+
+/* Inicio: agrupación estable A/C y jerarquía Supervisor → Técnicos → APR. */
+renderInicio=async function(){
+  const p=document.getElementById('page-inicio');if(!p||!state.session)return;
+  if(typeof renderHomeBaseV1514==='function')await renderHomeBaseV1514();
+  let host=p.querySelector('.v1521-home-turn');if(host)host.remove();host=document.createElement('section');host.className='panel v1521-home-turn';host.innerHTML='<h3>Personal de turno hoy</h3><div class="muted">Cargando programación actual…</div>';p.appendChild(host);
+  try{
+    const today=v1520DateIso(new Date()),[dq,mq,eq]=await Promise.all([
+      sb.from('dotacion_contrato').select('user_id,nombre,cargo,estado,aplica_turnos,orden').eq('estado','activo').eq('aplica_turnos',true),
+      sb.from('turnos_malla_v1512').select('user_id,turno_base').eq('fecha',today),
+      sb.from('turnos_novedades_v15').select('user_id,tipo').lte('fecha_inicio',today).gte('fecha_fin',today)
+    ]);if(dq.error||mq.error||eq.error)throw(dq.error||mq.error||eq.error);
+    const shifts=new Map((mq.data||[]).map(x=>[String(x.user_id),x.turno_base])),abs=new Set((eq.data||[]).filter(x=>['vacaciones','licencia_medica','permiso','falta'].includes(x.tipo)).map(x=>String(x.user_id)));
+    const priority=c=>/supervisor/i.test(c||'')?0:/prevencion|apr/i.test(c||'')?2:1;
+    const people=(dq.data||[]).filter(x=>['A','C'].includes(shifts.get(String(x.user_id)))&&!abs.has(String(x.user_id))).sort((a,b)=>priority(a.cargo)-priority(b.cargo)||(Number(a.orden)||999)-(Number(b.orden)||999)||String(a.nombre).localeCompare(String(b.nombre),'es'));
+    const group=t=>people.filter(x=>shifts.get(String(x.user_id))===t);
+    host.innerHTML=`<div class="row-between"><div><h3>Personal de turno hoy</h3><div class="muted">${v1520Date(today)} · actualización automática</div></div><button class="btn" onclick="v1519Navigate('turnos')">Ver programación</button></div><div class="v1522-home-shifts">${['A','C'].map(t=>`<section class="v1522-home-group"><h4>Turno ${t} · ${group(t).length}</h4><div class="v1522-home-grid">${group(t).map(x=>`<div class="v1522-home-person"><b>${esc(x.nombre)}</b><small>${/supervisor/i.test(x.cargo||'')?'Supervisor':/prevencion|apr/i.test(x.cargo||'')?'APR':'Técnico'}</small></div>`).join('')||'<div class="empty">Sin personal disponible.</div>'}</div></section>`).join('')}</div>`;
+  }catch(e){host.innerHTML=`<h3>Personal de turno hoy</h3><div class="notice error">No se pudo cargar la programación: ${esc(e.message||String(e))}</div>`}
+  v1522Version();v1521EnsureAccountActions?.();
+};
+
+/* Solicitudes: Administrador selecciona exactamente un Gerente activo. */
+async function v1522Managers(){const q=await sb.from('perfiles').select('id,nombre,email').eq('activo',true).ilike('rol','gerente').order('nombre');if(q.error)throw q.error;return q.data||[]}
+v154RequestModal=async function(){
+  if(!state.session)return;const today=v1520DateIso(new Date()),preview=!!state.v15PreviewRole,admin=String(v11Role?.()||'').toLowerCase()==='administrador';let managers=[];try{if(admin)managers=await v1522Managers()}catch(e){return toast('No se pudieron cargar los Gerentes activos: '+(e.message||e),'error')}
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Nueva solicitud</h3><button class="btn" onclick="closeModal()">Cerrar</button></div>${preview?'<div class="notice warn">Modo simulación: no se permiten escrituras.</div>':''}${admin&&!managers.length?'<div class="notice error">No existe un Gerente activo. Las vacaciones del Administrador no podrán enviarse hasta configurar uno.</div>':''}<form id="v1522ReqForm" class="form-grid"><label class="full">Tipo<select class="field" name="tipo" required><option value="">Seleccionar</option><option value="vacaciones">Vacaciones</option><option value="permiso">Permiso / ausencia</option><option value="cambio_turno">Cambio puntual de turno</option><option value="otro">Otra solicitud</option></select></label><label class="full v1522-manager hidden">Solicitar autorización a<select class="field" name="aprobador_user_id"><option value="">Seleccionar Gerente</option>${managers.map(x=>`<option value="${x.id}">${esc(x.nombre)}</option>`).join('')}</select></label><label class="full hidden" data-other>Asunto<input class="field" name="asunto" maxlength="120"></label><label data-date>Desde<input class="field" name="fecha_inicio" type="date" min="${today}"></label><label data-date>Hasta<input class="field" name="fecha_fin" type="date" min="${today}"></label><label class="full">Motivo / descripción<textarea class="field" name="comentario" rows="4" required></textarea></label><div class="full hidden" data-sign><h4>Firma del solicitante</h4><canvas id="v1522ReqSig" class="v12-signature" width="1000" height="220"></canvas><div class="v154-signature-state">Firma pendiente</div></div><div class="full"><button class="btn primary" type="submit">Enviar solicitud</button></div></form></div></div>`;
+  const f=document.getElementById('v1522ReqForm'),sync=()=>{const other=f.tipo.value==='otro',vac=f.tipo.value==='vacaciones',choose=admin&&vac;f.querySelector('[data-other]').classList.toggle('hidden',!other);f.asunto.required=other;f.querySelectorAll('[data-date]').forEach(x=>x.classList.toggle('hidden',other));f.fecha_inicio.required=!other;f.fecha_fin.required=!other;f.querySelector('[data-sign]').classList.toggle('hidden',!vac);f.querySelector('.v1522-manager').classList.toggle('hidden',!choose);f.aprobador_user_id.required=choose;if(vac){v12SetupSig?.('v1522ReqSig');v154InstallSignatureFullscreen?.('v1522ReqSig','Firma solicitud de vacaciones')}};f.tipo.onchange=sync;
+  f.onsubmit=async e=>{
+    e.preventDefault();if(preview)return toast('Modo simulación: inicia sesión con el usuario real para guardar.','warn');const o=Object.fromEntries(new FormData(f));if(o.tipo!=='otro'&&(!o.fecha_inicio||!o.fecha_fin||o.fecha_inicio>o.fecha_fin))return toast('Rango de fechas no válido','error');if(admin&&o.tipo==='vacaciones'&&!o.aprobador_user_id)return toast('Selecciona el Gerente que autorizará la solicitud','error');if(o.tipo==='vacaciones'&&!V12_SIG?.v1522ReqSig)return toast('Debes firmar la solicitud de vacaciones','error');if(o.tipo==='vacaciones')o.firma_solicitante=v12SigData('v1522ReqSig');const submit=f.querySelector('[type="submit"]');if(submit.disabled)return;submit.disabled=true;submit.textContent='Enviando…';
+    let data;try{data=await v1520CreateOwnRequest(o)}catch(error){v1523RecordError('solicitudes/creación',error);toast('No se pudo guardar la solicitud: '+(error.message||String(error)),'error');if(document.body.contains(submit)){submit.disabled=false;submit.textContent='Enviar solicitud'}return}
+    if(admin&&o.tipo==='vacaciones'){
+      try{const assignment=await sb.rpc('seleccionar_aprobador_solicitud_v1522',{p_id:data.id,p_aprobador_id:o.aprobador_user_id});if(assignment.error)throw assignment.error;if(!assignment.data?.id)throw new Error('La asignación no devolvió la solicitud confirmada.');data=assignment.data}
+      catch(error){v1523RecordError('solicitudes/asignación',error);try{await v1517ResolveRequestNotifications(data.id,'pendiente de asignación de Gerente')}catch(cleanupError){v1523RecordError('solicitudes/limpieza avisos',cleanupError)}closeModal();try{await renderSolicitudesV15()}catch(renderError){v1523RecordError('solicitudes/recarga',renderError)}try{await v15LoadNotifications?.()}catch(counterError){v1523RecordError('solicitudes/contador',counterError)}toast('La solicitud quedó guardada, pero falta confirmar el Gerente. No la repitas: usa “Asignar / reenviar Gerente” en la solicitud.','warn');return}
+    }
+    const warnings=[];if(!(admin&&o.tipo==='vacaciones')){try{await v15Notify('Nueva solicitud',`${state.profile?.nombre||state.session.user.email} · ${v152RequestLabel?.(o.tipo)||o.tipo}`,'importante',data.aprobador_user_id,'solicitudes',data.id)}catch(error){warnings.push('aviso');v1523RecordError('solicitudes/notificación',error)}}closeModal();try{await renderSolicitudesV15()}catch(error){warnings.push('recarga');v1523RecordError('solicitudes/recarga',error)}try{await v15LoadNotifications?.()}catch(error){warnings.push('contador');v1523RecordError('solicitudes/contador',error)}
+    const target=admin&&o.tipo==='vacaciones'?'Gerente seleccionado':'aprobador asignado';toast(warnings.length?`Solicitud guardada para el ${target}; pendiente: ${warnings.join(', ')}. No la vuelvas a crear.`:`Solicitud enviada al ${target}`,warnings.length?'warn':'success');
+  };
+};v152RequestModal=v154RequestModal;v15VacationModal=v154RequestModal;
+
+/* RR.HH.: restaura RPC requerida y notifica solo al asignado. */
+v1517NotifyHR=async function(data){const q=await sb.rpc('asignar_rrhh_solicitud_v1519',{p_id:String(data.id)});if(q.error)throw q.error;if(!q.data?.rrhh_user_id)throw new Error('La asignación no devolvió un usuario de Recursos Humanos.');return q.data};
+
+/* Comprobante final: utiliza exclusivamente el servicio central de correo. */
+v1517FinalizeHR=async function(id){
+  if(!V12_SIG?.v1517HrSig)return toast('Debes firmar la validación de Recursos Humanos.','error');
+  try{
+    const d=await v1517RpcResolve(id,'firmar_rrhh',null,v12SigData('v1517HrSig'));
+    await v1517ResolveRequestNotifications(id,'vacaciones finalizadas');
+    const r=await v1517VacationReceiptData(id),doc=v1517VacationPdf(r),pdf=doc.output('datauristring').split(',')[1],file=`Comprobante_Vacaciones_${String(r.perfiles?.nombre||'trabajador').replace(/\s+/g,'_')}_${r.fecha_inicio}.pdf`;
+    let mailed=true;try{await v1519SendEmail({to:r.perfiles?.email,toName:r.perfiles?.nombre||'',cc:r.aprobador_email?[r.aprobador_email]:[],subject:`Comprobante de vacaciones · ${fmtDateCL(r.fecha_inicio)} al ${fmtDateCL(r.fecha_fin)}`,htmlContent:`<h2>Vacaciones aprobadas</h2><p>Se adjunta el comprobante final con las tres firmas.</p>`,pdfBase64:pdf,pdfName:file,modulo:'vacaciones',referencia_id:r.id})}catch(e){mailed=false;console.warn('correo vacaciones',e)}
+    doc.save(file);await v15Notify('Vacaciones aprobadas',`${fmtDateCL(r.fecha_inicio)} al ${fmtDateCL(r.fecha_fin)} · comprobante finalizado`,'normal',d.solicitante_user_id,'solicitudes',d.id);closeModal();await renderSolicitudesV15();toast(mailed?'Vacaciones finalizadas y comprobante enviado':'Vacaciones finalizadas; el correo quedó pendiente de reintento',mailed?'success':'warn');
+  }catch(e){toast(e.message||String(e),'error')}
+};
+
+/* Correo: error legible, preservando detalle técnico en trazabilidad. */
+const _v1522SendEmail=v1519SendEmail;v1519SendEmail=async function(args){try{return await _v1522SendEmail(args)}catch(e){const raw=e?.context?.statusText||e?.message||String(e);throw new Error(`No fue posible enviar el correo. Verifica la configuración del servicio y vuelve a intentar. Detalle: ${raw}`)}};v1518SendEmail=v1519SendEmail;
+
+/* Pulido final después de cada render, sin reactivar capas antiguas. */
+function v1522Polish(){v1522Version();document.querySelectorAll('.mobile-bottom-nav,.v151-mobile-bottom').forEach(x=>x.setAttribute('aria-label','Navegación principal'));const p=document.getElementById('page-correctivo');if(p){const tabs=[...p.querySelectorAll('.v1519-corr-tabs')];tabs.slice(1).forEach(x=>x.remove())}}
+const _v1522Dispatch=v1519RenderModule;v1519RenderModule=function(pg){const out=_v1522Dispatch(pg);setTimeout(v1522Polish,60);return out};
+</script>
+<style id="v1523-profile-audit-style">
+.v1523-audit-table{width:100%;border-collapse:collapse;min-width:880px}.v1523-audit-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.v1523-audit-table th,.v1523-audit-table td{padding:8px;border-bottom:1px solid var(--line);font-size:11px;text-align:center}.v1523-audit-table th:first-child,.v1523-audit-table td:first-child{position:sticky;left:0;background:#101821;text-align:left;z-index:2}.v1523-perm-edit{color:#86efac;font-weight:800}.v1523-perm-view{color:#93c5fd}.v1523-perm-none{color:#64748b}.v1523-test-list{display:grid;gap:7px;margin-top:12px}.v1523-test{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:9px}.v1523-test.ok{border-color:rgba(34,197,94,.45)}.v1523-test.bad{border-color:rgba(239,68,68,.55)}
+.v1523-page-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.v1523-read-field{display:flex;align-items:center;min-height:42px;white-space:normal!important;overflow-wrap:anywhere}.v1523-vehicle-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.v1523-empty-group{padding:12px;color:var(--muted)}.v1523-users-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) minmax(180px,280px);gap:10px;margin-bottom:14px}.v1523-users-mobile{display:none}.v1523-user-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0d141b}.v1523-user-card h4{margin:0 0 4px}.v1523-user-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.v1523-lead-kpis{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}.v1523-lead-actions{display:flex;gap:8px;flex-wrap:wrap}.v1523-dot-summary{margin-bottom:14px}
+#page-vehiculos .vehicle-card{font-size:13px;overflow:hidden}#page-vehiculos .vehicle-card h3{font-size:18px;overflow-wrap:anywhere}#page-vehiculos .mini-stat b{font-size:14px;overflow-wrap:anywhere}#page-vehiculos .mini-stat small,#page-vehiculos .vehicle-fields label{font-size:11px}#page-vehiculos .inline-input,#page-vehiculos .inline-select,#page-vehiculos .v1519-inventory-row .field{font-size:13px!important;line-height:1.25!important}#page-vehiculos .v1519-inventory-details summary{font-size:14px!important}#page-vehiculos .v1519-inventory-details summary small,#page-vehiculos .v1519-inventory-state{font-size:11px!important}
+#page-correctivo .v1519-filter-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important}#page-correctivo .v1519-filter-grid label,#page-correctivo .v1519-filter-grid .field{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+@media(max-width:760px){.v1523-users-toolbar{grid-template-columns:1fr}.v1523-users-desktop{display:none}.v1523-users-mobile{display:grid;gap:10px}.v1523-page-actions{width:100%}.v1523-page-actions .btn{flex:1 1 auto}.v1523-vehicle-actions .btn{flex:1 1 150px}.v1523-read-field{font-size:13px!important;padding:9px 10px!important}#page-vehiculos .vehicle-card{padding:13px!important}#page-vehiculos .vehicle-card h3{font-size:16px!important}#page-vehiculos .mini-stat{padding:10px!important}#page-vehiculos .mini-stat b{font-size:13px!important}#page-vehiculos .inline-input,#page-vehiculos .inline-select,#page-vehiculos .v1519-inventory-row .field{font-size:13px!important;padding:8px 9px!important;min-height:40px!important}#page-vehiculos .v1519-inventory-details summary{font-size:13px!important;padding:10px 11px!important}#page-correctivo .v1519-filter-grid{grid-template-columns:1fr!important;gap:10px!important}}
+</style>
+<script id="v1523-profile-audit-core">
+const V1523_VERSION='V15.23',V1523_DATE='30-08-2026';
+const V1523_MODULES=['inicio','preventivo','correctivo','equipos','vehiculos','dotacion','turnos','solicitudes','liderazgo','contrato','sistema','usuarios'];
+const V1523_DEFAULTS={
+ administrador:{inicio:'editar',preventivo:'editar',correctivo:'editar',equipos:'editar',vehiculos:'editar',dotacion:'editar',turnos:'editar',solicitudes:'editar',liderazgo:'editar',contrato:'editar',sistema:'editar',usuarios:'editar'},
+ gerente:{inicio:'ver',preventivo:'ver',correctivo:'ver',equipos:'ver',vehiculos:'ver',dotacion:'ver',turnos:'ver',solicitudes:'editar',liderazgo:'ver',contrato:'ver',sistema:'ver',usuarios:'ninguno'},
+ recursos_humanos:{inicio:'ver',preventivo:'ninguno',correctivo:'ninguno',equipos:'ninguno',vehiculos:'ninguno',dotacion:'ver',turnos:'ver',solicitudes:'editar',liderazgo:'ninguno',contrato:'ninguno',sistema:'ver',usuarios:'ninguno'},
+ planificador:{inicio:'ver',preventivo:'editar',correctivo:'editar',equipos:'editar',vehiculos:'ver',dotacion:'ver',turnos:'editar',solicitudes:'editar',liderazgo:'ver',contrato:'ver',sistema:'ninguno',usuarios:'ninguno'},
+ confiabilidad:{inicio:'ver',preventivo:'ver',correctivo:'editar',equipos:'ver',vehiculos:'ver',dotacion:'ver',turnos:'ver',solicitudes:'editar',liderazgo:'editar',contrato:'ver',sistema:'ninguno',usuarios:'ninguno'},
+ prevencion:{inicio:'ver',preventivo:'ver',correctivo:'ver',equipos:'ver',vehiculos:'editar',dotacion:'editar',turnos:'editar',solicitudes:'editar',liderazgo:'editar',contrato:'ninguno',sistema:'ninguno',usuarios:'ninguno'},
+ apr:{inicio:'ver',preventivo:'ver',correctivo:'ninguno',equipos:'ver',vehiculos:'ver',dotacion:'ver',turnos:'ver',solicitudes:'editar',liderazgo:'editar',contrato:'ninguno',sistema:'ninguno',usuarios:'ninguno'},
+ supervisor:{inicio:'ver',preventivo:'ver',correctivo:'ver',equipos:'ver',vehiculos:'ver',dotacion:'ver',turnos:'ver',solicitudes:'editar',liderazgo:'editar',contrato:'ninguno',sistema:'ninguno',usuarios:'ninguno'},
+ tecnico:{inicio:'ver',preventivo:'ver',correctivo:'ver',equipos:'ver',vehiculos:'ver',dotacion:'ver',turnos:'ver',solicitudes:'editar',liderazgo:'ver',contrato:'ninguno',sistema:'ninguno',usuarios:'ninguno'},
+ consulta:{inicio:'ver',preventivo:'ver',correctivo:'ver',equipos:'ver',vehiculos:'ver',dotacion:'ver',turnos:'ninguno',solicitudes:'ninguno',liderazgo:'ver',contrato:'ver',sistema:'ninguno',usuarios:'ninguno'}
+};
+function v1523InstallDefaults(){for(const [role,perms] of Object.entries(V1523_DEFAULTS))V11_DEFAULTS[role]={...perms}}
+v1523InstallDefaults();
+function v1523Version(){document.title=`Stainher App ${V1523_VERSION}`;document.querySelectorAll('.v151-mobile-title small,.v1514-global-meta span:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child').forEach(x=>{if(/V15\./.test(x.textContent||''))x.textContent=(x.textContent||'').replace(/V15\.\d+(?:\.\d+)*/g,V1523_VERSION)})}
+v1522Version=v1523Version;v1521Version=v1523Version;v1520Version=v1523Version;v1519Version=v1523Version;v1518Version=v1523Version;v1517Version=v1523Version;v1516Version=v1523Version;v1515Version=v1523Version;v1514Version=v1523Version;v1513Version=v1523Version;v1512Version=v1523Version;v1511Version=v1523Version;v1510Version=v1523Version;v159Version=v1523Version;v158UpdateVersionLabels=v1523Version;
+
+/* Correo directo: un solo Edge Function, trazabilidad y error accionable. */
+async function v1523EmailLog(row){try{await sb.from('email_envios_v1518').insert(row)}catch(e){v1523RecordError('correo/trazabilidad',e)}}
+async function v1523EmailErrorDetail(error){let raw=error?.message||String(error);try{const response=error?.context;if(response&&typeof response.clone==='function'){const payload=await response.clone().json(),provider=payload?.detail?.message||payload?.detail?.error||payload?.detail?.code||payload?.detail,own=payload?.error;if(typeof provider==='string'&&provider.trim())raw=provider.trim();else if(provider&&typeof provider==='object')raw=JSON.stringify(provider);else if(typeof own==='string'&&own.trim())raw=own.trim()}}catch(_){}return raw}
+v1519SendEmail=async function({to,toName='',cc=[],subject='Stainher App',htmlContent='',pdfBase64=null,pdfName=null,modulo='general',referencia_id=null,testMode=null}){
+  const recipient=String(typeof to==='string'?to:(to?.email||'')).trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient))throw new Error('El destinatario no tiene un correo válido.');const copies=[...new Set((Array.isArray(cc)?cc:[cc]).map(x=>String(typeof x==='string'?x:(x?.email||'')).trim()).filter(x=>x&&x!==recipient))],safeTestMode=testMode===true||!!state.v15PreviewRole,body={to:recipient,toName:toName||(typeof to==='object'?(to?.name||''):''),cc:copies,subject:String(subject||'Stainher App'),htmlContent:String(htmlContent||''),pdfBase64:pdfBase64||null,pdfName:pdfName||null,testMode:safeTestMode,intendedTo:recipient},baseLog={modulo,referencia_id:referencia_id?String(referencia_id):null,asunto:safeTestMode?`[MODO PRUEBA] ${body.subject}`:body.subject,enviado_por:state.session?.user?.id};
+  try{const result=await sb.functions.invoke('send-stainher-email',{body});if(result.error)throw result.error;if(result.data?.ok===false)throw new Error(result.data?.error||'El proveedor rechazó el envío.');const delivered=result.data?.deliveredTo||recipient;await v1523EmailLog({...baseLog,destinatario:delivered,estado:'enviado',message_id:result.data?.messageId||null});return result.data}
+  catch(error){const raw=await v1523EmailErrorDetail(error),delivered=safeTestMode?(state.profile?.email||state.session?.user?.email||recipient):recipient;await v1523EmailLog({...baseLog,destinatario:delivered,estado:'error',ultimo_error:raw});throw new Error(`No fue posible enviar el correo. Verifica send-stainher-email y Brevo. Detalle: ${raw}`)}
+};v1518SendEmail=v1519SendEmail;
+
+/* Notificaciones directas: Solicitudes nunca admite destinatario genérico. */
+v15Notify=async function(title,msg,priority='normal',uid=null,module=null,ref=null){if(module==='solicitudes'&&!uid)throw new Error('La notificación de Solicitudes no tiene un destinatario asignado.');const q=await sb.from('notificaciones_v15').insert({titulo:title,mensaje:msg,prioridad:priority,destinatario_user_id:uid||null,created_by:state.session?.user?.id,modulo_destino:module||null,referencia_id:ref||null});if(q.error)throw q.error;return true};
+v15LoadNotifications=async function(){
+  if(!state.session)return[];
+  const uid=String(state.session.user.id),base=()=>sb.from('notificaciones_v15').select('*').or(`destinatario_user_id.is.null,destinatario_user_id.eq.${uid}`).eq('descartada',false).eq('resuelta',false).order('created_at',{ascending:false}).limit(60);
+  let result=await base();if(result.error)throw result.error;
+  const requestNotices=(result.data||[]).filter(x=>x.modulo_destino==='solicitudes'&&x.referencia_id);
+  if(requestNotices.length){
+    const refs=[...new Set(requestNotices.map(x=>String(x.referencia_id)))],requests=await sb.from('solicitudes_v15').select('id,estado,etapa').in('id',refs);
+    if(!requests.error){
+      const closed=new Set((requests.data||[]).filter(x=>['aprobada','rechazada','cancelada','anulada'].includes(x.estado)||x.etapa==='finalizada').map(x=>String(x.id))),ids=requestNotices.filter(x=>closed.has(String(x.referencia_id))).map(x=>x.id);
+      if(ids.length){const update=await sb.from('notificaciones_v15').update({resuelta:true,descartada:true,leida:true,resuelta_at:new Date().toISOString(),leida_at:new Date().toISOString(),resolucion:'solicitud finalizada'}).in('id',ids);if(update.error)v1523RecordError('notificaciones/cierre',update.error);result=await base();if(result.error)throw result.error}
+    }
+  }
+  /* Los avisos históricos sin destinatario pueden seguir existiendo, pero nunca se muestran como Solicitudes. */
+  state.v15Notifications=(result.data||[]).filter(x=>x.modulo_destino!=='solicitudes'||String(x.destinatario_user_id||'')===uid);
+  const unread=state.v15Notifications.filter(x=>!x.leida).length,button=document.getElementById('v15NotifyBtn'),count=document.getElementById('v15NotifyCount');button?.classList.remove('hidden');if(count){count.textContent=String(unread);count.classList.toggle('hidden',!unread)}return state.v15Notifications;
+};
+
+/* Capacidad por perfil: los permisos personalizados siguen prevaleciendo para módulos. */
+v1518Can=function(module,action='view'){
+  if(action==='view')return canViewV11(module);if(action==='edit')return canEditV11(module);
+  const role=String(v11Role?.()||'consulta').toLowerCase(),type=v1517ProfileType?.(role);
+  const fallback={request_create:!['consulta'].includes(role),leadership_participate:['administrador','planificador','supervisor','prevencion','apr','tecnico','confiabilidad'].includes(role),turnos_participate:['supervisor','tecnico','prevencion','apr'].includes(role),approve_admin:role==='gerente',hr_sign:role==='recursos_humanos',reliability_email:['administrador','confiabilidad'].includes(role)};
+  if(action==='request_create'&&type)return type.puede_solicitar!==false;
+  if(action==='leadership_participate'&&type)return type.participa_liderazgo!==false;
+  if(action==='turnos_participate'&&type)return type.participa_turnos===true;
+  if(action==='approve_admin'&&type)return type.aprueba_administrador===true;
+  return !!fallback[action];
+};
+v1517CanCreateRequest=function(){return !!state.session&&canViewV11('solicitudes')&&v1518Can('solicitudes','request_create')};
+canPlan=function(){return v1520CanEdit('preventivo')||v1520CanEdit('correctivo')||v1520CanEdit('equipos')};
+v1520Planner=function(){return v1520CanEdit('preventivo')&&['administrador','planificador'].includes(String(v11Role?.()||''))};
+v15CanMobileCorrective=function(){return v1520CanEdit('correctivo')&&['administrador','planificador','confiabilidad'].includes(String(v11Role?.()||''))};
+const _v1523OpenCorrectiveMobile=v15OpenCorrectiveMobile;v15OpenCorrectiveMobile=async function(...args){if(!v15CanMobileCorrective())return toast('Correctivo está en modo solo lectura.','error');return _v1523OpenCorrectiveMobile(...args)};
+const _v1523ImportAverias=openImportAveriasModal;openImportAveriasModal=function(...args){if(!v1520CanEdit('correctivo'))return toast('Correctivo está en modo solo lectura.','error');return _v1523ImportAverias(...args)};
+const _v1523ImportPlan=openImportPlanModal;openImportPlanModal=function(...args){if(!v1520Planner())return toast('La importación del Plan Matriz requiere permiso de programación preventiva.','error');return _v1523ImportPlan(...args)};
+const _v1523OpenPerson=openPersonModal;openPersonModal=function(...args){if(!v1520CanEdit('dotacion'))return toast('Dotación está en modo solo lectura.','error');return _v1523OpenPerson(...args)};
+const _v1523VehicleModal=v1518VehicleModal;v1518VehicleModal=function(...args){if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');return _v1523VehicleModal(...args)};
+const _v1523DeactivateVehicle=v1518DeactivateVehicle;v1518DeactivateVehicle=function(...args){if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');return _v1523DeactivateVehicle(...args)};
+const _v1523UpdateInventory=updateVehicleInventory;updateVehicleInventory=async function(...args){if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');return _v1523UpdateInventory(...args)};
+const _v1523OpenEp=openEpModal;openEpModal=function(...args){if(!v1520CanEdit('contrato'))return toast('Contrato está en modo solo lectura.','error');return _v1523OpenEp(...args)};
+const _v1523OpenReemb=openReembModal;openReembModal=function(...args){if(!v1520CanEdit('contrato'))return toast('Contrato está en modo solo lectura.','error');return _v1523OpenReemb(...args)};
+const _v1523OpenGuarantee=openGuaranteeModal;openGuaranteeModal=function(...args){if(!v1520CanEdit('contrato'))return toast('Contrato está en modo solo lectura.','error');return _v1523OpenGuarantee(...args)};
+const _v1523EditEdp=v1512EditEdp;v1512EditEdp=function(...args){if(!v1520CanEdit('contrato'))return toast('Contrato está en modo solo lectura.','error');return _v1523EditEdp(...args)};
+const _v1523EditReemb=v1512EditReemb;v1512EditReemb=function(...args){if(!v1520CanEdit('contrato'))return toast('Contrato está en modo solo lectura.','error');return _v1523EditReemb(...args)};
+const _v1523OpenUser=openUserModal;openUserModal=function(...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');return _v1523OpenUser(...args)};
+const _v1523EditUser=openEditUserModal;openEditUserModal=function(...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');return _v1523EditUser(...args)};
+const _v1523SyncProfile=openSyncProfileModal;openSyncProfileModal=function(...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');return _v1523SyncProfile(...args)};
+const _v1523AdminRecovery=v15AdminSendRecovery;v15AdminSendRecovery=function(...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');return _v1523AdminRecovery(...args)};
+
+function v1523PermClass(v){return v==='editar'?'v1523-perm-edit':v==='ver'?'v1523-perm-view':'v1523-perm-none'}
+function v1523MatrixHtml(){const roles=Object.keys(V1523_DEFAULTS);return `<div class="v1523-audit-wrap"><table class="v1523-audit-table"><thead><tr><th>Perfil</th>${V1523_MODULES.map(m=>`<th>${esc(V1518_MODULES?.[m]?.label||m)}</th>`).join('')}</tr></thead><tbody>${roles.map(r=>`<tr><td><b>${esc(v1519RoleLabel(r))}</b></td>${V1523_MODULES.map(m=>{const v=V1523_DEFAULTS[r][m];return `<td class="${v1523PermClass(v)}" title="${esc(v)}">${v==='editar'?'Editar':v==='ver'?'Ver':'—'}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`}
+function v1523RunProfileAudit(){
+  const tests=[],add=(name,ok,detail)=>tests.push({name,ok:!!ok,detail});
+  for(const [role,perms] of Object.entries(V1523_DEFAULTS))add(`${v1519RoleLabel(role)} · matriz completa`,V1523_MODULES.every(m=>['ninguno','ver','editar'].includes(perms[m])),`Los ${V1523_MODULES.length} módulos tienen un nivel válido.`);
+  add('Núcleo · arranque único',!!window.__v1523BootPromise&&state.v1523LegacyObserversDisabled===true,'La sesión inicia después del núcleo final y sin observadores heredados activos.');
+  add('Renderizadores · cobertura total',typeof V1523_DIRECT_RENDERERS!=='undefined'&&V1523_MODULES.every(m=>V1523_DIRECT_RENDERERS.has(m)),'Los 12 módulos usan el despacho consolidado V15.23.');
+  add('Solicitudes · recuperación sin duplicar',typeof v1523AssignManagerModal==='function'&&typeof v1523RetryHR==='function'&&typeof v1523RequestLock==='function','Gerente y RR.HH. se reasignan sobre el mismo registro con aviso único.');
+  add('Formularios · envío único',state.v1523FormObserverActive===true&&typeof v1523FormSubmitLock==='function','Un supervisor final bloquea reenvíos sin alterar el contenido de los formularios.');
+  add('Modo simulación · sin escritura',typeof v1520CanEdit==='function'&&v1520CanEdit.toString().includes('!state.v15PreviewRole'),'Vehículos, Dotación, Contrato, Preventivo y acciones administrativas respetan la barrera de simulación.');
+  add('Administrador · control total',V1523_MODULES.every(m=>V1523_DEFAULTS.administrador[m]==='editar'),'Edita todos los módulos.');
+  add('Gerente · aprobación asignada',V1523_DEFAULTS.gerente.solicitudes==='editar'&&V1523_DEFAULTS.gerente.usuarios==='ninguno','Aprueba solicitudes dirigidas a su usuario sin administrar cuentas.');
+  add('RR.HH. · tercera firma',V1523_DEFAULTS.recursos_humanos.solicitudes==='editar'&&V1523_DEFAULTS.recursos_humanos.dotacion==='ver','Finaliza vacaciones y consulta la dotación.');
+  add('Planificador · programación',V1523_DEFAULTS.planificador.preventivo==='editar'&&V1523_DEFAULTS.planificador.turnos==='editar','Gestiona Plan Matriz y malla.');
+  add('Confiabilidad · mantenimiento',V1523_DEFAULTS.confiabilidad.correctivo==='editar'&&V1523_DEFAULTS.confiabilidad.liderazgo==='editar','Gestiona Correctivo, informes y controles autorizados.');
+  add('Prevención · operación',V1523_DEFAULTS.prevencion.dotacion==='editar'&&V1523_DEFAULTS.prevencion.liderazgo==='editar','Gestiona dotación operacional y Liderazgo.');
+  add('APR · liderazgo',V1523_DEFAULTS.apr.liderazgo==='editar'&&V1523_DEFAULTS.apr.correctivo==='ninguno','Ejecuta controles sin administrar Correctivo.');
+  add('Supervisor · ejecución',V1523_DEFAULTS.supervisor.liderazgo==='editar'&&V1523_DEFAULTS.supervisor.turnos==='ver','Ejecuta Liderazgo y consulta la malla publicada.');
+  add('Técnico · lectura protegida',V1523_DEFAULTS.tecnico.liderazgo==='ver'&&V1523_DEFAULTS.tecnico.liderazgo!=='editar','No hereda acciones de edición de Liderazgo.');
+  add('Consulta · sin flujos operativos',V1523_DEFAULTS.consulta.turnos==='ninguno'&&V1523_DEFAULTS.consulta.solicitudes==='ninguno','No participa en Turnos ni Solicitudes.');
+  add('Permisos instalados · sin pérdida',Object.keys(V1523_DEFAULTS).every(r=>V11_DEFAULTS[r]&&V1523_MODULES.every(m=>V11_DEFAULTS[r][m]===V1523_DEFAULTS[r][m])),'La matriz activa coincide con la base consolidada.');
+  const box=document.getElementById('v1523AuditResults');if(box)box.innerHTML=`<div class="notice ${tests.every(x=>x.ok)?'success':'error'}"><b>${tests.filter(x=>x.ok).length}/${tests.length} comprobaciones correctas</b></div><div class="v1523-test-list">${tests.map(x=>`<div class="v1523-test ${x.ok?'ok':'bad'}"><b>${x.ok?'✓':'✕'}</b><div><strong>${esc(x.name)}</strong><div class="muted">${esc(x.detail)}</div></div></div>`).join('')}</div>`;return tests;
+}
+function v1523AuditPanel(){return `<section class="panel v1519-system-full" id="v1523ProfileAudit"><div class="row-between"><div><h3>Auditoría funcional por perfil · ${V1523_VERSION}</h3><div class="muted">Matriz base. Los permisos personalizados de usuarios concretos permanecen vigentes.</div></div><button class="btn primary" onclick="v1523RunProfileAudit()">Ejecutar comprobaciones</button></div><div style="margin-top:12px">${v1523MatrixHtml()}</div><div id="v1523AuditResults"></div></section>`}
+const V1523_CHANGES=[
+ ['Núcleo','Arranque y renderizado directos; temporizadores y observadores heredados ya no compiten con la capa final.'],
+ ['Perfiles','10 perfiles, 12 módulos y permisos personalizados preservados.'],
+ ['Solicitudes','Gerente y RR.HH. con asignación/aviso transaccional, recuperación sobre el mismo registro y correo central.'],
+ ['Inicio','Alertas y próximos hitos restaurados; turnos A/C agrupados y ordenados.'],
+ ['Seguridad','Las acciones sensibles vuelven a comprobar el permiso efectivo antes de escribir.'],
+ ['Estabilidad','Control de carreras, bloqueo de reenvíos, avisos sin difusión y diagnóstico de errores/promesas.'],
+ ['Responsive','Filtros alineados, tipografía vehicular reducida y tarjetas sin desbordes.']
+];
+
+/* Diagnóstico central: evita rechazos silenciosos y conserva trazabilidad local. */
+state.v1523Diagnostics=state.v1523Diagnostics||[];
+function v1523RecordError(scope,error){const msg=String(error?.message||error||'Error desconocido'),key=`${scope}|${msg}`;if(state.v1523Diagnostics.some(x=>x.key===key))return;state.v1523Diagnostics.unshift({key,scope,msg,at:new Date().toISOString()});state.v1523Diagnostics=state.v1523Diagnostics.slice(0,30);console.error(`[${scope}]`,error)}
+if(!window.__v1523ErrorMonitor){window.__v1523ErrorMonitor=true;window.addEventListener('error',e=>v1523RecordError('global',e.error||e.message));window.addEventListener('unhandledrejection',e=>{v1523RecordError('promesa',e.reason);e.preventDefault()})}
+
+/* Sesión/perfil sin cadenas de wrappers heredadas. */
+loadProfile=async function(){
+  if(!state.session?.user?.id)throw new Error('No existe una sesión autenticada.');
+  const q=await sb.from('perfiles').select('*').eq('id',state.session.user.id).single();if(q.error)throw q.error;if(!q.data||q.data.activo===false){await sb.auth.signOut();state.session=null;state.profile=null;throw new Error('Tu acceso a Stainher App está deshabilitado.')}
+  state.profile=q.data;try{await v1517LoadProfileTypes?.(true)}catch(e){v1523RecordError('tipos de perfil',e)}v1523InstallDefaults();
+  const un=document.getElementById('userName'),ur=document.getElementById('userRole');if(un)un.textContent=q.data.nombre||state.session.user.email;if(ur)ur.textContent=v1519RoleLabel(q.data.rol);applyPermissionsV11();v1523Version();return q.data;
+};
+showLogin=function(){document.getElementById('appView')?.classList.add('hidden');document.getElementById('loginView')?.classList.remove('hidden');v156SetLoginMode?.(true);v154UpdateLoginMode?.()};
+showApp=async function(){document.getElementById('loginView')?.classList.add('hidden');document.getElementById('appView')?.classList.remove('hidden');v156SetLoginMode?.(false);v154UpdateLoginMode?.();v15InstallPasswordRecovery?.();v15InstallBell?.();v1521EnsureAccountActions?.();await renderAll();v15LoadNotifications?.().catch?.(e=>v1523RecordError('notificaciones',e));if(state.profile?.debe_cambiar_password)setTimeout(()=>v15OpenPasswordChange?.(),250)};
+
+/* Inicio directo: alertas/hitos + disponibilidad del día. */
+renderInicio=async function(){
+  const p=document.getElementById('page-inicio');if(!p||!state.session)return;
+  p.innerHTML=`<div class="topbar"><div><h2>Inicio</h2><p>Alertas, próximos hitos, recordatorios y personal de turno del día.</p></div></div><div class="panel v153-home-alert-panel"><div id="homeImpactAlerts"><div class="empty">Cargando alertas…</div></div></div><section class="panel v1521-home-turn"><h3>Personal de turno hoy</h3><div class="muted">Cargando programación actual…</div></section>`;
+  Promise.resolve(renderHomeAlertsV95?.()).catch(e=>{v1523RecordError('inicio/alertas',e);const b=document.getElementById('homeImpactAlerts');if(b)b.innerHTML='<div class="notice error">No fue posible cargar las alertas.</div>'});
+  const host=p.querySelector('.v1521-home-turn');try{const today=v1520DateIso(new Date()),[dq,mq,eq]=await Promise.all([sb.from('dotacion_contrato').select('user_id,nombre,cargo,estado,aplica_turnos,orden').eq('estado','activo').eq('aplica_turnos',true),sb.from('turnos_malla_v1512').select('user_id,turno_base').eq('fecha',today),sb.from('turnos_novedades_v15').select('user_id,tipo').lte('fecha_inicio',today).gte('fecha_fin',today)]);if(dq.error||mq.error||eq.error)throw(dq.error||mq.error||eq.error);const shifts=new Map((mq.data||[]).map(x=>[String(x.user_id),x.turno_base])),abs=new Set((eq.data||[]).filter(x=>['vacaciones','licencia_medica','permiso','falta'].includes(x.tipo)).map(x=>String(x.user_id))),priority=c=>/supervisor/i.test(c||'')?0:/prevencion|apr/i.test(c||'')?2:1,people=(dq.data||[]).filter(x=>['A','C'].includes(shifts.get(String(x.user_id)))&&!abs.has(String(x.user_id))).sort((a,b)=>priority(a.cargo)-priority(b.cargo)||(Number(a.orden)||999)-(Number(b.orden)||999)||String(a.nombre).localeCompare(String(b.nombre),'es')),group=t=>people.filter(x=>shifts.get(String(x.user_id))===t);host.innerHTML=`<div class="row-between"><div><h3>Personal de turno hoy</h3><div class="muted">${v1520Date(today)} · actualización automática</div></div>${canViewV11('turnos')?'<button class="btn" onclick="v1519Navigate(\'turnos\')">Ver programación</button>':''}</div><div class="v1522-home-shifts">${['A','C'].map(t=>`<section class="v1522-home-group"><h4>Turno ${t} · ${group(t).length}</h4><div class="v1522-home-grid">${group(t).map(x=>`<div class="v1522-home-person"><b>${esc(x.nombre)}</b><small>${/supervisor/i.test(x.cargo||'')?'Supervisor':/prevencion|apr/i.test(x.cargo||'')?'APR':'Técnico'}</small></div>`).join('')||'<div class="empty">Sin personal disponible.</div>'}</div></section>`).join('')}</div>`}catch(e){v1523RecordError('inicio/turnos',e);host.innerHTML='<h3>Personal de turno hoy</h3><div class="notice error">No fue posible cargar la programación actual.</div>'}v1523Version();
+};
+
+/* Solicitudes directo: una consulta, una carga de estados de correo y acciones exactas. */
+async function v1523AssignManagerModal(id){
+  if(String(v11Role?.()||'')!=='administrador'||state.v15PreviewRole)return toast('Solo el Administrador real puede asignar el Gerente.','error');
+  const row=(state.v154Requests||[]).find(x=>String(x.id)===String(id));if(!row||row.tipo!=='vacaciones'||row.estado!=='pendiente')return toast('La solicitud ya no admite cambio de Gerente.','warn');
+  let managers;try{managers=await v1522Managers()}catch(error){return toast('No se pudieron cargar los Gerentes: '+(error.message||String(error)),'error')}if(!managers.length)return toast('No existe un Gerente activo para asignar.','error');
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Asignar Gerente</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><div class="notice">Se cerrará cualquier aviso anterior de esta solicitud y se enviará uno solo al Gerente seleccionado.</div><form id="v1523AssignManager" class="form-grid"><label class="full">Solicitar autorización a<select class="field" name="aprobador_user_id" required><option value="">Seleccionar Gerente</option>${managers.map(x=>`<option value="${x.id}" ${String(x.id)===String(row.aprobador_user_id||'')?'selected':''}>${esc(x.nombre)}</option>`).join('')}</select></label><div class="full"><button class="btn primary" type="submit">Asignar y enviar aviso</button></div></form></div></div>`;
+  const form=document.getElementById('v1523AssignManager');form.onsubmit=e=>{e.preventDefault();const managerId=form.aprobador_user_id.value;if(!managerId)return;v1523RequestLock(`asignar:${id}`,async()=>{
+    try{const q=await sb.rpc('seleccionar_aprobador_solicitud_v1522',{p_id:id,p_aprobador_id:managerId});if(q.error)throw q.error;if(!q.data?.id)throw new Error('La asignación no devolvió la solicitud confirmada.')}catch(error){v1523RecordError('solicitudes/asignación',error);toast('No se pudo asignar el Gerente: '+(error.message||String(error)),'error');return}
+    const warnings=[];closeModal();try{await renderSolicitudesV15()}catch(error){warnings.push('recarga');v1523RecordError('solicitudes/recarga',error)}try{await v15LoadNotifications?.()}catch(error){warnings.push('contador');v1523RecordError('solicitudes/contador',error)}
+    if(!warnings.length)toast('Gerente asignado y aviso único enviado','success');else toast(`Gerente asignado y aviso único enviado; pendiente: ${warnings.join(', ')}.`,'warn');
+  })};
+}
+async function v1523RetryHR(id){
+  if(state.v15PreviewRole)return toast('Modo simulación: inicia sesión con el aprobador real.','warn');const row=(state.v154Requests||[]).find(x=>String(x.id)===String(id)),uid=String(state.session?.user?.id||'');if(!row||row.tipo!=='vacaciones'||row.estado!=='pendiente_rrhh'||String(row.aprobador_user_id||'')!==uid)return toast('Solo el aprobador asignado puede reenviar esta solicitud a RR.HH.','error');
+  return v1523RequestLock(`rrhh-asignar:${id}`,async()=>{try{await v1517NotifyHR({id})}catch(error){v1523RecordError('solicitudes/asignación rrhh',error);toast('No se pudo asignar RR.HH.: '+(error.message||String(error)),'error');return}const warnings=[];try{await renderSolicitudesV15()}catch(error){warnings.push('recarga');v1523RecordError('solicitudes/recarga',error)}try{await v15LoadNotifications?.()}catch(error){warnings.push('contador');v1523RecordError('solicitudes/contador',error)}toast(warnings.length?`RR.HH. asignado y aviso único enviado; pendiente: ${warnings.join(', ')}.`:'RR.HH. asignado y aviso único enviado',warnings.length?'warn':'success')});
+}
+
+renderSolicitudesV15=async function(){
+  if(!canViewV11('solicitudes'))return;const p=document.getElementById('page-solicitudes');if(!p||!state.session)return;p.innerHTML='<div class="empty">Cargando solicitudes…</div>';const role=String(v11Role?.()||''),uid=String(state.session.user.id);let q=sb.from('solicitudes_v15').select('*,perfiles:solicitante_user_id(nombre,email,rol)').order('created_at',{ascending:false});if(role==='recursos_humanos')q=q.or(`solicitante_user_id.eq.${uid},rrhh_user_id.eq.${uid}`);else if(role!=='administrador')q=q.or(`solicitante_user_id.eq.${uid},aprobador_user_id.eq.${uid}`);const out=await q;if(out.error)throw out.error;const rows=out.data||[];state.v154Requests=rows;
+  const vacationIds=rows.filter(x=>x.tipo==='vacaciones'&&x.estado==='aprobada').map(x=>String(x.id)),personIds=[...new Set(rows.flatMap(x=>[x.aprobador_user_id,x.rrhh_user_id]).filter(Boolean).map(String))],emailPromise=vacationIds.length?sb.from('email_envios_v1518').select('referencia_id,destinatario,estado,enviado_at,ultimo_error,created_at').eq('modulo','vacaciones').in('referencia_id',vacationIds).order('created_at',{ascending:false}):Promise.resolve({data:[],error:null}),peoplePromise=personIds.length?sb.from('perfiles').select('id,nombre,rol').in('id',personIds):Promise.resolve({data:[],error:null}),[emailQ,peopleQ]=await Promise.all([emailPromise,peoplePromise]),mail=new Map(),people=new Map((peopleQ.data||[]).map(x=>[String(x.id),x]));if(emailQ.error)v1523RecordError('solicitudes/correo',emailQ.error);else for(const x of emailQ.data||[])if(!mail.has(String(x.referencia_id)))mail.set(String(x.referencia_id),x);if(peopleQ.error)v1523RecordError('solicitudes/aprobadores',peopleQ.error);
+  const canCreate=v1517CanCreateRequest?.()&&!state.v15PreviewRole,medical=['administrador','recursos_humanos'].includes(role)&&!state.v15PreviewRole;p.innerHTML=`<div class="topbar"><div></div><div class="v1523-page-actions">${canCreate?'<button class="btn primary" onclick="v154RequestModal()">+ Nueva solicitud</button>':''}${medical?'<button class="btn" onclick="v15MedicalLeaveModal()">+ Registrar licencia médica</button>':''}</div></div><div class="panel"><div class="v152-request-grid">${rows.map(x=>{const st=v1517RequestStatus?.(x)||['warn',x.estado||'Pendiente'],period=x.fecha_inicio?`${v1520Date(x.fecha_inicio)} → ${v1520Date(x.fecha_fin)}`:'Sin período',m=mail.get(String(x.id)),approver=people.get(String(x.aprobador_user_id||'')),rrhh=people.get(String(x.rrhh_user_id||'')),del=role==='administrador'?`<button class="btn danger-btn" onclick="v1521DeleteRequest('${x.id}')">Eliminar</button>`:'',assign=role==='administrador'&&x.tipo==='vacaciones'&&x.estado==='pendiente'&&String(x.solicitante_user_id||'')===uid?`<button class="btn" onclick="v1523AssignManagerModal('${x.id}')">Asignar / reenviar Gerente</button>`:'',retryHr=!state.v15PreviewRole&&x.tipo==='vacaciones'&&x.estado==='pendiente_rrhh'&&String(x.aprobador_user_id||'')===uid?`<button class="btn" onclick="v1523RetryHR('${x.id}')">Asignar / reenviar RR.HH.</button>`:'';return `<article class="v152-request-card"><div><small>Período</small><b>${period}</b></div><div><small>Persona</small><b>${esc(x.perfiles?.nombre||'')}</b></div><div><small>Tipo</small><span>${esc(v152RequestLabel?.(x.tipo)||x.tipo)}</span></div><div><small>Aprobación</small><b>${esc(approver?.nombre||v1519RoleLabel(x.aprobador_rol||'administrador'))}</b>${rrhh?`<small>RR.HH.: ${esc(rrhh.nombre)}</small>`:''}</div>${x.asunto?`<div><small>Asunto</small><b>${esc(x.asunto)}</b></div>`:''}<div class="wide"><small>Motivo / descripción</small>${esc(x.comentario||'—')}${x.motivo_rechazo?`<div class="v154-reject-reason"><b>Motivo rechazo:</b> ${esc(x.motivo_rechazo)}</div>`:''}</div><div><small>Estado</small><span class="status ${st[0]}">${esc(st[1])}</span></div><div class="v154-request-actions">${v1517RequestActions?.(x)||''}${assign}${retryHr}${del}</div>${x.tipo==='vacaciones'&&x.estado==='aprobada'?`<div class="wide v1518-email-status">${m?.estado==='enviado'?`✅ Correo enviado a ${esc(m.destinatario||'destinatario')}`:`⚠️ Correo pendiente${m?.ultimo_error?' · '+esc(m.ultimo_error):''} <button class="btn" onclick="v1519RetryVacationEmail('${x.id}')">Reintentar</button>`}</div>`:''}</article>`}).join('')||`<div class="empty">Sin solicitudes.${canCreate?' Usa “+ Nueva solicitud” para comenzar.':''}</div>`}</div></div>`;v1514SetGlobalHeader?.('solicitudes');
+};
+
+/* Resolución idempotente: una acción por solicitud y errores de aviso separados del guardado. */
+state.v1523RequestLocks=state.v1523RequestLocks||new Set();
+async function v1523RequestLock(key,task){if(state.v1523RequestLocks.has(key))return toast('Esta acción ya se está procesando.','warn');state.v1523RequestLocks.add(key);const button=document.querySelector('#modalRoot .btn.primary');if(button)button.disabled=true;try{return await task()}finally{state.v1523RequestLocks.delete(key);if(button&&document.body.contains(button))button.disabled=false}}
+async function v1523FormSubmitLock(key,task,form){if(state.v1523RequestLocks.has(key))return toast('Este formulario ya se está procesando.','warn');state.v1523RequestLocks.add(key);let button;try{const result=task();button=form?.querySelector?.('.btn.primary,[type="submit"]');if(button)button.disabled=true;return await result}finally{state.v1523RequestLocks.delete(key);if(button&&document.body.contains(button))button.disabled=false}}
+function v1523LockFormElement(form,key){const handler=form?.onsubmit;if(!form||typeof handler!=='function'||form.dataset.v1523Locked==='1')return;form.dataset.v1523Locked='1';form.onsubmit=e=>{e.preventDefault();return v1523FormSubmitLock(key,()=>handler.call(form,e),form)}}
+function v1523LockExistingForm(formId,key){return v1523LockFormElement(document.getElementById(formId),key)}
+function v1523LockModalForms(){const root=document.getElementById('modalRoot');if(!root)return;[...root.querySelectorAll('form')].forEach((form,index)=>v1523LockFormElement(form,`formulario:${form.id||index}`))}
+const v1523FormObserver=new MutationObserver(()=>queueMicrotask(v1523LockModalForms));const v1523ModalRoot=document.getElementById('modalRoot');if(v1523ModalRoot){v1523FormObserver.observe(v1523ModalRoot,{childList:true,subtree:true});v1523LockModalForms();state.v1523FormObserverActive=true}
+
+/* Los formularios administrativos conservan su interfaz y comparten un único bloqueo de envío. */
+const v1523OpenUserFormBase=openUserModal;
+openUserModal=async function(...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');const out=await v1523OpenUserFormBase(...args);v1523LockExistingForm('userFormV1517','usuarios:crear');return out};
+const v1523EditUserFormBase=openEditUserModal;
+openEditUserModal=async function(uid,...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');const out=await v1523EditUserFormBase(uid,...args);v1523LockExistingForm('editUserFormV1517',`usuarios:editar:${uid}`);return out};
+const v1523SyncUserFormBase=openSyncProfileModal;
+openSyncProfileModal=async function(uid,...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');const out=await v1523SyncUserFormBase(uid,...args);v1523LockExistingForm('syncProfileForm',`usuarios:sincronizar:${uid}`);return out};
+const v1523ProfileFormBase=v1517OpenProfileModal;
+v1517OpenProfileModal=async function(...args){if(!v15ActualAdmin?.()||state.v15PreviewRole)return toast('Usuarios está en modo solo lectura.','error');const out=await v1523ProfileFormBase(...args);v1523LockExistingForm('v1517ProfileForm','usuarios:crear-perfil');return out};
+const v1523RecoveryLockedBase=v15AdminSendRecovery;
+v15AdminSendRecovery=function(email,...args){return v1523RequestLock(`usuarios:recuperar:${String(email).toLowerCase()}`,()=>v1523RecoveryLockedBase(email,...args))};
+
+/* Vehículos y Dotación: escritura única y recarga desacoplada del commit. */
+const v1523VehicleFormBase=v1518VehicleModal;
+v1518VehicleModal=function(id=''){
+  if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');const out=v1523VehicleFormBase(id),form=document.getElementById('v1518VehicleForm');if(!form)return out;
+  form.onsubmit=e=>{e.preventDefault();const o=Object.fromEntries(new FormData(form));o.kilometraje=Number(o.kilometraje||0);o.proxima_mantencion_km=o.proxima_mantencion_km?Number(o.proxima_mantencion_km):null;o.activo=o.estado!=='baja';return v1523RequestLock(`vehiculo:${id||'nuevo'}:ficha`,async()=>{try{const q=id?await sb.from('vehiculos_contrato').update(o).eq('id',id):await sb.from('vehiculos_contrato').insert({...o,created_by:state.session.user.id});if(q.error)throw q.error}catch(error){v1523RecordError('vehículos/ficha',error);toast('No se pudo guardar el vehículo: '+(error.message||String(error)),'error');return}closeModal();state.contractDataV1516Loaded=false;try{await loadContratoData();await renderStandaloneVehiculos();toast('Vehículo guardado','success')}catch(error){v1523RecordError('vehículos/recarga',error);toast('Vehículo guardado; la recarga visual quedó pendiente.','warn')}})};return out;
+};
+v1518DeactivateVehicle=async function(id){
+  if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');if(!confirm('¿Dar de baja este vehículo? Se conservará todo su historial.'))return;
+  return v1523RequestLock(`vehiculo:${id}:baja`,async()=>{try{const q=await sb.from('vehiculos_contrato').update({activo:false,estado:'baja',updated_at:new Date().toISOString()}).eq('id',id);if(q.error)throw q.error}catch(error){v1523RecordError('vehículos/baja',error);toast('No se pudo dar de baja el vehículo: '+(error.message||String(error)),'error');return}state.contractDataV1516Loaded=false;try{await loadContratoData();await renderStandaloneVehiculos();toast('Vehículo dado de baja','success')}catch(error){v1523RecordError('vehículos/recarga',error);toast('Vehículo dado de baja; la recarga visual quedó pendiente.','warn')}});
+};
+const v1523InventoryLockedBase=updateVehicleInventory;
+updateVehicleInventory=function(id,field,...args){if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');return v1523RequestLock(`inventario:${id}:${field}`,()=>v1523InventoryLockedBase(id,field,...args))};
+const v1523PersonFormBase=openPersonModal;
+openPersonModal=function(id=''){
+  if(!v1520CanEdit('dotacion'))return toast('Dotación está en modo solo lectura.','error');const out=v1523PersonFormBase(id),form=document.getElementById('personFormV1520');if(!form)return out;
+  form.onsubmit=e=>{e.preventDefault();const o=Object.fromEntries(new FormData(form));o.aplica_turnos=o.aplica_turnos==='true';o.licencia_camino_industrial=form.licencia_camino_industrial.checked;o.licencia_rajo=form.licencia_rajo.checked;o.licencia_mina_subterranea=form.licencia_mina_subterranea.checked;const hasLicense=o.licencia_camino_industrial||o.licencia_rajo||o.licencia_mina_subterranea;o.estado_licencia_interna=hasLicense?'ACTIVA':'NO REGISTRA';o.clase_licencia_interna=null;if(!hasLicense)o.fecha_exp_licencia_interna=null;['supervisor_nombre','rut','fecha_nacimiento','fecha_exp_licencia_interna','fecha_exp_documento','fecha_exp_examen','fecha_exp_induccion','fecha_exp_psicosensometrico','fecha_exp_manejo_defensivo','fecha_exp_areas_circulares','fecha_exp_licencia_municipal'].forEach(k=>o[k]=o[k]||null);if(o.estado==='vacante'){o.user_id=null;o.rut=null;o.fecha_nacimiento=null;o.supervisor_user_id=null;if(!o.supervisor_nombre)o.supervisor_nombre=null}return v1523RequestLock(`dotacion:${id||'nuevo'}:ficha`,async()=>{try{const q=id?await sb.from('dotacion_contrato').update(o).eq('id',id):await sb.from('dotacion_contrato').insert(o);if(q.error)throw q.error}catch(error){v1523RecordError('dotación/ficha',error);toast('No se pudo guardar la dotación: '+(error.message||String(error)),'error');return}closeModal();if(state.v1520ContractCache)state.v1520ContractCache.dotacion=undefined;try{await renderStandaloneDotacion();toast('Dotación actualizada','success')}catch(error){v1523RecordError('dotación/recarga',error);toast('Dotación actualizada; la recarga visual quedó pendiente.','warn')}})};return out;
+};
+const v1523OpenVacationApproval=v1517ApproveRequest;
+v1517ApproveRequest=function(id){
+  const row=(state.v154Requests||[]).find(x=>String(x.id)===String(id));if(!row)return toast('La solicitud ya no está disponible. Actualiza la vista.','warn');
+  if(row.tipo==='vacaciones')return v1523OpenVacationApproval(id);
+  return v1523RequestLock(`aprobar:${id}`,async()=>{try{const data=await v1517RpcResolve(id,'aprobar');await v1517AfterResolution(data,'solicitud aprobada')}catch(error){v1523RecordError('solicitudes/aprobación',error);toast('No se pudo aprobar: '+(error.message||String(error)),'error')}});
+};
+v1517RejectRequest=function(id){
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Rechazar solicitud</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><form id="v1523RejectForm"><label>Motivo del rechazo<textarea class="field" name="motivo" rows="4" required></textarea></label><div style="margin-top:12px"><button class="btn primary" type="submit">Confirmar rechazo</button></div></form></div></div>`;
+  const form=document.getElementById('v1523RejectForm');form.onsubmit=e=>{e.preventDefault();const reason=form.motivo.value.trim();if(!reason)return toast('Debes indicar el motivo del rechazo.','warn');return v1523RequestLock(`rechazar:${id}`,async()=>{try{const data=await v1517RpcResolve(id,'rechazar',reason,null);await v1517AfterResolution(data,'solicitud rechazada')}catch(error){v1523RecordError('solicitudes/rechazo',error);toast('No se pudo rechazar: '+(error.message||String(error)),'error')}})};
+};
+v1518CancelRequest=async function(id){
+  if(!confirm('¿Cancelar esta solicitud? El registro se conservará para trazabilidad.'))return;
+  return v1523RequestLock(`cancelar:${id}`,async()=>{
+    try{const q=await sb.rpc('cancelar_solicitud_propia_v1518',{p_id:String(id)});if(q.error)throw q.error}catch(error){v1523RecordError('solicitudes/cancelación',error);toast('No se pudo cancelar: '+(error.message||String(error)),'error');return}
+    const warnings=[];try{await v1517ResolveRequestNotifications(id,'solicitud cancelada')}catch(error){warnings.push('cierre de avisos');v1523RecordError('solicitudes/cierre avisos',error)}try{await renderSolicitudesV15()}catch(error){warnings.push('recarga');v1523RecordError('solicitudes/recarga',error)}try{await v15LoadNotifications?.()}catch(error){warnings.push('contador');v1523RecordError('solicitudes/contador',error)}toast(warnings.length?'Solicitud cancelada; una tarea auxiliar quedó pendiente.':'Solicitud cancelada',warnings.length?'warn':'success');
+  });
+};
+v1521DeleteRequest=async function(id){
+  if(String(v11Role?.()||'')!=='administrador'||state.v15PreviewRole)return toast('Solo el Administrador real puede eliminar solicitudes.','error');if(!confirm('¿Eliminar esta solicitud? También se limpiarán sus notificaciones asociadas.'))return;
+  return v1523RequestLock(`eliminar:${id}`,async()=>{
+    try{const q=await sb.rpc('admin_eliminar_solicitud',{p_solicitud_id:id});if(q.error)throw q.error}catch(error){v1523RecordError('solicitudes/eliminación',error);toast('No se pudo eliminar: '+(error.message||String(error)),'error');return}
+    const warnings=[];try{await renderSolicitudesV15()}catch(error){warnings.push('recarga');v1523RecordError('solicitudes/recarga',error)}try{await v15LoadNotifications?.()}catch(error){warnings.push('contador');v1523RecordError('solicitudes/contador',error)}toast(warnings.length?'Solicitud eliminada; la actualización visual quedó pendiente.':'Solicitud eliminada',warnings.length?'warn':'success');
+  });
+};
+const v1523RetryVacationEmail=v1519RetryVacationEmail;
+v1519RetryVacationEmail=function(id){return v1523RequestLock(`correo:${id}`,()=>v1523RetryVacationEmail(id))};
+v1517AfterResolution=async function(data,label){
+  let auxiliaryError=null;
+  try{await v1517ResolveRequestNotifications(data.id,label)}catch(e){auxiliaryError=e;v1523RecordError('solicitudes/cierre avisos',e)}
+  if(data.estado==='pendiente_rrhh'){try{await v1517NotifyHR(data)}catch(e){auxiliaryError=e;v1523RecordError('solicitudes/rrhh',e)}}
+  else{try{await v15Notify(`Solicitud ${data.estado==='aprobada'?'aprobada':'rechazada'}`,`Solicitud ${data.id}`,'normal',data.solicitante_user_id,'solicitudes',data.id)}catch(e){auxiliaryError=e;v1523RecordError('solicitudes/aviso solicitante',e)}}
+  closeModal();try{await renderSolicitudesV15()}catch(e){auxiliaryError=e;v1523RecordError('solicitudes/recarga',e)}try{await v15LoadNotifications?.()}catch(e){auxiliaryError=e;v1523RecordError('solicitudes/contador',e)}
+  if(data.estado==='pendiente_rrhh')toast(auxiliaryError?'Aprobación guardada; una tarea auxiliar quedó pendiente y figura en Diagnóstico.':'Aprobación registrada y enviada a Recursos Humanos.',auxiliaryError?'warn':'success');
+  else toast(auxiliaryError?`Solicitud ${data.estado}; una tarea auxiliar quedó pendiente.`:`Solicitud ${data.estado==='aprobada'?'aprobada':'rechazada'}`,auxiliaryError?'warn':'success');
+};
+v1517FinalizeApprover=async function(id){if(!V12_SIG?.v1517ApproverSig)return toast('Debes firmar la aprobación.','error');return v1523RequestLock(`aprobar:${id}`,async()=>{try{const d=await v1517RpcResolve(id,'aprobar',null,v12SigData('v1517ApproverSig'));await v1517AfterResolution(d,'aprobación jerárquica completada')}catch(e){v1523RecordError('solicitudes/aprobación',e);toast('No se pudo aprobar: '+(e.message||String(e)),'error')}})};
+v1517FinalizeHR=function(id){
+  if(!V12_SIG?.v1517HrSig)return toast('Debes firmar la validación de RR.HH.','error');
+  return v1523RequestLock(`rrhh:${id}`,async()=>{
+    let committed;try{committed=await v1517RpcResolve(id,'firmar_rrhh',null,v12SigData('v1517HrSig'))}catch(error){v1523RecordError('solicitudes/firma rrhh',error);toast('No se pudo registrar la firma de RR.HH.: '+(error.message||String(error)),'error');return}
+    const warnings=[];
+    try{await v1517ResolveRequestNotifications(id,'vacaciones finalizadas')}catch(error){warnings.push('cierre de avisos');v1523RecordError('solicitudes/cierre avisos',error)}
+    try{
+      const receipt=await v1517VacationReceiptData(id),doc=v1517VacationPdf(receipt),pdf=doc.output('datauristring').split(',')[1],file=`Comprobante_Vacaciones_${String(receipt.perfiles?.nombre||'trabajador').replace(/\s+/g,'_')}_${receipt.fecha_inicio}.pdf`;
+      try{await v1519SendEmail({to:receipt.perfiles?.email,toName:receipt.perfiles?.nombre||'',cc:receipt.aprobador_email?[receipt.aprobador_email]:[],subject:`Comprobante de vacaciones · ${fmtDateCL(receipt.fecha_inicio)} al ${fmtDateCL(receipt.fecha_fin)}`,htmlContent:'<h2>Vacaciones aprobadas</h2><p>Se adjunta el comprobante final con las tres firmas.</p>',pdfBase64:pdf,pdfName:file,modulo:'vacaciones',referencia_id:receipt.id})}catch(error){warnings.push('correo');v1523RecordError('solicitudes/correo comprobante',error)}
+      try{doc.save(file)}catch(error){warnings.push('descarga PDF');v1523RecordError('solicitudes/descarga comprobante',error)}
+    }catch(error){warnings.push('generación de comprobante');v1523RecordError('solicitudes/comprobante',error)}
+    try{await v15Notify('Vacaciones aprobadas',`Solicitud ${committed.id} · comprobante finalizado`,'normal',committed.solicitante_user_id,'solicitudes',committed.id)}catch(error){warnings.push('aviso al solicitante');v1523RecordError('solicitudes/aviso solicitante',error)}
+    closeModal();try{await renderSolicitudesV15()}catch(error){warnings.push('recarga');v1523RecordError('solicitudes/recarga',error)}try{await v15LoadNotifications?.()}catch(error){warnings.push('contador');v1523RecordError('solicitudes/contador',error)}
+    toast(warnings.length?`Vacaciones finalizadas. Pendiente: ${[...new Set(warnings)].join(', ')}.`:'Vacaciones finalizadas, comprobante generado y correo enviado.',warnings.length?'warn':'success');
+  });
+};
+
+/* Sistema directo: no llama a ninguno de los 27 renderizadores históricos. */
+function v1523DiagnosticsHtml(){const a=state.v1523Diagnostics||[];return `<section class="panel v1519-system-full"><div class="row-between"><div><h3>Diagnóstico de ejecución</h3><div class="muted">Errores únicos detectados durante esta sesión.</div></div><span class="status ${a.length?'bad':'ok'}">${a.length?a.length+' detectado(s)':'Sin errores'}</span></div>${a.length?`<div class="v1523-test-list">${a.map(x=>`<div class="v1523-test bad"><div><strong>${esc(x.scope)}</strong><div class="muted">${esc(x.msg)}</div></div></div>`).join('')}</div>`:'<div class="notice success">No se registran errores JavaScript ni promesas rechazadas en esta sesión.</div>'}</section>`}
+renderSistema=async function(){
+  if(!canViewV11('sistema'))return;const p=document.getElementById('page-sistema');if(!p)return;v1514SetGlobalHeader?.('sistema');v1523Version();if(!isAdmin()){p.innerHTML=`<div class="panel"><h3>Sistema</h3><p class="muted">Estado general de Stainher App.</p><div class="grid-kpi"><div class="kpi"><span>Versión</span><strong>${V1523_VERSION}</strong></div><div class="kpi"><span>Correo</span><strong>Brevo</strong><small>send-stainher-email</small></div></div></div>`;return}
+  p.innerHTML=`<div class="topbar"><div></div><div class="actions"><button class="btn" onclick="renderSistema()">↻ Actualizar</button></div></div><details class="panel v1520-changes" open><summary>Últimas modificaciones · ${V1523_VERSION}</summary><div class="v1513-changes-body"><div class="v1513-version-meta"><span>Versión actual: ${V1523_VERSION}</span><span>Revisión: ${V1523_DATE}</span></div>${V1523_CHANGES.map(([g,t])=>`<div class="v1513-change-group"><b>${esc(g)}</b><small>${esc(t)}</small></div>`).join('')}</div></details><div class="storage-grid"><div class="storage-card"><h3>GitHub</h3><div class="storage-meta">${GITHUB_OWNER}/${GITHUB_REPO}</div><div id="ghSize" class="storage-value">—</div><span id="ghStatus" class="status warn">Consultando</span><div id="ghBar" class="storage-bar"><i></i></div><small id="ghPct" class="muted">—</small><small id="ghUpdated" class="muted">—</small></div><div class="storage-card"><h3>Supabase</h3><div class="system-list" style="margin-top:16px"><div class="system-stat"><span>Equipos</span><strong id="sysEq">—</strong></div><div class="system-stat"><span>Averías</span><strong id="sysAv">—</strong></div><div class="system-stat"><span>Preventivos</span><strong id="sysPrev">—</strong></div></div></div></div>${v1519SystemUsageHtml?.()||''}${v1519PreviewPanelHtml?.()||''}<section class="panel v1519-system-full"><div class="v1519-mail-row"><div><h3>Correo automático</h3><div class="muted">Servicio único: <b>send-stainher-email</b> · Brevo</div></div><span class="status ok">Configurado</span></div><div class="actions" style="margin-top:12px"><button class="btn primary" onclick="v156TestMail()">Enviar prueba</button><button class="btn" onclick="v1519LoadEmailHistory()">↻ Historial</button></div><div id="v1519MailHistory" style="margin-top:12px"></div></section>${v1523AuditPanel()}${v1523DiagnosticsHtml()}`;v1523RunProfileAudit();try{await loadSistema?.()}catch(e){v1523RecordError('sistema/métricas',e)}try{await v1519LoadEmailHistory?.()}catch(e){v1523RecordError('sistema/correo',e)}
+};
+
+/* Vehículos directo: carga única, edición por permiso y lectura realmente inerte. */
+function v1523VehicleField(label,value,type,handler,editable){const val=value??'';return `<label>${label}<input class="inline-input" type="${type}" value="${esc(val)}" ${editable?`onchange="${handler}"`:'disabled'}></label>`}
+async function v1523UpdateVehicle(id,field,value,type='text'){
+  if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');let v=value;if(type==='number')v=value===''?null:Number(value);if(type==='date')v=value||null;
+  return v1523RequestLock(`vehiculo:${id}:${field}`,async()=>{try{const q=await sb.from('vehiculos_contrato').update({[field]:v,updated_at:new Date().toISOString()}).eq('id',id);if(q.error)throw q.error}catch(error){v1523RecordError('vehículos/actualización',error);toast('No se pudo actualizar el vehículo: '+(error.message||String(error)),'error');return}const row=(state.contractData?.vehiculos||[]).find(x=>String(x.id)===String(id));if(row)row[field]=v;try{await renderStandaloneVehiculos();toast('Vehículo actualizado','success')}catch(error){v1523RecordError('vehículos/recarga',error);toast('Vehículo actualizado; la recarga visual quedó pendiente.','warn')}});
+}
+async function v1523UpdateVehicleKm(id,el){
+  if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');const km=Number(el.value)||0,today=new Date().toISOString().slice(0,10);
+  return v1523RequestLock(`vehiculo:${id}:kilometraje`,async()=>{try{const q=await sb.from('vehiculos_contrato').update({kilometraje:km,fecha_ultimo_kilometraje:today,updated_at:new Date().toISOString()}).eq('id',id);if(q.error)throw q.error}catch(error){v1523RecordError('vehículos/kilometraje',error);toast('No se pudo actualizar el kilometraje: '+(error.message||String(error)),'error');return}const row=(state.contractData?.vehiculos||[]).find(x=>String(x.id)===String(id));if(row){row.kilometraje=km;row.fecha_ultimo_kilometraje=today}try{await renderStandaloneVehiculos();toast('Kilometraje actualizado','success')}catch(error){v1523RecordError('vehículos/recarga',error);toast('Kilometraje actualizado; la recarga visual quedó pendiente.','warn')}});
+}
+openVehicleEventModal=function(vehiculoId){
+  if(!v1520CanEdit('vehiculos'))return toast('Vehículos está en modo solo lectura.','error');const v=(state.contractData?.vehiculos||[]).find(x=>String(x.id)===String(vehiculoId));document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Evento vehículo · ${esc(v?.patente||'')}</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><form id="v1523VehEvent" class="form-grid"><label>Tipo<select class="field" name="tipo"><option value="mantencion">Mantención</option><option value="falla">Falla</option><option value="reparacion">Reparación</option><option value="colision">Colisión</option><option value="inspeccion">Inspección</option></select></label><label>Fecha<input class="field" name="fecha_inicio" type="date" required></label><label>Kilometraje<input class="field" name="kilometraje" type="number"></label><label>Estado<input class="field" name="estado" value="cerrado"></label><label class="full">Detalle<textarea class="field" name="detalle" required></textarea></label><div class="full"><button class="btn primary" type="submit">Guardar evento</button></div></form></div></div>`;const form=document.getElementById('v1523VehEvent');form.onsubmit=e=>{e.preventDefault();const o=Object.fromEntries(new FormData(form));o.vehiculo_id=vehiculoId;o.kilometraje=o.kilometraje?Number(o.kilometraje):null;return v1523RequestLock(`vehiculo:${vehiculoId}:evento`,async()=>{try{const q=await sb.from('vehiculo_eventos').insert(o);if(q.error)throw q.error}catch(error){v1523RecordError('vehículos/evento',error);toast('No se pudo registrar el evento: '+(error.message||String(error)),'error');return}closeModal();try{await renderStandaloneVehiculos();toast('Evento registrado','success')}catch(error){v1523RecordError('vehículos/recarga',error);toast('Evento registrado; la recarga visual quedó pendiente.','warn')}})};
+};
+function v1523VehicleInventory(v,cat,title,editable){
+  const rows=(state.contractData?.vehInventario||[]).filter(x=>String(x.vehiculo_id)===String(v.id)&&x.categoria===cat),opts=V1519_INV_ITEMS?.[cat]||[];
+  return `<details class="v1519-inventory-details"><summary><span>${esc(title)}</span><small>${rows.length} elemento${rows.length===1?'':'s'}</small></summary><div class="v1519-inventory-body">${rows.map(x=>`<div class="v1519-inventory-row">${editable?`<select class="field" onchange="updateVehicleInventory('${x.id}','elemento',this.value,'text')">${[...new Set([x.elemento,...opts].filter(Boolean))].map(o=>`<option value="${esc(o)}" ${String(o)===String(x.elemento)?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<div class="field v1523-read-field">${esc(x.elemento||'Sin elemento')}</div>`}<div class="v1519-inventory-state">${esc(x.estado||'Sin estado')}</div></div>`).join('')||'<div class="empty">Sin inventario cargado.</div>'}</div></details>`;
+}
+function v1523VehicleCard(v,editable){
+  const events=state.contractData?.vehEventos||[],rem=(Number(v.proxima_mantencion_km)||0)-(Number(v.kilometraje)||0),lm=typeof vehicleLastMaintenance==='function'?vehicleLastMaintenance(v,events):null,gallery=typeof vehicleGallery==='function'?vehicleGallery(v):'';
+  const status=editable?`<select class="inline-select" style="width:auto" onchange="v1523UpdateVehicle('${v.id}','estado',this.value,'text')"><option value="operativo" ${v.estado==='operativo'?'selected':''}>Operativo</option><option value="fuera_servicio" ${v.estado==='fuera_servicio'?'selected':''}>Fuera de servicio</option><option value="taller" ${v.estado==='taller'?'selected':''}>En taller</option></select>`:`<span class="status ${v.estado==='operativo'?'ok':v.estado==='fuera_servicio'?'bad':'warn'}">${esc(String(v.estado||'sin estado').replaceAll('_',' '))}</span>`;
+  return `<article class="vehicle-card">${gallery}${editable?`<div class="v1523-vehicle-actions"><button class="btn" onclick="v1518VehicleModal('${v.id}')">Editar vehículo</button><button class="btn danger-btn" onclick="v1518DeactivateVehicle('${v.id}')">Dar de baja</button></div>`:''}<div class="row-between"><div><h3>${esc(v.marca_modelo||'Vehículo')}</h3><span class="tag">${esc(v.patente||'Sin patente')}</span></div>${status}</div><div class="vehicle-summary-grid vehicle-summary-uniform-v8"><div class="mini-stat"><span>Última mantención</span><b>${lm?fmtDateCL(lm.fecha_fin||lm.fecha_inicio):'Sin registro'}</b><small class="muted">${lm?.kilometraje?Number(lm.kilometraje).toLocaleString('es-CL')+' km':''}</small></div><div class="mini-stat"><span>Kilometraje actual</span><b>${Number(v.kilometraje||0).toLocaleString('es-CL')} km</b><small class="muted">Último registro: ${v.fecha_ultimo_kilometraje?fmtDateCL(v.fecha_ultimo_kilometraje):'Sin fecha'}</small></div><div class="mini-stat"><span>Próxima mantención</span><b>${Number(v.proxima_mantencion_km||0).toLocaleString('es-CL')} km</b><small class="muted">${rem>=0?rem.toLocaleString('es-CL')+' km restantes':'Pauta sobrepasada'}</small></div><div class="mini-stat"><span>TAG Codelco</span><b>${esc(v.tag_codelco||'—')}</b><small class="muted">Interno ${esc(v.numero_interno||'—')}</small></div></div><div class="vehicle-fields">${v1523VehicleField('Kilometraje',v.kilometraje||0,'number',`v1523UpdateVehicleKm('${v.id}',this)`,editable)}${v1523VehicleField('Próx. mantención km',v.proxima_mantencion_km||'','number',`v1523UpdateVehicle('${v.id}','proxima_mantencion_km',this.value,'number')`,editable)}${v1523VehicleField('Seguro vence',v.seguro_vence||'','date',`v1523UpdateVehicle('${v.id}','seguro_vence',this.value,'date')`,editable)}${v1523VehicleField('Revisión técnica',v.revision_tecnica_vence||'','date',`v1523UpdateVehicle('${v.id}','revision_tecnica_vence',this.value,'date')`,editable)}${v1523VehicleField('Extintor vence',v.extintor_vence||'','date',`v1523UpdateVehicle('${v.id}','extintor_vence',this.value,'date')`,editable)}${v1523VehicleField('TAG Codelco',v.tag_codelco||'','text',`v1523UpdateVehicle('${v.id}','tag_codelco',this.value,'text')`,editable)}</div><div class="inventory-grid inventory-grid-uniform-v8" style="margin-top:14px">${v1523VehicleInventory(v,'invierno','Caja de Invierno',editable)}${v1523VehicleInventory(v,'emergencia','Kit de Emergencia',editable)}</div><div style="margin-top:14px">${editable?`<button class="btn" onclick="openVehicleEventModal('${v.id}')">+ Registrar mantención / falla</button>`:''}<details class="kpi-help"><summary>Historial de mantenciones y fallas</summary><div>${events.filter(e=>String(e.vehiculo_id)===String(v.id)).map(e=>`<div style="margin:7px 0"><b>${fmtDateCL(e.fecha_inicio)} · ${esc(e.tipo||'Evento')}</b><br>${esc(e.detalle||'')} ${e.kilometraje?`· ${Number(e.kilometraje).toLocaleString('es-CL')} km`:''}</div>`).join('')||'Sin eventos registrados.'}</div></details></div></article>`;
+}
+renderStandaloneVehiculos=async function(){
+  if(!canViewV11('vehiculos'))return;const p=document.getElementById('page-vehiculos');if(!p)return;p.innerHTML='<div class="empty">Cargando vehículos…</div>';await loadVehiculosSharedV952();state.v1519ContractCache=state.v1519ContractCache||{};state.v1519ContractCache.vehiculos=[...(state.contractData?.vehiculos||[])];const editable=v1520CanEdit('vehiculos'),rows=(state.contractData?.vehiculos||[]).filter(x=>x.activo!==false&&x.estado!=='baja');p.innerHTML=`<div class="topbar"><div></div><div class="v1523-page-actions"><button class="btn" onclick="downloadVehiclesReportV8()">↓ Informe flota PDF</button>${editable?'<button class="btn primary" onclick="v1518VehicleModal()">+ Agregar vehículo</button>':''}</div></div>${!editable?'<div class="v1520-readonly">Modo lectura: los datos y el inventario no pueden modificarse.</div>':''}<div class="vehicle-grid">${rows.map(v=>v1523VehicleCard(v,editable)).join('')||'<div class="empty">Sin vehículos activos.</div>'}</div>`;v1514SetGlobalHeader?.('vehiculos');
+};
+
+/* Dotación directa: una sola fuente y privacidad consistente para consulta. */
+async function v1523LoadDotacion(){let q;if(v1520CanEdit('dotacion'))q=await sb.from('dotacion_contrato').select('*').order('area').order('orden');else q=await sb.rpc('dotacion_consulta_v121');if(q.error)throw q.error;state.contractData=state.contractData||{};state.contractData.dotacion=q.data||[];return state.contractData.dotacion}
+function v1523DotPerson(p,editable){const docs=typeof v157DocRows==='function'?v157DocRows(p):'<div class="muted">Sin detalle documental.</div>';return `<div class="v157-person"><div class="v157-person-name">${esc(p.nombre||'Sin nombre')}</div><div class="v157-person-role">${esc(p.cargo||'')}</div><details class="v157-person-detail"><summary>Ver detalle</summary><div class="v157-doc-list">${docs}</div>${editable?`<div class="v157-edit-actions"><button class="btn primary" onclick="openPersonModal('${p.id}')">Editar datos</button></div>`:''}</details></div>`}
+async function v1523DeletePerson(id){if(!v15ActualAdmin?.()||state.v15PreviewRole||!confirm('¿Eliminar definitivamente a esta persona de Dotación?'))return;return v1523RequestLock(`dotacion:${id}:eliminar`,async()=>{try{const q=await sb.from('dotacion_contrato').delete().eq('id',id);if(q.error)throw q.error}catch(error){v1523RecordError('dotación/eliminación',error);toast('No se pudo eliminar la persona: '+(error.message||String(error)),'error');return}closeModal();try{await renderStandaloneDotacion();toast('Persona eliminada','success')}catch(error){v1523RecordError('dotación/recarga',error);toast('Persona eliminada; la recarga visual quedó pendiente.','warn')}})}
+const _v1523OpenPersonModal=openPersonModal;openPersonModal=function(id=''){const out=_v1523OpenPersonModal(id);if(id&&v15ActualAdmin?.()&&!state.v15PreviewRole){const modal=document.querySelector('#modalRoot .modal');if(modal&&!modal.querySelector('#v1523DeletePerson'))modal.insertAdjacentHTML('beforeend',`<div class="v157-delete-zone"><div class="row-between"><div><b>Eliminar colaborador</b><div class="muted" style="font-size:10px;margin-top:3px">Elimina el registro de Dotación; requiere confirmación.</div></div><button id="v1523DeletePerson" type="button" class="btn danger-btn" onclick="v1523DeletePerson('${id}')">Eliminar persona</button></div></div>`)}return out};
+renderStandaloneDotacion=async function(){
+  if(!canViewV11('dotacion'))return;const p=document.getElementById('page-dotacion');if(!p)return;p.innerHTML='<div class="empty">Cargando dotación…</div>';let rows=await v1523LoadDotacion();rows=v156VisibleDotation?.(rows)||rows;state.v1519ContractCache=state.v1519ContractCache||{};state.v1519ContractCache.dotacion=[...(state.contractData?.dotacion||[])];const editable=v1520CanEdit('dotacion'),restricted=['supervisor','tecnico'].includes(String(v11Role?.()||'')),tech=rows.filter(x=>x.area==='tecnico'),adm=rows.filter(x=>['administrativo_apoyo','administrativo'].includes(x.area)),prev=rows.filter(x=>x.area==='prevencion'),sups=tech.filter(x=>v13Norm(x.cargo).includes('supervisor')),assigned=new Set(),groups=sups.map((s,i)=>{const crew=tech.filter(t=>t.id!==s.id&&!v13Norm(t.cargo).includes('supervisor')&&v13SupervisorNameMatch(t.supervisor_nombre,s.nombre));crew.forEach(x=>assigned.add(String(x.id)));return `<details class="v157-group"><summary><div class="v157-group-head"><b>${restricted?'Mi Grupo':'Grupo '+(i+1)}</b><span>1 Supervisor · ${crew.length} Técnico${crew.length===1?'':'s'}</span></div></summary><div class="v157-group-body">${v1523DotPerson(s,editable)}${crew.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="v1523-empty-group">Sin técnicos asociados.</div>'}</div></details>`}).join(''),unassigned=tech.filter(x=>!v13Norm(x.cargo).includes('supervisor')&&!assigned.has(String(x.id))),dates=rows.flatMap(x=>(typeof V13_EXP_FIELDS!=='undefined'?V13_EXP_FIELDS:[]).map(([k])=>x[k]).filter(Boolean)),due=dates.filter(d=>{const n=v12Days(d);return n>=0&&n<=60}).length,expired=dates.filter(d=>v12Days(d)<0).length,active=rows.filter(x=>x.estado==='activo').length,vac=rows.filter(x=>x.estado==='vacante').length;
+  p.innerHTML=`<div class="topbar"><div></div><div class="v1523-page-actions"><button class="btn" onclick="downloadDotacionReportV8()">↓ Informe dotación PDF</button>${editable?'<button class="btn primary" onclick="openPersonModal()">+ Nuevo colaborador</button>':''}</div></div>${!editable?'<div class="v1520-readonly">Modo lectura: no se muestran RUT ni fecha de nacimiento.</div>':''}<div class="v12-doc-summary v1523-dot-summary"><div class="contract-card"><div class="contract-label">Dotación visible</div><div class="contract-kpi">${rows.length}</div></div><div class="contract-card"><div class="contract-label">Activos</div><div class="contract-kpi">${active}</div></div><div class="contract-card"><div class="contract-label">Vacantes</div><div class="contract-kpi accent-yellow">${vac}</div></div><div class="contract-card"><div class="contract-label">Documentos ≤ 60 días</div><div class="contract-kpi accent-yellow">${due}</div><small class="muted">${expired} vencido${expired===1?'':'s'}</small></div></div><div class="panel"><h3>Personal Técnico</h3><div class="v157-group-grid">${groups||'<div class="empty">Sin supervisores visibles.</div>'}${unassigned.length&&!restricted?`<details class="v157-group"><summary><div class="v157-group-head"><b>Sin supervisor asignado</b><span>${unassigned.length} colaborador${unassigned.length===1?'':'es'}</span></div></summary><div class="v157-group-body">${unassigned.map(x=>v1523DotPerson(x,editable)).join('')}</div></details>`:''}</div></div>${restricted?'':`<div class="v157-secondary-grid"><details class="v157-group"><summary><div class="v157-group-head"><b>Administrativo</b><span>${adm.length}</span></div></summary><div class="v157-group-body">${adm.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="empty">Sin registros.</div>'}</div></details><details class="v157-group"><summary><div class="v157-group-head"><b>Prevención de Riesgos</b><span>${prev.length}</span></div></summary><div class="v157-group-body">${prev.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="empty">Sin registros.</div>'}</div></details></div>`}`;v1514SetGlobalHeader?.('dotacion');
+};
+
+/* Correctivo directo: la consulta se espera, descarta respuestas obsoletas y propaga errores. */
+state.v1523CorrLoads=state.v1523CorrLoads||{home:0,module:0};
+loadCorrectivo=async function(home=false){
+  const scope=home?'home':'module',seq=++state.v1523CorrLoads[scope];if(home){const b=v1512MonthBounds();state.correctivoFrom=b.from;state.correctivoTo=b.to}const from=state.correctivoFrom||v1512MonthBounds().from,to=state.correctivoTo||v1512MonthBounds().to;state.correctivoYear=Number(from.slice(0,4));state.correctivoMonth=Number(from.slice(5,7));const cols='id,equipo_id,equipo_original,numero_guia,supervisor_tecnico,fecha_inicio,hora_inicio,fecha_termino,hora_termino,estado_final,observaciones,duracion_minutos,excluir_kpi,equipos(nombre,nombre_alternativo,estado)',q=await sb.from('averias').select(cols).gte('fecha_inicio',from).lte('fecha_inicio',to).order('fecha_inicio',{ascending:false});if(q.error){if(home){v1523RecordError('inicio/correctivo',q.error);return}throw q.error}if(seq!==state.v1523CorrLoads[scope])return;const mapRow=r=>({...r,equipo:r.equipos?.nombre||normalizarEquipo(r.equipo_original)||r.equipo_original||'Sin equipo',equipo_estado:r.equipos?.estado||'',guia:r.numero_guia,responsable:r.supervisor_tecnico,duracion_horas:(r.duracion_minutos||0)/60,estado_normalizado:normalizarEstado(r.estado_final),excluir_kpi:!!r.excluir_kpi});state.correctivo=(q.data||[]).map(mapRow).filter(r=>r.equipo_estado!=='retirado');state.correctivoYearRows=state.correctivo;const kpis=calcCorrectivoKpis(state.correctivo);if(home){updateHomeCorr(kpis);return}renderCorrectivo({rows:state.correctivo,kpis,trend:[]});const sec=document.getElementById('v1519CorrSecondary');if(sec)sec.innerHTML=v153CorrTab==='historial'?`<div class="v1519-corr-secondary">${canPlan()?'<button class="btn" onclick="openImportAveriasModal()">↑ Importar Excel / CSV</button>':''}${v15CanMobileCorrective?.()?'<button class="btn primary" onclick="v15OpenCorrectiveMobile()">+ Registrar avería / incidente</button>':''}</div>`:'';v1519EnsureCorrTabs?.();
+};
+v1519SetCorrTab=async function(tab){v153CorrTab=tab;if(tab==='informe'){v153OpenCorrectivoReport();v153CorrTab='confiabilidad';return}try{await loadCorrectivo()}catch(e){v1523RecordError('correctivo',e);const b=document.getElementById('corrBody');if(b)b.innerHTML=`<div class="notice error">${esc(e.message||String(e))}</div>`}};
+renderCorrectivoShell=async function(){
+  if(!canViewV11('correctivo'))return;const b=v1512MonthBounds();state.correctivoFrom=state.correctivoFrom||b.from;state.correctivoTo=state.correctivoTo||b.to;const p=document.getElementById('page-correctivo');if(!p)return;p.innerHTML=`<div class="topbar"><div></div></div>${v1519CorrTabs()}<div id="v1519CorrSecondary"></div><div class="v1519-filter-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label><span>Desde</span><input id="corrFromV1519" class="field" type="date" value="${state.correctivoFrom}"></label><label><span>Hasta</span><input id="corrToV1519" class="field" type="date" value="${state.correctivoTo}"></label><label><span>Equipo</span><select id="corrEquipo" class="field"><option value="">Todos los equipos</option>${state.equipos.filter(e=>e.estado!=='retirado').map(e=>`<option>${esc(e.nombre)}</option>`).join('')}</select></label></div><div id="corrEdpNote" class="v1519-period-summary"><span>Período seleccionado: ${v1512RangeLabel(state.correctivoFrom,state.correctivoTo)}</span></div><div id="corrBody"><div class="empty">Cargando…</div></div>`;const reload=async()=>{const a=document.getElementById('corrFromV1519')?.value,c=document.getElementById('corrToV1519')?.value;if(!a||!c||a>c)return toast('El rango de fechas no es válido.','error');state.correctivoFrom=a;state.correctivoTo=c;const note=document.querySelector('#corrEdpNote span');if(note)note.textContent=`Período seleccionado: ${v1512RangeLabel(a,c)}`;try{await loadCorrectivo()}catch(e){v1523RecordError('correctivo/filtros',e);const box=document.getElementById('corrBody');if(box)box.innerHTML=`<div class="notice error">${esc(e.message||String(e))}</div>`}};['corrFromV1519','corrToV1519','corrEquipo'].forEach(id=>document.getElementById(id)?.addEventListener('change',reload));v1514InstallDatePickers?.(p);v1514SetGlobalHeader?.('correctivo');await loadCorrectivo();
+};
+
+/* Liderazgo directo: Ver nunca ejecuta; Editar habilita las acciones del perfil. */
+canExecuteLeadershipV11=function(){return canEditV11('liderazgo')&&v1518Can('liderazgo','leadership_participate')};
+canManageLeadershipV11=function(){return canEditV11('liderazgo')&&['administrador','prevencion','planificador'].includes(String(v11Role?.()||''))};
+v1512LeadershipFreeRole=function(){return canExecuteLeadershipV11()&&!['supervisor','tecnico'].includes(String(v11Role?.()||''))};
+renderLiderazgoV95=async function(){
+  if(!canViewV11('liderazgo'))return;const page=document.getElementById('page-liderazgo');if(!page||!state.session)return;const now=new Date();state.leadershipYear=state.leadershipYear||now.getFullYear();state.leadershipMonth=state.leadershipMonth||now.getMonth()+1;state.leadTabV1512=state.leadTabV1512||'indicadores';page.innerHTML='<div class="empty">Cargando Liderazgo en Terreno…</div>';const data=await v1512LoadLeadershipData();if(data.error)throw data.error;const stats=v1512LeadStats(data.goals,data.done),manage=canManageLeadershipV11(),execute=canExecuteLeadershipV11(),done=data.done||[],programRows=(data.goals||[]).map(g=>{const uid=v1512GoalIdentity(g),real=done.filter(d=>!d.fuera_programacion&&v1512DoneIdentity(d)===uid&&d.control_codigo===g.control_codigo).length;return `<tr><td><b>${esc(g.programado_nombre||g.supervisor_nombre||'Usuario')}</b><small class="v1512-user-role">${esc(v1519RoleLabel(g.programado_rol||'supervisor'))}</small></td><td>${esc(g.control_nombre||g.control_codigo)}</td><td>${Number(g.meta)||0}</td><td>${real}</td><td>${Math.max(0,Number(g.meta||0)-real)}</td></tr>`}).join(''),doneRows=done.map(x=>`<tr><td>${fmtDateCL(x.fecha)}</td><td><b>${esc(x.ejecutado_por_nombre||x.supervisor_nombre||'—')}</b></td><td>${esc(v1519RoleLabel(x.ejecutado_por_rol||'—'))}</td><td>${esc(x.control_nombre||x.control_codigo)}</td><td><span class="status ${x.fuera_programacion?'ok':'warn'}">${x.fuera_programacion?'Libre':'Programado'}</span></td></tr>`).join(''),controls=V12_CONTROLS.filter(c=>c.active!==false).map(c=>`<article class="control-card-v95 active"><div class="row-between"><div class="control-number-v95">${c.n}</div><span class="status ok">Disponible</span></div><h4>${esc(c.name)}</h4><p>${esc(c.desc||'')}</p><div class="control-frequency">Frecuencia: ${esc(c.freq||'Según necesidad')}</div><div>${v1512BuiltinControlAction(c)}</div></article>`).join(''),custom=(data.templates||[]).map(t=>`<article class="control-card-v95 active"><div class="row-between"><div class="control-number-v95">+</div><span class="status ok">Personalizado</span></div><h4>${esc(t.nombre)}</h4><p>${esc(t.descripcion||'Control creado desde Stainher App.')}</p><div class="control-frequency">Frecuencia: ${esc(t.frecuencia||'Según necesidad')}</div><div>${v1512CustomAction(t)}</div></article>`).join('');
+  page.innerHTML=`<div class="topbar"><div></div></div><div class="v1512-filterbar cols2"><label class="v1512-filter"><span>Período</span><select class="field" onchange="v1512SetLeadPeriod(this.value)">${v1512MonthPeriodOptions(state.leadershipYear,state.leadershipMonth)}</select></label><div class="v1512-period-note" style="margin:0">Período analizado: <b>${MONTHS_ES[state.leadershipMonth-1]} ${state.leadershipYear}</b> · ${esc(v1519RoleLabel(v11Role()))}</div></div>${!execute?'<div class="v1520-readonly">Modo lectura: puedes revisar y previsualizar controles, pero no registrar ejecuciones.</div>':''}<div class="v1512-lead-tabs"><button class="btn ${state.leadTabV1512==='indicadores'?'active':''}" data-tab="indicadores" onclick="v1512LeadSwitch('indicadores')">Indicadores</button><button class="btn ${state.leadTabV1512==='programacion'?'active':''}" data-tab="programacion" onclick="v1512LeadSwitch('programacion')">Programación</button><button class="btn ${state.leadTabV1512==='controles'?'active':''}" data-tab="controles" onclick="v1512LeadSwitch('controles')">Controles Stainher</button></div><section id="v1512Lead_indicadores" class="v1512-lead-section ${state.leadTabV1512==='indicadores'?'':'hidden'}"><div class="v1512-lead-kpis v1523-lead-kpis"><div class="v1512-mini-kpi"><span>Programados</span><b>${stats.programmed}</b></div><div class="v1512-mini-kpi"><span>Realizados</span><b>${stats.realized}</b></div><div class="v1512-mini-kpi"><span>Pendientes</span><b>${stats.pending}</b></div><div class="v1512-mini-kpi"><span>Vencidos</span><b class="v1512-overdue">${stats.overdue}</b></div><div class="v1512-mini-kpi"><span>Cumplimiento</span><b>${stats.pct.toFixed(0)}%</b></div><div class="v1512-mini-kpi"><span>Ejecuciones libres</span><b>${stats.free}</b></div></div><div class="panel"><h3>Cumplimiento por usuario</h3><div class="v1512-clean-table-wrap"><table class="v1512-clean-table"><thead><tr><th>Usuario</th><th>Programados</th><th>Realizados</th><th>Pendientes</th><th>Cumplimiento</th></tr></thead><tbody>${stats.by.map(x=>`<tr><td><b>${esc(x.name)}</b><small class="v1512-user-role">${esc(v1519RoleLabel(x.role))}</small></td><td>${x.programmed}</td><td>${x.realized}</td><td>${x.pending}</td><td>${x.programmed?(x.realized/x.programmed*100).toFixed(0):0}%</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Sin actividades programadas.</td></tr>'}</tbody></table></div></div><div class="panel"><h3>Controles realizados</h3><div class="v1512-clean-table-wrap"><table class="v1512-clean-table"><thead><tr><th>Fecha</th><th>Usuario</th><th>Perfil</th><th>Control</th><th>Tipo</th></tr></thead><tbody>${doneRows||'<tr><td colspan="5" class="empty">Sin controles realizados.</td></tr>'}</tbody></table></div></div></section><section id="v1512Lead_programacion" class="v1512-lead-section ${state.leadTabV1512==='programacion'?'':'hidden'}"><div class="panel"><div class="row-between"><div><h3>Programación de controles</h3><div class="muted">Metas y cumplimiento del período seleccionado.</div></div>${manage?'<div class="v1523-lead-actions"><button class="btn" onclick="v1512CopyPreviousLeadership()">Copiar período anterior</button><button class="btn primary" onclick="openLeadershipGoalV95()">+ Programar actividad</button></div>':''}</div><div class="v1512-clean-table-wrap"><table class="v1512-clean-table"><thead><tr><th>Usuario</th><th>Control</th><th>Meta</th><th>Realizados</th><th>Pendientes</th></tr></thead><tbody>${programRows||'<tr><td colspan="5" class="empty">Sin programación.</td></tr>'}</tbody></table></div></div></section><section id="v1512Lead_controles" class="v1512-lead-section ${state.leadTabV1512==='controles'?'':'hidden'}"><div class="panel"><div class="row-between"><div><h3>Controles Stainher</h3><div class="muted">Las acciones dependen del permiso efectivo del perfil.</div></div><div class="v1523-lead-actions">${execute?'<button class="btn" onclick="v1512OpenExtraInspection()">+ Nueva inspección</button>':''}${manage?'<button class="btn primary" onclick="v1512OpenTemplateModal()">+ Crear control</button>':''}</div></div><div class="control-grid-v95">${controls}${custom}</div></div></section>`;v1514SetGlobalHeader?.('liderazgo');
+};
+
+/* Usuarios directo: perfiles y Auth se combinan una sola vez con respaldo degradado. */
+state.v1523Users=state.v1523Users||[];state.v1523UserFilter=state.v1523UserFilter||{text:'',role:''};
+function v1523UserRoleOptions(selected=''){const roles=new Map(Object.keys(V1523_DEFAULTS).map(r=>[r,v1519RoleLabel(r)]));for(const t of state.v1517ProfileTypes?.values?.()||[])roles.set(String(t.codigo),t.nombre||t.codigo);for(const u of state.v1523Users||[])if(u.perfil?.rol)roles.set(u.perfil.rol,v1519RoleLabel(u.perfil.rol));return [...roles].sort((a,b)=>a[1].localeCompare(b[1],'es')).map(([r,l])=>`<option value="${esc(r)}" ${selected===r?'selected':''}>${esc(l)}</option>`).join('')}
+function v1523RenderUsersList(){
+  const box=document.getElementById('usersTable');if(!box)return;const f=state.v1523UserFilter,q=String(f.text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),rows=(state.v1523Users||[]).filter(u=>{const p=u.perfil||{},txt=`${p.nombre||''} ${u.email||p.email||''} ${p.rol||''}`.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();return(!q||txt.includes(q))&&(!f.role||p.rol===f.role)}),rowHtml=u=>{const p=u.perfil,email=u.email||p?.email||'',allowed=p?Object.values(v11Permissions(p)).filter(x=>!['ninguno','ocultar'].includes(String(x))).length:0,enc=encodeURIComponent(email);return `<tr><td>${esc(p?.nombre||'—')}</td><td>${esc(email)}</td><td>${p?esc(v1519RoleLabel(p.rol)):'—'}</td><td>${p?`<span class="status ${p.activo?'ok':'bad'}">${p.activo?'Activo':'Inactivo'}</span>`:'<span class="status warn">Sin perfil</span>'}</td><td>${p?allowed+' módulos':'—'}</td><td>${p?`<button class="btn" onclick="openEditUserModal('${u.id}')">Permisos / usuario</button> <button class="btn" onclick="v15AdminSendRecovery(decodeURIComponent('${enc}'))">Restablecer contraseña</button>`:`<button class="btn" onclick="openSyncProfileModal('${u.id}',decodeURIComponent('${enc}'))">Sincronizar perfil</button>`}</td></tr>`},cardHtml=u=>{const p=u.perfil,email=u.email||p?.email||'',allowed=p?Object.values(v11Permissions(p)).filter(x=>!['ninguno','ocultar'].includes(String(x))).length:0,enc=encodeURIComponent(email);return `<article class="v1523-user-card"><h4>${esc(p?.nombre||'Usuario sin perfil')}</h4><div class="muted">${esc(email)}</div><div style="margin-top:8px">${p?`<span class="tag">${esc(v1519RoleLabel(p.rol))}</span> <span class="status ${p.activo?'ok':'bad'}">${p.activo?'Activo':'Inactivo'}</span> <span class="status">${allowed} módulos</span>`:'<span class="status warn">Sin perfil</span>'}</div><div class="v1523-user-actions">${p?`<button class="btn primary" onclick="openEditUserModal('${u.id}')">Ver / editar</button><button class="btn" onclick="v15AdminSendRecovery(decodeURIComponent('${enc}'))">Restablecer contraseña</button>`:`<button class="btn primary" onclick="openSyncProfileModal('${u.id}',decodeURIComponent('${enc}'))">Sincronizar perfil</button>`}</div></article>`};box.innerHTML=`<div class="v1523-users-toolbar"><input id="v1523UserSearch" class="field" placeholder="Buscar nombre o correo" value="${esc(f.text)}"><select id="v1523UserRole" class="field"><option value="">Todos los perfiles</option>${v1523UserRoleOptions(f.role)}</select></div><div class="v1523-users-desktop"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Perfil</th><th>Estado</th><th>Acceso</th><th>Acciones</th></tr></thead><tbody>${rows.map(rowHtml).join('')||'<tr><td colspan="6" class="empty">Sin usuarios para el filtro.</td></tr>'}</tbody></table></div><div class="v1523-users-mobile">${rows.map(cardHtml).join('')||'<div class="empty">Sin usuarios para el filtro.</div>'}</div>`;document.getElementById('v1523UserSearch').addEventListener('input',e=>{state.v1523UserFilter.text=e.target.value;v1523RenderUsersList()});document.getElementById('v1523UserRole').addEventListener('change',e=>{state.v1523UserFilter.role=e.target.value;v1523RenderUsersList()});
+}
+loadUsers=async function(){
+  if(!isAdmin())return;await v1517LoadProfileTypes?.();const [profilesQ,authQ]=await Promise.all([sb.from('perfiles').select('id,nombre,email,rol,activo,permisos,permisos_personalizados').order('nombre'),sb.rpc('admin_list_auth_users')]);if(profilesQ.error)throw profilesQ.error;if(authQ.error)v1523RecordError('usuarios/auth',authQ.error);const profiles=profilesQ.data||[],auth=authQ.error?[]:(authQ.data||[]),map=new Map(profiles.map(x=>[String(x.id),x])),rows=auth.map(x=>({...x,perfil:map.get(String(x.id))}));for(const p of profiles)if(!rows.some(x=>String(x.id)===String(p.id)))rows.push({id:p.id,email:p.email,perfil:p});rows.sort((a,b)=>String(a.perfil?.nombre||a.email||'').localeCompare(String(b.perfil?.nombre||b.email||''),'es'));state.v1523Users=rows;v1523RenderUsersList();
+};
+renderUsuarios=async function(){
+  if(!canViewV11('usuarios'))return;const p=document.getElementById('page-usuarios');if(!p)return;if(!isAdmin()||state.v15PreviewRole){p.innerHTML='<div class="panel"><h3>Usuarios</h3><div id="v1523UsersReadOnly" class="empty">Cargando…</div></div>';const q=await sb.from('perfiles').select('nombre,rol,activo').order('nombre');if(q.error)throw q.error;document.getElementById('v1523UsersReadOnly').outerHTML=`<div class="v1520-readonly">Modo lectura: la simulación de perfiles nunca permite administrar cuentas.</div><div class="v1512-clean-table-wrap"><table class="v1512-clean-table"><thead><tr><th>Nombre</th><th>Perfil</th><th>Estado</th></tr></thead><tbody>${(q.data||[]).map(x=>`<tr><td>${esc(x.nombre||'—')}</td><td>${esc(v1519RoleLabel(x.rol))}</td><td><span class="status ${x.activo?'ok':'bad'}">${x.activo?'Activo':'Inactivo'}</span></td></tr>`).join('')}</tbody></table></div>`;v1514SetGlobalHeader?.('usuarios');return}p.innerHTML=`<div class="topbar"><div></div><div class="v1523-page-actions"><button class="btn" onclick="v1517OpenProfileModal()">+ Crear perfil</button><button class="btn primary" onclick="openUserModal()">+ Crear usuario</button></div></div><div class="panel" id="usersTable"><div class="empty">Cargando…</div></div>`;v1514SetGlobalHeader?.('usuarios');await loadUsers();
+};
+
+const V1523_DIRECT_RENDERERS=new Set(['inicio','preventivo','correctivo','equipos','vehiculos','dotacion','turnos','solicitudes','liderazgo','contrato','sistema','usuarios']);
+
+/* Navegación y despacho directos, con control de carreras entre módulos. */
+state.v1523RenderSeq=state.v1523RenderSeq||0;
+function v1523Renderer(pg){return {inicio:renderInicio,preventivo:renderPreventivo,correctivo:renderCorrectivoShell,equipos:renderEquipos,vehiculos:renderStandaloneVehiculos,dotacion:renderStandaloneDotacion,turnos:renderTurnosV15,solicitudes:renderSolicitudesV15,liderazgo:renderLiderazgoV95,contrato:renderContrato,sistema:renderSistema,usuarios:renderUsuarios}[pg]}
+async function v1523RenderModule(pg){const seq=++state.v1523RenderSeq,fn=v1523Renderer(pg),page=document.getElementById(`page-${pg}`);if(typeof fn!=='function'){const e=new Error(`El módulo ${pg} no tiene renderizador activo.`);v1523RecordError(pg,e);if(page)page.innerHTML=`<div class="notice error">${esc(e.message)}</div>`;return}try{await Promise.resolve(fn());if(seq!==state.v1523RenderSeq)return;v1523Version();v1514SetGlobalHeader?.(pg)}catch(e){if(seq!==state.v1523RenderSeq)return;v1523RecordError(pg,e);if(page)page.innerHTML=`<div class="notice error"><b>No fue posible cargar ${esc(V1518_MODULES?.[pg]?.label||pg)}.</b><br>${esc(e.message||String(e))}<br><button class="btn" onclick="v1519Navigate('${pg}')">Reintentar</button></div>`}}
+v1519RenderModule=v1523RenderModule;v1518RenderModule=v1523RenderModule;
+v1519Navigate=async function(pg){if(!canViewV11(pg)){toast('Este módulo está oculto para tu perfil.','warn');return false}document.querySelectorAll('.nav button[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===pg));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==`page-${pg}`));v151CloseDrawer?.();v151UpdateMobileNav?.();await v1523RenderModule(pg);return true};v1518Navigate=v1519Navigate;gotoPage=v1519Navigate;
+applyPermissionsV11=function(){v1523InstallDefaults();v1519DecorateSidebar?.();document.querySelectorAll('.nav button[data-page]').forEach(btn=>{const pg=btn.dataset.page,ok=canViewV11(pg);btn.classList.remove('role-hidden-v10','v11-hidden','hidden','admin-only');btn.style.display=ok?'':'none';btn.disabled=!ok;btn.onclick=ok?()=>v1519Navigate(pg):null});v1519BuildMobileNav?.();v1523Version()};
+renderAll=async function(){applyPermissionsV11();const active=document.querySelector('.nav button.active[data-page]'),pg=active&&canViewV11(active.dataset.page)?active.dataset.page:(Object.keys(V1518_MODULES).find(canViewV11)||'inicio');await v1519Navigate(pg)};
+
+/* Único punto de arranque. Ninguna sesión puede entrar por una capa heredada. */
+function v1523StartOnce(){
+  if(window.__v1523BootPromise)return window.__v1523BootPromise;
+  window.__v1523BootPromise=Promise.resolve().then(()=>v1515Bootstrap()).catch(error=>{
+    v1523RecordError('arranque',error);showLogin();
+    const box=document.getElementById('loginMsg');if(box){box.textContent=`No fue posible iniciar Stainher App: ${error?.message||String(error)}`;box.className='notice error';box.classList.remove('hidden')}
+  });
+  return window.__v1523BootPromise;
+}
+function v1523DisableLegacyObservers(){
+  const observers=[
+    typeof headerObserver!=='undefined'?headerObserver:null,
+    typeof metaObserverV11Fix!=='undefined'?metaObserverV11Fix:null,
+    typeof v15ModalObserver!=='undefined'?v15ModalObserver:null,
+    typeof v157HeaderObserver!=='undefined'?v157HeaderObserver:null,
+    typeof v158ModalObserver!=='undefined'?v158ModalObserver:null,
+    typeof v1513Observer!=='undefined'?v1513Observer:null
+  ];
+  observers.forEach(observer=>observer?.disconnect?.());
+  state.v1523LegacyObserversDisabled=true;
+}
+v1523DisableLegacyObservers();v1523InstallDefaults();v1523Version();v1523StartOnce();
+</script>
 </body>
 </html>
