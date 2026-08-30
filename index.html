@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <!-- Stainher App V15.23 · 30-08-2026 · Desarrollado por Ismael Gálvez -->
   <title>Stainher App V15.23</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10957,6 +10957,317 @@ renderSistema=async function(){
 
 window.__STAINHER_EMAIL_CORE__=V1523_EMAIL_CORE;
 v1523StartOnce();
+</script>
+<style id="v1523-responsive-grid-core">
+/* ================================================================
+   V15.23 · CUADRÍCULA RESPONSIVE AUTORITATIVA
+   Esta capa es deliberadamente la última: contiene las reglas visuales
+   heredadas sin alterar los renderizadores ni el versionado funcional.
+================================================================ */
+html,body{width:100%;max-width:100%;min-width:0;overflow-x:hidden!important}
+body{overflow-wrap:anywhere;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+#loginView,#appView,.app,.main,.page{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.app{grid-template-columns:minmax(220px,250px) minmax(0,1fr)}
+.main,.page,.page>*,.panel,.topbar,.row-between,.toolbar,.actions,.v1523-page-actions{min-width:0;max-width:100%;box-sizing:border-box}
+.page :where([class*="grid"],[class*="kpi"],[class*="filter"],[class*="toolbar"],
+[class*="summary"],[class*="row"],[class*="card"],[class*="tabs"],[class*="actions"]){
+  min-width:0;max-width:100%;box-sizing:border-box
+}
+
+/* Los contenedores pueden encogerse; sus datos anchos se desplazan dentro. */
+:where(.grid-kpi,.cards,.two-col,.storage-grid,.system-list,.prev-equipment-grid,
+.contract-grid,.vehicle-grid,.vehicle-summary-grid,.inventory-grid,.dotation-summary,
+.people-grid,.reimb-kpis,.event-alerts,.home-kpis,.home-main-grid,.home-equipment-grid,
+.home-alert-grid,.v13-usage-grid,.v15-summary-grid,.v15-system-grid,.v151-dot-kpis,
+.v1512-filterbar,.v1512-lead-kpis,.v1512-turn-kpis,.v1514-import-summary,
+.v1519-filter-grid,.v1519-prev-equipment-grid,.v1520-kpis,.v1520-contract-summary,
+.v152-request-grid,.v1522-home-shifts,.v1522-home-grid,.v157-group-grid,
+.v157-secondary-grid,.control-grid-v95,.form-grid,.terrain-form-grid-v95){
+  width:100%;max-width:100%;min-width:0;box-sizing:border-box
+}
+:where(.grid-kpi,.cards,.two-col,.storage-grid,.system-list,.prev-equipment-grid,
+.contract-grid,.vehicle-grid,.vehicle-summary-grid,.inventory-grid,.dotation-summary,
+.people-grid,.reimb-kpis,.event-alerts,.home-kpis,.home-main-grid,.home-equipment-grid,
+.home-alert-grid,.v13-usage-grid,.v15-summary-grid,.v15-system-grid,.v151-dot-kpis,
+.v1512-filterbar,.v1512-lead-kpis,.v1512-turn-kpis,.v1514-import-summary,
+.v1519-filter-grid,.v1519-prev-equipment-grid,.v1520-kpis,.v1520-contract-summary,
+.v152-request-grid,.v1522-home-shifts,.v1522-home-grid,.v157-group-grid,
+.v157-secondary-grid,.control-grid-v95,.form-grid,.terrain-form-grid-v95)>*{
+  min-width:0;max-width:100%;box-sizing:border-box
+}
+.page :where(.leadership-kpis,.forecast-history-summary-v92,.forecast-month-summary-v8,
+.forecast-tables-v9,.home-invoice-history-v9,.home-invoice-main-v9,.reimb-kpis-v9,
+.v11-lead-filter,.v11-permission-grid,.v11-terrain-head,.v12-doc-grid,.v12-doc-summary,
+.v12-sign-grid,.v12-status-choice,.v13-check-grid,.v13-doc-row,.v14-license-options,
+.v15-event,.v15-role-sim,.v15-summary-grid,.v151-detail-grid,.v151-event,.v151-person-row,
+.v1510-filterbar,.v1512-import-summary,.v1514-import-summary,.v1516-turn-toolbar-fixed,
+.v152-alert-card,.v153-person-row,.v153-prev-toolbar,.v154-check-row,.v154-lead-filter,
+.v154-perm-row,.v155-secondary-groups,.v156-doc-row,.v156-secondary-groups,.v157-doc,
+.v157-ext-checks,.v157-ext-grid,.v158-choice-group,.v158-review-grid,.v158-review-kpis,
+.v158-user-filters){width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.page :where(.toolbar,.row-between,[class*="-actions"])>*{min-width:0;max-width:100%;box-sizing:border-box}
+
+/* Texto y controles nunca fuerzan el ancho de una tarjeta. */
+:where(h1,h2,h3,h4,h5,p,small,strong,b,label,dt,dd,.muted,.notice,.status,
+.contract-kpi,.storage-value,.v1519-inventory-state,.v1523-read-field,
+.v1520-period-note,.v1519-period-summary,.v1518-email-status){overflow-wrap:anywhere;word-break:normal;max-width:100%}
+:where(.field,input,select,textarea,button,.btn,.inline-input,.inline-select,.inline-field){
+  min-width:0;max-width:100%;box-sizing:border-box
+}
+:where(.field,input,select,textarea){text-overflow:ellipsis}
+:where(.form-grid,.terrain-form-grid-v95,.vehicle-fields,.v1512-filterbar,.v1519-filter-grid) :where(input,select,textarea,.field){width:100%!important}
+:where(.btn,button){white-space:normal;overflow-wrap:anywhere}
+:where(img,video,canvas,svg,iframe){max-width:100%;height:auto}
+:where(pre,code){max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* Encabezados y acciones conservan una cuadrícula flexible. */
+.topbar,.row-between{flex-wrap:wrap}
+.topbar>div:first-child,.row-between>div:first-child{min-width:0;max-width:100%}
+.topbar>div:first-child{flex:1 1 280px}
+.topbar>.actions,.topbar>.v1523-page-actions{flex:0 1 auto}
+.actions,.v1523-page-actions,.v1523-user-actions,.v1523-lead-actions,.v1523-vehicle-actions{flex-wrap:wrap;min-width:0;max-width:100%}
+.actions>* ,.v1523-page-actions>* ,.v1523-user-actions>* ,.v1523-lead-actions>* ,.v1523-vehicle-actions>*{min-width:0;max-width:100%}
+
+/* Filtros: sin mínimos heredados que monten una casilla sobre otra. */
+.v11-lead-filter,.v1510-filterbar,.v1512-filterbar,.v1512-filterbar.cols2,
+.v1512-filterbar.cols3,.v1512-turn-toolbar,.v1513-lead-filterbar,
+.v1514-lead-filterbar,.v1516-turn-toolbar-fixed,.v1519-filter-grid,
+.v153-prev-toolbar,.v154-lead-filter,.v158-user-filters{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important;
+  gap:10px!important;align-items:end!important
+}
+.v11-lead-filter label,.v1510-filter,.v1512-filter,.v1513-lead-filter,
+.v1514-filter,.v1519-filter-grid label,.v154-lead-filter label,.v158-user-filters label{
+  min-width:0!important;max-width:100%!important
+}
+.v1512-filter .field,.v1513-lead-filter .field,.v1514-filter .field,
+.v1519-filter-grid .field,.v1519-filter-grid input,.v1519-filter-grid select,
+.v11-lead-filter .field,.v1510-filterbar .field,.v153-prev-toolbar .field,
+.v154-lead-filter .field,.v158-user-filters .field{
+  width:100%!important;min-width:0!important;max-width:100%!important
+}
+#v1520PrevSearch{min-width:0!important;max-width:100%!important;flex:1 1 240px}
+
+/* Tablas, Gantt y mallas: el desplazamiento pertenece al componente. */
+.v1523-scroll-region,.admin-table,.v12-form-table-wrap,.v12-form-table,.v157-scroll,
+.v1517-own-table,.v1519-prev-detail,.v1519-gantt-wrap,.v1520-table-wrap,
+.v1520-turn-matrix,.v1520-gantt,.v1520-cal-scroll,.v1520-turn-calendar,
+.v1512-turn-wrap,.v1512-clean-table-wrap,.gantt-wrap,.v1523-audit-wrap{
+  width:100%;max-width:100%;min-width:0;overflow-x:auto!important;overflow-y:auto;
+  overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box
+}
+.v1523-scroll-region{border-radius:10px}
+.v1523-scroll-region>table{width:max-content;min-width:100%;max-width:none}
+:where(.admin-table,.v12-form-table-wrap,.v12-form-table,.v157-scroll,.v1517-own-table,
+.v1519-prev-detail,.v1519-gantt-wrap,.v1520-table-wrap,.v1520-turn-matrix,.v1520-gantt,
+.v1520-cal-scroll,.v1520-turn-calendar,.v1512-turn-wrap,.v1512-clean-table-wrap,
+.gantt-wrap,.v1523-audit-wrap) table{max-width:none}
+table th,table td{overflow-wrap:anywhere}
+
+/* Pestañas y selectores extensos se desplazan dentro del módulo, no la página. */
+:where(.contract-tabs,.v1519-contract-tabs,.v1520-tabs,.v153-corr-tabs,.v154-corr-tabs-fixed,
+.v154-lead-tabs,.v156-lead-tabs,.v1512-lead-tabs,.v152-alert-filterbar,.v151-alert-tools){
+  max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch
+}
+
+/* Tarjetas con datos largos. */
+.equipment-card,.vehicle-card,.contract-card,.crew-card,.home-panel,.home-kpi,
+.home-equipment-mini,.home-alert-card,.v1520-kpi,.v1520-contract-card,
+.v152-request-card,.v1523-user-card,.v157-group,.v1512-mini-kpi,
+.control-card-v95,.v1519-prev-card,.v1522-home-person{min-width:0;max-width:100%;box-sizing:border-box}
+.vehicle-card,.v1519-inventory-details,.v1519-inventory-body{overflow:hidden}
+.vehicle-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+.v1519-inventory-row{grid-template-columns:minmax(0,1fr) minmax(100px,150px)!important}
+.v1519-inventory-row>*{min-width:0;max-width:100%}
+#page-vehiculos .inline-input,#page-vehiculos .inline-select,
+#page-vehiculos .v1519-inventory-row .field{font-size:13px!important;line-height:1.3!important}
+
+/* Modales contenidos en la ventana y formularios alineados. */
+.modal-bg{box-sizing:border-box;overflow:auto;overscroll-behavior:contain;padding:clamp(8px,2vw,20px)!important}
+#modalRoot .modal{
+  width:min(620px,100%);max-width:calc(100vw - 16px)!important;
+  max-height:calc(100dvh - 16px)!important;min-width:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;box-sizing:border-box
+}
+#modalRoot.v1521-review-page .modal,.v158-review-modal{width:min(1180px,100%)!important}
+#modalRoot .modal>*,#modalRoot form,#modalRoot fieldset,#modalRoot label{min-width:0;max-width:100%;box-sizing:border-box}
+#modalRoot .row-between{align-items:flex-start}
+#modalRoot canvas{display:block;width:100%!important;max-width:100%!important;height:auto!important;touch-action:none}
+#modalRoot .notice{line-height:1.5}
+
+/* Gráficos mantienen altura sin expandir el ancho. */
+.chart-wrap,.contract-chart{width:100%;max-width:100%;min-width:0;position:relative;overflow:hidden}
+.chart-wrap canvas,.contract-chart canvas{width:100%!important;max-width:100%!important;height:100%!important}
+
+/* Tablet y escritorio compacto. */
+@media(max-width:1180px){
+  .main{padding-inline:20px}
+  .grid-kpi,.home-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .home-main-grid{grid-template-columns:1fr!important}
+  .home-equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .v1512-lead-kpis,.v1512-turn-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .leadership-kpis,.v12-doc-summary,.v15-summary-grid,.forecast-month-summary-v8,
+  .forecast-history-summary-v92,.v1514-import-summary,.v158-review-kpis{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important
+  }
+}
+
+/* Navegación adaptable también en móvil horizontal y tablet angosta. */
+@media(max-width:900px){
+  .app{display:block!important}
+  .sidebar{
+    display:flex!important;position:fixed!important;z-index:1200!important;left:0!important;top:0!important;bottom:0!important;
+    width:min(86vw,340px)!important;height:100dvh!important;max-height:100dvh!important;
+    transform:translateX(-104%);transition:transform .2s ease;background:#0b0f14!important;
+    padding:18px 14px calc(18px + env(safe-area-inset-bottom,0px))!important;overflow:hidden!important
+  }
+  .sidebar.v151-open{transform:translateX(0)}
+  .sidebar .nav{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+  .v151-drawer-overlay{display:block;position:fixed;inset:0;z-index:1190;background:rgba(0,0,0,.62);opacity:0;pointer-events:none}
+  .v151-drawer-overlay.v151-open{opacity:1;pointer-events:auto}
+  .v151-mobile-head{
+    display:flex!important;position:fixed!important;z-index:1000!important;left:0!important;right:0!important;top:0!important;
+    min-height:58px!important;height:auto!important;align-items:center;gap:10px;
+    padding:calc(7px + env(safe-area-inset-top,0px)) 10px 7px!important;
+    background:rgba(8,12,17,.98)!important;border-bottom:1px solid #222d39!important
+  }
+  .v151-mobile-title{min-width:0;max-width:100%;flex:1 1 auto}
+  .v151-mobile-title strong{font-size:13px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .v151-mobile-title small{font-size:9px!important}
+  #v15NotifyBtn.v152-inline-bell{flex:0 0 42px!important;width:42px!important;height:42px!important;max-width:42px!important}
+  .main{
+    width:100%!important;max-width:100%!important;padding:
+      calc(72px + env(safe-area-inset-top,0px)) 12px
+      calc(104px + env(safe-area-inset-bottom,0px))!important
+  }
+  #v151MobileBottom,.v151-mobile-bottom{
+    display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    position:fixed!important;z-index:950!important;left:6px!important;right:6px!important;
+    bottom:calc(6px + env(safe-area-inset-bottom,0px))!important;width:auto!important;max-width:calc(100vw - 12px)!important;
+    margin:0!important;overflow:hidden
+  }
+  .v151-mobile-bottom button{min-width:0!important;max-width:100%!important;padding:7px 2px!important;font-size:9px!important}
+  .v151-mobile-bottom button b{font-size:17px!important}
+  body.v151-drawer-open .v151-mobile-bottom{display:none!important}
+  .topbar{align-items:flex-start!important;gap:12px!important}
+  .topbar>.actions,.topbar>.v1523-page-actions{width:100%;display:flex;justify-content:flex-start}
+  .grid-kpi,.home-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .cards,.two-col,.storage-grid,.vehicle-grid,.inventory-grid,.people-grid,
+  .event-alerts,.home-main-grid,.v157-group-grid,.v157-secondary-grid{grid-template-columns:1fr!important}
+  .home-equipment-grid,.home-alert-grid,.contract-grid,.vehicle-summary-grid,
+  .dotation-summary,.reimb-kpis,.v13-usage-grid,.v15-summary-grid,
+  .v1512-lead-kpis,.v1512-turn-kpis,.v1520-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .v1512-filterbar,.v1512-filterbar.cols2,.v1512-filterbar.cols3,
+  .v11-lead-filter,.v1510-filterbar,.v1512-turn-toolbar,.v1513-lead-filterbar,
+  .v1514-lead-filterbar,.v1516-turn-toolbar-fixed,.v1519-filter-grid,
+  .v153-prev-toolbar,.v154-lead-filter,.v158-user-filters{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important
+  }
+  .v1512-lead-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .v1512-clean-table-wrap{display:block}
+  .vehicle-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .leadership-kpis,.v12-doc-summary,.v15-summary-grid,.forecast-month-summary-v8,
+  .forecast-history-summary-v92,.v1514-import-summary,.v158-review-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important
+  }
+  .home-invoice-main-v9,.forecast-tables-v9,.v155-secondary-groups,
+  .v156-secondary-groups,.v157-secondary-grid,.v158-review-grid{grid-template-columns:1fr!important}
+}
+
+/* Móvil vertical: una columna para datos extensos y tipografía controlada. */
+@media(max-width:600px){
+  .main{padding-inline:10px!important}
+  .panel{padding:14px!important}
+  .topbar h2,.v1513-page-head h2,.v1514-global-head h2{font-size:21px!important}
+  .topbar p,.v1513-page-head p,.v1514-global-head p{font-size:12px!important}
+  .topbar>.actions,.topbar>.v1523-page-actions,.v1523-page-actions,.v1523-lead-actions,.v1523-user-actions{display:grid!important;grid-template-columns:1fr!important;width:100%}
+  .topbar :where(.btn,button),.v1523-page-actions .btn,.v1523-lead-actions .btn,.v1523-user-actions .btn{width:100%!important}
+  .v1512-filterbar,.v1512-filterbar.cols2,.v1512-filterbar.cols3,
+  .v11-lead-filter,.v1510-filterbar,.v1512-turn-toolbar,.v1513-lead-filterbar,
+  .v1514-lead-filterbar,.v1516-turn-toolbar-fixed,.v1519-filter-grid,
+  .v153-prev-toolbar,.v154-lead-filter,.v158-user-filters{grid-template-columns:1fr!important}
+  .vehicle-fields,.v1519-inventory-row,.form-grid,.terrain-form-grid-v95{grid-template-columns:1fr!important}
+  .form-grid .full,.terrain-form-grid-v95 .full{grid-column:auto!important}
+  .v1512-lead-tabs{grid-template-columns:1fr!important}
+  .home-equipment-grid,.home-alert-grid,.contract-grid,.vehicle-summary-grid,
+  .dotation-summary,.reimb-kpis,.v13-usage-grid,.v15-summary-grid{grid-template-columns:1fr!important}
+  .v152-request-card{grid-template-columns:1fr!important}
+  .v152-request-card .wide{grid-column:auto!important}
+  .v11-permission-grid,.v11-terrain-head,.v12-status-choice,.v13-check-row,
+  .v13-doc-row,.v14-license-options,.v15-event,.v151-event,.v151-person-row,
+  .v1512-perm-row,.v152-alert-card,.v153-person-row,.v154-check-row,
+  .v154-perm-row,.v156-doc-row,.v157-doc,.v157-ext-checks,.v157-ext-grid,
+  .v158-choice-group,.v158-choice-group.three,.v158-review-grid,.v158-review-kpis{
+    grid-template-columns:1fr!important
+  }
+  .v15-event>*,.v151-event>*,.v152-alert-card>*,.v153-person-row>*,
+  .v154-check-row>*,.v156-doc-row>*,.v157-doc>*{grid-column:auto!important;min-width:0!important;max-width:100%!important}
+  #modalRoot .modal{padding:16px!important;font-size:14px}
+  #modalRoot .modal h3{font-size:clamp(18px,5.5vw,23px);line-height:1.2}
+  #modalRoot .row-between>.actions{width:100%}
+  #modalRoot .row-between>.actions .btn{flex:1 1 140px}
+  #modalRoot :where(input.field,select.field,textarea.field){font-size:16px!important}
+  #page-vehiculos .vehicle-card{font-size:13px!important;padding:13px!important}
+  #page-vehiculos .vehicle-card h3{font-size:16px!important}
+  #page-vehiculos .mini-stat b{font-size:13px!important}
+  #page-vehiculos .v1519-inventory-details summary{font-size:13px!important}
+  #page-vehiculos .v1519-inventory-details summary small,#page-vehiculos .v1519-inventory-state{font-size:11px!important}
+  .empty{padding:20px 10px}
+}
+
+@media(max-width:360px){
+  .grid-kpi,.home-kpis,.v1512-lead-kpis,.v1512-turn-kpis,.v1520-kpis{grid-template-columns:1fr!important}
+  .v151-mobile-bottom button{font-size:8px!important}
+}
+
+/* Móvil horizontal: más superficie útil sin perder la navegación móvil. */
+@media(orientation:landscape) and (max-height:600px) and (max-width:900px){
+  .main{padding-top:calc(66px + env(safe-area-inset-top,0px))!important}
+  #v151MobileBottom,.v151-mobile-bottom{padding:3px!important}
+  .v151-mobile-bottom button{padding-block:4px!important}
+  .modal-bg{align-items:start!important}
+  #modalRoot .modal{max-height:calc(100dvh - 12px)!important}
+}
+</style>
+<script id="v1523-responsive-grid-core-script">
+/* Encapsula las tablas heredadas que no tenían región de desplazamiento. */
+const V1523_SCROLL_ANCESTORS='.v1523-scroll-region,.admin-table,.v12-form-table-wrap,.v12-form-table,.v157-scroll,.v1517-own-table,.v1519-prev-detail,.v1519-gantt-wrap,.v1520-table-wrap,.v1520-turn-matrix,.v1520-gantt,.v1520-cal-scroll,.v1520-turn-calendar,.v1512-turn-wrap,.v1512-clean-table-wrap,.gantt-wrap,.v1523-audit-wrap,[style*="overflow:auto"],[style*="overflow: auto"],[style*="overflow-x:auto"],[style*="overflow-x: auto"]';
+function v1523ResponsivePolish(root=document.getElementById('appView')){
+  if(!root)return {wrapped:0};let wrapped=0;
+  root.querySelectorAll('table').forEach(table=>{
+    if(table.closest(V1523_SCROLL_ANCESTORS))return;
+    const region=document.createElement('div');region.className='v1523-scroll-region';region.setAttribute('role','region');region.setAttribute('aria-label','Tabla desplazable');region.tabIndex=0;
+    table.parentNode?.insertBefore(region,table);region.appendChild(table);wrapped++;
+  });
+  root.querySelectorAll('.page,.panel,.card,.vehicle-card,.contract-card,.v152-request-card').forEach(el=>el.classList.add('v1523-grid-item'));
+  document.querySelectorAll('.mobile-bottom-nav,.v151-mobile-bottom').forEach(nav=>nav.setAttribute('aria-label','Navegación principal'));
+  return {wrapped};
+}
+let v1523ResponsiveFrame=0;
+function v1523ScheduleResponsivePolish(){if(v1523ResponsiveFrame)return;v1523ResponsiveFrame=requestAnimationFrame(()=>{v1523ResponsiveFrame=0;v1523ResponsivePolish()})}
+function v1523InstallResponsiveCore(){
+  const root=document.getElementById('appView');if(!root)return;
+  state.v1523ResponsiveObserver?.disconnect?.();
+  state.v1523ResponsiveObserver=new MutationObserver(v1523ScheduleResponsivePolish);
+  state.v1523ResponsiveObserver.observe(root,{childList:true,subtree:true});
+  if(!state.v1523ResponsiveListeners){addEventListener('resize',v1523ScheduleResponsivePolish,{passive:true});addEventListener('orientationchange',v1523ScheduleResponsivePolish,{passive:true});state.v1523ResponsiveListeners=true}
+  v1523ResponsivePolish(root);state.v1523ResponsiveCoreReady=true;
+}
+function v1523LayoutAudit(root=document.getElementById('appView')){
+  if(!root)return {viewport:document.documentElement.clientWidth,offenders:[]};
+  const viewport=document.documentElement.clientWidth,tolerance=2,offenders=[];
+  root.querySelectorAll('.page:not(.hidden) *').forEach(el=>{
+    const style=getComputedStyle(el),rect=el.getBoundingClientRect();if(style.display==='none'||style.visibility==='hidden'||rect.width===0)return;
+    const scrollable=/(auto|scroll)/.test(style.overflowX)||!!el.closest(V1523_SCROLL_ANCESTORS);
+    if(!scrollable&&(rect.left<-tolerance||rect.right>viewport+tolerance||el.scrollWidth>el.clientWidth+tolerance))offenders.push({tag:el.tagName,id:el.id||'',class:String(el.className||'').slice(0,120),left:Math.round(rect.left),right:Math.round(rect.right),client:el.clientWidth,scroll:el.scrollWidth});
+  });
+  return {viewport,offenders:offenders.slice(0,100),count:offenders.length};
+}
+window.__STAINHER_LAYOUT_AUDIT__=v1523LayoutAudit;
+v1523InstallResponsiveCore();
 </script>
 </body>
 </html>
