@@ -45,7 +45,7 @@ COMPROBACIONES ESTÁTICAS SUPERADAS
 - 40 bloques script: 6 externos y 34 internos analizados; 0 errores de sintaxis.
 - 35 bloques CSS balanceados.
 - 696 acciones inline revisadas; 203 llamadas distintas y 0 referencias sin definición.
-- 84 identificadores HTML estáticos; 0 duplicados.
+- 86 identificadores HTML estáticos; 0 duplicados.
 - Estructura principal HTML balanceada.
 - 10 perfiles, 12 módulos y 120 niveles de permiso válidos.
 - Prueba aislada de Preventivo: Listado genera solo la tabla, Carta Gantt genera solo la matriz y el contenido cambia al seleccionar la vista.
