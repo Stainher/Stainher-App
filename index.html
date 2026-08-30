@@ -10484,6 +10484,21 @@ v15LoadNotifications=async function(){
   const unread=state.v15Notifications.filter(x=>!x.leida).length,button=document.getElementById('v15NotifyBtn'),count=document.getElementById('v15NotifyCount');button?.classList.remove('hidden');if(count){count.textContent=String(unread);count.classList.toggle('hidden',!unread)}return state.v15Notifications;
 };
 
+/* Centro de notificaciones persistente en escritorio y encabezado móvil. */
+function v1523EnsureNotificationCenter(){
+  if(!state.session)return null;
+  v15InstallBell?.();const bell=document.getElementById('v15NotifyBtn');if(!bell)return null;
+  bell.type='button';bell.setAttribute('aria-label','Abrir centro de notificaciones');bell.setAttribute('title','Centro de notificaciones');bell.onclick=v15OpenNotifications;bell.classList.remove('hidden');
+  v152PlaceBell?.();state.v1523NotificationCenterReady=true;return bell;
+}
+v15OpenNotifications=async function(){
+  v1523EnsureNotificationCenter();const root=document.getElementById('modalRoot');if(!root)return;
+  root.innerHTML='<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Centro de notificaciones</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><div class="empty">Cargando notificaciones…</div></div></div>';
+  let rows;try{rows=await v15LoadNotifications()}catch(error){v1523RecordError('notificaciones/carga',error);const modal=root.querySelector('.modal');if(modal)modal.innerHTML=`<div class="row-between"><h3>Centro de notificaciones</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><div class="notice error"><b>No fue posible cargar las notificaciones.</b><br>${esc(error.message||String(error))}<div style="margin-top:10px"><button class="btn" onclick="v15OpenNotifications()">Reintentar</button></div></div>`;return}
+  const admin=String(v11Role?.()||'')==='administrador'&&!state.v15PreviewRole;
+  root.innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><div><h3>Centro de notificaciones</h3><div class="muted">${rows.length} aviso${rows.length===1?'':'s'} pendiente${rows.length===1?'':'s'}</div></div><div class="actions"><button class="btn" onclick="v154MarkAllRead?.()">Marcar todas leídas</button>${admin?'<button class="btn danger-btn" onclick="v1520DeleteSelectedNotifications()">Eliminar seleccionadas</button><button class="btn" onclick="v1520ClearNotificationHistory()">Limpiar historial resuelto</button>':''}<button class="btn" onclick="closeModal()">Cerrar</button></div></div>${rows.map(item=>`<article class="v1520-notification"><div class="v1520-notification-head">${admin?`<input type="checkbox" data-v1520-notif value="${item.id}" aria-label="Seleccionar notificación">`:''}<div style="flex:1"><div class="row-between"><strong>${esc(item.titulo||'Notificación')}</strong><small>${new Date(item.created_at).toLocaleString('es-CL')}</small></div><div style="margin-top:5px">${esc(item.mensaje||'')}</div><div class="v1520-notif-actions">${item.modulo_destino?`<button class="btn primary" onclick="v154GoNotification('${item.id}','${esc(item.modulo_destino)}')">Ir a la acción</button>`:''}<button class="btn" onclick="v154DismissNotification('${item.id}')">Descartar</button>${admin?`<button class="btn danger-btn" onclick="v1520DeleteNotification('${item.id}')">Eliminar</button>`:''}</div></div></div></article>`).join('')||'<div class="empty">No tienes notificaciones pendientes.</div>'}</div></div>`;
+};
+
 /* Capacidad por perfil: los permisos personalizados siguen prevaleciendo para módulos. */
 v1518Can=function(module,action='view'){
   if(action==='view')return canViewV11(module);if(action==='edit')return canEditV11(module);
@@ -10524,6 +10539,7 @@ function v1523RunProfileAudit(){
   add('Núcleo · arranque único',!!window.__v1523BootPromise&&state.v1523LegacyObserversDisabled===true,'La sesión inicia después del núcleo final y sin observadores heredados activos.');
   add('Renderizadores · cobertura total',typeof V1523_DIRECT_RENDERERS!=='undefined'&&V1523_MODULES.every(m=>V1523_DIRECT_RENDERERS.has(m)),'Los 12 módulos usan el despacho consolidado V15.23.');
   add('Versión visible · uniforme',[V1519_VERSION,V1520_VERSION,V15201_VERSION,V1521_VERSION].every(v=>v===V1523_VERSION)&&v1523VisibleLegacyVersionCount()===0,'Encabezados, pestañas, fichas y modales muestran V15.23; no queda una versión heredada visible.');
+  const notificationButton=document.getElementById('v15NotifyBtn');add('Notificaciones · centro persistente',typeof v1523EnsureNotificationCenter==='function'&&typeof v15OpenNotifications==='function'&&!!notificationButton&&!notificationButton.classList.contains('hidden'),'La campana permanece visible, integrada en el encabezado móvil y accesible aunque no existan avisos.');
   add('Preventivo · vistas independientes',typeof v1523SetPreventiveView==='function'&&typeof v1523RenderPreventiveContent==='function'&&v1523PreventiveMode('lista')!==v1523PreventiveMode('gantt'),'Listado usa tabla detallada y Carta Gantt usa matriz temporal; el cambio es inmediato.');
   add('Solicitudes · recuperación sin duplicar',typeof v1523AssignManagerModal==='function'&&typeof v1523RetryHR==='function'&&typeof v1523RequestLock==='function','Gerente y RR.HH. se reasignan sobre el mismo registro con aviso único.');
   add('Formularios · envío único',state.v1523FormObserverActive===true&&typeof v1523FormSubmitLock==='function','Un supervisor final bloquea reenvíos sin alterar el contenido de los formularios.');
@@ -10549,6 +10565,7 @@ const V1523_CHANGES=[
  ['Inicio','Alertas y próximos hitos restaurados; turnos A/C agrupados y ordenados.'],
  ['Preventivo','Listado detallado y Carta Gantt temporal con cambio inmediato y renderizado independiente.'],
  ['Versión','V15.23 sincronizada en encabezados, pestañas, fichas, modales y componentes heredados activos.'],
+ ['Notificaciones','Centro restaurado y persistente; campana visible en escritorio y dentro del encabezado móvil.'],
  ['Seguridad','Las acciones sensibles vuelven a comprobar el permiso efectivo antes de escribir.'],
  ['Estabilidad','Control de carreras, bloqueo de reenvíos, avisos sin difusión y diagnóstico de errores/promesas.'],
  ['Responsive','Filtros alineados, tipografía vehicular reducida y tarjetas sin desbordes.']
@@ -10566,8 +10583,13 @@ loadProfile=async function(){
   state.profile=q.data;try{await v1517LoadProfileTypes?.(true)}catch(e){v1523RecordError('tipos de perfil',e)}v1523InstallDefaults();
   const un=document.getElementById('userName'),ur=document.getElementById('userRole');if(un)un.textContent=q.data.nombre||state.session.user.email;if(ur)ur.textContent=v1519RoleLabel(q.data.rol);applyPermissionsV11();v1523Version();return q.data;
 };
-showLogin=function(){document.getElementById('appView')?.classList.add('hidden');document.getElementById('loginView')?.classList.remove('hidden');v156SetLoginMode?.(true);v154UpdateLoginMode?.()};
-showApp=async function(){document.getElementById('loginView')?.classList.add('hidden');document.getElementById('appView')?.classList.remove('hidden');v156SetLoginMode?.(false);v154UpdateLoginMode?.();v15InstallPasswordRecovery?.();v15InstallBell?.();v1521EnsureAccountActions?.();await renderAll();v15LoadNotifications?.().catch?.(e=>v1523RecordError('notificaciones',e));if(state.profile?.debe_cambiar_password)setTimeout(()=>v15OpenPasswordChange?.(),250)};
+showLogin=function(){document.getElementById('appView')?.classList.add('hidden');document.getElementById('loginView')?.classList.remove('hidden');document.getElementById('v15NotifyBtn')?.classList.add('hidden');v156SetLoginMode?.(true);v154UpdateLoginMode?.()};
+showApp=async function(){
+  document.getElementById('loginView')?.classList.add('hidden');document.getElementById('appView')?.classList.remove('hidden');v156SetLoginMode?.(false);v154UpdateLoginMode?.();v15InstallPasswordRecovery?.();v15InstallBell?.();v1521EnsureAccountActions?.();
+  await renderAll();v1523EnsureNotificationCenter();
+  try{await v15LoadNotifications?.()}catch(error){v1523RecordError('notificaciones',error)}
+  v1523EnsureNotificationCenter();if(state.profile?.debe_cambiar_password)setTimeout(()=>v15OpenPasswordChange?.(),250);
+};
 
 /* Inicio directo: alertas/hitos + disponibilidad del día. */
 renderInicio=async function(){
@@ -10813,10 +10835,16 @@ const V1523_DIRECT_RENDERERS=new Set(['inicio','preventivo','correctivo','equipo
 /* Navegación y despacho directos, con control de carreras entre módulos. */
 state.v1523RenderSeq=state.v1523RenderSeq||0;
 function v1523Renderer(pg){return {inicio:renderInicio,preventivo:renderPreventivo,correctivo:renderCorrectivoShell,equipos:renderEquipos,vehiculos:renderStandaloneVehiculos,dotacion:renderStandaloneDotacion,turnos:renderTurnosV15,solicitudes:renderSolicitudesV15,liderazgo:renderLiderazgoV95,contrato:renderContrato,sistema:renderSistema,usuarios:renderUsuarios}[pg]}
-async function v1523RenderModule(pg){const seq=++state.v1523RenderSeq,fn=v1523Renderer(pg),page=document.getElementById(`page-${pg}`);if(typeof fn!=='function'){const e=new Error(`El módulo ${pg} no tiene renderizador activo.`);v1523RecordError(pg,e);if(page)page.innerHTML=`<div class="notice error">${esc(e.message)}</div>`;return}try{await Promise.resolve(fn());if(seq!==state.v1523RenderSeq)return;v1523Version();v1514SetGlobalHeader?.(pg)}catch(e){if(seq!==state.v1523RenderSeq)return;v1523RecordError(pg,e);if(page)page.innerHTML=`<div class="notice error"><b>No fue posible cargar ${esc(V1518_MODULES?.[pg]?.label||pg)}.</b><br>${esc(e.message||String(e))}<br><button class="btn" onclick="v1519Navigate('${pg}')">Reintentar</button></div>`}}
+async function v1523RenderModule(pg){
+  const seq=++state.v1523RenderSeq,fn=v1523Renderer(pg),page=document.getElementById(`page-${pg}`);
+  if(typeof fn!=='function'){const error=new Error(`El módulo ${pg} no tiene renderizador activo.`);v1523RecordError(pg,error);if(page)page.innerHTML=`<div class="notice error">${esc(error.message)}</div>`;v1523EnsureNotificationCenter();return}
+  try{await Promise.resolve(fn());if(seq!==state.v1523RenderSeq)return;v1523Version();v1514SetGlobalHeader?.(pg)}
+  catch(error){if(seq!==state.v1523RenderSeq)return;v1523RecordError(pg,error);if(page)page.innerHTML=`<div class="notice error"><b>No fue posible cargar ${esc(V1518_MODULES?.[pg]?.label||pg)}.</b><br>${esc(error.message||String(error))}<br><button class="btn" onclick="v1519Navigate('${pg}')">Reintentar</button></div>`}
+  finally{if(seq===state.v1523RenderSeq)v1523EnsureNotificationCenter()}
+}
 v1519RenderModule=v1523RenderModule;v1518RenderModule=v1523RenderModule;
 v1519Navigate=async function(pg){if(!canViewV11(pg)){toast('Este módulo está oculto para tu perfil.','warn');return false}document.querySelectorAll('.nav button[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===pg));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==`page-${pg}`));v151CloseDrawer?.();v151UpdateMobileNav?.();await v1523RenderModule(pg);return true};v1518Navigate=v1519Navigate;gotoPage=v1519Navigate;
-applyPermissionsV11=function(){v1523InstallDefaults();v1519DecorateSidebar?.();document.querySelectorAll('.nav button[data-page]').forEach(btn=>{const pg=btn.dataset.page,ok=canViewV11(pg);btn.classList.remove('role-hidden-v10','v11-hidden','hidden','admin-only');btn.style.display=ok?'':'none';btn.disabled=!ok;btn.onclick=ok?()=>v1519Navigate(pg):null});v1519BuildMobileNav?.();v1523Version()};
+applyPermissionsV11=function(){v1523InstallDefaults();v1519DecorateSidebar?.();document.querySelectorAll('.nav button[data-page]').forEach(btn=>{const pg=btn.dataset.page,ok=canViewV11(pg);btn.classList.remove('role-hidden-v10','v11-hidden','hidden','admin-only');btn.style.display=ok?'':'none';btn.disabled=!ok;btn.onclick=ok?()=>v1519Navigate(pg):null});v1519BuildMobileNav?.();v1523Version();v1523EnsureNotificationCenter()};
 renderAll=async function(){applyPermissionsV11();const active=document.querySelector('.nav button.active[data-page]'),pg=active&&canViewV11(active.dataset.page)?active.dataset.page:(Object.keys(V1518_MODULES).find(canViewV11)||'inicio');await v1519Navigate(pg)};
 
 /* Único punto de arranque. Ninguna sesión puede entrar por una capa heredada. */
