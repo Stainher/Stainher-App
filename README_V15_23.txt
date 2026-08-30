@@ -17,6 +17,7 @@ ORDEN DE PUBLICACIÓN
 CONSOLIDACIÓN REALIZADA
 - Arranque: una sola llamada, instalada después del núcleo V15.23; un solo listener de recuperación de contraseña.
 - Renderizado: despacho directo para los 12 módulos y control de carreras al cambiar rápidamente de vista.
+- Versión visible: todas las constantes activas, encabezados, pestañas, fichas y modales se sincronizan con V15.23; cualquier etiqueta heredada se corrige después de cada renderizado.
 - Observadores: seis observadores heredados se desconectan antes del inicio; se retiraron temporizadores antiguos que limpiaban Inicio o reaplicaban permisos después del render final. Permanece un único supervisor V15.23 que solo bloquea el reenvío de formularios modales.
 - Permisos: matriz canónica de 10 perfiles × 12 módulos; los permisos personalizados continúan prevaleciendo, pero las acciones sensibles exigen además permiso efectivo de edición.
 - Solicitudes: el Administrador selecciona un Gerente activo; la asignación y su único aviso se confirman dentro del mismo RPC. Solo ese usuario ve la solicitud y puede aprobar. Los avisos históricos sin destinatario no se muestran como Solicitudes.
@@ -43,6 +44,7 @@ COMPROBACIONES ESTÁTICAS SUPERADAS
 - Estructura principal HTML balanceada.
 - 10 perfiles, 12 módulos y 120 niveles de permiso válidos.
 - Prueba aislada de Preventivo: Listado genera solo la tabla, Carta Gantt genera solo la matriz y el contenido cambia al seleccionar la vista.
+- Prueba de versión: cuatro constantes heredadas activas apuntan a V15.23 y el sincronizador elimina cualquier etiqueta V15.21 residual del contenido visible.
 - Un único arranque y un único listener de recuperación.
 - PATCH SQL transaccional, SECURITY DEFINER con search_path vacío, avisos dirigidos dentro de las RPC, permisos explícitos y recarga de caché PostgREST.
 

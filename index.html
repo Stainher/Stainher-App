@@ -9828,8 +9828,8 @@ const _v1518ContractEdpFinal=renderContractEdp;renderContractEdp=function(){_v15
 @media(max-width:760px){.v1519-filter-grid{grid-template-columns:1fr}.v1519-prev-actions{justify-content:stretch}.v1519-prev-actions>.btn,.v1519-prev-actions>details{width:100%}.v1519-action-menu>summary{width:100%}.v1519-action-pop{position:static;margin-top:6px}.v1519-contract-head{display:grid}.v1519-contract-refresh{justify-content:flex-start}.v13-doc-row{grid-template-columns:1fr!important}.v13-doc-row strong,.v13-doc-row small{text-align:left!important}.v1519-inventory-row{grid-template-columns:1fr}.v158-review-actions .btn{flex:1 1 100%}}
 </style>
 <script id="v1519-script">
-const V1519_VERSION='V15.21';
-const V1519_DATE='29-08-2026';
+const V1519_VERSION='V15.23';
+const V1519_DATE='30-08-2026';
 
 /* Desactiva observadores históricos que corregían el DOM después del render. */
 try{headerObserver.disconnect()}catch(_){}try{metaObserverV11Fix.disconnect()}catch(_){}try{v15ModalObserver.disconnect()}catch(_){}try{v157HeaderObserver.disconnect()}catch(_){}try{v158ModalObserver.disconnect()}catch(_){}try{v1513Observer.disconnect()}catch(_){}
@@ -10062,7 +10062,7 @@ const _v1519SystemChangesBase=renderSistema;renderSistema=function(){_v1519Syste
    Solicitudes y Notificaciones. Las capas históricas quedan como helpers,
    pero estos módulos no delegan sus renderizadores a versiones anteriores.
 ===================================================================== */
-const V1520_VERSION='V15.21',V1520_DATE='29-08-2026';
+const V1520_VERSION='V15.23',V1520_DATE='30-08-2026';
 function v1520Version(){
   document.title=`Stainher App ${V1520_VERSION}`;
   document.querySelectorAll('.v15-version-chip').forEach(x=>x.textContent=V1520_VERSION);
@@ -10191,7 +10191,7 @@ openPersonModal=function(id=''){
    V15.21 · SISTEMA + MODO PRUEBA SEGURO
    Renderer independiente: NO hereda capas históricas.
 ========================================================= */
-const V15201_VERSION='V15.21',V15201_DATE='29-08-2026';
+const V15201_VERSION='V15.23',V15201_DATE='30-08-2026';
 function v15201Version(){
   document.title=`Stainher App ${V15201_VERSION}`;
   document.querySelectorAll('.brand h1').forEach(x=>x.textContent='STAINHER APP');
@@ -10283,7 +10283,7 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(orientation:landscape) and (max-height:600px){.v1520-turn-matrix th:first-child,.v1520-turn-matrix td:first-child{min-width:120px!important;width:120px!important;max-width:120px!important}.v1520-turn-matrix th:not(:first-child),.v1520-turn-matrix td:not(:first-child){min-width:42px!important;width:42px!important}.mobile-bottom-nav{opacity:.96}}
 </style>
 <script id="v1521-final">
-const V1521_VERSION='V15.21',V1521_DATE='29-08-2026';
+const V1521_VERSION='V15.23',V1521_DATE='30-08-2026';
 function v1521Version(){document.title=`Stainher App ${V1521_VERSION}`;document.querySelectorAll('.v151-mobile-title small').forEach(x=>x.textContent=`Stainher App · ${V1521_VERSION}`);document.querySelectorAll('.version-chip,.v15-version-chip,.v1513-version-meta span:first-child').forEach(x=>{if(/V15\./.test(x.textContent||''))x.textContent=(x.textContent||'').replace(/V15\.\d+(?:\.\d+)*/g,V1521_VERSION)})}
 v1520Version=v1521Version;v1519Version=v1521Version;
 
@@ -10435,7 +10435,25 @@ const V1523_DEFAULTS={
 };
 function v1523InstallDefaults(){for(const [role,perms] of Object.entries(V1523_DEFAULTS))V11_DEFAULTS[role]={...perms}}
 v1523InstallDefaults();
-function v1523Version(){document.title=`Stainher App ${V1523_VERSION}`;document.querySelectorAll('.v151-mobile-title small,.v1514-global-meta span:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child').forEach(x=>{if(/V15\./.test(x.textContent||''))x.textContent=(x.textContent||'').replace(/V15\.\d+(?:\.\d+)*/g,V1523_VERSION)})}
+function v1523SyncVisibleVersions(root=document.getElementById('appView')){
+  if(!root||typeof document.createTreeWalker!=='function')return 0;
+  const walker=document.createTreeWalker(root,4),nodes=[];let node;
+  while((node=walker.nextNode()))if(/V15\.21\b/.test(node.nodeValue||'')&&!node.parentElement?.closest('script,style,template'))nodes.push(node);
+  nodes.forEach(textNode=>{textNode.nodeValue=(textNode.nodeValue||'').replace(/V15\.21\b/g,V1523_VERSION)});
+  root.querySelectorAll('[title],[aria-label]').forEach(el=>{for(const attr of ['title','aria-label']){const value=el.getAttribute(attr);if(value&&/V15\.21\b/.test(value))el.setAttribute(attr,value.replace(/V15\.21\b/g,V1523_VERSION))}});
+  return nodes.length;
+}
+function v1523VisibleLegacyVersionCount(root=document.getElementById('appView')){
+  if(!root||typeof document.createTreeWalker!=='function')return 0;
+  const walker=document.createTreeWalker(root,4);let node,count=0;
+  while((node=walker.nextNode()))if(/V15\.21\b/.test(node.nodeValue||'')&&!node.parentElement?.closest('script,style,template'))count++;
+  return count;
+}
+function v1523Version(){
+  document.title=`Stainher App ${V1523_VERSION}`;
+  document.querySelectorAll('.v151-mobile-title small,.v1514-global-meta span:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child').forEach(x=>{if(/V15\./.test(x.textContent||''))x.textContent=(x.textContent||'').replace(/V15\.\d+(?:\.\d+)*/g,V1523_VERSION)});
+  v1523SyncVisibleVersions();
+}
 v1522Version=v1523Version;v1521Version=v1523Version;v1520Version=v1523Version;v1519Version=v1523Version;v1518Version=v1523Version;v1517Version=v1523Version;v1516Version=v1523Version;v1515Version=v1523Version;v1514Version=v1523Version;v1513Version=v1523Version;v1512Version=v1523Version;v1511Version=v1523Version;v1510Version=v1523Version;v159Version=v1523Version;v158UpdateVersionLabels=v1523Version;
 
 /* Correo directo: un solo Edge Function, trazabilidad y error accionable. */
@@ -10505,6 +10523,7 @@ function v1523RunProfileAudit(){
   for(const [role,perms] of Object.entries(V1523_DEFAULTS))add(`${v1519RoleLabel(role)} · matriz completa`,V1523_MODULES.every(m=>['ninguno','ver','editar'].includes(perms[m])),`Los ${V1523_MODULES.length} módulos tienen un nivel válido.`);
   add('Núcleo · arranque único',!!window.__v1523BootPromise&&state.v1523LegacyObserversDisabled===true,'La sesión inicia después del núcleo final y sin observadores heredados activos.');
   add('Renderizadores · cobertura total',typeof V1523_DIRECT_RENDERERS!=='undefined'&&V1523_MODULES.every(m=>V1523_DIRECT_RENDERERS.has(m)),'Los 12 módulos usan el despacho consolidado V15.23.');
+  add('Versión visible · uniforme',[V1519_VERSION,V1520_VERSION,V15201_VERSION,V1521_VERSION].every(v=>v===V1523_VERSION)&&v1523VisibleLegacyVersionCount()===0,'Encabezados, pestañas, fichas y modales muestran V15.23; no queda una versión heredada visible.');
   add('Preventivo · vistas independientes',typeof v1523SetPreventiveView==='function'&&typeof v1523RenderPreventiveContent==='function'&&v1523PreventiveMode('lista')!==v1523PreventiveMode('gantt'),'Listado usa tabla detallada y Carta Gantt usa matriz temporal; el cambio es inmediato.');
   add('Solicitudes · recuperación sin duplicar',typeof v1523AssignManagerModal==='function'&&typeof v1523RetryHR==='function'&&typeof v1523RequestLock==='function','Gerente y RR.HH. se reasignan sobre el mismo registro con aviso único.');
   add('Formularios · envío único',state.v1523FormObserverActive===true&&typeof v1523FormSubmitLock==='function','Un supervisor final bloquea reenvíos sin alterar el contenido de los formularios.');
@@ -10529,6 +10548,7 @@ const V1523_CHANGES=[
  ['Solicitudes','Gerente y RR.HH. con asignación/aviso transaccional, recuperación sobre el mismo registro y correo central.'],
  ['Inicio','Alertas y próximos hitos restaurados; turnos A/C agrupados y ordenados.'],
  ['Preventivo','Listado detallado y Carta Gantt temporal con cambio inmediato y renderizado independiente.'],
+ ['Versión','V15.23 sincronizada en encabezados, pestañas, fichas, modales y componentes heredados activos.'],
  ['Seguridad','Las acciones sensibles vuelven a comprobar el permiso efectivo antes de escribir.'],
  ['Estabilidad','Control de carreras, bloqueo de reenvíos, avisos sin difusión y diagnóstico de errores/promesas.'],
  ['Responsive','Filtros alineados, tipografía vehicular reducida y tarjetas sin desbordes.']
