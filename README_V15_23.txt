@@ -7,12 +7,11 @@ ESTADO DE LA ENTREGA
 - Las implementaciones históricas permanecen dentro del archivo como respaldo de funciones especializadas, pero ya no pueden iniciar la sesión, reescribir el despacho ni ejecutar observadores de interfaz en paralelo.
 
 ORDEN DE PUBLICACIÓN
-1. Conservar una copia del index.html actualmente publicado.
-2. Ejecutar PATCH_V15_22.sql en Supabase SQL Editor. El nombre se mantiene por compatibilidad; el parche declara expresamente compatibilidad con V15.23 y es idempotente.
-3. Confirmar que la ejecución termina en COMMIT y sin errores.
-4. Reemplazar el index.html publicado por Stainher_App_V15.23.html.
-5. Forzar recarga completa del navegador y borrar la caché del sitio si aún aparece una vista anterior.
-6. Probar con cuentas reales de los diez perfiles siguiendo AUDITORIA_PERFILES_V15_23.md.
+1. PATCH_V15_22.sql y PATCH_V15_23_EMAIL_CORE.sql ya fueron aplicados en el proyecto conectado.
+2. send-stainher-email V3 quedó desplegada con JWT obligatorio; las rutas anteriores responden 410 y no envían.
+3. Publicar Stainher_App_V15.23.html como index.html sin cambiar la versión visible.
+4. Forzar recarga completa del navegador y borrar la caché del sitio si aún aparece una vista anterior.
+5. Probar con cuentas reales de los perfiles siguiendo AUDITORIA_PERFILES_V15_23.md.
 
 CONSOLIDACIÓN REALIZADA
 - Arranque: una sola llamada, instalada después del núcleo V15.23; un solo listener de recuperación de contraseña.
@@ -34,11 +33,11 @@ CONSOLIDACIÓN REALIZADA
 - Liderazgo: lectura no ejecuta controles; las acciones dependen del permiso efectivo y del perfil participante.
 - Contrato: carga por pestaña con caché, conservación de la última información válida y barreras de edición en EDP, reembolsables y garantías.
 - Usuarios: perfiles y Auth se combinan una vez; búsqueda, filtro por perfil, recuperación de contraseña y respaldo si falla la RPC administrativa.
-- Correo: un único servicio, send-stainher-email; errores registrados y mostrados con información accionable.
+- Correo: un único servicio, send-stainher-email V3; el backend omite nombres vacíos, valida destinatarios y permisos, resuelve copias configuradas, limita tamaño, evita duplicados y registra la trazabilidad autoritativa.
 - Diagnóstico: errores JavaScript y promesas rechazadas quedan visibles en Sistema durante la sesión.
 
 COMPROBACIONES ESTÁTICAS SUPERADAS
-- 38 bloques script: 6 externos y 32 internos analizados; 0 errores de sintaxis.
+- 39 bloques script: 6 externos y 33 internos analizados; 0 errores de sintaxis.
 - 34 bloques CSS balanceados.
 - 696 acciones inline revisadas; 203 llamadas distintas y 0 referencias sin definición.
 - 84 identificadores HTML estáticos; 0 duplicados.
@@ -52,9 +51,19 @@ COMPROBACIONES ESTÁTICAS SUPERADAS
 
 DEPENDENCIAS QUE DEBEN ESTAR ACTIVAS
 - Migraciones Clean Core y v1521_stable_admin_actions previamente aplicadas.
-- Edge Function send-stainher-email activa.
+- Migración v1523_email_core_authoritative_log aplicada.
+- Edge Function send-stainher-email V3 activa y protegida con JWT.
 - Variables SMTP/Brevo válidas.
 - Políticas RLS y RPC requeridas disponibles para las cuentas reales.
+
+CORRECCIÓN OPERATIVA DE CORREO · 30-08-2026
+- Causa corregida: Brevo recibía `name` vacío en `to`; ahora el atributo se omite si el nombre no fue informado.
+- La tabla email_envios_v1518 es de solo lectura para el navegador. Únicamente el servicio backend inserta y actualiza estados.
+- Cada envío usa idempotencia. El comprobante de vacaciones reutiliza una clave lógica estable y no puede duplicarse por doble clic o reintento concurrente.
+- El modo de prueba solo funciona para el Administrador real y siempre redirige a su correo autenticado.
+- Los módulos Confiabilidad, Preventivo, Vehículos y Liderazgo exigen permiso efectivo de edición para enviar.
+- El historial de Sistema muestra Operativo, Procesando o Requiere revisión según la trazabilidad real; ya no declara “Configurado” sin comprobarlo.
+- Las funciones send-document-v155 y send-vacation-receipt quedaron neutralizadas; todo el frontend activo usa send-stainher-email.
 
 LÍMITE DE ESTA REVISIÓN
 La estructura, sintaxis, permisos del cliente, rutas y conflictos heredados quedaron comprobados localmente. La validación real de RLS, escritura, correo y sesiones independientes requiere publicar estos archivos y ejecutar el recorrido con cuentas reales de Supabase. No se debe declarar aprobada la producción hasta completar esa prueba operativa.
