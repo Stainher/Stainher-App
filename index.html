@@ -10292,7 +10292,13 @@ async function v1521DeleteRequest(id){if(String(v11Role?.()||'')!=='administrado
 const _v1521ReqRender=renderSolicitudesV15;renderSolicitudesV15=async function(){await _v1521ReqRender();if(String(v11Role?.()||'')!=='administrador')return;document.querySelectorAll('#page-solicitudes .v152-request-card').forEach((card,i)=>{const r=state.v154Requests?.[i];if(!r||card.querySelector('[data-v1521-delreq]'))return;const a=card.querySelector('.v154-request-actions')||card;const b=document.createElement('button');b.className='btn danger-btn';b.dataset.v1521Delreq='1';b.textContent='Eliminar';b.onclick=()=>v1521DeleteRequest(r.id);a.appendChild(b)})};
 
 /* Cuenta y cierre de sesión siempre accesibles en navegación móvil */
-function v1521EnsureAccountActions(){const side=document.querySelector('.sidebar,.nav');if(!side||!state.session)return;if(side.querySelector('.v1521-account-mobile'))return;const box=document.createElement('div');box.className='v1521-account-mobile';box.innerHTML=`<button class="btn" onclick="v157OpenAccount?.()">Mi cuenta</button><button class="btn danger-btn" onclick="sb.auth.signOut().then(()=>location.reload())">Cerrar sesión</button>`;side.appendChild(box)}
+function v1521EnsureAccountActions(){
+  document.querySelectorAll('.v1521-account-mobile').forEach(x=>x.remove());
+  if(!state.session)return;
+  v157InstallUserMenu?.();
+  const trigger=document.querySelector('.v157-user-trigger'),menu=document.getElementById('v157UserMenu');
+  if(trigger&&menu){trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-controls','v157UserMenu');trigger.setAttribute('aria-expanded',String(!menu.classList.contains('hidden')));menu.setAttribute('role','menu');menu.querySelectorAll('button').forEach(x=>x.setAttribute('role','menuitem'))}
+}
 
 /* Inicio: personal efectivamente programado para hoy */
 const _v1521InicioBase=renderInicio;renderInicio=async function(){await _v1521InicioBase?.();const p=document.getElementById('page-inicio');if(!p||!state.session)return;const intro=p.querySelector('.page-head p,.topbar p');if(intro)intro.textContent='Alertas, próximos hitos, recordatorios y personal de turno del día.';let host=p.querySelector('.v1521-home-turn');if(host)host.remove();host=document.createElement('div');host.className='panel v1521-home-turn';host.innerHTML='<h3>Personal de turno hoy</h3><div class="muted">Cargando programación actual…</div>';p.appendChild(host);try{const today=v1520DateIso(new Date()),[dq,mq,eq]=await Promise.all([sb.from('dotacion_contrato').select('user_id,nombre,estado,aplica_turnos').eq('estado','activo').eq('aplica_turnos',true),sb.from('turnos_malla_v1512').select('user_id,turno_base').eq('fecha',today),sb.from('turnos_novedades_v15').select('user_id,tipo,fecha_inicio,fecha_fin').lte('fecha_inicio',today).gte('fecha_fin',today)]);if(dq.error||mq.error||eq.error)throw(dq.error||mq.error||eq.error);const map=new Map((mq.data||[]).map(x=>[String(x.user_id),x.turno_base]));const abs=new Set((eq.data||[]).filter(x=>['vacaciones','licencia_medica','permiso','falta'].includes(x.tipo)).map(x=>String(x.user_id)));const people=(dq.data||[]).filter(x=>['A','C'].includes(map.get(String(x.user_id)))&&!abs.has(String(x.user_id)));host.innerHTML=`<div class="row-between"><div><h3>Personal de turno hoy</h3><div class="muted">${v1520Date(today)} · actualización automática</div></div><button class="btn" onclick="v1518Navigate?.('turnos')">Ver programación</button></div><div class="v1521-home-turn-grid">${people.map(x=>`<div class="v1521-home-person"><b>${esc(x.nombre)}</b><small>Turno ${esc(map.get(String(x.user_id)))}</small></div>`).join('')||'<div class="empty">No hay personal programado como disponible hoy.</div>'}</div>`}catch(e){host.innerHTML=`<h3>Personal de turno hoy</h3><div class="notice error">No se pudo cargar la programación actual: ${esc(e.message||String(e))}</div>`}v1521Version();v1521EnsureAccountActions()};
@@ -10413,10 +10419,13 @@ const _v1522Dispatch=v1519RenderModule;v1519RenderModule=function(pg){const out=
 .v1523-audit-table{width:100%;border-collapse:collapse;min-width:880px}.v1523-audit-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.v1523-audit-table th,.v1523-audit-table td{padding:8px;border-bottom:1px solid var(--line);font-size:11px;text-align:center}.v1523-audit-table th:first-child,.v1523-audit-table td:first-child{position:sticky;left:0;background:#101821;text-align:left;z-index:2}.v1523-perm-edit{color:#86efac;font-weight:800}.v1523-perm-view{color:#93c5fd}.v1523-perm-none{color:#64748b}.v1523-test-list{display:grid;gap:7px;margin-top:12px}.v1523-test{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:9px}.v1523-test.ok{border-color:rgba(34,197,94,.45)}.v1523-test.bad{border-color:rgba(239,68,68,.55)}
 .v1523-page-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.v1523-read-field{display:flex;align-items:center;min-height:42px;white-space:normal!important;overflow-wrap:anywhere}.v1523-vehicle-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.v1523-empty-group{padding:12px;color:var(--muted)}.v1523-users-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) minmax(180px,280px);gap:10px;margin-bottom:14px}.v1523-users-mobile{display:none}.v1523-user-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0d141b}.v1523-user-card h4{margin:0 0 4px}.v1523-user-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.v1523-lead-kpis{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}.v1523-lead-actions{display:flex;gap:8px;flex-wrap:wrap}.v1523-dot-summary{margin-bottom:14px}
 .v1523-prev-view-panel{margin-top:14px}.v1523-prev-view-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}.v1523-prev-view-head h3{margin:0}.v1523-prev-view-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.v1523-prev-view-badge{display:inline-flex;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#111b26;color:#bfdbfe;font-size:11px;font-weight:800}.v1523-prev-view-panel[data-view="gantt"]{border-color:rgba(96,165,250,.42)}.v1523-prev-view-panel[data-view="lista"]{border-color:rgba(148,163,184,.34)}
+.v1523-history-head{align-items:end}.v1523-history-filter{display:grid;gap:5px;min-width:min(100%,260px)}.v1523-history-filter span{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em}.v1523-history-filter .field{width:100%}
+.v1523-reemb-grid{display:grid;width:100%;border:1px solid var(--line);border-radius:13px;overflow:hidden}.v1523-reemb-grid-head,.v1523-reemb-grid-row{display:grid;grid-template-columns:minmax(90px,.72fr) minmax(90px,.72fr) minmax(105px,.85fr) minmax(220px,2.2fr) minmax(112px,.82fr) minmax(76px,.5fr);gap:10px;align-items:center;min-width:0}.v1523-reemb-grid-head{padding:10px 12px;background:#111827;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.v1523-reemb-grid-row{padding:12px;border-top:1px solid var(--line);background:#0c1219}.v1523-reemb-grid-row:first-of-type{border-top:0}.v1523-reemb-grid-row>*{min-width:0;max-width:100%}.v1523-reemb-detail{white-space:normal;overflow-wrap:anywhere;line-height:1.35}.v1523-reemb-amount{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:800}.v1523-reemb-action{text-align:right}.v1523-reemb-action .btn{white-space:nowrap!important;overflow-wrap:normal!important}.v1523-reemb-mobile-meta,.v1523-reemb-amount-label{display:none}.v1523-reemb-empty{padding:22px;text-align:center;color:var(--muted)}
+.v1523-turn-day-toggle{appearance:none;-webkit-appearance:none;width:auto;max-width:none!important;border:0;border-radius:0;font:inherit;color:inherit;text-align:left;cursor:pointer}.v1523-turn-day-toggle.selected{outline:2px solid #60a5fa;outline-offset:-2px;background:rgba(59,130,246,.12)}.v1523-turn-day-detail{margin-top:12px;border:1px solid rgba(96,165,250,.42);border-radius:13px;background:#0c141d;padding:14px}.v1523-turn-day-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.v1523-turn-roster{display:grid;gap:6px}.v1523-turn-person,.v1523-turn-event{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#111a24}.v1523-turn-person span,.v1523-turn-event span{min-width:0;overflow-wrap:anywhere}.v1523-turn-person small,.v1523-turn-event small{color:var(--muted)}.v1523-turn-events{display:grid;gap:6px;margin-top:12px}.v1523-turn-events h4,.v1523-turn-day-group h4{margin:0 0 8px}.v1523-turn-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 #page-vehiculos .vehicle-card{font-size:13px;overflow:hidden}#page-vehiculos .vehicle-card h3{font-size:18px;overflow-wrap:anywhere}#page-vehiculos .mini-stat b{font-size:14px;overflow-wrap:anywhere}#page-vehiculos .mini-stat small,#page-vehiculos .vehicle-fields label{font-size:11px}#page-vehiculos .inline-input,#page-vehiculos .inline-select,#page-vehiculos .v1519-inventory-row .field{font-size:13px!important;line-height:1.25!important}#page-vehiculos .v1519-inventory-details summary{font-size:14px!important}#page-vehiculos .v1519-inventory-details summary small,#page-vehiculos .v1519-inventory-state{font-size:11px!important}
 #page-correctivo .v1519-filter-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important}#page-correctivo .v1519-filter-grid label,#page-correctivo .v1519-filter-grid .field{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
 @media(max-width:760px){.v1523-users-toolbar{grid-template-columns:1fr}.v1523-users-desktop{display:none}.v1523-users-mobile{display:grid;gap:10px}.v1523-page-actions{width:100%}.v1523-page-actions .btn{flex:1 1 auto}.v1523-vehicle-actions .btn{flex:1 1 150px}.v1523-read-field{font-size:13px!important;padding:9px 10px!important}#page-vehiculos .vehicle-card{padding:13px!important}#page-vehiculos .vehicle-card h3{font-size:16px!important}#page-vehiculos .mini-stat{padding:10px!important}#page-vehiculos .mini-stat b{font-size:13px!important}#page-vehiculos .inline-input,#page-vehiculos .inline-select,#page-vehiculos .v1519-inventory-row .field{font-size:13px!important;padding:8px 9px!important;min-height:40px!important}#page-vehiculos .v1519-inventory-details summary{font-size:13px!important;padding:10px 11px!important}#page-correctivo .v1519-filter-grid{grid-template-columns:1fr!important;gap:10px!important}}
-@media(max-width:760px){.v1523-prev-view-head{display:grid}.v1523-prev-view-badge{width:max-content}}
+@media(max-width:760px){.v1523-prev-view-head{display:grid}.v1523-prev-view-badge{width:max-content}.v1523-history-head{display:grid;grid-template-columns:1fr}.v1523-history-filter{width:100%;min-width:0}.v1523-reemb-grid-head{display:none}.v1523-reemb-grid{border:0;gap:9px;overflow:visible}.v1523-reemb-grid-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"meta action" "detail detail" "amount-label amount";gap:8px 10px;border:1px solid var(--line)!important;border-radius:11px;padding:11px}.v1523-reemb-date,.v1523-reemb-code,.v1523-reemb-equipment{display:none}.v1523-reemb-mobile-meta{display:flex;grid-area:meta;gap:6px;flex-wrap:wrap;color:var(--muted);font-size:11px}.v1523-reemb-detail{grid-area:detail}.v1523-reemb-amount-label{display:block;grid-area:amount-label;color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:800}.v1523-reemb-amount{grid-area:amount;align-self:center}.v1523-reemb-action{grid-area:action}.v1523-turn-day-groups{grid-template-columns:1fr}}
 </style>
 <script id="v1523-profile-audit-core">
 const V1523_VERSION='V15.23',V1523_DATE='30-08-2026';
@@ -10561,15 +10570,44 @@ function v1523AuditPanel(){return `<section class="panel v1519-system-full" id="
 const V1523_CHANGES=[
  ['Núcleo','Arranque y renderizado directos; temporizadores y observadores heredados ya no compiten con la capa final.'],
  ['Perfiles','10 perfiles, 12 módulos y permisos personalizados preservados.'],
- ['Solicitudes','Gerente y RR.HH. con asignación/aviso transaccional, recuperación sobre el mismo registro y correo central.'],
- ['Inicio','Alertas y próximos hitos restaurados; turnos A/C agrupados y ordenados.'],
+ ['Solicitudes','Una sola acción Nueva solicitud; Gerente y RR.HH. conservan asignación, recuperación y correo central.'],
+ ['Inicio','Alertas, cumpleaños, feriados y recordatorios en listas compactas; turnos A/C agrupados y ordenados.'],
+ ['Turnos','Cada fecha despliega la nómina de Turno A, Turno C y sus eventos sin abrir el formulario de edición.'],
  ['Preventivo','Listado detallado y Carta Gantt temporal con cambio inmediato y renderizado independiente.'],
+ ['Contrato','Gastos reembolsables en cuadrícula fija y orden cronológico seleccionable en el historial de pagos.'],
+ ['Cuenta','Mi cuenta, cambio de contraseña y cierre de sesión reunidos en un único menú desplegable.'],
  ['Versión','V15.23 sincronizada en encabezados, pestañas, fichas, modales y componentes heredados activos.'],
  ['Notificaciones','Centro restaurado y persistente; campana visible en escritorio y dentro del encabezado móvil.'],
  ['Seguridad','Las acciones sensibles vuelven a comprobar el permiso efectivo antes de escribir.'],
  ['Estabilidad','Control de carreras, bloqueo de reenvíos, avisos sin difusión y diagnóstico de errores/promesas.'],
  ['Responsive','Filtros alineados, tipografía vehicular reducida y tarjetas sin desbordes.']
 ];
+
+/* Consolidación visual: una sola acción principal y un único menú de cuenta. */
+function v1523ConsolidateRequestActions(page=document.getElementById('page-solicitudes')){
+  if(!page)return;
+  const headerAction=document.querySelector('#v1514GlobalHeader .v1516-header-actions [onclick*="v154RequestModal"]');
+  if(!headerAction)return;
+  const pageAction=page.querySelector('.v1523-page-actions [onclick*="v154RequestModal"]');
+  if(!pageAction)return;
+  const actions=pageAction.closest('.v1523-page-actions'),bar=actions?.closest('.topbar');pageAction.remove();
+  if(actions&&!actions.children.length)bar?.remove();
+}
+const v1523GlobalHeaderBase=v1514SetGlobalHeader;
+v1514SetGlobalHeader=function(id=v1514ActivePage?.()||'inicio'){
+  v1523GlobalHeaderBase(id);if(id==='solicitudes')v1523ConsolidateRequestActions();
+};
+const v1523ToggleUserMenuBase=v157ToggleUserMenu,v1523CloseUserMenuBase=v157CloseUserMenu;
+v157ToggleUserMenu=function(event){v1523ToggleUserMenuBase(event);const trigger=document.querySelector('.v157-user-trigger'),menu=document.getElementById('v157UserMenu');if(trigger&&menu)trigger.setAttribute('aria-expanded',String(!menu.classList.contains('hidden')))};
+v157CloseUserMenu=function(){v1523CloseUserMenuBase();document.querySelector('.v157-user-trigger')?.setAttribute('aria-expanded','false')};
+
+/* Historial de pagos: el orden siempre es una selección explícita del usuario. */
+v1512RenderEdpHistory=function(){
+  const rows=v1512EdpRows(),container=document.getElementById('contractContent');if(!container)return;
+  const history=[...container.querySelectorAll('.panel')].find(panel=>/Historial/i.test(panel.querySelector('h3')?.textContent||''));if(!history)return;
+  const order=state.contractEdpSort==='asc'?'asc':'desc';
+  history.innerHTML=`<div class="row-between v1523-history-head"><div><h3>Historial de Estados de Pago</h3><div class="muted">Vista compacta. Selecciona el orden cronológico para revisar los pagos.</div></div><label class="v1523-history-filter" for="v1523EdpHistoryOrder"><span>Orden del historial</span><select id="v1523EdpHistoryOrder" class="field" aria-label="Orden del historial de Estados de Pago" onchange="state.contractEdpSort=this.value;v1512RenderEdpHistory()"><option value="desc" ${order==='desc'?'selected':''}>Más reciente a más antiguo</option><option value="asc" ${order==='asc'?'selected':''}>Más antiguo a más reciente</option></select></label></div><div class="v1512-clean-table-wrap"><table class="v1512-clean-table"><thead><tr><th>EDP</th><th>Mes</th><th>Monto neto</th><th>Gasto reembolsable</th><th>Total c/reajuste</th><th></th></tr></thead><tbody>${rows.map(row=>`<tr><td><b>EP${row.ep_num}</b></td><td>${MONTHS_ES[row.mes_edp-1]} ${row.anio_edp}</td><td class="money">${fmtCLP(row.total_neto)}</td><td class="money">${fmtCLP(row.gastos_reembolsables)}</td><td class="money">${fmtCLP(row.total_pagar_neto)}</td><td><button class="btn" onclick="v1512EditEdp('${row.id}')">Ver / Editar</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Sin Estados de Pago registrados.</td></tr>'}</tbody></table></div><div class="v1512-mobile-cards">${rows.map(row=>`<article class="v1512-record-card"><div class="v1518-edp-card-lines"><div><b>EP${row.ep_num} · ${MONTHS_ES[row.mes_edp-1]} ${row.anio_edp}</b></div><div class="line"><span>Monto neto</span><b>${fmtCLP(row.total_neto)}</b></div><div class="line"><span>Gasto reembolsable</span><b>${fmtCLP(row.gastos_reembolsables)}</b></div><div class="line"><span>Total EDP</span><b>${fmtCLP(row.total_pagar_neto)}</b></div></div><button class="btn" onclick="v1512EditEdp('${row.id}')">Ver / Editar</button></article>`).join('')||'<div class="empty">Sin Estados de Pago registrados.</div>'}</div>`;
+};
 
 /* Diagnóstico central: evita rechazos silenciosos y conserva trazabilidad local. */
 state.v1523Diagnostics=state.v1523Diagnostics||[];
@@ -10829,6 +10867,51 @@ renderPreventivo=async function(){
   catch(error){if(token!==state.v1523PreventiveLoadSeq)return;v1523RecordError('preventivo',error);const box=document.getElementById('v1520PrevContent');if(box)box.innerHTML=`<div class="notice error">${esc(error.message||String(error))}</div>`}
 };
 v1520ApplyPrevFilters=v1523ApplyPreventiveFilters;
+
+/* Estados de Pago directo: historial compacto con orden cronológico seleccionable. */
+renderContractEdp=function(){
+  const container=document.getElementById('contractContent');if(!container)return;
+  const rows=state.contractData?.edp||[],total=rows.reduce((sum,row)=>sum+Number(row.total_pagar_neto||0),0);
+  container.innerHTML=`<div class="row-between"><div><h3>Estados de Pago</h3><div class="muted">Historial económico real del contrato.</div></div>${v1520CanEdit('contrato')?'<button class="btn primary" onclick="openEpModal()">+ Nuevo EDP</button>':''}</div><div class="v1520-kpis"><div class="v1520-kpi"><span>EDP registrados</span><b>${rows.length}</b></div><div class="v1520-kpi"><span>Total neto acumulado</span><b>${v1520Money(total)}</b></div></div><section class="panel"><h3>Historial de Estados de Pago</h3></section>`;
+  v1512RenderEdpHistory();
+};
+
+/* Contrato directo: detalle reembolsable estable, ajustable y sin tabla desbordada. */
+renderContractReemb=function(){
+  const container=document.getElementById('contractContent');if(!container)return;
+  const eps=[...(state.contractData?.edp||[])].sort((a,b)=>Number(b.ep_num)-Number(a.ep_num)),selected=Number(state.reembEp||eps[0]?.ep_num||0);state.reembEp=selected;
+  const ep=eps.find(x=>Number(x.ep_num)===selected)||eps[0],rows=(state.contractData?.reemb||[]).filter(x=>Number(x.ep_num)===Number(ep?.ep_num)).sort((a,b)=>String(b.fecha_documento||'').localeCompare(String(a.fecha_documento||''))),total=rows.reduce((sum,row)=>sum+Number(row.monto_detalle||0),0),editable=v1520CanEdit('contrato');
+  const options=eps.length?eps.map(x=>`<option value="${x.ep_num}" ${Number(x.ep_num)===Number(ep?.ep_num)?'selected':''}>EP${x.ep_num} · ${v1520MonthLabel(x.anio_edp,x.mes_edp)}</option>`).join(''):'<option value="0">Sin Estados de Pago</option>';
+  const detail=rows.map(row=>`<article class="v1523-reemb-grid-row" role="row"><div class="v1523-reemb-date" role="cell">${v1520Date(row.fecha_documento)}</div><div class="v1523-reemb-code" role="cell">${esc(row.codigo_documento||'—')}</div><div class="v1523-reemb-equipment" role="cell">${esc(row.equipo||'—')}</div><div class="v1523-reemb-mobile-meta"><span>${v1520Date(row.fecha_documento)}</span><span>·</span><span>${esc(row.codigo_documento||'Sin código')}</span><span>·</span><span>${esc(row.equipo||'Sin equipo')}</span></div><div class="v1523-reemb-detail" role="cell">${esc(row.detalle||'—')}</div><span class="v1523-reemb-amount-label">Monto neto</span><div class="v1523-reemb-amount" role="cell">${v1520Money(row.monto_detalle)}</div><div class="v1523-reemb-action" role="cell">${editable?`<button class="btn" onclick="v1512EditReemb('${row.id}')">Editar</button>`:''}</div></article>`).join('');
+  container.innerHTML=`<div class="row-between"><div><h3>Gastos Reembolsables</h3><div class="muted">Detalle documental y conciliación por Estado de Pago.</div></div>${editable?'<button class="btn primary" onclick="openReembModal()">+ Agregar gasto</button>':''}</div><div class="toolbar"><label>EDP <select class="field" ${eps.length?'':'disabled'} onchange="state.reembEp=Number(this.value);renderContractReemb()">${options}</select></label><button class="btn" onclick="downloadReembReportV9?.()">Generar informe</button></div><div class="v1520-kpis"><div class="v1520-kpi"><span>Documentos</span><b>${rows.length}</b></div><div class="v1520-kpi"><span>Detalle neto</span><b>${v1520Money(total)}</b></div><div class="v1520-kpi"><span>Reconocido EDP</span><b>${v1520Money(ep?.gastos_reembolsables||0)}</b></div></div><section class="v1523-reemb-grid" role="table" aria-label="Detalle de gastos reembolsables"><div class="v1523-reemb-grid-head" role="row"><span role="columnheader">Fecha</span><span role="columnheader">Código</span><span role="columnheader">Equipo</span><span role="columnheader">Detalle</span><span role="columnheader" style="text-align:right">Monto neto</span><span role="columnheader"></span></div>${detail||'<div class="v1523-reemb-empty">Sin gastos para este Estado de Pago.</div>'}</section>`;
+};
+
+/* Turnos directo: seleccionar una fecha despliega A, C y eventos sin abrir edición. */
+state.v1523TurnExpandedDate=state.v1523TurnExpandedDate||'';
+function v1523TurnRoster(d,shiftMap,date,shift){return (d.people||[]).filter(person=>shiftMap.get(`${person.user_id}|${date}`)?.turno_base===shift).sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''),'es'))}
+function v1523TurnRosterHtml(rows){return rows.map(person=>`<div class="v1523-turn-person"><span><b>${esc(person.nombre||'Sin nombre')}</b><br><small>${esc(person.cargo||'')}</small></span></div>`).join('')||'<div class="empty">Sin personal programado.</div>'}
+function v1523TurnDayDetail(d,shiftMap,date,editable){
+  const events=v1520EventsOn(d,date),peopleById=new Map((d.people||[]).map(person=>[String(person.user_id),person]));
+  const eventHtml=events.map(event=>{const person=peopleById.get(String(event.user_id)),note=event.observacion||event.motivo||'Sin observación';return `<div class="v1523-turn-event"><span><b>${esc(v1520TurnTypeLabel(event.tipo))}</b><br><small>${esc(person?.nombre||'Persona no visible')}</small></span><small>${esc(note)}</small></div>`}).join('')||'<div class="empty">Sin eventos o novedades para esta fecha.</div>';
+  return `<section id="v1523TurnDayDetail" class="v1523-turn-day-detail"><div class="row-between"><div><h3>${v1520Date(date)}</h3><div class="muted">Dotación programada y novedades vigentes del día.</div></div><span class="status ok">Fecha seleccionada</span></div><div class="v1523-turn-day-groups"><section class="v1523-turn-day-group"><h4>Turno A · ${v1523TurnRoster(d,shiftMap,date,'A').length}</h4><div class="v1523-turn-roster">${v1523TurnRosterHtml(v1523TurnRoster(d,shiftMap,date,'A'))}</div></section><section class="v1523-turn-day-group"><h4>Turno C · ${v1523TurnRoster(d,shiftMap,date,'C').length}</h4><div class="v1523-turn-roster">${v1523TurnRosterHtml(v1523TurnRoster(d,shiftMap,date,'C'))}</div></section></div><section class="v1523-turn-events"><h4>Eventos / novedades · ${events.length}</h4>${eventHtml}</section>${editable?`<div class="v1523-turn-detail-actions"><button class="btn primary" onclick="v1520OpenTurnEvent(null,'${date}')">+ Registrar evento en esta fecha</button></div>`:''}</section>`;
+}
+function v1523ToggleTurnDay(date){
+  const data=state.v1520TurnData,content=document.getElementById('v1520TurnContent');if(!data||!content)return;
+  state.v1523TurnExpandedDate=state.v1523TurnExpandedDate===date?'':date;content.innerHTML=v1520TurnCalendar(data,v1520CanEdit('turnos'));
+  if(state.v1523TurnExpandedDate)requestAnimationFrame(()=>document.getElementById('v1523TurnDayDetail')?.scrollIntoView({block:'nearest',behavior:'smooth'}));
+}
+v1520TurnCalendar=function(d,editable){
+  const first=new Date(d.range.start+'T12:00:00'),offset=(first.getDay()+6)%7,shiftMap=v1520ShiftMap(d),today=v1520DateIso(new Date()),cells=[];
+  const selected=state.v1523TurnExpandedDate>=d.range.start&&state.v1523TurnExpandedDate<=d.range.end?state.v1523TurnExpandedDate:'';if(!selected&&state.v1523TurnExpandedDate)state.v1523TurnExpandedDate='';
+  for(let i=0;i<offset;i++)cells.push('<div class="v1520-day empty" aria-hidden="true"></div>');
+  for(let day=1;day<=d.range.last;day++){
+    const date=`${state.turnYearV1512}-${String(state.turnMonthV1512).padStart(2,'0')}-${String(day).padStart(2,'0')}`,counts={A:0,C:0,L:0};
+    (d.people||[]).forEach(person=>{const shift=shiftMap.get(`${person.user_id}|${date}`)?.turno_base;if(counts[shift]!=null)counts[shift]++});
+    const events=v1520EventsOn(d,date),coverage=v1520TurnCoverage(d,date),expanded=selected===date;
+    cells.push(`<button type="button" class="v1520-day v1523-turn-day-toggle ${date===today?'today':''} ${expanded?'selected':''}" onclick="v1523ToggleTurnDay('${date}')" aria-expanded="${expanded}" aria-controls="v1523TurnDayDetail"><div class="row-between"><div class="v1520-day-num">${day}</div><span class="v1520-status ${coverage.pct<80?'bad':coverage.pct<100?'warn':'ok'}">${coverage.scheduled?coverage.pct.toFixed(0)+'%':'—'}</span></div><div class="v1520-day-shifts"><span class="v1520-chip">A ${counts.A}</span><span class="v1520-chip">C ${counts.C}</span><span class="v1520-chip">L ${counts.L}</span>${events.length?`<span class="v1520-chip event">Eventos ${events.length}</span>`:''}</div><div class="v1520-day-events">${events.slice(0,2).map(event=>`<small title="${esc(event.observacion||event.motivo||'')}">${esc(v1520TurnTypeLabel(event.tipo))}</small>`).join('')}${events.length>2?`<small>+${events.length-2} más</small>`:''}</div></button>`);
+  }
+  return `<div class="notice"><b>Calendario operacional.</b> Selecciona una fecha para ver los nombres de Turno A, Turno C y sus eventos.</div><div class="v1520-cal-scroll"><div class="v1520-turn-calendar">${V1520_WEEKDAYS.map(day=>`<div class="v1520-weekday">${day}</div>`).join('')}${cells.join('')}</div></div>${selected?v1523TurnDayDetail(d,shiftMap,selected,editable):''}`;
+};
 
 const V1523_DIRECT_RENDERERS=new Set(['inicio','preventivo','correctivo','equipos','vehiculos','dotacion','turnos','solicitudes','liderazgo','contrato','sistema','usuarios']);
 
@@ -11218,6 +11301,20 @@ table th,table td{overflow-wrap:anywhere}
   #page-vehiculos .mini-stat b{font-size:13px!important}
   #page-vehiculos .v1519-inventory-details summary{font-size:13px!important}
   #page-vehiculos .v1519-inventory-details summary small,#page-vehiculos .v1519-inventory-state{font-size:11px!important}
+  #homeImpactAlerts .v152-alert-card{
+    display:grid!important;grid-template-columns:28px minmax(0,1fr) 54px 26px!important;
+    grid-template-areas:"icon main days delete" "icon weekday days delete"!important;
+    gap:4px 8px!important;align-items:center!important;min-height:0!important;padding:9px 10px!important
+  }
+  #homeImpactAlerts .v152-alert-card>*{min-width:0!important;max-width:100%!important}
+  #homeImpactAlerts .v152-alert-icon{grid-area:icon!important;font-size:18px!important;align-self:start}
+  #homeImpactAlerts .v152-alert-main{grid-area:main!important}
+  #homeImpactAlerts .v152-alert-main b{font-size:13px!important;line-height:1.2}
+  #homeImpactAlerts .v152-alert-main small{font-size:10px!important;line-height:1.3}
+  #homeImpactAlerts .v1518-weekday{grid-area:weekday!important;justify-self:start!important;width:auto!important;min-height:0!important;padding:3px 7px!important;font-size:9px!important}
+  #homeImpactAlerts .v152-alert-days{grid-area:days!important;text-align:right!important;align-self:center!important}
+  #homeImpactAlerts .v152-alert-days b{font-size:18px!important}#homeImpactAlerts .v152-alert-days small{font-size:8px!important}
+  #homeImpactAlerts .v152-alert-delete{grid-area:delete!important;align-self:center!important;width:26px!important;height:26px!important;padding:0!important}
   .empty{padding:20px 10px}
 }
 

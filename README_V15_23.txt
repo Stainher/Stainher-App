@@ -20,24 +20,27 @@ CONSOLIDACIÓN REALIZADA
 - Observadores: seis observadores heredados se desconectan antes del inicio; se retiraron temporizadores antiguos que limpiaban Inicio o reaplicaban permisos después del render final. Permanece un único supervisor V15.23 que solo bloquea el reenvío de formularios modales.
 - Permisos: matriz canónica de 10 perfiles × 12 módulos; los permisos personalizados continúan prevaleciendo, pero las acciones sensibles exigen además permiso efectivo de edición.
 - Solicitudes: el Administrador selecciona un Gerente activo; la asignación y su único aviso se confirman dentro del mismo RPC. Solo ese usuario ve la solicitud y puede aprobar. Los avisos históricos sin destinatario no se muestran como Solicitudes.
+- Solicitudes móvil/PC: existe una sola acción “+ Nueva solicitud” en el encabezado; “Registrar licencia médica” permanece como acción independiente solo para los perfiles autorizados.
 - Centro de notificaciones: la campana se reinstala después de crear la navegación, permanece visible sin avisos, se integra dentro del encabezado móvil y conserva contador, acciones, descarte e historial administrativo.
 - Recuperación de solicitudes: si el registro se crea y falla la asignación, no se duplica. El mismo registro permite “Asignar / reenviar Gerente”; el aprobador también puede “Asignar / reenviar RR.HH.” si el segundo paso queda pendiente.
 - Acciones idempotentes: aprobar, rechazar, cancelar, eliminar, asignar, reenviar correo y los formularios modales quedan bloqueados mientras se procesan. Un fallo auxiliar posterior nunca se informa como si hubiese fallado el cambio ya confirmado.
 - Vacaciones: firma del solicitante, aprobación del Gerente asignado, asignación segura a un RR.HH. activo, tercera firma, comprobante y reintento de correo.
-- Turnos: malla A/C/L, eventos superpuestos, tipos compatibles con la restricción SQL e Inicio agrupado por Turno A y Turno C.
+- Turnos: malla A/C/L, eventos superpuestos, tipos compatibles con la restricción SQL e Inicio agrupado por Turno A y Turno C. En Calendario, seleccionar un día despliega los nombres programados en A y C junto con sus eventos, sin abrir automáticamente el formulario de edición.
 - Preventivo: Plan Matriz, calendarización real y ejecución real. “Listado” usa una tabla detallada y “Carta Gantt” una matriz temporal independiente; el cambio de vista es inmediato y no necesita volver a consultar la base.
 - Correctivo: una sola navegación, carga esperada, control de carreras, filtros adaptables, Confiabilidad e informe sin paneles superpuestos.
 - Equipos: vista única, alta/edición protegida y eliminar o dar de baja conservando historial.
 - Vehículos: carga única, edición protegida también frente al modo simulado, inventario adaptable, texto móvil reducido y contenido largo sin desbordes.
 - Dotación: fuente única por nivel de permiso, datos sensibles excluidos de consulta y edición/eliminación protegidas también frente al modo simulado.
 - Liderazgo: lectura no ejecuta controles; las acciones dependen del permiso efectivo y del perfil participante.
-- Contrato: carga por pestaña con caché, conservación de la última información válida y barreras de edición en EDP, reembolsables y garantías.
+- Contrato: carga por pestaña con caché, conservación de la última información válida y barreras de edición en EDP, reembolsables y garantías. El historial de Estados de Pago incluye orden seleccionable en ambos sentidos y los gastos reembolsables usan una cuadrícula fija con texto ajustado y acción Editar indivisible.
+- Cuenta: “Mi cuenta”, cambio de contraseña y “Cerrar sesión” están reunidos en un solo menú desplegable; se eliminaron los botones paralelos heredados.
 - Usuarios: perfiles y Auth se combinan una vez; búsqueda, filtro por perfil, recuperación de contraseña y respaldo si falla la RPC administrativa.
 - Correo: un único servicio, send-stainher-email V3; el backend omite nombres vacíos, valida destinatarios y permisos, resuelve copias configuradas, limita tamaño, evita duplicados y registra la trazabilidad autoritativa.
 - Diagnóstico: errores JavaScript y promesas rechazadas quedan visibles en Sistema durante la sesión.
 - Renderizado responsive: una sola capa final contiene los 34 estilos históricos; tarjetas, formularios, filtros y cuadros informativos pueden encogerse sin salir de la cuadrícula.
 - Tablas, mallas y Carta Gantt conservan su ancho útil, pero el desplazamiento horizontal queda encapsulado dentro del componente y nunca ensancha la página completa.
 - Móvil y tablet: navegación compacta activa hasta 900 px, incluida la orientación horizontal; encabezado, campana y barra inferior respetan las áreas seguras del dispositivo.
+- Inicio móvil: cumpleaños, feriados, vencimientos y recordatorios se muestran como filas compactas con icono, detalle, día y plazo, evitando tarjetas verticales sobredimensionadas.
 - Modales: ancho y altura limitados a la ventana, formularios en una columna móvil, firmas y adjuntos contenidos, y campos de 16 px para evitar ampliaciones automáticas de Safari.
 - Modales anchos: conservan hasta 1.380 px o 96 % de la ventana en escritorio, sin quedar comprimidos por la regla general de 620 px; en móvil continúan limitados al margen seguro.
 - Tablas dinámicas: cualquier tabla creada después del render, tanto en una pantalla como dentro de un modal, se encapsula automáticamente en una región de desplazamiento propia.
@@ -47,11 +50,12 @@ CONSOLIDACIÓN REALIZADA
 COMPROBACIONES ESTÁTICAS SUPERADAS
 - 40 bloques script: 6 externos y 34 internos analizados; 0 errores de sintaxis.
 - 36 bloques CSS balanceados.
-- 696 acciones inline revisadas; 203 llamadas distintas y 0 referencias sin definición.
-- 86 identificadores HTML estáticos; 0 duplicados.
+- 719 acciones inline revisadas; 209 llamadas distintas y 0 referencias sin definición.
+- 21 identificadores HTML estáticos de la estructura base; 0 duplicados.
 - Estructura principal HTML balanceada.
 - 10 perfiles, 12 módulos y 120 niveles de permiso válidos.
 - Prueba aislada de Preventivo: Listado genera solo la tabla, Carta Gantt genera solo la matriz y el contenido cambia al seleccionar la vista.
+- Pruebas aisladas de consolidación: Solicitudes elimina la segunda acción antes de pintar; el historial ordena ascendente y descendente; Reembolsables genera la cuadrícula fija; Turnos despliega y contrae A/C y eventos por fecha.
 - Prueba de versión: cuatro constantes heredadas activas apuntan a V15.23 y el sincronizador elimina cualquier etiqueta V15.21 residual del contenido visible.
 - Prueba del centro de notificaciones: instalación autenticada, ubicación móvil, visibilidad sin avisos, apertura con estado de carga y recuperación ante error.
 - Un único arranque y un único listener de recuperación.
