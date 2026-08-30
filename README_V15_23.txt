@@ -42,10 +42,11 @@ CONSOLIDACIÓN REALIZADA
 - Modales anchos: conservan hasta 1.380 px o 96 % de la ventana en escritorio, sin quedar comprimidos por la regla general de 620 px; en móvil continúan limitados al margen seguro.
 - Tablas dinámicas: cualquier tabla creada después del render, tanto en una pantalla como dentro de un modal, se encapsula automáticamente en una región de desplazamiento propia.
 - Auditoría de layout: `__STAINHER_LAYOUT_AUDIT__()` inspecciona el módulo visible, los modales, el encabezado móvil y la barra inferior, y detecta cualquier elemento que exceda la pantalla fuera de una región de desplazamiento autorizada.
+- Correctivo móvil: los campos Desde/Hasta quedan contenidos en su celda incluso con el control de fecha nativo de iOS; la navegación inferior se fija al borde de la pantalla y absorbe internamente el área segura.
 
 COMPROBACIONES ESTÁTICAS SUPERADAS
 - 40 bloques script: 6 externos y 34 internos analizados; 0 errores de sintaxis.
-- 35 bloques CSS balanceados.
+- 36 bloques CSS balanceados.
 - 696 acciones inline revisadas; 203 llamadas distintas y 0 referencias sin definición.
 - 86 identificadores HTML estáticos; 0 duplicados.
 - Estructura principal HTML balanceada.
