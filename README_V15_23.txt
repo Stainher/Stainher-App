@@ -24,7 +24,7 @@ CONSOLIDACIÓN REALIZADA
 - Acciones idempotentes: aprobar, rechazar, cancelar, eliminar, asignar, reenviar correo y los formularios modales quedan bloqueados mientras se procesan. Un fallo auxiliar posterior nunca se informa como si hubiese fallado el cambio ya confirmado.
 - Vacaciones: firma del solicitante, aprobación del Gerente asignado, asignación segura a un RR.HH. activo, tercera firma, comprobante y reintento de correo.
 - Turnos: malla A/C/L, eventos superpuestos, tipos compatibles con la restricción SQL e Inicio agrupado por Turno A y Turno C.
-- Preventivo: Plan Matriz, calendarización real, ejecución real, listado/Gantt y acciones limitadas al permiso correspondiente.
+- Preventivo: Plan Matriz, calendarización real y ejecución real. “Listado” usa una tabla detallada y “Carta Gantt” una matriz temporal independiente; el cambio de vista es inmediato y no necesita volver a consultar la base.
 - Correctivo: una sola navegación, carga esperada, control de carreras, filtros adaptables, Confiabilidad e informe sin paneles superpuestos.
 - Equipos: vista única, alta/edición protegida y eliminar o dar de baja conservando historial.
 - Vehículos: carga única, edición protegida también frente al modo simulado, inventario adaptable, texto móvil reducido y contenido largo sin desbordes.
@@ -42,6 +42,7 @@ COMPROBACIONES ESTÁTICAS SUPERADAS
 - 84 identificadores HTML estáticos; 0 duplicados.
 - Estructura principal HTML balanceada.
 - 10 perfiles, 12 módulos y 120 niveles de permiso válidos.
+- Prueba aislada de Preventivo: Listado genera solo la tabla, Carta Gantt genera solo la matriz y el contenido cambia al seleccionar la vista.
 - Un único arranque y un único listener de recuperación.
 - PATCH SQL transaccional, SECURITY DEFINER con search_path vacío, avisos dirigidos dentro de las RPC, permisos explícitos y recarga de caché PostgREST.
 
