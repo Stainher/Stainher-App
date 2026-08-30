@@ -39,7 +39,9 @@ CONSOLIDACIÓN REALIZADA
 - Tablas, mallas y Carta Gantt conservan su ancho útil, pero el desplazamiento horizontal queda encapsulado dentro del componente y nunca ensancha la página completa.
 - Móvil y tablet: navegación compacta activa hasta 900 px, incluida la orientación horizontal; encabezado, campana y barra inferior respetan las áreas seguras del dispositivo.
 - Modales: ancho y altura limitados a la ventana, formularios en una columna móvil, firmas y adjuntos contenidos, y campos de 16 px para evitar ampliaciones automáticas de Safari.
-- Auditoría de layout: `__STAINHER_LAYOUT_AUDIT__()` permite detectar en tiempo de ejecución cualquier elemento visible que exceda la pantalla fuera de una región de desplazamiento autorizada.
+- Modales anchos: conservan hasta 1.380 px o 96 % de la ventana en escritorio, sin quedar comprimidos por la regla general de 620 px; en móvil continúan limitados al margen seguro.
+- Tablas dinámicas: cualquier tabla creada después del render, tanto en una pantalla como dentro de un modal, se encapsula automáticamente en una región de desplazamiento propia.
+- Auditoría de layout: `__STAINHER_LAYOUT_AUDIT__()` inspecciona el módulo visible, los modales, el encabezado móvil y la barra inferior, y detecta cualquier elemento que exceda la pantalla fuera de una región de desplazamiento autorizada.
 
 COMPROBACIONES ESTÁTICAS SUPERADAS
 - 40 bloques script: 6 externos y 34 internos analizados; 0 errores de sintaxis.
