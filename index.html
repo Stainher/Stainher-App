@@ -10868,7 +10868,95 @@ function v1523DisableLegacyObservers(){
   observers.forEach(observer=>observer?.disconnect?.());
   state.v1523LegacyObserversDisabled=true;
 }
-v1523DisableLegacyObservers();v1523InstallDefaults();v1523Version();v1523StartOnce();
+v1523DisableLegacyObservers();v1523InstallDefaults();v1523Version();
+</script>
+<script>
+/* =========================================================
+   V15.23 · CORRECCIÓN OPERATIVA DEL NÚCLEO DE CORREO
+   Un solo Edge Function, trazabilidad del servidor e idempotencia.
+========================================================= */
+const V1523_EMAIL_CORE='v1523-email-core-20260830';
+function v1523EmailDocumentType(modulo){return({sistema:'prueba',vacaciones:'vacaciones',confiabilidad:'correctivo_confiabilidad',correctivo:'correctivo_confiabilidad',preventivo:'preventivo',vehiculos:'checklist_vehiculo',liderazgo:'liderazgo'})[String(modulo||'').toLowerCase()]||''}
+function v1523EmailAddress(value){return String(typeof value==='string'?value:(value?.email||'')).trim().toLowerCase()}
+function v1523EmailRecipient(value,name=''){const email=v1523EmailAddress(value);if(!email)return null;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error(`El correo ${email} no es válido.`);const cleanName=String(name||(typeof value==='object'?(value?.name||''):'')).trim();return cleanName?{email,name:cleanName}:{email}}
+function v1523EmailIdempotency({modulo,referencia_id,idempotencyKey}){if(idempotencyKey)return String(idempotencyKey);if(modulo==='vacaciones'&&referencia_id)return `vacaciones:${referencia_id}:comprobante-final`;return `${String(modulo||'general')}:${state.session?.user?.id||'anon'}:${crypto.randomUUID()}`}
+async function v1523EmailBackendError(error){let message=error?.message||String(error);try{const response=error?.context;if(response&&typeof response.clone==='function'){const payload=await response.clone().json();message=payload?.error||payload?.message||payload?.detail?.message||message}}catch(_){}return String(message||'Error de envío desconocido.')}
+
+v1519SendEmail=async function({to=null,toName='',cc=[],subject='Stainher App',htmlContent='',pdfBase64=null,pdfName=null,modulo='general',referencia_id=null,testMode=null,tipoDocumento=null,documentType=null,idempotencyKey=null}={}){
+  const moduleName=String(modulo||'general').trim().toLowerCase(),recipient=to?v1523EmailRecipient(to,toName):null,copies=[],seen=new Set(recipient?[recipient.email]:[]);
+  for(const raw of(Array.isArray(cc)?cc:[cc])){if(!raw)continue;const item=v1523EmailRecipient(raw);if(item&&!seen.has(item.email)){seen.add(item.email);copies.push(item)}}
+  const type=String(tipoDocumento||documentType||v1523EmailDocumentType(moduleName)||'').trim(),safeTestMode=testMode===true||!!state.v15PreviewRole;
+  if(!recipient&&!type)throw new Error('No hay destinatario ni configuración de correo para este documento.');
+  const body={
+    to:recipient,
+    cc:copies,
+    subject:String(subject||'Stainher App'),
+    htmlContent:String(htmlContent||''),
+    pdfBase64:pdfBase64||null,
+    pdfName:pdfName||null,
+    modulo:moduleName,
+    referencia_id:referencia_id===null||referencia_id===undefined?null:String(referencia_id),
+    tipoDocumento:type||null,
+    testMode:safeTestMode,
+    intendedTo:recipient?.email||'',
+    idempotencyKey:v1523EmailIdempotency({modulo:moduleName,referencia_id,idempotencyKey})
+  };
+  const result=await sb.functions.invoke('send-stainher-email',{body});
+  if(result.error){const detail=await v1523EmailBackendError(result.error);throw new Error(`No fue posible enviar el correo. ${detail}`)}
+  if(!result.data?.ok)throw new Error(result.data?.error||'El servicio de correo rechazó el envío.');
+  return result.data;
+};
+v1518SendEmail=v1519SendEmail;
+
+/* Los documentos automáticos resuelven sus destinatarios en el servidor. */
+v155SendDocument=async function({pdfDoc,fileName,subject,documentType,module,recordId,to=[]}){
+  if(!pdfDoc)throw new Error('PDF no disponible.');
+  const recipients=(Array.isArray(to)?to:[to]).filter(Boolean),first=recipients[0]||null,pdfBase64=pdfDoc.output('datauristring').split(',')[1],type=String(documentType||v1523EmailDocumentType(module)||'').trim();
+  if(!type&&!first)throw new Error('El documento no tiene configuración de correo.');
+  const key=`documento:${type||module||'general'}:${recordId||'sin-referencia'}:${state.session?.user?.id||'anon'}:${String(fileName||'documento.pdf').replace(/[^a-z0-9_.-]/gi,'_')}`;
+  return v1519SendEmail({
+    to:first,
+    toName:typeof first==='object'?(first?.name||''):'',
+    cc:recipients.slice(1),
+    subject:subject||'Stainher App',
+    htmlContent:`<h2>Stainher App</h2><p>Se adjunta ${esc(type||'documento')} generado desde Stainher App.</p>`,
+    pdfBase64,pdfName:fileName||'Documento_Stainher_App.pdf',
+    modulo:module||'documentos',referencia_id:recordId||null,tipoDocumento:type,idempotencyKey:key
+  });
+};
+
+/* Informe de Confiabilidad: el nombre es opcional y jamás se envía vacío a Brevo. */
+v1518ReliabilityEmailModal=function(doc,fn){
+  const pdf=doc.output('datauristring').split(',')[1],requestKey=`confiabilidad:${state.session?.user?.id||'anon'}:${crypto.randomUUID()}`;
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Enviar informe de Confiabilidad</h3><button class="btn" type="button" onclick="closeModal()">Cerrar</button></div><form id="v1518ReliabilityEmailForm" class="form-grid"><label class="full">Para<input class="field" type="email" name="to" required autocomplete="email" placeholder="correo@empresa.cl"></label><label class="full">Nombre del destinatario <span class="muted">(opcional)</span><input class="field" name="toName" autocomplete="name" placeholder="Nombre y apellido"></label><label class="full">Asunto<input class="field" name="subject" value="Informe de Confiabilidad · ${esc(v1512RangeLabel(state.correctivoFrom,state.correctivoTo))}" required maxlength="200"></label><label class="full">Mensaje<textarea class="field" name="message" rows="4" maxlength="4000">Adjuntamos Informe de Confiabilidad generado desde Stainher App para el período seleccionado.</textarea></label><div class="full notice">Adjunto: <b>${esc(fn)}</b></div><div id="v1518EmailStatus" class="full" aria-live="polite"></div><div class="full"><button class="btn primary" type="submit">Enviar correo</button></div></form></div></div>`;
+  const form=document.getElementById('v1518ReliabilityEmailForm');form.onsubmit=async event=>{event.preventDefault();const submit=form.querySelector('button[type="submit"]'),values=Object.fromEntries(new FormData(form)),box=document.getElementById('v1518EmailStatus');submit.disabled=true;box.innerHTML='<div class="notice">Enviando y verificando entrega…</div>';try{const result=await v1519SendEmail({to:values.to,toName:values.toName,subject:values.subject,htmlContent:`<h2>Informe de Confiabilidad</h2><p>${esc(values.message).replace(/\n/g,'<br>')}</p><p><b>Período:</b> ${esc(v1512RangeLabel(state.correctivoFrom,state.correctivoTo))}</p>`,pdfBase64:pdf,pdfName:fn,modulo:'confiabilidad',tipoDocumento:'correctivo_confiabilidad',idempotencyKey:requestKey});box.innerHTML=`<div class="notice success">Correo confirmado por el proveedor${result?.messageId?` · ${esc(result.messageId)}`:''}.</div>`;toast('Informe enviado por correo','success')}catch(error){box.innerHTML=`<div class="notice error">${esc(error.message||String(error))}</div>`;submit.disabled=false}}
+};
+
+/* Prueba administrativa protegida contra doble clic. */
+v156TestMail=async function(){
+  const to=state.profile?.email||state.session?.user?.email;if(!to)return toast('Tu perfil no tiene correo asociado.','error');
+  return v1523RequestLock('sistema:correo-prueba',async()=>{try{await v1519SendEmail({to,toName:state.profile?.nombre||'',subject:'Stainher App · Correo de prueba',htmlContent:`<h2>Stainher App</h2><p>Prueba operativa del servicio central <b>send-stainher-email</b>.</p>`,modulo:'sistema',tipoDocumento:'prueba',referencia_id:'prueba-v1523',testMode:true,idempotencyKey:`prueba:${state.session?.user?.id}:${crypto.randomUUID()}`});toast('Correo de prueba enviado correctamente','success')}catch(error){toast(error.message||String(error),'error')}finally{await v1519LoadEmailHistory?.()}})
+};
+
+/* Historial autoritativo: el navegador solo lee lo registrado por la Edge Function. */
+v1519LoadEmailHistory=async function(){
+  const box=document.getElementById('v1519MailHistory'),stateBadge=document.getElementById('v1523MailServiceState');if(!box)return;
+  box.innerHTML='<div class="muted">Verificando trazabilidad del servidor…</div>';
+  const query=await sb.from('email_envios_v1518').select('id,created_at,procesado_at,destinatario,destinatario_previsto,copias,asunto,estado,message_id,intentos,ultimo_error,http_status,modulo,tipo_documento').order('created_at',{ascending:false}).limit(20);
+  if(query.error){box.innerHTML=`<div class="notice error">${esc(query.error.message)}</div>`;if(stateBadge){stateBadge.className='status bad';stateBadge.textContent='Sin verificación'}return}
+  const rows=query.data||[],latest=rows[0];if(stateBadge){if(!latest){stateBadge.className='status warn';stateBadge.textContent='Sin pruebas'}else if(latest.estado==='enviado'){stateBadge.className='status ok';stateBadge.textContent='Operativo'}else if(latest.estado==='procesando'){stateBadge.className='status warn';stateBadge.textContent='Procesando'}else{stateBadge.className='status bad';stateBadge.textContent='Requiere revisión'}}
+  if(!rows.length){box.innerHTML='<div class="muted">Sin envíos registrados.</div>';return}
+  box.innerHTML=`<div class="admin-table"><table><thead><tr><th>Fecha</th><th>Módulo</th><th>Destinatario</th><th>Estado</th></tr></thead><tbody>${rows.map(item=>{const cls=item.estado==='enviado'?'ok':item.estado==='procesando'?'warn':'bad',copies=Array.isArray(item.copias)?item.copias.map(x=>x?.email||x).filter(Boolean):[];return `<tr><td>${new Date(item.created_at).toLocaleString('es-CL')}<small class="muted">Intento ${Number(item.intentos||1)}</small></td><td>${esc(item.modulo||'—')}<small class="muted">${esc(item.tipo_documento||'')}</small></td><td>${esc(item.destinatario||'—')}${copies.length?`<small class="muted">CC: ${esc(copies.join(', '))}</small>`:''}</td><td><span class="status ${cls}">${esc(item.estado||'—')}</span>${item.http_status?` <small class="muted">HTTP ${item.http_status}</small>`:''}${item.ultimo_error?`<small class="muted">${esc(item.ultimo_error)}</small>`:''}${item.message_id?`<small class="muted">ID: ${esc(item.message_id)}</small>`:''}</td></tr>`}).join('')}</tbody></table></div>`;
+};
+
+const _v1523EmailRenderSistema=renderSistema;
+renderSistema=async function(){
+  await Promise.resolve(_v1523EmailRenderSistema());const page=document.getElementById('page-sistema');if(!page)return;
+  const panel=[...page.querySelectorAll('.panel')].find(item=>/Correo automático/i.test(item.textContent||''));if(panel){const badge=panel.querySelector('.status');if(badge){badge.id='v1523MailServiceState';badge.className='status warn';badge.textContent='Verificando'}const text=panel.querySelector('.v1519-mail-row .muted');if(text)text.innerHTML='Servicio central: <b>send-stainher-email</b> · Brevo · trazabilidad del servidor';await v1519LoadEmailHistory()}
+};
+
+window.__STAINHER_EMAIL_CORE__=V1523_EMAIL_CORE;
+v1523StartOnce();
 </script>
 </body>
 </html>
