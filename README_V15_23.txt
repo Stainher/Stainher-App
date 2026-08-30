@@ -35,10 +35,15 @@ CONSOLIDACIÓN REALIZADA
 - Usuarios: perfiles y Auth se combinan una vez; búsqueda, filtro por perfil, recuperación de contraseña y respaldo si falla la RPC administrativa.
 - Correo: un único servicio, send-stainher-email V3; el backend omite nombres vacíos, valida destinatarios y permisos, resuelve copias configuradas, limita tamaño, evita duplicados y registra la trazabilidad autoritativa.
 - Diagnóstico: errores JavaScript y promesas rechazadas quedan visibles en Sistema durante la sesión.
+- Renderizado responsive: una sola capa final contiene los 34 estilos históricos; tarjetas, formularios, filtros y cuadros informativos pueden encogerse sin salir de la cuadrícula.
+- Tablas, mallas y Carta Gantt conservan su ancho útil, pero el desplazamiento horizontal queda encapsulado dentro del componente y nunca ensancha la página completa.
+- Móvil y tablet: navegación compacta activa hasta 900 px, incluida la orientación horizontal; encabezado, campana y barra inferior respetan las áreas seguras del dispositivo.
+- Modales: ancho y altura limitados a la ventana, formularios en una columna móvil, firmas y adjuntos contenidos, y campos de 16 px para evitar ampliaciones automáticas de Safari.
+- Auditoría de layout: `__STAINHER_LAYOUT_AUDIT__()` permite detectar en tiempo de ejecución cualquier elemento visible que exceda la pantalla fuera de una región de desplazamiento autorizada.
 
 COMPROBACIONES ESTÁTICAS SUPERADAS
-- 39 bloques script: 6 externos y 33 internos analizados; 0 errores de sintaxis.
-- 34 bloques CSS balanceados.
+- 40 bloques script: 6 externos y 34 internos analizados; 0 errores de sintaxis.
+- 35 bloques CSS balanceados.
 - 696 acciones inline revisadas; 203 llamadas distintas y 0 referencias sin definición.
 - 84 identificadores HTML estáticos; 0 duplicados.
 - Estructura principal HTML balanceada.
