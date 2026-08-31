@@ -1,0 +1,1 @@
+Root route will point to /v1524r1/ so mobile browsers cannot reuse the previous V15.24 config.js cache.
