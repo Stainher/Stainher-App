@@ -213,3 +213,18 @@ window.STAINHER_BUILD = 'V15.23-mobile-native-control-shell-20260831-3';
     boot();
   }
 })();
+
+/* Carga aislada del módulo Turnos/Novedades candidato. Se ejecuta después
+ * de parsear index.html para que las sobreescrituras finales sean autoritativas. */
+(function loadTurnosNovedadesV1524(){
+  function load(){
+    if (document.getElementById('turnos-v1524-script')) return;
+    const script = document.createElement('script');
+    script.id = 'turnos-v1524-script';
+    script.src = 'turnos-v1524.js?v=20260831-1';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',load,{once:true});
+  else load();
+})();
