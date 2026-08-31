@@ -6,15 +6,11 @@ window.STAINHER_CONFIG = {
 /*
  * Mobile layout guard · 31-08-2026
  * Capa final e independiente de las reglas heredadas V15.12–V15.23.
- * Evita que filtros nativos (especialmente date/month/select en iOS Safari)
- * calculen un ancho intrínseco mayor que la columna disponible.
+ * Se instala al terminar de parsear el documento para quedar después de
+ * las hojas de estilo históricas del index.html.
  */
 (function installStainherMobileFilterGuard(){
-  if (document.getElementById('stainher-mobile-filter-guard')) return;
-
-  const style = document.createElement('style');
-  style.id = 'stainher-mobile-filter-guard';
-  style.textContent = `
+  const CSS = `
     @media (max-width: 900px) {
       #page-correctivo,
       #page-preventivo {
@@ -30,20 +26,21 @@ window.STAINHER_CONFIG = {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        margin-inline: 0 !important;
         box-sizing: border-box !important;
       }
 
-      #page-correctivo :is(.v1519-filter-grid,.v1512-filterbar) > *,
+      #page-correctivo :is(.v1519-filter-grid,.v1512-filterbar,.toolbar) > *,
       #page-preventivo :is(.v1519-filter-grid,.v1512-filterbar,.prev-toolbar,.v153-prev-toolbar) > * {
         min-width: 0 !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
       }
 
-      #page-correctivo :is(input,select,textarea,.field),
-      #page-preventivo :is(input,select,textarea,.field) {
+      #page-correctivo :is(input[type='date'],input[type='month'],select),
+      #page-preventivo :is(input[type='date'],input[type='month'],select),
+      #v1520PrevSearch,
+      #prevSearch {
         display: block !important;
         width: 100% !important;
         inline-size: 100% !important;
@@ -51,8 +48,7 @@ window.STAINHER_CONFIG = {
         min-inline-size: 0 !important;
         max-width: 100% !important;
         max-inline-size: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        margin-inline: 0 !important;
         box-sizing: border-box !important;
       }
 
@@ -87,14 +83,24 @@ window.STAINHER_CONFIG = {
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-      }
-
-      #page-correctivo,
-      #page-preventivo {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+        box-sizing: border-box !important;
       }
     }
   `;
-  document.head.appendChild(style);
+
+  function mount(){
+    let style = document.getElementById('stainher-mobile-filter-guard');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'stainher-mobile-filter-guard';
+      document.head.appendChild(style);
+    }
+    style.textContent = CSS;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount, { once: true });
+  } else {
+    mount();
+  }
 })();
