@@ -32,6 +32,6 @@ window.STAINHER_BUILD = 'V15.24-20260831';
  * capas históricas. El módulo final espera a que Turnos V15.24 esté listo. */
 (function loadStainherV1524(){
   function append(id,src,onload){if(document.getElementById(id)){onload?.();return}const s=document.createElement('script');s.id=id;s.src=src;s.onload=()=>onload?.();s.onerror=()=>console.error('No se pudo cargar',src);document.head.appendChild(s)}
-  function load(){append('turnos-v1524-script','turnos-v1524.js?v=20260831-2',()=>append('stainher-v1524-final-script','stainher-v1524-final.js?v=20260831-1'))}
+  function load(){append('turnos-v1524-script','turnos-v1524.js?v=20260831-2',()=>append('stainher-v1524-final-script','stainher-v1524-final.js?v=20260831-1',()=>append('stainher-v1524-report-script','stainher-v1524-report.js?v=20260831-1')))}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
