@@ -2,159 +2,214 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.23-mobile-containment-20260831-2';
+window.STAINHER_BUILD = 'V15.23-mobile-native-control-shell-20260831-3';
 
 /*
- * Mobile layout guard · 31-08-2026
- * Capa final e independiente de las reglas heredadas V15.12–V15.23.
- * Se instala al terminar de parsear el documento para quedar después de
- * las hojas de estilo históricas del index.html.
+ * V15.23 · Corrección autoritativa de controles nativos iOS
+ * Safari puede imponer un ancho visual intrínseco a input[type=date/month]
+ * aunque el elemento mida 100%. En vez de recortar ese control, Stainher
+ * dibuja una envolvente propia y mantiene el selector nativo transparente
+ * encima para conservar toda la funcionalidad táctil.
  */
-(function installStainherMobileFilterGuard(){
+(function installStainherIOSNativeControlShell(){
+  const STYLE_ID = 'stainher-ios-native-control-shell-style';
+  const MOBILE = '(max-width: 900px)';
+  const TARGETS = [
+    ['corrFromV1519', 'date'],
+    ['corrToV1519', 'date'],
+    ['v1523PrevEdpMonth', 'month']
+  ];
+
   const CSS = `
     @media (max-width: 900px) {
-      html,
-      body,
-      #appView,
-      .app,
-      .main {
-        min-width: 0 !important;
-        max-width: 100vw !important;
-        box-sizing: border-box !important;
-        overflow-x: hidden !important;
-      }
-
-      .main {
-        width: 100vw !important;
-        inline-size: 100vw !important;
-      }
-
       #page-correctivo,
       #page-preventivo {
-        --stainher-mobile-content: calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
-        width: auto !important;
-        inline-size: auto !important;
-        max-width: var(--stainher-mobile-content) !important;
-        max-inline-size: var(--stainher-mobile-content) !important;
+        width: 100% !important;
+        max-width: 100% !important;
         min-width: 0 !important;
-        min-inline-size: 0 !important;
-        margin-inline: auto !important;
         box-sizing: border-box !important;
         overflow-x: hidden !important;
       }
 
-      #page-correctivo :is(.v1519-filter-grid,.v1512-filterbar,.toolbar),
-      #page-preventivo :is(.v1519-filter-grid,.v1512-filterbar,.v1523-prev-period-toolbar,.prev-toolbar,.v153-prev-toolbar) {
-        display: grid !important;
-        grid-template-columns: minmax(0,1fr) !important;
+      #page-correctivo .v1519-filter-grid,
+      #page-preventivo .v1523-prev-period-toolbar {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      .stainher-native-control-shell {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
         width: 100% !important;
         inline-size: 100% !important;
         max-width: 100% !important;
         max-inline-size: 100% !important;
         min-width: 0 !important;
         min-inline-size: 0 !important;
-        margin-inline: 0 !important;
-        padding-inline: 0 !important;
-        box-sizing: border-box !important;
-        overflow-x: hidden !important;
-      }
-
-      #page-correctivo :is(.v1519-filter-grid,.v1512-filterbar,.toolbar) > *,
-      #page-preventivo :is(.v1519-filter-grid,.v1512-filterbar,.v1523-prev-period-toolbar,.prev-toolbar,.v153-prev-toolbar) > * {
-        display: block !important;
-        width: 100% !important;
-        inline-size: 100% !important;
-        max-width: 100% !important;
-        max-inline-size: 100% !important;
-        min-width: 0 !important;
-        min-inline-size: 0 !important;
-        margin-inline: 0 !important;
+        min-height: 44px !important;
+        margin: 0 !important;
+        padding: 10px 42px 10px 11px !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 9px !important;
+        background: #0c1117 !important;
+        color: #fff !important;
+        font: inherit !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
       }
 
-      #corrFromV1519,
-      #corrToV1519,
-      #v1523PrevEdpMonth,
-      #page-correctivo :is(input[type='date'],input[type='month'],select,.field),
-      #page-preventivo :is(input[type='date'],input[type='month'],select,.field),
-      #v1520PrevSearch,
-      #prevSearch {
+      .stainher-native-control-shell::after {
+        content: '▣';
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9fc7ee;
+        font-size: 13px;
+        line-height: 1;
+        pointer-events: none;
+      }
+
+      .stainher-native-control-shell--month::after {
+        content: '▾';
+        font-size: 15px;
+      }
+
+      .stainher-native-control-shell__value {
         display: block !important;
         width: 100% !important;
-        inline-size: 100% !important;
-        max-width: 100% !important;
-        max-inline-size: 100% !important;
         min-width: 0 !important;
-        min-inline-size: 0 !important;
-        margin-inline: 0 !important;
-        box-sizing: border-box !important;
-      }
-
-      #corrFromV1519,
-      #corrToV1519,
-      #v1523PrevEdpMonth,
-      #page-correctivo :is(input[type='date'],input[type='month']),
-      #page-preventivo :is(input[type='date'],input[type='month']) {
-        flex: 1 1 0 !important;
+        max-width: 100% !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        color: #fff !important;
+        font-size: 16px !important;
+        line-height: 1.25 !important;
+        font-weight: 400 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        pointer-events: none !important;
       }
 
-      #page-correctivo input[type='date']::-webkit-date-and-time-value,
-      #page-correctivo input[type='date']::-webkit-datetime-edit,
-      #page-preventivo input[type='month']::-webkit-date-and-time-value,
-      #page-preventivo input[type='month']::-webkit-datetime-edit {
-        min-width: 0 !important;
-        min-inline-size: 0 !important;
-        max-width: 100% !important;
-        overflow: hidden !important;
+      .stainher-native-control-shell--month .stainher-native-control-shell__value {
+        font-weight: 700 !important;
       }
 
-      #corrEdpNote,
-      #v1523PrevPeriodNote,
-      #page-correctivo :is(.v1519-period-summary,.v1512-period-note,.edp-period-note,.notice),
-      #page-preventivo :is(.v1519-period-summary,.v1512-period-note,.edp-period-note,.v1520-period-note,.v1523-prev-period-note,.notice) {
+      .stainher-native-control-shell:focus-within {
+        outline: 2px solid rgba(159, 199, 238, .55) !important;
+        outline-offset: 1px !important;
+      }
+
+      .stainher-native-control-shell > input.stainher-native-control {
+        position: absolute !important;
+        inset: 0 !important;
+        z-index: 2 !important;
+        display: block !important;
         width: 100% !important;
+        height: 100% !important;
         inline-size: 100% !important;
-        max-width: 100% !important;
-        max-inline-size: 100% !important;
+        block-size: 100% !important;
         min-width: 0 !important;
         min-inline-size: 0 !important;
-        margin-inline: 0 !important;
+        max-width: none !important;
+        max-inline-size: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 9px !important;
+        opacity: .001 !important;
+        background: transparent !important;
+        color: transparent !important;
+        cursor: pointer !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
         box-sizing: border-box !important;
-        overflow-wrap: anywhere !important;
-        word-break: normal !important;
-      }
-    }
-
-    @media (max-width: 600px) {
-      #page-correctivo,
-      #page-preventivo {
-        --stainher-mobile-content: calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
       }
 
-      #page-correctivo :is(.v1519-filter-grid,.v1512-filterbar,.v1512-filterbar.cols2,.v1512-filterbar.cols3,.toolbar),
-      #page-preventivo :is(.v1519-filter-grid,.v1512-filterbar,.v1512-filterbar.cols2,.v1512-filterbar.cols3,.v1523-prev-period-toolbar,.prev-toolbar,.v153-prev-toolbar) {
-        grid-template-columns: minmax(0,1fr) !important;
-        gap: 10px !important;
+      .stainher-native-control-shell > input.stainher-native-control::-webkit-date-and-time-value,
+      .stainher-native-control-shell > input.stainher-native-control::-webkit-datetime-edit,
+      .stainher-native-control-shell > input.stainher-native-control::-webkit-calendar-picker-indicator {
+        opacity: 0 !important;
       }
     }
   `;
 
-  function mount(){
-    let style = document.getElementById('stainher-mobile-filter-guard');
+  function mountStyle(){
+    let style = document.getElementById(STYLE_ID);
     if (!style) {
       style = document.createElement('style');
-      style.id = 'stainher-mobile-filter-guard';
+      style.id = STYLE_ID;
       document.head.appendChild(style);
     }
     style.textContent = CSS;
   }
 
+  function formatDate(value){
+    const m = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[3]}-${m[2]}-${m[1]}` : (value || 'Seleccionar fecha');
+  }
+
+  function formatMonth(value){
+    const m = String(value || '').match(/^(\d{4})-(\d{2})$/);
+    if (!m) return value || 'Seleccionar mes';
+    const date = new Date(Number(m[1]), Number(m[2]) - 1, 1);
+    return new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(date);
+  }
+
+  function skin(input, kind){
+    if (!input || input.dataset.stainherNativeShell === '1') return;
+    const parent = input.parentNode;
+    if (!parent) return;
+
+    const shell = document.createElement('span');
+    shell.className = `stainher-native-control-shell stainher-native-control-shell--${kind}`;
+
+    const value = document.createElement('span');
+    value.className = 'stainher-native-control-shell__value';
+    value.setAttribute('aria-hidden', 'true');
+
+    const sync = () => {
+      value.textContent = kind === 'month' ? formatMonth(input.value) : formatDate(input.value);
+    };
+
+    input.dataset.stainherNativeShell = '1';
+    input.classList.add('stainher-native-control');
+    parent.insertBefore(shell, input);
+    shell.appendChild(value);
+    shell.appendChild(input);
+    sync();
+
+    input.addEventListener('input', sync);
+    input.addEventListener('change', sync);
+  }
+
+  function apply(root = document){
+    if (!window.matchMedia || !window.matchMedia(MOBILE).matches) return;
+    TARGETS.forEach(([id, kind]) => {
+      const input = root.getElementById ? root.getElementById(id) : document.getElementById(id);
+      skin(input, kind);
+    });
+  }
+
+  function boot(){
+    mountStyle();
+    apply(document);
+    const root = document.getElementById('appView') || document.body;
+    const observer = new MutationObserver(() => apply(document));
+    observer.observe(root, { childList: true, subtree: true });
+    window.addEventListener('resize', () => apply(document), { passive: true });
+    window.addEventListener('orientationchange', () => setTimeout(() => apply(document), 60), { passive: true });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount, { once: true });
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
   } else {
-    mount();
+    boot();
   }
 })();
