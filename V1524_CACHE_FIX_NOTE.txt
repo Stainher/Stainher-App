@@ -1,0 +1,1 @@
+El release V15.24 utiliza una ruta versionada para evitar que Safari/iOS reutilice config.js de V15.23. La entrada raíz redirige a /v1524/.
