@@ -1,0 +1,1 @@
+The report failure was caused by the app using lexical globals (let state / const sb) while V15.24 modules read window.state / window.sb. Hotfix bridges both globals before loading V15.24 modules and restores the event glossary.
