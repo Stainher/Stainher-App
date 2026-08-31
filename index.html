@@ -5760,11 +5760,16 @@ const v157HeaderObserver=new MutationObserver(()=>requestAnimationFrame(v157Remo
 function v157Initials(name){
   return String(name||'U').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
 }
+function v157RoleLabel(role){
+  const raw=String(role||'').trim(),key=raw.toLowerCase();
+  if(typeof v1519RoleLabel==='function')return v1519RoleLabel(key);
+  return ({administrador:'Administrador',gerente:'Gerente',recursos_humanos:'Recursos Humanos',planificador:'Planificador',supervisor:'Supervisor',tecnico:'Técnico',prevencion:'Prevención',confiabilidad:'Confiabilidad',consulta:'Consulta',apr:'APR'}[key])||raw.replaceAll('_',' ').replace(/\b\p{L}/gu,x=>x.toUpperCase());
+}
 function v157InstallUserMenu(){
   const box=document.querySelector('.userbox');if(!box||box.dataset.v157)return;
   box.dataset.v157='1';
   const name=state.profile?.nombre||document.getElementById('userName')?.textContent||'Usuario';
-  const role=state.profile?.rol||document.getElementById('userRole')?.textContent||'';
+  const role=v157RoleLabel(state.profile?.rol||document.getElementById('userRole')?.textContent||'');
   box.innerHTML=`<button type="button" class="v157-user-trigger" onclick="v157ToggleUserMenu(event)">
     <span class="v157-avatar">${esc(v157Initials(name))}</span>
     <span class="v157-user-copy"><strong>${esc(name)}</strong><small>${esc(role)}</small></span>
@@ -5788,7 +5793,7 @@ function v157OpenAccount(){
       <div style="display:grid;gap:10px">
         <div><small class="muted">Nombre</small><div><b>${esc(p.nombre||'')}</b></div></div>
         <div><small class="muted">Correo</small><div>${esc(email)}</div></div>
-        <div><small class="muted">Rol</small><div>${esc(p.rol||'')}</div></div>
+        <div><small class="muted">Perfil</small><div>${esc(v157RoleLabel(p.rol||''))}</div></div>
       </div>
     </div>
     <button class="btn primary" style="margin-top:10px" onclick="closeModal();v15OpenPasswordChange()">Cambiar contraseña</button>
