@@ -11539,6 +11539,44 @@ v1523RenderPreventiveContent=function(){
 .v1523-prev-period-note{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 12px;padding:10px 12px;border:1px solid #35506c;border-radius:10px;background:#101b27;color:#cbd5e1;font-size:12px}.v1523-prev-period-note b{color:#e5f2ff}
 @media(max-width:760px){.v1523-prev-period-toolbar{grid-template-columns:1fr!important}}
 </style>
+<style id="v1523-mobile-filter-containment-style">
+/* V15.23 · Contiene los controles nativos date/month/select dentro de la pantalla móvil. */
+@media(max-width:900px){
+  #page-preventivo,#page-correctivo{
+    inline-size:100%!important;max-inline-size:100%!important;min-inline-size:0!important;
+    box-sizing:border-box!important;overflow-x:clip!important
+  }
+  #page-preventivo .v1523-prev-period-toolbar,
+  #page-correctivo .v1519-filter-grid{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    inline-size:100%!important;width:100%!important;max-inline-size:100%!important;max-width:100%!important;
+    min-inline-size:0!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important
+  }
+  #page-preventivo .v1523-prev-period-toolbar>label,
+  #page-correctivo .v1519-filter-grid>label{
+    display:block!important;inline-size:100%!important;width:100%!important;
+    max-inline-size:100%!important;max-width:100%!important;min-inline-size:0!important;min-width:0!important;
+    box-sizing:border-box!important;overflow:hidden!important;contain:inline-size
+  }
+  #page-preventivo .v1523-prev-period-toolbar :where(input[type="month"],select,.field),
+  #page-correctivo .v1519-filter-grid :where(input[type="date"],select,.field){
+    display:block!important;inline-size:100%!important;width:100%!important;
+    inline-size:-webkit-fill-available!important;width:-webkit-fill-available!important;
+    max-inline-size:100%!important;max-width:100%!important;min-inline-size:0!important;min-width:0!important;
+    margin-inline:0!important;box-sizing:border-box!important
+  }
+  #page-preventivo input[type="month"]::-webkit-date-and-time-value,
+  #page-correctivo input[type="date"]::-webkit-date-and-time-value{
+    min-inline-size:0!important;min-width:0!important;text-align:start!important
+  }
+  #page-preventivo #v1520PrevSearch{
+    flex:1 1 100%!important;inline-size:100%!important;width:100%!important;
+    max-inline-size:100%!important;max-width:100%!important;min-inline-size:0!important;min-width:0!important;
+    box-sizing:border-box!important
+  }
+  #page-preventivo #v1520PrevSearch+.btn{max-inline-size:100%!important;max-width:100%!important}
+}
+</style>
 <script id="v1523-preventive-edp-period-script">
 /* V15.23 · Preventivo usa un único mes EDP: 21 del mes anterior al 20 del mes seleccionado. */
 function v1523PreventiveEdpPeriod(){
