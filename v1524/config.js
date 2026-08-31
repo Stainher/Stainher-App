@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260831';
+window.STAINHER_BUILD = 'V15.24-20260831-hotfix1';
 
 /* Controles date/month estables en iOS. La envolvente visual evita el ancho
  * intrínseco de Safari sin perder el selector nativo táctil. */
@@ -32,6 +32,7 @@ window.STAINHER_BUILD = 'V15.24-20260831';
  * capas históricas. El módulo final espera a que Turnos V15.24 esté listo. */
 (function loadStainherV1524(){
   function append(id,src,onload){if(document.getElementById(id)){onload?.();return}const s=document.createElement('script');s.id=id;s.src=src;s.onload=()=>onload?.();s.onerror=()=>console.error('No se pudo cargar',src);document.head.appendChild(s)}
-  function load(){append('turnos-v1524-script','turnos-v1524.js?v=20260831-2',()=>append('stainher-v1524-final-script','stainher-v1524-final.js?v=20260831-1',()=>append('stainher-v1524-report-script','stainher-v1524-report.js?v=20260831-1')))}
+  function bridge(){try{if(!window.state&&typeof state!=='undefined')window.state=state}catch(_){ }try{if(!window.sb&&typeof sb!=='undefined')window.sb=sb}catch(_){ }}
+  function load(){bridge();append('turnos-v1524-script','turnos-v1524.js?v=20260831-3',()=>append('stainher-v1524-final-script','stainher-v1524-final.js?v=20260831-2',()=>append('stainher-v1524-report-script','stainher-v1524-report.js?v=20260831-2',()=>append('stainher-v1524-hotfix1-script','stainher-v1524-hotfix1.js?v=20260831-1'))))}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
