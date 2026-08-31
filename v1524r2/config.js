@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-candidate';
+window.STAINHER_BUILD = 'V15.24-20260831-hotfix6';
 
 /* Controles date/month estables en iOS. La envolvente visual evita el ancho
  * intrínseco de Safari sin perder el selector nativo táctil. */
