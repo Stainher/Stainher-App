@@ -1,0 +1,4 @@
+Stainher App V15.24
+Publicación corregida para evitar reutilización de caché de config.js en navegadores móviles.
+Ruta versionada: /Stainher-App/v1524/
+Fecha: 31-08-2026
