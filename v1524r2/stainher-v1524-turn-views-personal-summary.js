@@ -140,10 +140,10 @@
     host.innerHTML=`<div class="v1524-personal-work-head"><div><h3>Mi control de turnos</h3><div class="muted">${esc(r.label)} · solo mis registros</div></div></div><div class="empty">Actualizando resumen…</div>`;
     try{
       const q=await window.sb.from('turnos_novedades_v15')
-        .select('id,tipo,fecha_inicio,fecha_fin,cantidad,unidad,turno_base,clasificacion_auto')
+        .select('id,tipo,fecha_inicio,fecha_fin,cantidad,unidad,turno_base,clasificacion_auto,anio,mes')
         .eq('user_id',userId)
-        .lte('fecha_inicio',r.end)
-        .gte('fecha_fin',r.start)
+        .eq('anio',r.y)
+        .eq('mes',r.m)
         .order('fecha_inicio',{ascending:true});
       if(q.error) throw q.error;
       if(seq!==summarySeq||uid()!==userId) return;
