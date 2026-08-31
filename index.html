@@ -11407,5 +11407,68 @@ function v1523LayoutAudit(root=document){
 window.__STAINHER_LAYOUT_AUDIT__=v1523LayoutAudit;
 v1523InstallResponsiveCore();
 </script>
+<style id="v1523-leadership-record-actions-style">
+.v1523-lead-record-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.v1523-lead-record-actions .action-mini{white-space:nowrap}
+.v1523-lead-incomplete{display:inline-flex;margin-left:7px;vertical-align:middle}
+@media(max-width:700px){
+  .v1523-lead-record-actions{min-width:116px;flex-direction:column;align-items:stretch}
+  .v1523-lead-record-actions .action-mini{width:100%;text-align:center}
+}
+</style>
+<script id="v1523-leadership-record-actions-script">
+/* V15.23 · Prevención/Administrador pueden corregir o eliminar controles realizados. */
+function v1523LeadershipRecordIsIncomplete(row){
+  const name=String(row?.ejecutado_por_nombre||row?.supervisor_nombre||'').trim().toLowerCase();
+  return !row?.ejecutado_por_user_id||!name||name==='seleccionar supervisor'||name==='usuario no identificado';
+}
+async function v1523LeadershipActors(){
+  const {data,error}=await sb.from('perfiles').select('id,nombre,rol,activo').eq('activo',true).in('rol',['administrador','prevencion','apr','supervisor','tecnico']).order('nombre');
+  if(error)throw error;return data||[];
+}
+async function v1523OpenLeadershipRecordEdit(id){
+  if(!canManageLeadershipV11())return toast('No tienes permiso para editar controles realizados.','error');
+  const [recordQuery,actors]=await Promise.all([
+    sb.from('liderazgo_cumplimiento').select('*').eq('id',id).maybeSingle(),
+    v1523LeadershipActors()
+  ]);
+  if(recordQuery.error)return toast(recordQuery.error.message,'error');
+  const row=recordQuery.data;if(!row)return toast('El registro ya no existe.','error');
+  const selected=String(row.ejecutado_por_user_id||row.supervisor_user_id||'');
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><div><h3>Editar control realizado</h3><div class="muted">${esc(row.control_nombre||row.control_codigo||'Control')}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div>${v1523LeadershipRecordIsIncomplete(row)?'<div class="notice warn"><b>Registro incompleto:</b> selecciona un responsable válido antes de guardar.</div>':''}<form id="v1523LeadershipRecordForm" class="form-grid"><label class="full">Usuario responsable<select class="field" name="responsable" required><option value="">Seleccionar responsable</option>${actors.map(person=>`<option value="${person.id}" data-name="${esc(person.nombre||'')}" data-role="${esc(person.rol||'')}" ${String(person.id)===selected?'selected':''}>${esc(person.nombre||'Sin nombre')} · ${esc(v1519RoleLabel(person.rol||''))}</option>`).join('')}</select></label><label>Fecha del control<input class="field" name="fecha" type="date" value="${row.fecha||''}" required></label><label>Tipo<select class="field" name="tipo"><option value="programado" ${row.fuera_programacion?'':'selected'}>Programado</option><option value="libre" ${row.fuera_programacion?'selected':''}>Libre</option></select></label><label class="full">Control<input class="field" value="${esc(row.control_nombre||row.control_codigo||'')}" disabled></label><div class="full actions"><button class="btn primary">Guardar corrección</button></div></form></div></div>`;
+  document.getElementById('v1523LeadershipRecordForm').onsubmit=async event=>{
+    event.preventDefault();const form=event.target,values=Object.fromEntries(new FormData(form)),option=form.responsable.selectedOptions[0];
+    if(!values.responsable||!option?.dataset.name)return toast('Selecciona un responsable válido.','error');
+    const date=new Date(`${values.fecha}T12:00:00`),role=option.dataset.role||'',name=option.dataset.name;
+    const payload={fecha:values.fecha,anio:date.getFullYear(),mes:date.getMonth()+1,fuera_programacion:values.tipo==='libre',ejecutado_por_user_id:values.responsable,ejecutado_por_nombre:name,ejecutado_por_rol:role,supervisor_user_id:role==='supervisor'?values.responsable:null,supervisor_nombre:name};
+    const {error}=await sb.from('liderazgo_cumplimiento').update(payload).eq('id',id);if(error)return toast(error.message,'error');
+    v1512Audit?.('liderazgo','editar_control_realizado',id,{fecha:payload.fecha,responsable:payload.ejecutado_por_user_id,tipo:payload.fuera_programacion?'libre':'programado'});
+    closeModal();state.leadershipYear=payload.anio;state.leadershipMonth=payload.mes;await renderLiderazgoV95();toast('Control realizado actualizado','success');
+  };
+}
+async function v1523DeleteLeadershipRecord(id){
+  if(!canManageLeadershipV11())return toast('No tienes permiso para eliminar controles realizados.','error');
+  if(!confirm('¿Eliminar este control realizado? Esta acción actualizará automáticamente los indicadores del período.'))return;
+  const {error}=await sb.from('liderazgo_cumplimiento').delete().eq('id',id);if(error)return toast(error.message,'error');
+  v1512Audit?.('liderazgo','eliminar_control_realizado',id,{});await renderLiderazgoV95();toast('Control realizado eliminado','success');
+}
+async function v1523InstallLeadershipRecordActions(){
+  if(!canManageLeadershipV11())return;
+  const section=document.getElementById('v1512Lead_indicadores');if(!section)return;
+  const panels=[...section.querySelectorAll('.panel')],panel=panels.find(item=>item.querySelector('h3')?.textContent.trim()==='Controles realizados');
+  const table=panel?.querySelector('table');if(!table||table.dataset.recordActions==='true')return;
+  const data=await v1512LoadLeadershipData();if(data.error)throw data.error;const rows=data.done||[];
+  const head=table.querySelector('thead tr');if(head){const th=document.createElement('th');th.textContent='Acciones';head.appendChild(th)}
+  table.querySelectorAll('tbody tr').forEach((tr,index)=>{const row=rows[index];if(!row)return;const typeCell=tr.children[4];if(typeCell&&v1523LeadershipRecordIsIncomplete(row))typeCell.insertAdjacentHTML('beforeend','<span class="status bad v1523-lead-incomplete">Incompleto</span>');const td=document.createElement('td');td.innerHTML=`<div class="v1523-lead-record-actions"><button class="action-mini" onclick="v1523OpenLeadershipRecordEdit('${row.id}')">Editar</button><button class="action-mini" style="color:#fca5a5;border-color:#7f1d1d" onclick="v1523DeleteLeadershipRecord('${row.id}')">Eliminar</button></div>`;tr.appendChild(td)});
+  table.dataset.recordActions='true';v1523ScheduleResponsivePolish?.();
+}
+const _v1523LeadershipRenderBase=renderLiderazgoV95;
+renderLiderazgoV95=async function(){await _v1523LeadershipRenderBase();try{await v1523InstallLeadershipRecordActions()}catch(error){console.error('No se pudieron habilitar acciones de controles realizados',error);toast('No se pudieron cargar las acciones de edición.','error')}};
+const _v1523LeadershipRegisterBase=v12Register;
+v12Register=async function(control,date,selectedId,turno=''){
+  if(!v1512LeadershipFreeRole?.()&&!selectedId)throw new Error('Selecciona un supervisor o responsable válido antes de registrar el control.');
+  return _v1523LeadershipRegisterBase(control,date,selectedId,turno);
+};
+</script>
 </body>
 </html>
