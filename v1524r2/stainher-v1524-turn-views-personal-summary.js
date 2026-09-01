@@ -4,8 +4,8 @@
  * - Muestra en Inicio HE, ET, EF y DA del usuario conectado para el mes actual.
  */
 (function installTurnViewsAndPersonalSummary(){
-  if(window.__STAINHER_V1524_TURN_VIEWS_PERSONAL__) return;
-  window.__STAINHER_V1524_TURN_VIEWS_PERSONAL__=true;
+  if(window.__STAINHER_V1524_TURN_VIEWS_PERSONAL_R1__) return;
+  window.__STAINHER_V1524_TURN_VIEWS_PERSONAL_R1__=true;
 
   const PERSONAL_ROLES=new Set(['supervisor','tecnico','prevencion','apr']);
   let summaryScheduled=false;
@@ -165,28 +165,40 @@
     setTimeout(renderPersonalSummary,80);
   }
 
+  function wrapHomeRenderer(){
+    const current=window.renderInicio;
+    if(typeof current!=='function'||current.__v1524PersonalSummaryR1) return false;
+    const wrapped=async function(){
+      const out=await current.apply(this,arguments);
+      scheduleSummary();
+      return out;
+    };
+    wrapped.__v1524PersonalSummaryR1=true;
+    wrapped.__base=current;
+    window.renderInicio=wrapped;
+    return true;
+  }
+
   function boot(){
     mountStyle();
     normalizeTurnTabs();
     let tries=0;
     const timer=setInterval(()=>{
       tries++;
-      if(wrapTurnRenderer()||tries>30) clearInterval(timer);
+      const turnOk=wrapTurnRenderer();
+      const homeOk=wrapHomeRenderer();
+      if((turnOk||window.renderTurnosV15?.__v1524NoCalendar) && (homeOk||window.renderInicio?.__v1524PersonalSummaryR1)) clearInterval(timer);
+      else if(tries>30) clearInterval(timer);
     },120);
     cleanTurnView();
     scheduleSummary();
-    const root=document.getElementById('appView')||document.body;
-    new MutationObserver(mutations=>{
-      let turn=false,home=false;
-      for(const m of mutations){
-        const target=m.target?.nodeType===1?m.target:m.target?.parentElement;
-        if(target?.closest?.('#page-turnos')) turn=true;
-        if(target?.closest?.('#page-inicio')) home=true;
-        if(turn&&home) break;
-      }
-      if(turn) cleanTurnView();
-      if(home) scheduleSummary();
-    }).observe(root,{childList:true,subtree:true});
+    document.addEventListener('click',e=>{
+      const btn=e.target?.closest?.('[data-page]');
+      if(!btn) return;
+      const page=String(btn.dataset.page||'');
+      if(page==='inicio') setTimeout(scheduleSummary,60);
+      if(page==='turnos') setTimeout(cleanTurnView,60);
+    },true);
     window.addEventListener('focus',scheduleSummary,{passive:true});
   }
 
