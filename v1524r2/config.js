@@ -59,7 +59,7 @@ window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
     {id:'stainher-v1524-home-badges-compact-script',src:'stainher-v1524-home-badges-compact.js?v=20260831-r2',domain:'inicio'},
     {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?v=20260831-r2',domain:'contrato'},
       {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260831-r2',domain:'turnos'},
-      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260901-5',domain:'vacaciones'},
+      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260901-6',domain:'vacaciones'},
       {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260901-1',domain:'experiencia'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
