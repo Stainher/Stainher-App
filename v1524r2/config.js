@@ -47,25 +47,47 @@ window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
 
 /* Carga autoritativa V15.24 después de que index.html termine de definir las
  * capas históricas. El módulo final espera a que Turnos V15.24 esté listo. */
-(function loadStainherV1524(){
-  function append(id,src,onload){if(document.getElementById(id)){onload?.();return}const s=document.createElement('script');s.id=id;s.src=src;s.onload=()=>onload?.();s.onerror=()=>console.error('No se pudo cargar',src);document.head.appendChild(s)}
-  function bridge(){try{if(!window.state&&typeof state!=='undefined')window.state=state}catch(_){ }try{if(!window.sb&&typeof sb!=='undefined')window.sb=sb}catch(_){ }}
-  function load(){
-    bridge();
-    const modules=[
-      ['turnos-v1524-script','turnos-v1524.js?v=20260831-3'],
-      ['stainher-v1524-final-script','stainher-v1524-final.js?v=20260831-2'],
-      ['stainher-v1524-report-script','stainher-v1524-report.js?v=20260831-2'],
-      ['stainher-v1524-hotfix1-script','stainher-v1524-hotfix1.js?v=20260831-1'],
-      ['stainher-v1524-hotfix2-script','stainher-v1524-hotfix2.js?v=20260831-1'],
-      ['stainher-v1524-hotfix3-script','stainher-v1524-hotfix3.js?v=20260831-1'],
-      ['stainher-v1524-report-hotfix4-script','stainher-v1524-report-hotfix4.js?v=20260831-1'],
-      ['stainher-v1524-home-badges-compact-script','stainher-v1524-home-badges-compact.js?v=20260831-r2'],
-      ['stainher-v1524-contract-money-fit-script','stainher-v1524-contract-money-fit.js?v=20260831-r2'],
-      ['stainher-v1524-turn-views-personal-script','stainher-v1524-turn-views-personal-summary.js?v=20260831-r2'],
-      ['stainher-v1524-vacation-balance-script','stainher-v1524-vacation-balance.js?v=20260901-3']
-    ];
-    let i=0;const next=()=>{const item=modules[i++];if(item)append(item[0],item[1],next)};next();
+(function installStainherCoreLoader(){
+  const MODULES=Object.freeze([
+    {id:'turnos-v1524-script',src:'turnos-v1524.js?v=20260831-3',domain:'turnos'},
+    {id:'stainher-v1524-final-script',src:'stainher-v1524-final.js?v=20260831-2',domain:'core'},
+    {id:'stainher-v1524-report-script',src:'stainher-v1524-report.js?v=20260831-2',domain:'informes'},
+    {id:'stainher-v1524-hotfix1-script',src:'stainher-v1524-hotfix1.js?v=20260831-1',domain:'turnos'},
+    {id:'stainher-v1524-hotfix2-script',src:'stainher-v1524-hotfix2.js?v=20260831-1',domain:'turnos'},
+    {id:'stainher-v1524-hotfix3-script',src:'stainher-v1524-hotfix3.js?v=20260831-1',domain:'turnos'},
+    {id:'stainher-v1524-report-hotfix4-script',src:'stainher-v1524-report-hotfix4.js?v=20260831-1',domain:'informes'},
+    {id:'stainher-v1524-home-badges-compact-script',src:'stainher-v1524-home-badges-compact.js?v=20260831-r2',domain:'inicio'},
+    {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?v=20260831-r2',domain:'contrato'},
+    {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260831-r2',domain:'turnos'},
+      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260901-4',domain:'vacaciones'}
+  ]);
+  const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
+  window.STAINHER_MODULES=MODULES;window.STAINHER_LOADER_STATUS=status;
+  function bridgeGlobals(){
+    try{if(!window.state&&typeof state!=='undefined')window.state=state}catch(_){ }
+    try{if(!window.sb&&typeof sb!=='undefined')window.sb=sb}catch(_){ }
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
+  function loadScript(module){
+    const existing=document.getElementById(module.id);
+    if(existing)return Promise.resolve(module);
+    return new Promise((resolve,reject)=>{
+      const script=document.createElement('script');script.id=module.id;script.src=module.src;script.async=false;
+      script.addEventListener('load',()=>resolve(module),{once:true});
+      script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${module.domain}: ${module.src}`)),{once:true});
+      document.head.appendChild(script);
+    });
+  }
+  async function start(){
+    if(status.state==='loading'||status.state==='ready')return;
+    status.state='loading';status.startedAt=new Date().toISOString();bridgeGlobals();
+    try{
+      for(const module of MODULES){await loadScript(module);status.loaded.push(module.id)}
+      status.state='ready';status.finishedAt=new Date().toISOString();
+      window.dispatchEvent(new CustomEvent('stainher:modules-ready',{detail:{loaded:[...status.loaded]}}));
+    }catch(error){
+      status.state='error';status.failed=String(error?.message||error);status.finishedAt=new Date().toISOString();
+      console.error('[Stainher Loader]',error);window.dispatchEvent(new CustomEvent('stainher:modules-error',{detail:{error:status.failed}}));
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
