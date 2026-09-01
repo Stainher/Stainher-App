@@ -74,7 +74,7 @@
         doc.autoTable({startY:35,theme:'grid',styles:{fontSize:8.5,textColor:[25,31,40]},body:[
           ['Trabajador',r.perfiles?.nombre||'Nombre no registrado'],['RUT',r.solicitante_rut||'RUT no registrado'],
           ['Cargo / perfil',r.solicitante_cargo||w.v1519RoleLabel?.(r.perfiles?.rol||'')||'Cargo no registrado'],
-          ['Desde',w.fmtDateCL?.(r.fecha_inicio)||r.fecha_inicio,'Hasta',w.fmtDateCL?.(r.fecha_fin)||r.fecha_fin],
+          ['Desde',w.fmtDateCL?.(r.fecha_inicio)||r.fecha_inicio],['Hasta',w.fmtDateCL?.(r.fecha_fin)||r.fecha_fin],
           ['Estado','APROBADA'],['Comentario',r.comentario||'']
         ]});
         let y=doc.lastAutoTable.finalY+7;
@@ -83,7 +83,7 @@
           r.vacaciones_dias_totales??'—',r.vacaciones_dias_habiles??'—',r.vacaciones_fines_semana??'—',r.vacaciones_festivos??'—',r.vacaciones_dias_descontados??'—'
         ]],styles:{fontSize:8,halign:'center',textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
         y=doc.lastAutoTable.finalY+5;
-        doc.autoTable({startY:y,theme:'grid',body:[['Regla aplicada',r.vacaciones_regla||'Pendiente de contabilización'],['Saldo anterior',`${Number(r.vacaciones_saldo_anterior??0).toFixed(2)} días`,'Saldo restante',`${Number(r.vacaciones_saldo_final??0).toFixed(2)} días`]],styles:{fontSize:8,textColor:[25,31,40]}});
+        doc.autoTable({startY:y,theme:'grid',body:[['Regla aplicada',r.vacaciones_regla||'Pendiente de contabilización'],['Saldo disponible antes de autorizar',`${Number(r.vacaciones_saldo_anterior??0).toFixed(2)} días`],['Días descontados por esta solicitud',`${Number(r.vacaciones_dias_descontados??0).toFixed(2)} días`],['Saldo disponible después de autorizar',`${Number(r.vacaciones_saldo_final??0).toFixed(2)} días`]],styles:{fontSize:8,textColor:[25,31,40]}});
         y=doc.lastAutoTable.finalY+9;
         const boxes=[{x:14,w:55,label:'Solicitante',name:r.perfiles?.nombre||'',sig:r.firma_solicitante},{x:77.5,w:55,label:w.v1519RoleLabel?.(r.aprobador_rol||'Aprobador')||'Aprobador',name:r.aprobador_nombre||'',sig:r.firma_aprobador},{x:141,w:55,label:'Recursos Humanos',name:r.rrhh_nombre||'',sig:r.firma_rrhh}];
         boxes.forEach(b=>{doc.setTextColor(25,31,40);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(b.label,b.x,y);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(b.name||'Nombre no registrado',b.x,y+4,{maxWidth:b.w});doc.rect(b.x,y+7,b.w,32);if(b.sig)try{doc.addImage(b.sig,'PNG',b.x+3,y+10,b.w-6,25)}catch(_){}});
