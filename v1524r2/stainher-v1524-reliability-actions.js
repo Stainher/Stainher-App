@@ -3,14 +3,14 @@
  * - Enviar por correo abre el formulario usando el último informe generado.
  * - La barra de acciones se mantiene dentro del flujo y no tapa contenido móvil.
  */
-(function bootstrapStainherReliabilityActions(attempt=0){
+(function bootstrapStainherReliabilityActions(){
   if (window.__STAINHER_RELIABILITY_ACTIONS__) return;
   const ready = typeof window.v1518ReliabilityEmailModal === 'function'
     && typeof window.renderCorrectivoShell === 'function'
     && typeof window.loadCorrectivo === 'function'
     && !!window.__STAINHER_V1524_TURN_VIEWS_PERSONAL_R1__;
   if (!ready) {
-    if (attempt < 120) setTimeout(() => bootstrapStainherReliabilityActions(attempt + 1), 100);
+    setTimeout(bootstrapStainherReliabilityActions, 250);
     return;
   }
   window.__STAINHER_RELIABILITY_ACTIONS__ = true;
@@ -47,7 +47,7 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      #page-correctivo .v1519-corr-tabs{
+      #page-correctivo .v1524-reliability-toolbar{
         position:static!important;
         inset:auto!important;
         z-index:auto!important;
@@ -56,22 +56,19 @@
         min-width:0!important;
         box-sizing:border-box!important;
       }
-      #page-correctivo .v1519-corr-tabs .btn{
+      #page-correctivo .v1524-reliability-toolbar .btn{
         min-width:0!important;
         max-width:100%!important;
         box-sizing:border-box!important;
       }
       @media(max-width:900px){
-        .main{
-          padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))!important;
-        }
         #page-correctivo{
-          padding-bottom:24px!important;
+          padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;
           min-width:0!important;
           max-width:100%!important;
           overflow-x:hidden!important;
         }
-        #page-correctivo .v1519-corr-tabs{
+        #page-correctivo .v1524-reliability-toolbar{
           display:grid!important;
           grid-template-columns:repeat(2,minmax(0,1fr))!important;
           gap:8px!important;
@@ -79,7 +76,7 @@
           margin:0 0 14px!important;
           overflow:visible!important;
         }
-        #page-correctivo .v1519-corr-tabs .btn{
+        #page-correctivo .v1524-reliability-toolbar .btn{
           width:100%!important;
           min-height:44px!important;
           padding:9px 10px!important;
@@ -89,7 +86,7 @@
         }
       }
       @media(max-width:420px){
-        #page-correctivo .v1519-corr-tabs{
+        #page-correctivo .v1524-reliability-toolbar{
           grid-template-columns:minmax(0,1fr)!important;
         }
       }
@@ -131,8 +128,11 @@
   function ensureActions(){
     mountStyle();
     const page = document.getElementById('page-correctivo');
-    const tabs = page?.querySelector('.v1519-corr-tabs');
+    if (!page) return;
+    const tabs = page.querySelector('.v1519-corr-tabs')
+      || page.querySelector('.v1518-corr-actions,.v1516-corr-top-tabs');
     if (!tabs) return;
+    tabs.classList.add('v1524-reliability-toolbar');
 
     let send = tabs.querySelector('[data-v1524-reliability-email]');
     if (!canEmail()) {
@@ -173,5 +173,15 @@
   mountStyle();
   wrapRender('renderCorrectivoShell');
   wrapRender('loadCorrectivo');
+  let observerQueued = false;
+  const observer = new MutationObserver(() => {
+    if (observerQueued) return;
+    observerQueued = true;
+    setTimeout(() => {
+      observerQueued = false;
+      ensureActions();
+    }, 0);
+  });
+  observer.observe(document.body, { childList:true, subtree:true });
   setTimeout(ensureActions, 0);
-})(0);
+})();
