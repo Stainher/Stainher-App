@@ -61,6 +61,14 @@
         max-width:100%!important;
         box-sizing:border-box!important;
       }
+      #modalRoot .v158-review-actions{
+        position:static!important;
+        inset:auto!important;
+        z-index:auto!important;
+        margin-top:14px!important;
+        padding:14px 0 0!important;
+        background:transparent!important;
+      }
       @media(max-width:900px){
         #page-correctivo{
           padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;
@@ -105,6 +113,7 @@
       createdAt: new Date().toISOString(),
     };
     ensureActions();
+    ensureReviewActions();
   };
 
   window.v1524OpenReliabilityEmail = function(){
@@ -133,8 +142,24 @@
       || page.querySelector('.v1518-corr-actions,.v1516-corr-top-tabs');
     if (!tabs) return;
     tabs.classList.add('v1524-reliability-toolbar');
+    page.querySelectorAll('[data-v1524-reliability-email]').forEach(button => button.remove());
 
-    let send = tabs.querySelector('[data-v1524-reliability-email]');
+    page.querySelectorAll('.v153-corr-tabs,.v154-corr-tabs-fixed,.v1516-corr-top-tabs,.v1518-corr-actions,.v1519-corr-tabs').forEach(group => {
+      if (group === tabs) return;
+      const labels = [...group.querySelectorAll('button')].map(button => button.textContent || '').join(' ');
+      if (/Confiabilidad/i.test(labels) && /Historial/i.test(labels) && /Generar informe/i.test(labels)) group.remove();
+    });
+  }
+
+  function ensureReviewActions(){
+    const modal = document.querySelector('#modalRoot .v158-review-modal');
+    const actions = modal?.querySelector('.v158-review-actions');
+    if (!actions) return;
+
+    const approve = [...actions.querySelectorAll('button')].find(button => /Aprobar.*generar PDF/i.test(button.textContent || ''));
+    if (approve) approve.textContent = 'Aprobar y generar PDF';
+
+    let send = actions.querySelector('[data-v1524-reliability-email]');
     if (!canEmail()) {
       send?.remove();
       return;
@@ -146,15 +171,13 @@
       send.dataset.v1524ReliabilityEmail = '1';
       send.textContent = '✉ Enviar por correo';
       send.onclick = window.v1524OpenReliabilityEmail;
-      const report = [...tabs.querySelectorAll('button')].find(btn => /Generar informe/i.test(btn.textContent || ''));
-      if (report?.nextSibling) tabs.insertBefore(send, report.nextSibling);
-      else tabs.appendChild(send);
+      actions.appendChild(send);
     }
     const cached = window[CACHE_KEY];
     const readyNow = !!cached?.doc && sameContext(cached.context, snapshot());
     send.title = readyNow
       ? `Enviar ${cached.fileName}`
-      : 'Primero genera el informe del período y equipo seleccionados';
+      : 'Primero aprueba y genera el PDF de este informe';
   }
 
   function wrapRender(name){
@@ -170,6 +193,24 @@
     window[name] = wrapped;
   }
 
+  const originalCloseModal = window.closeModal;
+  window.closeModal = function(){
+    if (window.__STAINHER_KEEP_RELIABILITY_REVIEW__ && document.querySelector('#modalRoot .v158-review-modal')) return;
+    return originalCloseModal.apply(this, arguments);
+  };
+
+  const originalApprove = window.v158ApproveReliabilityReport;
+  if (typeof originalApprove === 'function') {
+    window.v158ApproveReliabilityReport = async function(){
+      window.__STAINHER_KEEP_RELIABILITY_REVIEW__ = true;
+      try { return await originalApprove.apply(this, arguments); }
+      finally {
+        window.__STAINHER_KEEP_RELIABILITY_REVIEW__ = false;
+        setTimeout(ensureReviewActions, 200);
+      }
+    };
+  }
+
   mountStyle();
   wrapRender('renderCorrectivoShell');
   wrapRender('loadCorrectivo');
@@ -180,6 +221,7 @@
     setTimeout(() => {
       observerQueued = false;
       ensureActions();
+      ensureReviewActions();
     }, 0);
   });
   observer.observe(document.body, { childList:true, subtree:true });
