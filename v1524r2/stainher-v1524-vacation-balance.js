@@ -99,6 +99,17 @@
     if(typeof w.v154RequestModal==='function'&&!w.v154RequestModal.__vacPreview){
       const base=w.v154RequestModal;const wrapped=async function(...args){const out=await base.apply(this,args);await installVacationPreview();return out};wrapped.__vacPreview=true;w.v154RequestModal=wrapped;w.v152RequestModal=wrapped;w.v15VacationModal=wrapped;
     }
+    if(typeof w.v1521DeleteRequest==='function'&&!w.v1521DeleteRequest.__vacSafeDelete){
+      const safeDelete=async function(id){
+        if(String(w.v11Role?.()||'')!=='administrador'||w.state?.v15PreviewRole)return w.toast?.('Solo el Administrador real puede eliminar solicitudes.','error');
+        const row=(w.state?.v154Requests||[]).find(x=>String(x.id)===String(id)),approvedVacation=row?.tipo==='vacaciones'&&row?.estado==='aprobada',days=Number(row?.vacaciones_dias_descontados||0);
+        const question=approvedVacation?`¿Eliminar esta solicitud de vacaciones aprobada? Se anulará su registro en Turnos y se restituirán ${days.toFixed(2)} días al saldo del usuario.`:'¿Eliminar esta solicitud? También se limpiarán sus notificaciones asociadas.';
+        if(!confirm(question))return;
+        const task=async()=>{const q=await w.sb.rpc('admin_eliminar_solicitud',{p_solicitud_id:id});if(q.error){w.v1523RecordError?.('solicitudes/eliminación',q.error);return w.toast?.('No se pudo eliminar: '+q.error.message,'error')}const restored=Number(q.data?.dias_restituidos||0),balance=q.data?.saldo_vacaciones;try{await w.renderSolicitudesV15?.();await w.v15LoadNotifications?.()}catch(error){w.v1523RecordError?.('solicitudes/recarga',error)}w.toast?.(restored>0?`Solicitud eliminada. Se restituyeron ${restored.toFixed(2)} días; saldo actual: ${Number(balance).toFixed(2)} días.`:'Solicitud eliminada correctamente','success')};
+        return typeof w.v1523RequestLock==='function'?w.v1523RequestLock(`eliminar:${id}`,task):task();
+      };
+      safeDelete.__vacSafeDelete=true;w.v1521DeleteRequest=safeDelete;
+    }
   }
   let tries=0;(function boot(){install();if((typeof w.openEditUserModal!=='function'||typeof w.openUserModal!=='function')&&++tries<300)setTimeout(boot,100)})();
 })();
