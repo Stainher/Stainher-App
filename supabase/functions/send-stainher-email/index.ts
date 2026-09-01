@@ -97,7 +97,7 @@ async function configuredRecipients(ctx: any, documentType: string): Promise<Rec
   if (!documentType) return [];
   const { data: config, error } = await ctx.supabaseAdmin
     .from("correo_config_v155")
-    .select("tipo_documento,activo,destinatarios,copia_administrador,copia_prevencion,copia_confiabilidad,copia_planificacion")
+    .select("tipo_documento,activo,destinatarios,copia_administrador,copia_rrhh,copia_prevencion,copia_confiabilidad,copia_planificacion")
     .eq("tipo_documento", documentType)
     .maybeSingle();
   if (error) throw new Error(`No se pudo leer la configuración de correo: ${error.message}`);
@@ -106,6 +106,7 @@ async function configuredRecipients(ctx: any, documentType: string): Promise<Rec
   const recipients = normalizeRecipients(config.destinatarios || []);
   const roles: string[] = [];
   if (config.copia_administrador) roles.push("administrador");
+  if (config.copia_rrhh) roles.push("recursos_humanos");
   if (config.copia_prevencion) roles.push("prevencion");
   if (config.copia_confiabilidad) roles.push("confiabilidad");
   if (config.copia_planificacion) roles.push("planificador");
