@@ -6,9 +6,11 @@ type Recipient = { email: string; name?: string };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_HTML = 200_000;
 const MAX_ATTACHMENT_B64 = 12_000_000;
+const FALLBACK_FROM_EMAIL = "ismael.galvez@stainher.cl";
+const FALLBACK_FROM_NAME = "Stainher App";
 const ALLOWED_MODULES = new Set([
   "sistema", "vacaciones", "confiabilidad", "correctivo",
-  "preventivo", "vehiculos", "liderazgo", "documentos", "general"
+  "preventivo", "vehiculos", "liderazgo", "documentos", "general",
 ]);
 
 function clean(value: unknown, max = 500): string {
@@ -31,6 +33,19 @@ function normalizeRecipients(value: unknown): Recipient[] {
     if (recipient && !unique.has(recipient.email)) unique.set(recipient.email, recipient);
   }
   return [...unique.values()];
+}
+
+function normalizeSender(value: unknown): Recipient | null {
+  const raw = clean(value, 500);
+  if (!raw) return null;
+  const direct = normalizeRecipient(raw);
+  if (direct) return direct;
+  const match = raw.match(/^\s*(.*?)\s*<([^<>]+)>\s*$/);
+  if (!match) return null;
+  const email = clean(match[2], 320).toLowerCase();
+  if (!EMAIL_RE.test(email)) return null;
+  const name = clean(match[1].replace(/^['"]|['"]$/g, ""), 160);
+  return name ? { email, name } : { email };
 }
 
 function safeDetail(value: unknown): Json {
@@ -94,6 +109,7 @@ async function configuredRecipients(ctx: any, documentType: string): Promise<Rec
   if (config.copia_prevencion) roles.push("prevencion");
   if (config.copia_confiabilidad) roles.push("confiabilidad");
   if (config.copia_planificacion) roles.push("planificador");
+
   if (roles.length) {
     const { data: profiles, error: profilesError } = await ctx.supabaseAdmin
       .from("perfiles")
@@ -137,7 +153,11 @@ export default {
       .select("id,nombre,email,rol,activo,permisos")
       .eq("id", userId)
       .maybeSingle();
-    if (profileError || !profile || !profile.activo) {
+    if (profileError) {
+      console.error("profile_lookup", profileError.code, profileError.message);
+      return response(req, { ok: false, error: "No se pudo validar el perfil del remitente." }, 500);
+    }
+    if (!profile || !profile.activo) {
       return response(req, { ok: false, error: "El perfil no existe o está inactivo." }, 403);
     }
 
@@ -217,7 +237,7 @@ export default {
     if (insertResult.error) {
       if (insertResult.error.code !== "23505") {
         console.error("email_log_insert", insertResult.error.code, insertResult.error.message);
-        return response(req, { ok: false, error: "No se pudo iniciar la trazabilidad del correo." }, 500);
+        return response(req, { ok: false, error: `No se pudo iniciar la trazabilidad del correo (${insertResult.error.code || "db"}).` }, 500);
       }
       const existingResult = await ctx.supabaseAdmin.from("email_envios_v1518")
         .select("*").eq("idempotency_key", idempotencyKey).maybeSingle();
@@ -243,13 +263,25 @@ export default {
       }).eq("id", existing.id).select("*").single();
       if (retry.error) return response(req, { ok: false, error: "No se pudo preparar el reintento." }, 500);
       log = retry.data;
-    } else log = insertResult.data;
+    } else {
+      log = insertResult.data;
+    }
 
-    const apiKey = Deno.env.get("BREVO_API_KEY") || "";
-    const fromEmail = Deno.env.get("EMAIL_FROM") || "";
-    const fromName = Deno.env.get("EMAIL_FROM_NAME") || "Stainher App";
-    if (!apiKey || !EMAIL_RE.test(fromEmail)) {
-      const message = "La configuración segura de Brevo está incompleta.";
+    const apiKey = clean(Deno.env.get("BREVO_API_KEY"), 48_000);
+    const envSender = normalizeSender(Deno.env.get("EMAIL_FROM"));
+    const fromEmail = envSender?.email || FALLBACK_FROM_EMAIL;
+    const fromName = clean(Deno.env.get("EMAIL_FROM_NAME"), 160) || envSender?.name || FALLBACK_FROM_NAME;
+
+    if (!apiKey) {
+      const message = "BREVO_API_KEY no está configurada en los secretos de Supabase.";
+      await ctx.supabaseAdmin.from("email_envios_v1518").update({
+        estado: "error", ultimo_error: message, procesado_at: now,
+      }).eq("id", log.id);
+      return response(req, { ok: false, error: "La API key de Brevo no está configurada en el servidor.", logId: log.id }, 500);
+    }
+
+    if (!EMAIL_RE.test(fromEmail)) {
+      const message = "El remitente configurado para Brevo no es válido.";
       await ctx.supabaseAdmin.from("email_envios_v1518").update({
         estado: "error", ultimo_error: message, procesado_at: now,
       }).eq("id", log.id);
@@ -274,17 +306,20 @@ export default {
           "api-key": apiKey,
           "idempotencyKey": idempotencyKey,
           "Content-Type": "application/json",
-          Accept: "application/json",
+          "Accept": "application/json",
         },
         body: JSON.stringify(brevoPayload),
       });
-      try { providerBody = await providerResponse.json(); } catch { providerBody = {}; }
+      try { providerBody = await providerResponse.json(); }
+      catch { providerBody = {}; }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Brevo no respondió.";
       console.error("brevo_network", message);
       await ctx.supabaseAdmin.from("email_envios_v1518").update({
-        estado: "error", ultimo_error: message.slice(0, 1000),
-        detalle_respuesta: { message: "network_error" }, procesado_at: new Date().toISOString(),
+        estado: "error",
+        ultimo_error: message.slice(0, 1000),
+        detalle_respuesta: { message: "network_error" },
+        procesado_at: new Date().toISOString(),
       }).eq("id", log.id);
       return response(req, { ok: false, error: "No fue posible conectar con el proveedor de correo.", logId: log.id }, 502);
     }
@@ -294,23 +329,36 @@ export default {
       const message = clean(detail.message, 1000) || `Brevo respondió ${providerResponse.status}.`;
       console.error("brevo_rejected", providerResponse.status, message);
       await ctx.supabaseAdmin.from("email_envios_v1518").update({
-        estado: "error", ultimo_error: message, http_status: providerResponse.status,
-        detalle_respuesta: detail, procesado_at: new Date().toISOString(),
+        estado: "error",
+        ultimo_error: message,
+        http_status: providerResponse.status,
+        detalle_respuesta: detail,
+        procesado_at: new Date().toISOString(),
       }).eq("id", log.id);
       return response(req, { ok: false, error: message, providerStatus: providerResponse.status, logId: log.id }, providerResponse.status);
     }
 
     const messageId = clean(providerBody?.messageId, 500) || null;
+    const completedAt = new Date().toISOString();
     const update = await ctx.supabaseAdmin.from("email_envios_v1518").update({
-      estado: "enviado", message_id: messageId, http_status: providerResponse.status,
-      detalle_respuesta: { messageId }, enviado_at: new Date().toISOString(),
-      procesado_at: new Date().toISOString(), ultimo_error: null,
+      estado: "enviado",
+      message_id: messageId,
+      http_status: providerResponse.status,
+      detalle_respuesta: { messageId },
+      enviado_at: completedAt,
+      procesado_at: completedAt,
+      ultimo_error: null,
     }).eq("id", log.id);
     if (update.error) console.error("email_log_success_update", update.error.code, update.error.message);
 
     return response(req, {
-      ok: true, messageId, deliveredTo: to.email, intendedTo: intendedTo || to.email,
-      copiedTo: cc.map((item) => item.email), logId: log.id, duplicate: false,
+      ok: true,
+      messageId,
+      deliveredTo: to.email,
+      intendedTo: intendedTo || to.email,
+      copiedTo: cc.map((item) => item.email),
+      logId: log.id,
+      duplicate: false,
     });
   }),
 };
