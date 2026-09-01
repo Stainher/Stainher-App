@@ -3,8 +3,16 @@
  * - Enviar por correo abre el formulario usando el último informe generado.
  * - La barra de acciones se mantiene dentro del flujo y no tapa contenido móvil.
  */
-(function installStainherReliabilityActions(){
+(function bootstrapStainherReliabilityActions(attempt=0){
   if (window.__STAINHER_RELIABILITY_ACTIONS__) return;
+  const ready = typeof window.v1518ReliabilityEmailModal === 'function'
+    && typeof window.renderCorrectivoShell === 'function'
+    && typeof window.loadCorrectivo === 'function'
+    && !!window.__STAINHER_V1524_TURN_VIEWS_PERSONAL_R1__;
+  if (!ready) {
+    if (attempt < 120) setTimeout(() => bootstrapStainherReliabilityActions(attempt + 1), 100);
+    return;
+  }
   window.__STAINHER_RELIABILITY_ACTIONS__ = true;
 
   const STYLE_ID = 'stainher-reliability-actions-style';
@@ -89,23 +97,18 @@
     document.head.appendChild(style);
   }
 
-  const originalEmailModal = typeof window.v1518ReliabilityEmailModal === 'function'
-    ? window.v1518ReliabilityEmailModal
-    : null;
-
-  if (originalEmailModal) {
-    window.__STAINHER_RELIABILITY_EMAIL_MODAL_ORIGINAL__ = originalEmailModal;
-    window.v1518ReliabilityEmailModal = function(doc, fileName){
-      if (!doc || !fileName) return;
-      window[CACHE_KEY] = {
-        doc,
-        fileName: String(fileName),
-        context: snapshot(),
-        createdAt: new Date().toISOString(),
-      };
-      ensureActions();
+  const originalEmailModal = window.v1518ReliabilityEmailModal;
+  window.__STAINHER_RELIABILITY_EMAIL_MODAL_ORIGINAL__ = originalEmailModal;
+  window.v1518ReliabilityEmailModal = function(doc, fileName){
+    if (!doc || !fileName) return;
+    window[CACHE_KEY] = {
+      doc,
+      fileName: String(fileName),
+      context: snapshot(),
+      createdAt: new Date().toISOString(),
     };
-  }
+    ensureActions();
+  };
 
   window.v1524OpenReliabilityEmail = function(){
     const cached = window[CACHE_KEY];
@@ -148,8 +151,8 @@
       else tabs.appendChild(send);
     }
     const cached = window[CACHE_KEY];
-    const ready = !!cached?.doc && sameContext(cached.context, snapshot());
-    send.title = ready
+    const readyNow = !!cached?.doc && sameContext(cached.context, snapshot());
+    send.title = readyNow
       ? `Enviar ${cached.fileName}`
       : 'Primero genera el informe del período y equipo seleccionados';
   }
@@ -171,4 +174,4 @@
   wrapRender('renderCorrectivoShell');
   wrapRender('loadCorrectivo');
   setTimeout(ensureActions, 0);
-})();
+})(0);
