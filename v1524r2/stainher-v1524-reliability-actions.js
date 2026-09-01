@@ -4,11 +4,17 @@
  * - La barra de acciones se mantiene dentro del flujo y no tapa contenido móvil.
  */
 (function bootstrapStainherReliabilityActions(){
+  const EMERGENCY_STYLE_ID = 'stainher-reliability-actions-flow-guard';
+  if (!document.getElementById(EMERGENCY_STYLE_ID)) {
+    const guard = document.createElement('style');
+    guard.id = EMERGENCY_STYLE_ID;
+    guard.textContent = '#modalRoot .v158-review-actions{position:static!important;inset:auto!important;z-index:auto!important;margin-top:14px!important;padding:14px 0 0!important;background:transparent!important}';
+    document.head.appendChild(guard);
+  }
   if (window.__STAINHER_RELIABILITY_ACTIONS__) return;
   const ready = typeof window.v1518ReliabilityEmailModal === 'function'
     && typeof window.renderCorrectivoShell === 'function'
-    && typeof window.loadCorrectivo === 'function'
-    && !!window.__STAINHER_V1524_TURN_VIEWS_PERSONAL_R1__;
+    && typeof window.loadCorrectivo === 'function';
   if (!ready) {
     setTimeout(bootstrapStainherReliabilityActions, 250);
     return;
