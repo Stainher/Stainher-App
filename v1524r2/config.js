@@ -58,8 +58,9 @@ window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
     {id:'stainher-v1524-report-hotfix4-script',src:'stainher-v1524-report-hotfix4.js?v=20260831-1',domain:'informes'},
     {id:'stainher-v1524-home-badges-compact-script',src:'stainher-v1524-home-badges-compact.js?v=20260831-r2',domain:'inicio'},
     {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?v=20260831-r2',domain:'contrato'},
-    {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260831-r2',domain:'turnos'},
-      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260901-5',domain:'vacaciones'}
+      {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260831-r2',domain:'turnos'},
+      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260901-5',domain:'vacaciones'},
+      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260901-1',domain:'experiencia'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
   window.STAINHER_MODULES=MODULES;window.STAINHER_LOADER_STATUS=status;
@@ -77,9 +78,13 @@ window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
       document.head.appendChild(script);
     });
   }
+  function warmConnections(){
+    if(!document.querySelector('link[data-stainher-preconnect]')){const link=document.createElement('link');link.rel='preconnect';link.href=window.STAINHER_CONFIG?.SUPABASE_URL||'https://xeqoooouoknpbgyazjkj.supabase.co';link.crossOrigin='anonymous';link.dataset.stainherPreconnect='1';document.head.appendChild(link)}
+    for(const module of MODULES){if(document.querySelector(`link[data-stainher-preload="${module.id}"]`))continue;const link=document.createElement('link');link.rel='preload';link.as='script';link.href=module.src;link.dataset.stainherPreload=module.id;document.head.appendChild(link)}
+  }
   async function start(){
     if(status.state==='loading'||status.state==='ready')return;
-    status.state='loading';status.startedAt=new Date().toISOString();bridgeGlobals();
+    status.state='loading';status.startedAt=new Date().toISOString();bridgeGlobals();warmConnections();
     try{
       for(const module of MODULES){await loadScript(module);status.loaded.push(module.id)}
       status.state='ready';status.finishedAt=new Date().toISOString();
