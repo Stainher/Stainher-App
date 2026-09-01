@@ -23,6 +23,33 @@
       saved=String(value);w.toast?.('Saldo de vacaciones actualizado','success');
     });
   }
+  async function installVacationPreview(){
+    const form=document.querySelector('#v1522ReqForm,#v1517RequestForm');
+    if(!form||form.dataset.vacationPreview==='1')return;
+    form.dataset.vacationPreview='1';
+    const host=document.createElement('div');host.id='vacationRequestPreview';host.className='full panel hidden';
+    const sign=form.querySelector('[data-sign],#v1517VacationSignature');form.insertBefore(host,sign||form.querySelector('.full:last-child'));
+    let seq=0;
+    const update=async()=>{
+      const current=++seq,type=form.querySelector('[name="tipo"]')?.value,start=form.querySelector('[name="fecha_inicio"]')?.value,end=form.querySelector('[name="fecha_fin"]')?.value;
+      host.classList.toggle('hidden',type!=='vacaciones');if(type!=='vacaciones')return;
+      if(!start||!end||start>end){host.innerHTML='<h4>Vista previa de vacaciones</h4><div class="muted">Selecciona un período válido para calcular.</div>';return}
+      host.innerHTML='<h4>Vista previa de vacaciones</h4><div class="muted">Calculando con la malla vigente…</div>';
+      const uid=w.state?.session?.user?.id;
+      const [profile,dot,hol,mesh]=await Promise.all([
+        w.sb.from('perfiles').select('rol,saldo_vacaciones').eq('id',uid).maybeSingle(),
+        w.sb.from('dotacion_contrato').select('cargo,aplica_turnos').eq('user_id',uid).maybeSingle(),
+        w.sb.from('feriados_vacaciones').select('fecha,nombre').gte('fecha',start).lte('fecha',end),
+        w.sb.from('turnos_malla_v1512').select('fecha,turno_base').eq('user_id',uid).gte('fecha',start).lte('fecha',end)
+      ]);if(current!==seq)return;
+      const error=profile.error||hol.error||mesh.error;if(error){host.innerHTML=`<h4>Vista previa de vacaciones</h4><div class="notice error">No se pudo calcular: ${escAttr(error.message)}</div>`;return}
+      const holidays=new Set((hol.data||[]).map(x=>x.fecha)),role=String(profile.data?.rol||''),seven=!!dot.data?.aplica_turnos||['tecnico','supervisor','apr'].includes(role),days=[];
+      for(let d=new Date(start+'T12:00:00'),last=new Date(end+'T12:00:00');d<=last;d.setDate(d.getDate()+1)){const iso=d.toISOString().slice(0,10),weekend=[0,6].includes(d.getDay()),holiday=holidays.has(iso);days.push({iso,weekend,holiday,workday:!weekend&&!holiday})}
+      const scheduled=(mesh.data||[]).filter(x=>['A','C'].includes(x.turno_base)).length,discount=seven?scheduled:days.filter(x=>x.workday).length,balance=Number(profile.data?.saldo_vacaciones??15),projected=balance-discount,missing=seven&&(mesh.data||[]).length<days.length;
+      host.innerHTML=`<div class="row-between"><div><h4>Vista previa de vacaciones</h4><div class="muted">${seven?'Turno 7×7 · días A/C programados':'Jornada administrativa · lunes a viernes sin festivos'}</div></div><span class="status ${projected<0?'bad':'ok'}">${discount} días a descontar</span></div><div class="v15-summary-grid" style="margin-top:10px"><div class="v15-summary-card"><span>Período</span><strong>${days.length}</strong></div><div class="v15-summary-card"><span>Hábiles</span><strong>${days.filter(x=>x.workday).length}</strong></div><div class="v15-summary-card"><span>Fin de semana</span><strong>${days.filter(x=>x.weekend).length}</strong></div><div class="v15-summary-card"><span>Festivos</span><strong>${days.filter(x=>x.holiday).length}</strong></div><div class="v15-summary-card"><span>Saldo actual</span><strong>${balance.toFixed(2)}</strong></div><div class="v15-summary-card"><span>Saldo proyectado</span><strong>${projected.toFixed(2)}</strong></div></div>${missing?'<div class="notice warn">La malla 7×7 no cubre todo el período. Revisa la programación antes de enviar.</div>':''}${projected<0?'<div class="notice error">Saldo insuficiente: la aprobación final será bloqueada.</div>':'<div class="notice">Cálculo informativo. Supabase confirmará el descuento al aprobar RR. HH.</div>'}`;
+    };
+    form.querySelector('[name="tipo"]')?.addEventListener('change',update);form.querySelector('[name="fecha_inicio"]')?.addEventListener('change',update);form.querySelector('[name="fecha_fin"]')?.addEventListener('change',update);update();
+  }
   function addCreateDefault(){
     const form=document.getElementById('userFormV1517');
     if(!form||form.querySelector('[data-vacation-default]'))return;
@@ -67,6 +94,9 @@
       const base=w.renderInicio;
       const wrapped=async function(...args){const out=await base.apply(this,args);const page=document.getElementById('page-inicio');if(!page||!w.state?.session||page.querySelector('#vacationBalanceHome'))return out;const q=await w.sb.from('perfiles').select('saldo_vacaciones').eq('id',w.state.session.user.id).maybeSingle();if(q.error)return out;const card=document.createElement('div');card.id='vacationBalanceHome';card.className='panel';card.innerHTML=`<div class="row-between"><div><h3>Saldo de vacaciones</h3><div class="muted">Saldo vigente después de solicitudes aprobadas</div></div><strong style="font-size:28px">${Number(q.data?.saldo_vacaciones??15).toFixed(2)} días</strong></div>`;const anchor=page.querySelector('.grid-kpi,.v15-summary-grid,.panel');anchor?.insertAdjacentElement('beforebegin',card);return out};
       wrapped.__vacBalance=true;w.renderInicio=wrapped;
+    }
+    if(typeof w.v154RequestModal==='function'&&!w.v154RequestModal.__vacPreview){
+      const base=w.v154RequestModal;const wrapped=async function(...args){const out=await base.apply(this,args);await installVacationPreview();return out};wrapped.__vacPreview=true;w.v154RequestModal=wrapped;w.v152RequestModal=wrapped;w.v15VacationModal=wrapped;
     }
   }
   let tries=0;(function boot(){install();if((typeof w.openEditUserModal!=='function'||typeof w.openUserModal!=='function')&&++tries<300)setTimeout(boot,100)})();
