@@ -8,7 +8,7 @@
   if (!document.getElementById(EMERGENCY_STYLE_ID)) {
     const guard = document.createElement('style');
     guard.id = EMERGENCY_STYLE_ID;
-    guard.textContent = '#modalRoot .v158-review-actions{position:static!important;inset:auto!important;z-index:auto!important;margin-top:14px!important;padding:14px 0 0!important;background:transparent!important}';
+    guard.textContent = '#modalRoot .v158-review-modal{display:block!important;overflow-x:hidden!important;overflow-y:auto!important}#modalRoot .v158-review-modal>.v158-review-grid{overflow:visible!important;flex:none!important;min-height:auto!important;max-height:none!important}#modalRoot .v158-review-modal>.v158-review-actions{position:static!important;inset:auto!important;z-index:auto!important;width:100%!important;box-sizing:border-box!important;margin-top:14px!important;padding:14px 0 0!important;background:transparent!important}';
     document.head.appendChild(guard);
   }
   if (window.__STAINHER_RELIABILITY_ACTIONS__) return;
@@ -67,10 +67,23 @@
         max-width:100%!important;
         box-sizing:border-box!important;
       }
-      #modalRoot .v158-review-actions{
+      #modalRoot .v158-review-modal{
+        display:block!important;
+        overflow-x:hidden!important;
+        overflow-y:auto!important;
+      }
+      #modalRoot .v158-review-modal>.v158-review-grid{
+        overflow:visible!important;
+        flex:none!important;
+        min-height:auto!important;
+        max-height:none!important;
+      }
+      #modalRoot .v158-review-modal>.v158-review-actions{
         position:static!important;
         inset:auto!important;
         z-index:auto!important;
+        width:100%!important;
+        box-sizing:border-box!important;
         margin-top:14px!important;
         padding:14px 0 0!important;
         background:transparent!important;
