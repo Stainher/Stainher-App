@@ -2,8 +2,8 @@
  * Ajusta Valor vigente y Cobrado neto al ancho real de sus tarjetas.
  */
 (function installContractMoneyFit(){
-  if(window.__STAINHER_V1524_CONTRACT_MONEY_FIT__) return;
-  window.__STAINHER_V1524_CONTRACT_MONEY_FIT__=true;
+  if(window.__STAINHER_V1524_CONTRACT_MONEY_FIT_R1__) return;
+  window.__STAINHER_V1524_CONTRACT_MONEY_FIT_R1__=true;
 
   const LABELS=new Set(['valor vigente','cobrado neto']);
   const tracked=new Set();
@@ -45,7 +45,8 @@
     if(el.scrollWidth>available){el.style.fontSize='17px'}
   }
   function enhance(){
-    const scope=document.getElementById('page-administracion')||document.getElementById('page-contrato')||document.getElementById('appView')||document;
+    const scope=document.getElementById('page-administracion')||document.getElementById('page-contrato');
+    if(!scope) return;
     [...scope.querySelectorAll('*')].forEach(label=>{
       if(label.children.length) return;
       if(!LABELS.has(norm(label.textContent))) return;
@@ -62,8 +63,15 @@
   }
   function boot(){
     mountStyle();enhance();
-    const root=document.getElementById('appView')||document.body;
-    new MutationObserver(enhance).observe(root,{childList:true,subtree:true,characterData:true});
+    const scope=document.getElementById('page-administracion')||document.getElementById('page-contrato');
+    if(scope){
+      let queued=false;
+      new MutationObserver(()=>{
+        if(queued)return;
+        queued=true;
+        requestAnimationFrame(()=>{queued=false;enhance()});
+      }).observe(scope,{childList:true,subtree:true});
+    }
     window.addEventListener('resize',enhance,{passive:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
