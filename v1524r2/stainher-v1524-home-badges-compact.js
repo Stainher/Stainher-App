@@ -1,9 +1,9 @@
-/* Stainher App V15.24 · Inicio: etiquetas compactas de turno
- * Mantiene el color/estado y reduce el texto visible para evitar solapamiento con nombres largos.
+/* Stainher App V15.24 · Inicio: etiquetas compactas de turno (R1)
+ * Evita bucles MutationObserver: solo cambia el texto cuando realmente difiere.
  */
 (function installCompactHomeTurnBadges(){
-  if(window.__STAINHER_V1524_HOME_BADGES_COMPACT__) return;
-  window.__STAINHER_V1524_HOME_BADGES_COMPACT__=true;
+  if(window.__STAINHER_V1524_HOME_BADGES_COMPACT_R1__) return;
+  window.__STAINHER_V1524_HOME_BADGES_COMPACT_R1__=true;
 
   const shortByText={
     'Turno normal A':'A',
@@ -30,14 +30,14 @@
 
   function compact(root=document){
     root.querySelectorAll?.('.v1524-home-badge').forEach(el=>{
-      const current=String(el.dataset.fullLabel||el.textContent||'').trim();
-      const full=el.dataset.fullLabel||current;
-      const short=shortByText[full]||shortByText[current];
+      const visible=String(el.textContent||'').trim();
+      const full=String(el.dataset.fullLabel||visible).trim();
+      const short=shortByText[full]||shortByText[visible];
       if(!short) return;
-      el.dataset.fullLabel=full;
-      el.textContent=short;
-      el.title=full;
-      el.setAttribute('aria-label',full);
+      if(el.dataset.fullLabel!==full) el.dataset.fullLabel=full;
+      if(visible!==short) el.textContent=short;
+      if(el.title!==full) el.title=full;
+      if(el.getAttribute('aria-label')!==full) el.setAttribute('aria-label',full);
     });
   }
 
@@ -45,10 +45,17 @@
     mountStyle();
     compact();
     const root=document.getElementById('appView')||document.body;
+    let queued=false;
     new MutationObserver(mutations=>{
-      for(const m of mutations){
-        if(m.type==='childList'&&m.addedNodes.length){compact(root);break;}
-      }
+      if(queued) return;
+      const relevant=mutations.some(m=>{
+        const target=m.target?.nodeType===1?m.target:m.target?.parentElement;
+        if(target?.closest?.('.v1524-home-badge')) return true;
+        return [...(m.addedNodes||[])].some(n=>n?.nodeType===1&&(n.matches?.('.v1524-home-badge')||n.querySelector?.('.v1524-home-badge')));
+      });
+      if(!relevant) return;
+      queued=true;
+      requestAnimationFrame(()=>{queued=false;compact(root)});
     }).observe(root,{childList:true,subtree:true});
   }
 
