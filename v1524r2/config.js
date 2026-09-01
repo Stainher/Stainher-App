@@ -63,7 +63,7 @@ window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
       ['stainher-v1524-home-badges-compact-script','stainher-v1524-home-badges-compact.js?v=20260831-r2'],
       ['stainher-v1524-contract-money-fit-script','stainher-v1524-contract-money-fit.js?v=20260831-r2'],
       ['stainher-v1524-turn-views-personal-script','stainher-v1524-turn-views-personal-summary.js?v=20260831-r2'],
-      ['stainher-v1524-vacation-balance-script','stainher-v1524-vacation-balance.js?v=20260901-1']
+      ['stainher-v1524-vacation-balance-script','stainher-v1524-vacation-balance.js?v=20260901-2']
     ];
     let i=0;const next=()=>{const item=modules[i++];if(item)append(item[0],item[1],next)};next();
   }
