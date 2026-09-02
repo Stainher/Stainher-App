@@ -135,6 +135,73 @@
     ensureReviewActions();
   };
 
+  function addReliabilityChart(doc, canvasId, title, xLabel, yLabel, analysis, y, hasData){
+    if (y > 125) { doc.addPage(); y = 20; }
+    const leftX = 14, leftW = 165, rightX = 186, rightW = 97;
+    doc.setTextColor(28,34,41); doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.text(title,leftX,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(68,76,86);
+    doc.text(`Eje X: ${xLabel}`,leftX,y+5); doc.text(`Eje Y: ${yLabel}`,leftX+75,y+5);
+    const canvas = document.getElementById(canvasId);
+    let embedded = false;
+    if (hasData && canvas && canvas.width > 0 && canvas.height > 0) {
+      try {
+        const image = canvas.toDataURL('image/png',1);
+        if (image && image.length > 100) { doc.addImage(image,'PNG',leftX,y+9,leftW,63); embedded = true; }
+      } catch (error) { console.warn(`[Confiabilidad PDF] No se pudo capturar ${canvasId}`,error); }
+    }
+    if (!embedded) {
+      doc.setDrawColor(190,196,204); doc.setFillColor(246,248,250); doc.roundedRect(leftX,y+9,leftW,63,2,2,'FD');
+      doc.setTextColor(94,103,114); doc.setFont('helvetica','bold'); doc.setFontSize(12);
+      doc.text(hasData?'Gráfico no disponible':'Sin datos válidos para graficar',leftX+leftW/2,y+38,{align:'center'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(8);
+      doc.text(hasData?'Actualiza la vista de Confiabilidad y genera nuevamente el informe.':'El gráfico se completará cuando existan atenciones válidas en el período.',leftX+leftW/2,y+45,{align:'center'});
+    }
+    doc.setTextColor(28,34,41); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('Análisis técnico preliminar',rightX,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.6); doc.setTextColor(35,42,50);
+    const lines = doc.splitTextToSize(analysis||'',rightW);
+    try { doc.text(lines,rightX,y+7,{maxWidth:rightW,align:'justify'}); } catch (_) { doc.text(lines,rightX,y+7); }
+    return y + Math.max(76,lines.length*4+12);
+  }
+
+  /* La capa V15.18 reemplazaba el generador anterior y omitía por completo
+   * los gráficos. Esta implementación conserva el flujo separado de correo
+   * e incorpora los tres canvas, con un estado explícito cuando no hay datos. */
+  window.v158BuildReviewedReliabilityPdf = async function(){
+    const r = window.state?.v158ReliabilityReview;
+    if (!r) return;
+    const C = window.ensurePdf?.();
+    if (!C) return window.toast?.('No se pudo cargar el generador PDF','error');
+    const c = r.content || {}, doc = new C({orientation:'landscape',unit:'mm',format:'a4'});
+    window.pdfHeader?.(doc,'Informe Técnico de Confiabilidad',`${window.v1512RangeLabel(window.state.correctivoFrom,window.state.correctivoTo)} · ${r.eq||'Todos los equipos'}`);
+    doc.setTextColor(28,34,41); let y = 45;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.text(`Revisión técnica: ${window.state.profile?.nombre||window.state.session?.user?.email||'—'} · ${new Date().toLocaleString('es-CL')}`,14,y); y += 7;
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('Resumen ejecutivo',14,y); y += 5;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    const summary = doc.splitTextToSize(c.resumen||'',268); doc.text(summary,14,y,{maxWidth:268,align:'justify'}); y += summary.length*4+7;
+    doc.autoTable({startY:y,body:[
+      [`Atenciones válidas: ${r.valid.length}`,`Horas de intervención: ${r.hours.toFixed(1)} h`,`MTTR: ${r.rel.ready?r.rel.mttr.toFixed(1)+' h':'N/D'}`],
+      [`MTBF: ${r.rel.ready?r.rel.mtbf.toFixed(1)+' h':'N/D'}`,`Disponibilidad: ${r.rel.ready?r.rel.disponibilidad.toFixed(1)+'%':'N/D'}`,`Mayor recurrencia: ${r.top?r.top[0]:'N/D'}`]
+    ],theme:'grid',styles:{fontSize:8,textColor:[28,34,41]}}); y = doc.lastAutoTable.finalY + 8;
+    if (r.opt?.graficos !== false) {
+      const hasData = r.valid.length > 0;
+      y = addReliabilityChart(doc,'chartEq','Distribución de fallas por equipo','Equipo','Número de fallas [eventos]',c.fallas,y,hasData);
+      y = addReliabilityChart(doc,'chartHours','Horas de intervención por equipo','Equipo','Horas de intervención [h]',c.horas,y,hasData);
+      y = addReliabilityChart(doc,'chartTrend','Tendencia de indicadores de confiabilidad','Período','Indicador de confiabilidad',c.tendencia,y,hasData);
+    }
+    const textSection = (title,value)=>{if(y>135){doc.addPage();y=20}doc.setTextColor(28,34,41);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(title,14,y);y+=5;doc.setFont('helvetica','normal');doc.setFontSize(8);const lines=doc.splitTextToSize(value||'',268);doc.text(lines,14,y,{maxWidth:268,align:'justify'});y+=lines.length*4+7};
+    textSection('Análisis de disponibilidad',c.disponibilidad);
+    let cumulative=0,total=r.valid.length||1;
+    const pareto=r.rank.slice(0,10).map(([name,item],index)=>{cumulative+=item.n;return[index+1,name,item.n,item.h.toFixed(1),(item.n/total*100).toFixed(1)+'%',(cumulative/total*100).toFixed(1)+'%']});
+    if(y>120){doc.addPage();y=20}doc.setTextColor(28,34,41);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Pareto de recurrencia por equipo',14,y);y+=4;
+    doc.autoTable({startY:y,head:[['#','Equipo','Eventos','Horas','% eventos','% acumulado']],body:pareto.length?pareto:[['—','Sin datos','0','0','0%','0%']],styles:{fontSize:7.5,textColor:[28,34,41]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});y=doc.lastAutoTable.finalY+6;
+    textSection('Análisis Pareto',c.pareto); textSection('Hallazgos',c.hallazgos); textSection('Hipótesis de causa raíz',c.hipotesis); textSection('Recomendaciones técnicas',c.recomendaciones); textSection('Conclusiones',c.conclusiones);
+    if(r.opt?.historial){if(y>115){doc.addPage();y=20}doc.autoTable({startY:y,head:[['Fecha','Equipo','Guía','Responsable','Duración','Estado','Observación']],body:r.rows.map(item=>[item.fecha_inicio||'',item.equipo||'',item.guia||'—',item.responsable||'—',window.fmtH(item.duracion_horas),item.estado_normalizado||'',item.observaciones||'']),styles:{fontSize:6.8,textColor:[28,34,41]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]},columnStyles:{6:{cellWidth:75}}})}
+    const fileName=`Stainher_App_Confiabilidad_${window.state.correctivoFrom}_${window.state.correctivoTo}.pdf`;
+    doc.save(fileName); window.closeModal?.(); window.toast?.('Informe validado y PDF generado','success');
+    if(canEmail())setTimeout(()=>window.v1518ReliabilityEmailModal(doc,fileName),150);
+  };
+
   window.v1524OpenReliabilityEmail = function(){
     const cached = window[CACHE_KEY];
     if (!cached?.doc || !cached?.fileName) {
