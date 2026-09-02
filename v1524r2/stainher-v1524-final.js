@@ -98,11 +98,6 @@
   }
 
   function restrictPersonalRole(data){
-    const r=role(),uid=userId();
-    if(r==='prevencion'){
-      data.people=(data.people||[]).filter(p=>String(p.user_id)===uid);
-      data.groups=rebuildGroups(data.people);
-    }
     return data;
   }
 
@@ -245,8 +240,6 @@
     if(['supervisor','tecnico'].includes(r)){
       q=await window.sb.rpc('dotacion_grupo_visible_v159');
       if(q.error)q=await window.sb.rpc('dotacion_grupo_visible_v158');
-    }else if(r==='prevencion'){
-      q=await window.sb.from('dotacion_contrato').select('*').eq('user_id',uid);
     }else{
       q=await window.sb.from('dotacion_contrato').select('*').eq('estado','activo').eq('aplica_turnos',true).order('orden').order('nombre');
     }

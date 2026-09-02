@@ -2,6 +2,43 @@
   'use strict';
   const w=window;
   function escAttr(v){return String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+  function installVacationStyles(){
+    if(document.getElementById('stainher-vacation-flow-style'))return;
+    const style=document.createElement('style');style.id='stainher-vacation-flow-style';style.textContent=`
+      #vacationRequestPreview{width:100%;max-width:100%;min-width:0;overflow:hidden;box-sizing:border-box}
+      #vacationRequestPreview>.row-between{flex-wrap:wrap;align-items:flex-start}
+      #vacationRequestPreview .v15-summary-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(120px,100%),1fr))!important;width:100%!important;max-width:100%!important;min-width:0!important;gap:10px!important;overflow:visible!important}
+      #vacationRequestPreview .v15-summary-card{width:auto!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important}
+      #vacationRequestPreview .v15-summary-card span{display:block;white-space:normal;overflow-wrap:anywhere}
+      #page-solicitudes .v152-request-card{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px 20px!important;align-items:start!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+      #page-solicitudes .v152-request-card>.v1524-request-field{min-width:0!important;max-width:100%!important;overflow-wrap:anywhere}
+      #page-solicitudes .v152-request-card>.v1524-request-period{grid-column:1}
+      #page-solicitudes .v152-request-card>.v1524-request-person{grid-column:2}
+      #page-solicitudes .v152-request-card>.v1524-request-type{grid-column:3}
+      #page-solicitudes .v152-request-card>.v1524-request-approval{grid-column:4}
+      #page-solicitudes .v152-request-card>.v1524-request-subject{grid-column:1/2}
+      #page-solicitudes .v152-request-card>.v1524-request-description{grid-column:2/-1}
+      #page-solicitudes .v152-request-card.v1524-request-no-subject>.v1524-request-description{grid-column:1/-1}
+      #page-solicitudes .v152-request-card>.v1524-request-status{grid-column:1}
+      #page-solicitudes .v152-request-card>.v154-request-actions{grid-column:2/-1!important;display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;min-width:0!important}
+      #page-solicitudes .v152-request-card>.v154-request-actions .btn{margin:0!important}
+      #page-solicitudes .v152-request-card>.v1524-request-status .status{display:inline-flex!important;width:max-content!important;max-width:100%!important}
+      @media(max-width:900px){
+        #page-solicitudes .v152-request-card{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        #page-solicitudes .v152-request-card>.v1524-request-period,#page-solicitudes .v152-request-card>.v1524-request-type,#page-solicitudes .v152-request-card>.v1524-request-status{grid-column:1}
+        #page-solicitudes .v152-request-card>.v1524-request-person,#page-solicitudes .v152-request-card>.v1524-request-approval{grid-column:2}
+        #page-solicitudes .v152-request-card>.v1524-request-subject,#page-solicitudes .v152-request-card>.v1524-request-description{grid-column:1/-1}
+        #page-solicitudes .v152-request-card>.v154-request-actions{grid-column:2/-1!important}
+      }
+      @media(max-width:560px){#vacationRequestPreview .v15-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+      @media(max-width:560px){
+        #page-solicitudes .v152-request-card{grid-template-columns:1fr!important;gap:12px!important}
+        #page-solicitudes .v152-request-card>.v1524-request-field,#page-solicitudes .v152-request-card>.v154-request-actions{grid-column:1!important}
+        #page-solicitudes .v152-request-card>.v154-request-actions{justify-content:stretch!important}
+        #page-solicitudes .v152-request-card>.v154-request-actions .btn{flex:1 1 120px!important}
+      }
+    `;document.head.appendChild(style);
+  }
   async function addEditField(uid){
     const form=document.getElementById('editUserFormV1517');
     if(!form||form.querySelector('[name="saldo_vacaciones"]')||!w.sb)return;
@@ -56,7 +93,34 @@
     const note=document.createElement('div');note.className='full notice';note.dataset.vacationDefault='1';note.innerHTML='<b>Saldo inicial de vacaciones:</b> el usuario será creado con 15 días, editables posteriormente en su ficha.';
     form.insertBefore(note,form.querySelector('.full:last-child'));
   }
+  async function completeRequesterNames(){
+    const rows=w.state?.v154Requests||[],cards=[...document.querySelectorAll('#page-solicitudes .v152-request-card')];
+    if(!rows.length||!cards.length||!w.sb)return;
+    const ids=[...new Set(rows.map(row=>String(row.solicitante_user_id||'')).filter(Boolean))];
+    const names=new Map();
+    for(const row of rows){
+      const name=String(row.solicitante?.nombre||row.perfiles?.nombre||row.solicitante_nombre||'').trim();
+      if(name&&row.solicitante_user_id)names.set(String(row.solicitante_user_id),name);
+    }
+    const missing=ids.filter(id=>!names.has(id));
+    if(missing.length){
+      const q=await w.sb.from('perfiles').select('id,nombre,email,rol').in('id',missing);
+      if(q.error)w.v1523RecordError?.('solicitudes/solicitantes',q.error);
+      else for(const profile of q.data||[])if(profile?.nombre)names.set(String(profile.id),String(profile.nombre).trim());
+    }
+    const ownId=String(w.state?.session?.user?.id||''),ownName=String(w.state?.profile?.nombre||'').trim();
+    rows.forEach((row,index)=>{
+      const id=String(row.solicitante_user_id||''),name=names.get(id)||(id===ownId?ownName:'')||'Nombre no registrado';
+      row.perfiles={...(row.perfiles||{}),nombre:name};
+      const card=cards[index],fields=[...card?.querySelectorAll(':scope > div')||[]],classes={'Período':'period','Persona':'person','Tipo':'type','Aprobación':'approval','Asunto':'subject','Motivo / descripción':'description','Motivo / comentario':'description','Estado':'status'};
+      for(const field of fields){const label=field.querySelector(':scope > small')?.textContent?.trim(),key=classes[label];if(key)field.classList.add('v1524-request-field',`v1524-request-${key}`)}
+      card?.classList.toggle('v1524-request-no-subject',!fields.some(field=>field.classList.contains('v1524-request-subject')));
+      const person=fields.find(node=>node.classList.contains('v1524-request-person'));
+      const value=person?.querySelector(':scope > b');if(value)value.textContent=name;
+    });
+  }
   function install(){
+    installVacationStyles();
     if(typeof w.openEditUserModal==='function'&&!w.openEditUserModal.__vacBalance){
       const base=w.openEditUserModal;
       const wrapped=async function(uid,...args){const out=await base.call(this,uid,...args);await addEditField(uid);return out};
@@ -109,6 +173,11 @@
         return typeof w.v1523RequestLock==='function'?w.v1523RequestLock(`eliminar:${id}`,task):task();
       };
       safeDelete.__vacSafeDelete=true;w.v1521DeleteRequest=safeDelete;
+    }
+    if(typeof w.renderSolicitudesV15==='function'&&!w.renderSolicitudesV15.__vacRequesterNames){
+      const base=w.renderSolicitudesV15;
+      const wrapped=async function(...args){const out=await base.apply(this,args);await completeRequesterNames();return out};
+      wrapped.__vacRequesterNames=true;w.renderSolicitudesV15=wrapped;
     }
   }
   let tries=0;(function boot(){install();if((typeof w.openEditUserModal!=='function'||typeof w.openUserModal!=='function')&&++tries<300)setTimeout(boot,100)})();
