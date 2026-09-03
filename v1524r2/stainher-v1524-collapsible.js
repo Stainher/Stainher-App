@@ -138,6 +138,17 @@
     mountStyle();enhance();let queued=false;
     new MutationObserver(records=>{if(queued)return;if(records.some(r=>r.addedNodes.length)){queued=true;requestAnimationFrame(()=>{queued=false;enhance()})}}).observe(document.body,{childList:true,subtree:true});
     window.addEventListener('stainher:modules-ready',()=>enhance());
+    /* Control autoritativo del despliegue. Algunas capas históricas de Inicio
+     * cancelan el click antes de que Safari ejecute la acción nativa de
+     * <summary>; por eso abrimos/cerramos aquí una sola vez y no dependemos de
+     * esos listeners heredados. */
+    document.addEventListener('click',event=>{
+      const control=event.target.closest?.('summary.stainher-disclosure-summary');
+      const details=control?.parentElement;
+      if(!control||details?.tagName!=='DETAILS'||!details.closest('#appView')||event.target.closest('a,button,input,select,textarea'))return;
+      event.preventDefault();event.stopImmediatePropagation();
+      details.open=!details.open;
+    },true);
     document.addEventListener('click',event=>{
       const control=event.target.closest?.('[data-page]');const pageId=control?.dataset?.page;
       if(pageId)setTimeout(()=>{enhance();closePageDisclosures(pageId)},0);
