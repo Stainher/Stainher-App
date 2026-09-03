@@ -1,8 +1,8 @@
-/* Stainher App V15.24 · Desarrollo 8 · calendario consolidado PDF en una sola hoja
- * - Fuerza el calendario "Todos los colaboradores" a una única hoja A3 horizontal.
- * - Dibuja la cuadrícula manualmente para impedir que jsPDF-AutoTable la divida.
- * - Calcula dinámicamente la altura de filas según la dotación visible.
- * - Mantiene el calendario personal y las páginas de detalle en A4 horizontal.
+/* Stainher App V15.24 · Desarrollo 8 · calendarios PDF en una sola hoja
+ * - Calendario "Todos los colaboradores": una única hoja A3 horizontal.
+ * - Calendario personal: una única hoja A4 horizontal, incluso en meses de 6 semanas.
+ * - Ambos calendarios se dibujan directamente con jsPDF, sin AutoTable para la cuadrícula.
+ * - Elimina la posibilidad de salto de página dentro del calendario.
  */
 (function installV1524TurnReportOnePage(){
   'use strict';
@@ -40,7 +40,7 @@
     const days=new Date(r.y,r.m,0).getDate(),out=[];
     for(let day=1;day<=days;day++){
       const date=`${r.y}-${String(r.m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      out.push({date,day,base:row.turnos?.get(date)||'—',events:eventCodesOn(row,date).join(' · ')});
+      out.push({date,day,base:String(row.turnos?.get(date)||'—'),events:eventCodesOn(row,date).join(' · ')});
     }
     return out;
   }
@@ -107,22 +107,56 @@
   }
 
   function drawPersonalCalendar(doc,r,row,monthName){
-    doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Resumen calendario de turnos',`${row.nombre} · ${monthName} ${r.y}`);
-    const legendItems=Object.entries(LABELS).map(([type,label])=>`${codeFor(type)} · ${label}`),legendRows=[];
-    for(let index=0;index<legendItems.length;index+=5)legendRows.push(legendItems.slice(index,index+5));
-    doc.setFontSize(8);doc.setFont(undefined,'bold');doc.text('Glosa',14,42);doc.setFont(undefined,'normal');
-    doc.autoTable({startY:44,body:legendRows,theme:'grid',styles:{fontSize:5.8,cellPadding:1.3,textColor:[52,64,84],fillColor:[246,248,251]},columnStyles:{0:{cellWidth:53},1:{cellWidth:53},2:{cellWidth:53},3:{cellWidth:53},4:{cellWidth:53}}});
-    const days=calendarExportRows(r,row),offset=(new Date(r.y,r.m-1,1).getDay()+6)%7,cells=[...Array(offset).fill(null),...days];
-    while(cells.length%7)cells.push('');
+    doc.addPage('a4','landscape');
+    window.pdfHeader?.(doc,'Resumen calendario de turnos',`${row.nombre} · ${monthName} ${r.y}`);
+
+    const gridTop=drawCompactLegend(doc);
+    const days=calendarExportRows(r,row),offset=(new Date(r.y,r.m-1,1).getDay()+6)%7;
+    const cells=[...Array(offset).fill(null),...days];
+    while(cells.length%7)cells.push(null);
     const weeks=[];for(let index=0;index<cells.length;index+=7)weeks.push(cells.slice(index,index+7));
-    const shiftColors={A:[220,235,255],C:[220,247,231],L:[235,239,244]};
-    doc.autoTable({startY:(doc.lastAutoTable?.finalY||57)+4,head:[['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']],body:weeks.map(week=>week.map(day=>day?{content:'',day,styles:{minCellHeight:25}}:'')),styles:{fontSize:7,cellPadding:2,minCellHeight:25,textColor:[25,31,40],valign:'top'},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]},didDrawCell:data=>{
-      if(data.section!=='body'||!data.cell.raw||typeof data.cell.raw!=='object')return;
-      const day=data.cell.raw.day,x=data.cell.x,y=data.cell.y,w=data.cell.width,h=data.cell.height,base=String(day.base||'—'),events=String(day.events||'');
-      doc.setTextColor(78,91,112);doc.setFontSize(6.5);doc.setFont(undefined,'normal');doc.text(String(day.day),x+2,y+4);
-      const fill=shiftColors[base]||[242,244,247];doc.setFillColor(...fill);doc.setDrawColor(170,181,195);doc.roundedRect(x+w/2-5,y+7,10,7,1.5,1.5,'FD');doc.setTextColor(25,31,40);doc.setFontSize(7.5);doc.setFont(undefined,'bold');doc.text(base,x+w/2,y+11.7,{align:'center'});
-      doc.setDrawColor(211,218,227);doc.line(x+2,y+h-7,x+w-2,y+h-7);doc.setFont(undefined,'normal');doc.setFontSize(5.5);doc.setTextColor(91,104,120);doc.text(events||' ',x+2,y+h-3,{maxWidth:w-4});
-    }});
+
+    const pageWidth=doc.internal.pageSize.getWidth(),pageHeight=doc.internal.pageSize.getHeight();
+    const left=7,right=7,bottom=8,headHeight=7,usableWidth=pageWidth-left-right,colWidth=usableWidth/7;
+    const availableHeight=Math.max(50,pageHeight-gridTop-bottom-headHeight);
+    const rowHeight=availableHeight/Math.max(1,weeks.length);
+    const weekdays=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+    doc.setLineWidth(.12);doc.setDrawColor(35,43,54);doc.setFillColor(35,43,54);doc.setTextColor(255,255,255);doc.setFont(undefined,'bold');doc.setFontSize(5.3);
+    weekdays.forEach((name,col)=>{
+      const x=left+col*colWidth;
+      doc.rect(x,gridTop,colWidth,headHeight,'FD');
+      doc.text(name,x+2,gridTop+4.6,{maxWidth:colWidth-4});
+    });
+
+    weeks.forEach((week,rowIndex)=>{
+      const y=gridTop+headHeight+rowIndex*rowHeight;
+      week.forEach((day,col)=>{
+        const x=left+col*colWidth;
+        doc.setDrawColor(211,218,227);
+        if(rowIndex%2===0)doc.setFillColor(248,249,251);else doc.setFillColor(255,255,255);
+        doc.rect(x,y,colWidth,rowHeight,'FD');
+        if(!day)return;
+
+        doc.setFont(undefined,'normal');doc.setFontSize(5.8);doc.setTextColor(78,91,112);
+        doc.text(String(day.day),x+2,y+4.2);
+
+        const badgeW=Math.min(11,colWidth*.30),badgeH=Math.min(7,Math.max(5,rowHeight*.30));
+        const badgeX=x+colWidth/2-badgeW/2,badgeY=y+Math.max(5.2,rowHeight*.28);
+        if(day.base==='A')doc.setFillColor(220,235,255);else if(day.base==='C')doc.setFillColor(220,247,231);else if(day.base==='L')doc.setFillColor(235,239,244);else doc.setFillColor(242,244,247);
+        doc.setDrawColor(170,181,195);doc.roundedRect(badgeX,badgeY,badgeW,badgeH,1.4,1.4,'FD');
+        doc.setFont(undefined,'bold');doc.setFontSize(6.8);doc.setTextColor(25,31,40);
+        doc.text(day.base,x+colWidth/2,badgeY+badgeH*.69,{align:'center',maxWidth:badgeW-1});
+
+        const lineY=y+rowHeight-7;
+        doc.setDrawColor(211,218,227);doc.line(x+2,lineY,x+colWidth-2,lineY);
+        doc.setFont(undefined,'normal');doc.setFontSize(4.7);doc.setTextColor(91,104,120);
+        doc.text(day.events||' ',x+2,y+rowHeight-3,{maxWidth:colWidth-4});
+      });
+    });
+
+    doc.setFont(undefined,'normal');doc.setFontSize(3.5);doc.setTextColor(91,104,120);
+    doc.text(`Calendario personal completo · ${weeks.length} semanas · una sola hoja A4 horizontal.`,left,pageHeight-2.5);
   }
 
   function exportPdfOnePage(){
@@ -134,7 +168,7 @@
     doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
     doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,Number(x.he||0).toFixed(1),Number(x.hf||0).toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
 
-    if(selected.length===1) drawPersonalCalendar(doc,r,selected[0],monthName);
+    if(selected.length===1)drawPersonalCalendar(doc,r,selected[0],monthName);
     else drawConsolidatedCalendarOnePage(doc,r,selected,monthName);
 
     doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
@@ -151,9 +185,9 @@
 
   function install(){
     if(typeof window.v1516ExportTurnReportPdf!=='function'||!window.ensurePdf)return false;
-    exportPdfOnePage.__v1524D8OnePage=true;
+    exportPdfOnePage.__v1524D8UnifiedOnePage=true;
     window.v1516ExportTurnReportPdf=exportPdfOnePage;
     return true;
   }
-  let attempts=0;(function boot(){if(install())return;if(++attempts<180)setTimeout(boot,100);})();
+  let attempts=0;(function boot(){if(install())return;if(++attempts<240)setTimeout(boot,100);})();
 })();
