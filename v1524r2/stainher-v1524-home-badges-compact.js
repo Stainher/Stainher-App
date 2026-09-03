@@ -91,3 +91,46 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+/* Menú operativo exclusivo del Supervisor: acceso directo al formulario de avería.
+ * Se inserta después de Correctivo y no navega a la vista de Confiabilidad/Historial. */
+(function installSupervisorAveriaMenu(){
+  if(window.__STAINHER_V1524_SUPERVISOR_AVERIA_MENU__)return;
+  window.__STAINHER_V1524_SUPERVISOR_AVERIA_MENU__=true;
+  const ID='v1524SupervisorAveriaNav';
+  function role(){
+    try{return String(window.v11Role?.()||window.state?.profile?.rol||'').trim().toLowerCase()}catch(_){return ''}
+  }
+  function remove(){document.getElementById(ID)?.remove()}
+  function mount(){
+    const nav=document.querySelector('.sidebar .nav');
+    if(!nav)return false;
+    if(role()!=='supervisor'){remove();return true}
+    if(document.getElementById(ID))return true;
+    const button=document.createElement('button');
+    button.id=ID;
+    button.type='button';
+    button.dataset.supervisorAction='registrar-averia';
+    button.innerHTML='⚠ Registrar avería';
+    button.title='Registrar una avería desde terreno';
+    button.setAttribute('aria-label','Registrar avería');
+    button.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
+      if(role()!=='supervisor')return remove();
+      if(typeof window.v15OpenCorrectiveMobile==='function')return window.v15OpenCorrectiveMobile();
+      window.toast?.('El formulario de averías todavía no está disponible.','error');
+    },true);
+    const corr=nav.querySelector('button[data-page="correctivo"]');
+    if(corr)corr.insertAdjacentElement('afterend',button);else nav.prepend(button);
+    return true;
+  }
+  function boot(){
+    mount();
+    let tries=0;const timer=setInterval(()=>{tries++;mount();if((role()&&document.querySelector('.sidebar .nav'))||tries>80)clearInterval(timer)},125);
+    const root=document.querySelector('.sidebar')||document.body;
+    if(root)new MutationObserver(mount).observe(root,{childList:true,subtree:true});
+    window.addEventListener('stainher:modules-ready',()=>setTimeout(mount,0));
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
