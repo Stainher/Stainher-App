@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260903-ui-complete';
+window.STAINHER_BUILD = 'V15.24-20260903-ui-stable';
 
 /* Controles date/month estables en iOS. La envolvente visual evita el ancho
  * intrínseco de Safari sin perder el selector nativo táctil. */
@@ -63,7 +63,7 @@ window.STAINHER_BUILD = 'V15.24-20260903-ui-complete';
       {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260902-3',domain:'experiencia'},
       {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?v=20260902-6',domain:'confiabilidad'},
       {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?v=20260902-1',domain:'administracion'},
-      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-2',domain:'tema'},
+      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-3',domain:'tema'},
       {id:'stainher-v1524-runtime-audit-script',src:'stainher-v1524-runtime-audit.js?v=20260902-1',domain:'diagnostico'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};

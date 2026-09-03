@@ -186,6 +186,37 @@
       background:#e7eef7!important;color:#101828!important
     }
 
+    /* Componentes móviles heredados con reglas por ID y !important. */
+    html[data-theme="light"] body #v151MobileHead{
+      background:rgba(255,255,255,.98)!important;
+      color:#182230!important;
+      border-bottom-color:#c7d1dd!important;
+      box-shadow:0 1px 3px rgba(16,24,40,.08)!important
+    }
+    html[data-theme="light"] body #v151MobileHead .v151-mobile-title strong,
+    html[data-theme="light"] body #v151MobileHead .v151-mobile-title small{
+      color:#344054!important
+    }
+    html[data-theme="light"] body #v151MobileHead .v151-menu-btn,
+    html[data-theme="light"] body #v151MobileHead #v15NotifyBtn{
+      background:#f8fafc!important;color:#182230!important;border-color:#aebdce!important
+    }
+    html[data-theme="light"] body .v1514-global-meta>span,
+    html[data-theme="light"] body .global-meta>span,
+    html[data-theme="light"] body .global-meta>.meta-chip{
+      background:#eef3f8!important;color:#344054!important;border-color:#aebdce!important
+    }
+    html[data-theme="light"] body .v157-user-trigger{
+      background:#fff!important;color:#182230!important;border-color:#aebdce!important
+    }
+    html[data-theme="light"] body .v157-avatar{
+      background:#e7eef7!important;color:#12345b!important;border:1px solid #b9c8da!important
+    }
+    html[data-theme="light"] body .v157-user-copy strong,
+    html[data-theme="light"] body .v157-user-copy small{
+      color:#344054!important
+    }
+
     html[data-theme="light"] body .v157-group,
     html[data-theme="light"] body .v157-group>summary,
     html[data-theme="light"] body .v157-group-body,
@@ -285,13 +316,20 @@
 /* V15.24 · carga coordinada de correcciones globales publicadas el 03-09-2026. */
 (()=>{
   const source=document.currentScript?.src||location.href;
-  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js'];
-  modules.forEach(file=>{
-    if(document.querySelector(`script[data-stainher-module="${file}"]`))return;
-    const script=document.createElement('script');
-    script.src=new URL(file,source).href+'?v=20260903-r2';
-    script.async=false;
-    script.dataset.stainherModule=file;
-    document.head.appendChild(script);
-  });
+  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-navigation-stability.js'];
+  async function load(file){
+    const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
+    if(existing){
+      if(existing.dataset.stainherLoaded==='1')return;
+      await new Promise(resolve=>{existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',resolve,{once:true})});return;
+    }
+    await new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.src=new URL(file,source).href+'?v=20260903-r3';script.async=false;script.dataset.stainherModule=file;
+      script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
+      script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
+      document.head.appendChild(script);
+    });
+  }
+  (async()=>{for(const file of modules)await load(file)})().catch(error=>console.error('[Stainher UI]',error));
 })();

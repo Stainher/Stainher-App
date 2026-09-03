@@ -30,7 +30,7 @@
   }
   function titleFor(element){
     if(element.matches('#page-inicio .v153-home-alert-panel'))return 'Alertas y próximos hitos';
-    if(element.matches('#page-inicio .v1521-home-turn'))return 'Personal de turno hoy';
+    if(element.matches('#page-inicio .v1521-home-turn'))return 'Dotación en turno hoy';
     return norm(titleNode(element)?.textContent||element.getAttribute('aria-label'));
   }
   function summary(title){

@@ -9,6 +9,11 @@
     const node=page.querySelector(selector);
     return node?.closest('details')||node;
   }
+  function directChild(page,node){
+    let current=node;
+    while(current&&current.parentElement!==page)current=current.parentElement;
+    return current||node;
+  }
   function setDisclosureTitle(panel,title){
     if(!panel)return;
     const disclosure=panel.matches('details')?panel:panel.closest('details');
@@ -23,12 +28,19 @@
     const staffing=directPanel(page,'.v1521-home-turn');
     const alerts=directPanel(page,'.v153-home-alert-panel');
     setDisclosureTitle(staffing,'Dotación en turno hoy');
-    const candidates=[vacation,staffing,alerts].filter(Boolean).sort((a,b)=>a===b?0:a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1);
+    const vacationPanel=vacation?.closest('details,.panel')||vacation;
+    const staffingPanel=staffing&&directChild(page,staffing),alertsPanel=alerts&&directChild(page,alerts);
+    vacationPanel?.remove();
+    const candidates=[staffingPanel,alertsPanel].filter(Boolean).sort((a,b)=>a===b?0:a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1);
     if(!candidates.length)return;
     const marker=document.createComment('stainher-home-panels');page.insertBefore(marker,candidates[0]);
-    vacation?.remove();
-    if(staffing)page.insertBefore(staffing,marker);
-    if(alerts)page.insertBefore(alerts,marker);
+    if(staffingPanel)page.insertBefore(staffingPanel,marker);
+    if(alertsPanel)page.insertBefore(alertsPanel,marker);
+    page.querySelectorAll('details').forEach(details=>{
+      const title=String(details.querySelector(':scope>summary')?.textContent||'').replace(/\s+/g,' ').trim();
+      const content=String(details.querySelector(':scope>.stainher-disclosure-content')?.textContent||'').replace(/\s+/g,' ').trim();
+      if(title==='Detalles'&&!content)details.remove();
+    });
     marker.remove();
   }
   async function addBalanceToAccount(){
