@@ -55,6 +55,42 @@
     [data-theme="light"] .event-card{background:#fff!important}
     [data-theme="light"] .event-card h3,[data-theme="light"] .event-card h4,[data-theme="light"] .event-card strong{color:#182230!important}
 
+    /* Inicio > Dotación en turno hoy: neutraliza fondos literales del módulo V15.24. */
+    html[data-theme="light"] body details[data-stainher-panel="staffing"],
+    html[data-theme="light"] body details[data-stainher-home-panel="staffing"],
+    html[data-theme="light"] body details.stainher-staffing-panel,
+    html[data-theme="light"] body details.stainher-home-staffing,
+    html[data-theme="light"] body details[data-stainher-panel="staffing"] > :not(summary),
+    html[data-theme="light"] body details[data-stainher-home-panel="staffing"] > :not(summary),
+    html[data-theme="light"] body details.stainher-staffing-panel > :not(summary),
+    html[data-theme="light"] body details.stainher-home-staffing > :not(summary),
+    html[data-theme="light"] body #page-inicio [data-stainher-home-panel="staffing"] .v1524-home-kpis,
+    html[data-theme="light"] body #page-inicio [data-stainher-home-panel="staffing"] .v1524-home-shifts,
+    html[data-theme="light"] body #page-inicio [data-stainher-home-panel="staffing"] .v1524-home-grid,
+    html[data-theme="light"] body .v1524-home-kpi,
+    html[data-theme="light"] body .v1524-home-group,
+    html[data-theme="light"] body .v1524-home-person{
+      background:#fff!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body .v1524-home-group h4{
+      background:#eef3f8!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body .v1524-home-kpi b,
+    html[data-theme="light"] body .v1524-home-person b,
+    html[data-theme="light"] body .v1524-home-shifts .empty{
+      color:#182230!important
+    }
+    html[data-theme="light"] body .v1524-home-kpi span,
+    html[data-theme="light"] body .v1524-home-person small,
+    html[data-theme="light"] body .v1524-home-shifts .muted{
+      color:#5b6878!important
+    }
+    html[data-theme="light"] body .v1524-home-badge.normal{background:#e8f2ff!important;color:#175da8!important;border-color:#72a7df!important}
+    html[data-theme="light"] body .v1524-home-badge.inside{background:#e7f8f1!important;color:#087a57!important;border-color:#69b99d!important}
+    html[data-theme="light"] body .v1524-home-badge.outside{background:#fff3df!important;color:#8a4b00!important;border-color:#d99a48!important}
+    html[data-theme="light"] body .v1524-home-badge.suspended{background:#fdecef!important;color:#a51d38!important;border-color:#d47a8d!important}
+    html[data-theme="light"] body .v1524-home-badge.additional{background:#f4ebff!important;color:#6941a5!important;border-color:#aa87d6!important}
+
     /* Auditoría transversal: superficies históricas de todos los módulos. */
     [data-theme="light"] .home-datebox,[data-theme="light"] .home-kpi,[data-theme="light"] .home-panel,
     [data-theme="light"] .home-equipment-mini,[data-theme="light"] .home-alert-card,[data-theme="light"] .home-contract-item,
@@ -338,7 +374,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?v=20260903-r6';script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?v=20260903-r7';script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);

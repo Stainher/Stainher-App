@@ -37,9 +37,15 @@
     panel.setAttribute('aria-label',title);
   }
   function enforceStaffingTitle(page){
-    page.querySelectorAll('[data-stainher-home-panel="staffing"]>summary .stainher-disclosure-title,[data-stainher-home-panel="staffing"]>summary>span:not(.stainher-disclosure-marker):first-of-type,.stainher-home-staffing>summary .stainher-disclosure-title,.stainher-home-staffing>summary>span:not(.stainher-disclosure-marker):first-of-type,.v1521-home-turn>summary .stainher-disclosure-title').forEach(node=>{
-      if(node.textContent!=="Dotación en turno hoy")node.textContent='Dotación en turno hoy';
-      node.dataset.stainherFixedTitle='staffing';
+    const marker=page.querySelector('.v1521-home-turn,.stainher-home-staffing,[data-stainher-home-panel="staffing"]');
+    if(!marker)return;
+    const details=[marker.matches('details')?marker:null,marker.closest('details'),...page.querySelectorAll('details')].filter((node,index,list)=>node&&list.indexOf(node)===index&&(node===marker||node.contains(marker)));
+    details.forEach(disclosure=>{
+      disclosure.classList.add('v1521-home-turn','stainher-home-staffing');disclosure.dataset.stainherHomePanel='staffing';disclosure.setAttribute('aria-label','Dotación en turno hoy');
+      const summary=disclosure.querySelector(':scope>summary');if(!summary)return;
+      let node=summary.querySelector('.stainher-disclosure-title,.stainher-home-collapse-summary>span:not(.stainher-disclosure-marker):not(.stainher-home-collapse-chevron),span:not(.stainher-disclosure-marker):not(.stainher-home-collapse-chevron)');
+      if(!node){node=document.createElement('span');node.className='stainher-disclosure-title';[...summary.childNodes].filter(child=>child.nodeType===Node.TEXT_NODE&&cleanText(child)).forEach(child=>child.remove());summary.appendChild(node)}
+      node.classList.add('stainher-disclosure-title');if(node.textContent!=='Dotación en turno hoy')node.textContent='Dotación en turno hoy';node.dataset.stainherFixedTitle='staffing';
     });
   }
   function arrangeHome(){
@@ -104,12 +110,14 @@
       #page-inicio details.v1521-home-turn>summary .stainher-disclosure-title{
         font-size:0!important
       }
+      #page-inicio details.v1521-home-turn>summary{font-size:0!important}
       #page-inicio [data-stainher-home-panel="staffing"]>summary .stainher-disclosure-title::after,
       #page-inicio [data-stainher-home-panel="staffing"]>summary>span:not(.stainher-disclosure-marker):first-of-type::after,
       #page-inicio .stainher-home-staffing>summary .stainher-disclosure-title::after,
       #page-inicio details.v1521-home-turn>summary .stainher-disclosure-title::after{
         content:'Dotación en turno hoy';font-size:16px!important;font-weight:500!important
       }
+      #page-inicio details.v1521-home-turn>summary>.stainher-disclosure-marker{font-size:0!important}
     `;document.head.appendChild(style);
   }
   function boot(){

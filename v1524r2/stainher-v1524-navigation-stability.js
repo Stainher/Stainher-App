@@ -27,6 +27,13 @@
     const labelNode=document.createElement('span');labelNode.className='stainher-mobile-title-label';labelNode.textContent=label;
     title.append(iconNode,labelNode);title.dataset.stainherTitleValue=value;
   }
+  function normalizeMenuOrder(){
+    document.querySelectorAll('.nav').forEach(nav=>{
+      const system=nav.querySelector('button[data-page="sistema"]');
+      const users=nav.querySelector('button[data-page="usuarios"]');
+      if(system&&users&&users.nextElementSibling!==system)users.insertAdjacentElement('afterend',system);
+    });
+  }
   function normalizeHome(){
     const page=document.getElementById('page-inicio');if(!page)return;
     const vacation=page.querySelector('#vacationBalanceHome');
@@ -69,7 +76,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeMobileTitle();normalizeHome();
+    normalizeVersion();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -87,10 +94,10 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeMobileTitle();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
-    installNavigation();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
+    installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
     document.addEventListener('click',event=>{
       const button=event.target.closest?.('#v151MobileBottom button[data-v151-page],.nav button[data-page]');
       const page=button?.dataset.v151Page||button?.dataset.page;
@@ -98,7 +105,7 @@
       event.preventDefault();event.stopImmediatePropagation();navigate(page);
     },true);
     new MutationObserver(records=>{if(records.some(record=>record.addedNodes.length||record.type==='characterData'))schedule()}).observe(document.body,{childList:true,subtree:true,characterData:true});
-    window.addEventListener('stainher:modules-ready',()=>{installNavigation();enforcePage(activePage)});
+    window.addEventListener('stainher:modules-ready',()=>{installNavigation();normalizeMenuOrder();enforcePage(activePage)});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
