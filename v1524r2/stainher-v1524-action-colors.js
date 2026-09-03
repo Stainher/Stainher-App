@@ -28,6 +28,7 @@
   function mountStyle(){
     if(document.getElementById('stainher-action-colors-style'))return;
     const style=document.createElement('style');style.id='stainher-action-colors-style';style.textContent=`
+      :where(button,.btn,input[type="button"],input[type="submit"]){font-family:Inter,Arial,sans-serif!important;font-weight:400!important;line-height:1.2!important;min-height:40px;max-width:100%;padding:9px 14px;white-space:normal;overflow-wrap:anywhere;text-align:center;justify-content:center}
       :where(button,input[type="button"],input[type="submit"]).stainher-action-positive{background:#16875f!important;border-color:#0f6b4b!important;color:#fff!important;box-shadow:0 1px 2px rgba(15,107,75,.22)!important}
       :where(button,input[type="button"],input[type="submit"]).stainher-action-danger{background:#c43245!important;border-color:#9f2031!important;color:#fff!important;box-shadow:0 1px 2px rgba(159,32,49,.22)!important}
       :where(button,input[type="button"],input[type="submit"]).stainher-action-primary{background:#ef5b2a!important;border-color:#cf4318!important;color:#fff!important;box-shadow:0 1px 2px rgba(207,67,24,.2)!important}
@@ -36,6 +37,13 @@
       :where(button,input[type="button"],input[type="submit"])[class*="stainher-action-"]:not(:disabled):active{filter:brightness(.9);transform:translateY(1px)}
       :where(button,input[type="button"],input[type="submit"])[class*="stainher-action-"]:disabled{opacity:.48!important;cursor:not-allowed!important;box-shadow:none!important}
       [data-theme="dark"] :where(button,input[type="button"],input[type="submit"]).stainher-action-neutral{background:#202936!important;border-color:#3a4656!important;color:#e6edf5!important}
+      :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"]){display:flex!important;align-items:stretch!important;gap:8px!important;flex-wrap:wrap!important}
+      :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.btn{flex:0 1 auto!important;min-width:96px!important}
+      :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-info{order:1}
+      :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-primary{order:2}
+      :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-positive{order:3}
+      :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-danger{order:4}
+      @media(max-width:760px){:where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"]){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}:where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.btn{width:100%!important;min-width:0!important}}
     `;document.head.appendChild(style);
   }
   function boot(){

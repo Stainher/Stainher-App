@@ -4,6 +4,11 @@
   const KEY='stainher-theme-v1',DARK='dark',LIGHT='light';
   const css=`
     /* Tipografía transversal: títulos consistentes, sin negrita. */
+    html body,html body :where(button,input,select,textarea){font-family:Inter,Arial,sans-serif}
+    html body :where(p,small,label,li,td,th,dt,dd,input,select,textarea,button,.btn,.muted,.tag,.status){font-weight:400!important}
+    html body :where(strong,b):not(:where(h1,h2,h3,h4,h5,h6,summary) *){font-weight:500!important}
+    html body :where(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.card-title){font-weight:600!important}
+    html body :where(summary,.stainher-disclosure-title){font-weight:500!important}
     body h1,body h2,body h3,body h4,body h5,body h6,
     body .page-title,body .section-title,body .panel-title,body .card-title,
     body .stainher-disclosure-title,body .stainher-disclosure-summary,
@@ -374,7 +379,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?v=20260903-r13';script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?v=20260903-r14';script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);

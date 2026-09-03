@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260903-disclosure-controls-r13';
+window.STAINHER_BUILD = 'V15.24-20260903-global-standards-r14';
 
 /* Stainher App V15.24 · arranque visual estable en Inicio.
  * Este bloque se ejecuta desde config.js antes del primer renderizado visible.
@@ -137,7 +137,7 @@ window.STAINHER_BUILD = 'V15.24-20260903-disclosure-controls-r13';
       {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260903-r9',domain:'experiencia'},
       {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?v=20260902-6',domain:'confiabilidad'},
       {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?v=20260902-1',domain:'administracion'},
-      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-r13',domain:'tema'},
+      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-r14',domain:'tema'},
       {id:'stainher-v1524-runtime-audit-script',src:'stainher-v1524-runtime-audit.js?v=20260902-1',domain:'diagnostico'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
