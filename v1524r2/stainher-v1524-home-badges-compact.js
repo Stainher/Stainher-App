@@ -134,3 +134,55 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+/* Dotación: el Supervisor y el Técnico quedan acotados a su grupo real.
+ * La relación por UUID es autoritativa; el nombre se usa solo como respaldo para
+ * registros históricos y vacantes que aún no tengan supervisor_user_id. */
+(function installAuthoritativeCrewScope(){
+  if(window.__STAINHER_V1524_CREW_SCOPE_BY_USER_ID__)return;
+  window.__STAINHER_V1524_CREW_SCOPE_BY_USER_ID__=true;
+
+  const norm=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  const same=(a,b)=>String(a||'')!==''&&String(a||'')===String(b||'');
+  function role(){try{return String(window.v11Role?.()||window.state?.profile?.rol||'').trim().toLowerCase()}catch(_){return ''}}
+  function userId(){try{return String(window.state?.session?.user?.id||'')}catch(_){return ''}}
+  function userName(){
+    try{return norm(window.state?.profile?.nombre||window.state?.session?.user?.user_metadata?.nombre||'')}catch(_){return ''}
+  }
+  function identity(rows){
+    const uid=userId();
+    if(uid){const byId=rows.find(p=>same(p.user_id,uid));if(byId)return byId}
+    const name=userName();
+    return name?rows.find(p=>norm(p.nombre)===name)||null:null;
+  }
+  function visible(rows){
+    rows=Array.isArray(rows)?rows:[];
+    const r=role();
+    if(!['supervisor','tecnico'].includes(r))return rows;
+    const me=identity(rows);
+    if(!me)return [];
+
+    if(r==='supervisor'){
+      const sid=String(me.user_id||userId()||'');
+      const sname=norm(me.nombre);
+      return rows.filter(p=>
+        same(p.id,me.id)||same(p.user_id,sid)||
+        (sid&&same(p.supervisor_user_id,sid))||
+        (!p.supervisor_user_id&&sname&&norm(p.supervisor_nombre)===sname)
+      );
+    }
+
+    const myId=String(me.user_id||userId()||'');
+    const sid=String(me.supervisor_user_id||'');
+    const sname=norm(me.supervisor_nombre);
+    return rows.filter(p=>
+      same(p.id,me.id)||same(p.user_id,myId)||
+      (sid&&(same(p.user_id,sid)||same(p.supervisor_user_id,sid)))||
+      (!sid&&sname&&(norm(p.nombre)===sname||norm(p.supervisor_nombre)===sname))
+    );
+  }
+
+  window.v156VisibleDotation=visible;
+  try{v156VisibleDotation=visible}catch(_){ }
+  window.v1524VisibleCrewScope=visible;
+})();
