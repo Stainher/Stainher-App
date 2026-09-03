@@ -1,6 +1,6 @@
-/* Stainher App V15.24 · Confiabilidad: acciones independientes
- * - Generar informe solo genera/descarga el PDF.
- * - Enviar por correo abre el formulario usando el último informe generado.
+/* Stainher App V15.24 · Confiabilidad: descarga directa
+ * - Aprobar y generar informe descarga el PDF localmente.
+ * - El flujo de correo queda eliminado de Confiabilidad.
  * - La barra de acciones se mantiene dentro del flujo y no tapa contenido móvil.
  */
 (function bootstrapStainherReliabilityActions(){
@@ -12,8 +12,7 @@
     document.head.appendChild(guard);
   }
   if (window.__STAINHER_RELIABILITY_ACTIONS__) return;
-  const ready = typeof window.v1518ReliabilityEmailModal === 'function'
-    && typeof window.renderCorrectivoShell === 'function'
+  const ready = typeof window.renderCorrectivoShell === 'function'
     && typeof window.loadCorrectivo === 'function';
   if (!ready) {
     setTimeout(bootstrapStainherReliabilityActions, 250);
@@ -22,31 +21,6 @@
   window.__STAINHER_RELIABILITY_ACTIONS__ = true;
 
   const STYLE_ID = 'stainher-reliability-actions-style';
-  const CACHE_KEY = '__STAINHER_RELIABILITY_LAST_REPORT__';
-
-  function role(){
-    try { return String(window.v11Role?.() || window.state?.profile?.rol || '').toLowerCase(); }
-    catch (_) { return String(window.state?.profile?.rol || '').toLowerCase(); }
-  }
-
-  function canEmail(){
-    try {
-      if (typeof window.v1518Can === 'function') return !!window.v1518Can('correctivo','reliability_email');
-    } catch (_) {}
-    return ['administrador','confiabilidad'].includes(role());
-  }
-
-  function snapshot(){
-    return {
-      from: String(window.state?.correctivoFrom || ''),
-      to: String(window.state?.correctivoTo || ''),
-      equipment: String(document.getElementById('corrEquipo')?.value || ''),
-    };
-  }
-
-  function sameContext(a,b){
-    return !!a && !!b && a.from === b.from && a.to === b.to && a.equipment === b.equipment;
-  }
 
   function mountStyle(){
     if (document.getElementById(STYLE_ID)) return;
@@ -121,20 +95,6 @@
     document.head.appendChild(style);
   }
 
-  const originalEmailModal = window.v1518ReliabilityEmailModal;
-  window.__STAINHER_RELIABILITY_EMAIL_MODAL_ORIGINAL__ = originalEmailModal;
-  window.v1518ReliabilityEmailModal = function(doc, fileName){
-    if (!doc || !fileName) return;
-    window[CACHE_KEY] = {
-      doc,
-      fileName: String(fileName),
-      context: snapshot(),
-      createdAt: new Date().toISOString(),
-    };
-    ensureActions();
-    ensureReviewActions();
-  };
-
   function addReliabilityChart(doc, canvasId, title, xLabel, yLabel, analysis, y, hasData){
     if (y > 125) { doc.addPage(); y = 20; }
     const leftX = 14, leftW = 165, rightX = 186, rightW = 97;
@@ -163,9 +123,24 @@
     return y + Math.max(76,lines.length*4+12);
   }
 
-  /* La capa V15.18 reemplazaba el generador anterior y omitía por completo
-   * los gráficos. Esta implementación conserva el flujo separado de correo
-   * e incorpora los tres canvas, con un estado explícito cuando no hay datos. */
+  function downloadPdf(doc,fileName){
+    try {
+      const blob=doc.output('blob');
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;link.download=fileName;link.rel='noopener';link.style.display='none';
+      document.body.appendChild(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1500);
+      return true;
+    } catch (error) {
+      console.warn('[Confiabilidad PDF] Descarga por Blob no disponible',error);
+      try { doc.save(fileName); return true; }
+      catch (fallbackError) { console.error('[Confiabilidad PDF] No se pudo descargar',fallbackError); return false; }
+    }
+  }
+
+  /* Esta implementación incorpora los tres canvas y descarga el archivo
+   * mediante un Blob, con respaldo al mecanismo nativo de jsPDF. */
   window.v158BuildReviewedReliabilityPdf = async function(){
     const r = window.state?.v158ReliabilityReview;
     if (!r) return;
@@ -198,26 +173,8 @@
     textSection('Análisis Pareto',c.pareto); textSection('Hallazgos',c.hallazgos); textSection('Hipótesis de causa raíz',c.hipotesis); textSection('Recomendaciones técnicas',c.recomendaciones); textSection('Conclusiones',c.conclusiones);
     if(r.opt?.historial){if(y>115){doc.addPage();y=20}doc.autoTable({startY:y,head:[['Fecha','Equipo','Guía','Responsable','Duración','Estado','Observación']],body:r.rows.map(item=>[item.fecha_inicio||'',item.equipo||'',item.guia||'—',item.responsable||'—',window.fmtH(item.duracion_horas),item.estado_normalizado||'',item.observaciones||'']),styles:{fontSize:6.8,textColor:[28,34,41]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]},columnStyles:{6:{cellWidth:75}}})}
     const fileName=`Stainher_App_Confiabilidad_${window.state.correctivoFrom}_${window.state.correctivoTo}.pdf`;
-    doc.save(fileName); window.closeModal?.(); window.toast?.('Informe validado y PDF generado','success');
-    if(canEmail())setTimeout(()=>window.v1518ReliabilityEmailModal(doc,fileName),150);
-  };
-
-  window.v1524OpenReliabilityEmail = function(){
-    const cached = window[CACHE_KEY];
-    if (!cached?.doc || !cached?.fileName) {
-      window.toast?.('Primero genera el informe del período seleccionado.','warn');
-      return;
-    }
-    if (!sameContext(cached.context, snapshot())) {
-      window.toast?.('Cambió el período o equipo. Genera nuevamente el informe antes de enviarlo.','warn');
-      return;
-    }
-    const modal = window.__STAINHER_RELIABILITY_EMAIL_MODAL_ORIGINAL__;
-    if (typeof modal !== 'function') {
-      window.toast?.('No se pudo abrir el formulario de correo de Confiabilidad.','error');
-      return;
-    }
-    modal(cached.doc, cached.fileName);
+    if(!downloadPdf(doc,fileName))return window.toast?.('El informe se generó, pero el navegador bloqueó la descarga. Habilita las descargas para este sitio e inténtalo nuevamente.','error');
+    window.closeModal?.(); window.toast?.('Informe aprobado y PDF descargado','success');
   };
 
   function ensureActions(){
@@ -245,25 +202,8 @@
     const approve = [...actions.querySelectorAll('button')].find(button => /Aprobar.*generar PDF/i.test(button.textContent || ''));
     if (approve) approve.textContent = 'Aprobar y generar PDF';
 
-    let send = actions.querySelector('[data-v1524-reliability-email]');
-    if (!canEmail()) {
-      send?.remove();
-      return;
-    }
-    if (!send) {
-      send = document.createElement('button');
-      send.type = 'button';
-      send.className = 'btn';
-      send.dataset.v1524ReliabilityEmail = '1';
-      send.textContent = '✉ Enviar por correo';
-      send.onclick = window.v1524OpenReliabilityEmail;
-      actions.appendChild(send);
-    }
-    const cached = window[CACHE_KEY];
-    const readyNow = !!cached?.doc && sameContext(cached.context, snapshot());
-    send.title = readyNow
-      ? `Enviar ${cached.fileName}`
-      : 'Primero aprueba y genera el PDF de este informe';
+    actions.querySelectorAll('[data-v1524-reliability-email]').forEach(button=>button.remove());
+    [...actions.querySelectorAll('button')].filter(button=>/Enviar por correo/i.test(button.textContent||'')).forEach(button=>button.remove());
   }
 
   function wrapRender(name){

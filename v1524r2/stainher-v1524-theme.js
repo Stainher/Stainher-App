@@ -208,6 +208,33 @@
     [data-theme="light"] .v156-progress,[data-theme="light"] .v157-progress{background:#dfe7f0!important}
     [data-theme="light"] .vehicle-photo-main{background:#eef3f8!important;border-color:var(--line)!important}
 
+    /* Confiabilidad: cobertura completa del tema claro para opciones, KPI y gráficos. */
+    html[data-theme="light"] body #modalRoot .v153-report-options,
+    html[data-theme="light"] body #modalRoot .v153-report-options label,
+    html[data-theme="light"] body #modalRoot .v158-review-field,
+    html[data-theme="light"] body #page-correctivo :where(.panel,.kpi,.chart-wrap,.v158-review-kpi){
+      background:#fff!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body #modalRoot .v153-report-options label{
+      display:flex!important;align-items:center!important;gap:9px!important;
+      font-weight:400!important;background:#f8fafc!important
+    }
+    html[data-theme="light"] body #modalRoot .v153-report-options label :where(span,b,strong){
+      color:#182230!important;font-weight:400!important
+    }
+    html[data-theme="light"] body #modalRoot .v153-report-options input[type="checkbox"]{
+      accent-color:#1769c2!important
+    }
+    html[data-theme="light"] body #page-correctivo :where(.panel,.kpi,.chart-wrap) :where(p,span,small,label,li,td,th){
+      color:#344054!important;font-weight:400!important
+    }
+    html[data-theme="light"] body #page-correctivo :where(.panel,.kpi) :where(h1,h2,h3,h4,h5,h6,.stainher-disclosure-title){
+      color:#182230!important;font-weight:600!important
+    }
+    html[data-theme="light"] body #page-correctivo .kpi>strong{
+      color:#182230!important;font-weight:500!important
+    }
+
     /* V15.24 revisión 2: neutraliza reglas móviles antiguas que usan !important. */
     html[data-theme="light"] body .sidebar,
     html[data-theme="light"] body .sidebar-bottom,
@@ -379,7 +406,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?v=20260903-r14';script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?v=20260903-r15';script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
