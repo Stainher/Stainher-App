@@ -35,6 +35,7 @@
 
   window.v1524CorrectivoPermission=effectivePermission;
   window.v1524CanEditCorrectivo=canEdit;
+  window.v1524CanViewCorrectivo=canView;
 
   function installCanHelper(){
     const fn=function(){return canEdit()};
@@ -45,7 +46,7 @@
 
   let wrappedBase=null;
   function installOpenWrapper(){
-    let current=window.v15OpenCorrectiveMobile;
+    const current=window.v15OpenCorrectiveMobile;
     if(typeof current!=='function')return false;
     if(current.__stainherCorrectivoR10)return true;
     wrappedBase=current;
@@ -93,21 +94,17 @@
   function headerText(th){return String(th?.textContent||'').replace(/\s+/g,' ').trim()}
   function findHistoryTable(){
     const page=document.getElementById('page-correctivo');if(!page)return null;
-    const panels=[...page.querySelectorAll('.panel,details,section,article,div')];
-    let panel=panels.find(p=>{
-      const h=p.querySelector?.('h2,h3,h4,summary');
-      return h&&/Historial del per[ií]odo/i.test(h.textContent||'')&&p.querySelector('table');
-    });
-    if(!panel){
-      const tables=[...page.querySelectorAll('table')];
-      const table=tables.find(t=>{
+    const heading=[...page.querySelectorAll('h2,h3,h4,summary')].find(h=>/Historial del per[ií]odo/i.test(h.textContent||''));
+    let panel=heading?.closest?.('.panel,details,section,article')||heading?.parentElement||null;
+    let table=panel?.querySelector?.('table')||null;
+    if(!table){
+      table=[...page.querySelectorAll('table')].find(t=>{
         const hs=[...t.querySelectorAll('thead th')].map(headerText).join('|');
         return /Fecha/i.test(hs)&&/Equipo/i.test(hs)&&(/Duraci/i.test(hs)||/Estado/i.test(hs));
-      });
-      panel=table?.closest('.panel,details,section,article,div')||table?.parentElement||null;
+      })||null;
+      panel=table?.closest?.('.panel,details,section,article')||table?.parentElement||null;
     }
-    const table=panel?.querySelector?.('table')||null;
-    return table?{panel,table}:null;
+    return table&&panel?{panel,table}:null;
   }
 
   function syncClonedControls(source,clone){
