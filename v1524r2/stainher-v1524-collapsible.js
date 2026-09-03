@@ -82,9 +82,13 @@
     details.dataset.stainherCollapsible='1';details.dataset.stainherDisclosure='1';
     const stateKey=keyFor(element,title);details.open=savedOpen(stateKey);
     const content=document.createElement('div');content.className='stainher-disclosure-content';
-    if(staffing){element.dataset.noCollapse='1';element.dataset.stainherRenderHost='staffing';content.appendChild(element);details.dataset.stainherHomePanel='staffing'}
+    if(staffing){element.dataset.noCollapse='1';element.dataset.stainherRenderHost='staffing';details.dataset.stainherHomePanel='staffing'}
     else{const heading=titleNode(element);if(heading)heading.remove();while(element.firstChild)content.appendChild(element.firstChild)}
     details.append(summary(title),content);element.replaceWith(details);
+    /* Inserta primero el reemplazo y después recupera el host asíncrono dentro
+     * del contenido. Moverlo antes invalidaba replaceWith() y eliminaba toda la
+     * tarjeta de la página. */
+    if(staffing)content.appendChild(element);
     details.addEventListener('toggle',()=>{});
   }
   function ensureDevelopmentCredit(){
