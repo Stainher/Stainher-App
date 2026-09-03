@@ -36,6 +36,12 @@
     panel.querySelectorAll?.(':scope h3,.v1512-home-turn h3,.row-between h3').forEach(node=>node.textContent=title);
     panel.setAttribute('aria-label',title);
   }
+  function enforceStaffingTitle(page){
+    page.querySelectorAll('.stainher-home-staffing summary .stainher-disclosure-title,.stainher-home-staffing summary>span:first-of-type,.v1521-home-turn summary .stainher-disclosure-title').forEach(node=>{
+      if(node.textContent!=="Dotación en turno hoy")node.textContent='Dotación en turno hoy';
+      node.dataset.stainherFixedTitle='staffing';
+    });
+  }
   function arrangeHome(){
     const page=document.getElementById('page-inicio');if(!page)return;
     topPanels(page).filter(isVacation).forEach(panel=>panel.remove());
@@ -47,6 +53,7 @@
       staffing.dataset.stainherHomePanel='staffing';
     }
     setDisclosureTitle(staffing,'Dotación en turno hoy');
+    enforceStaffingTitle(page);
     const vacationPanel=vacation?.closest('details,.panel')||vacation;
     const staffingPanel=staffing&&directChild(page,staffing),alertsPanel=alerts&&directChild(page,alerts);
     vacationPanel?.remove();
@@ -91,11 +98,19 @@
       .stainher-account-vacation{display:grid;gap:6px;margin:10px 0 0!important}
       .stainher-account-vacation strong{font-size:28px;line-height:1.15;color:var(--text,#fff)}
       .stainher-account-vacation span{font-size:12px}
+      #page-inicio .stainher-home-staffing>summary .stainher-disclosure-title,
+      #page-inicio details.v1521-home-turn>summary .stainher-disclosure-title{
+        font-size:0!important
+      }
+      #page-inicio .stainher-home-staffing>summary .stainher-disclosure-title::after,
+      #page-inicio details.v1521-home-turn>summary .stainher-disclosure-title::after{
+        content:'Dotación en turno hoy';font-size:16px!important;font-weight:500!important
+      }
     `;document.head.appendChild(style);
   }
   function boot(){
     mountStyle();install();let queued=false;
-    new MutationObserver(records=>{if(queued||!records.some(record=>record.addedNodes.length))return;queued=true;requestAnimationFrame(()=>{queued=false;install()})}).observe(document.body,{childList:true,subtree:true});
+    new MutationObserver(records=>{if(queued||!records.some(record=>record.addedNodes.length||record.type==='characterData'))return;queued=true;requestAnimationFrame(()=>{queued=false;install()})}).observe(document.body,{childList:true,subtree:true,characterData:true});
     window.addEventListener('stainher:modules-ready',install);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

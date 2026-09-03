@@ -48,7 +48,7 @@
       staffingPanel.dataset.stainherHomePanel='staffing';
       staffingPanel.setAttribute('aria-label','Dotación en turno hoy');
       const summary=staffingPanel.querySelector(':scope>summary .stainher-disclosure-title,:scope>summary>span:first-of-type');
-      if(summary&&summary.textContent!=='Dotación en turno hoy')summary.textContent='Dotación en turno hoy';
+      if(summary){if(summary.textContent!=='Dotación en turno hoy')summary.textContent='Dotación en turno hoy';summary.dataset.stainherFixedTitle='staffing'}
       staffingPanel.querySelectorAll('h3').forEach(title=>{if(/Personal de turno hoy|Detalles/i.test(title.textContent||''))title.textContent='Dotación en turno hoy'});
     }
     page.querySelectorAll('details').forEach(details=>{
