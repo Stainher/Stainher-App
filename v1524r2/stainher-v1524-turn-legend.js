@@ -15,7 +15,7 @@
         display:block!important;
         position:sticky!important;
         top:8px!important;
-        z-index:980!important;
+        z-index:20!important;
         width:100%!important;
         max-width:100%!important;
         min-height:0!important;
@@ -53,8 +53,12 @@
       @media(max-width:900px){
         #page-turnos .v1524-turn-legend-host{
           top:calc(58px + env(safe-area-inset-top,0px))!important;
-          z-index:980!important;
+          z-index:20!important;
         }
+      }
+      body:has(#modalRoot .modal-bg) #page-turnos .v1524-turn-legend-host{
+        visibility:hidden!important;
+        pointer-events:none!important;
       }
       #page-turnos .v1524-compact-legend .v1524-legend-label{
         display:block!important;

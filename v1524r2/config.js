@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260903-consolidated-r20';
+window.STAINHER_BUILD = 'V15.24-20260903-consolidated-r21';
 
 /* Stainher App V15.24 · arranque visual estable en Inicio.
  * Este bloque se ejecuta desde config.js antes del primer renderizado visible.
@@ -123,21 +123,21 @@ window.STAINHER_BUILD = 'V15.24-20260903-consolidated-r20';
  * capas históricas. El módulo final espera a que Turnos V15.24 esté listo. */
 (function installStainherCoreLoader(){
   const MODULES=Object.freeze([
-    {id:'turnos-v1524-script',src:'turnos-v1524.js?v=20260903-r20',domain:'turnos'},
-    {id:'stainher-v1524-final-script',src:'stainher-v1524-final.js?v=20260903-r20',domain:'core'},
-    {id:'stainher-v1524-hotfix1-script',src:'stainher-v1524-hotfix1.js?v=20260903-r20',domain:'turnos'},
-    {id:'stainher-v1524-hotfix2-script',src:'stainher-v1524-hotfix2.js?v=20260903-r20',domain:'turnos'},
-    {id:'stainher-v1524-hotfix3-script',src:'stainher-v1524-hotfix3.js?v=20260903-r20',domain:'turnos'},
-    {id:'stainher-v1524-report-hotfix4-script',src:'stainher-v1524-report-hotfix4.js?v=20260903-r20',domain:'informes'},
-    {id:'stainher-v1524-home-badges-compact-script',src:'stainher-v1524-home-badges-compact.js?v=20260903-r20',domain:'inicio'},
-    {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?v=20260903-r20',domain:'contrato'},
-      {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260903-r20',domain:'turnos'},
-      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260903-r20',domain:'vacaciones'},
-      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260903-r20',domain:'experiencia'},
-      {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?v=20260903-r20',domain:'confiabilidad'},
-      {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?v=20260903-r20',domain:'administracion'},
-      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-r20',domain:'tema'},
-      {id:'stainher-v1524-runtime-audit-script',src:'stainher-v1524-runtime-audit.js?v=20260903-r20',domain:'diagnostico'}
+    {id:'turnos-v1524-script',src:'turnos-v1524.js?v=20260903-r21',domain:'turnos'},
+    {id:'stainher-v1524-final-script',src:'stainher-v1524-final.js?v=20260903-r21',domain:'core'},
+    {id:'stainher-v1524-hotfix1-script',src:'stainher-v1524-hotfix1.js?v=20260903-r21',domain:'turnos'},
+    {id:'stainher-v1524-hotfix2-script',src:'stainher-v1524-hotfix2.js?v=20260903-r21',domain:'turnos'},
+    {id:'stainher-v1524-hotfix3-script',src:'stainher-v1524-hotfix3.js?v=20260903-r21',domain:'turnos'},
+    {id:'stainher-v1524-report-hotfix4-script',src:'stainher-v1524-report-hotfix4.js?v=20260903-r21',domain:'informes'},
+    {id:'stainher-v1524-home-badges-compact-script',src:'stainher-v1524-home-badges-compact.js?v=20260903-r21',domain:'inicio'},
+    {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?v=20260903-r21',domain:'contrato'},
+      {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260903-r21',domain:'turnos'},
+      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260903-r21',domain:'vacaciones'},
+      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260903-r21',domain:'experiencia'},
+      {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?v=20260903-r21',domain:'confiabilidad'},
+      {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?v=20260903-r21',domain:'administracion'},
+      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-r21',domain:'tema'},
+      {id:'stainher-v1524-runtime-audit-script',src:'stainher-v1524-runtime-audit.js?v=20260903-r21',domain:'diagnostico'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
   window.STAINHER_MODULES=MODULES;window.STAINHER_LOADER_STATUS=status;

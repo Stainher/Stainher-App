@@ -311,12 +311,12 @@
       }
       body .sidebar>.nav{
         flex:1 1 auto!important;min-height:0!important;max-height:none!important;
-        overflow-x:hidden!important;overflow-y:auto!important;padding-bottom:12px!important
+        overflow-x:hidden!important;overflow-y:auto!important;padding-bottom:104px!important
       }
       body .sidebar>.sidebar-bottom{
-        position:static!important;inset:auto!important;flex:0 0 auto!important;
-        width:100%!important;margin-top:auto!important;padding-top:10px!important;padding-bottom:0!important;
-        z-index:3!important
+        position:fixed!important;left:0!important;bottom:16px!important;top:auto!important;right:auto!important;
+        width:250px!important;max-width:100vw!important;margin:0!important;padding:0 18px!important;box-sizing:border-box!important;
+        flex:0 0 auto!important;z-index:1001!important
       }
     }
     html[data-theme="light"] body .v151-mobile-head,
@@ -510,7 +510,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?v=20260903-r20';script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?v=20260903-r21';script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);

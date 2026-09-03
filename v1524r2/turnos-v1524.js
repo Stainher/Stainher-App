@@ -83,10 +83,16 @@
       .v1524-report-calendars{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,390px),1fr));gap:12px;margin:10px 0 18px}
       .v1524-user-calendar{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel,#0d141c)}
       .v1524-user-calendar h4{margin:0 0 8px}
+      .v1524-report-legend{display:grid;grid-template-rows:repeat(3,minmax(26px,auto));grid-auto-flow:column;grid-auto-columns:minmax(145px,1fr);gap:7px 12px;margin:8px 0 16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel,#0d141c);overflow-x:auto}
+      .v1524-report-legend>span{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:7px;min-width:0;font-size:10px}
+      .v1524-report-code{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;padding:0 4px;border:1px solid currentColor;border-radius:7px;font-style:normal;font-weight:600}
       .v1524-calendar-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
       .v1524-calendar-week>b{text-align:center;color:var(--muted);font-size:10px;font-weight:500}
-      .v1524-calendar-day{display:grid;align-content:start;gap:2px;min-height:58px;padding:5px;border:1px solid var(--line);border-radius:7px;overflow:hidden}
-      .v1524-calendar-day>b{font-size:11px;font-weight:500}.v1524-calendar-day>i{font-style:normal;font-size:12px}.v1524-calendar-day>small{font-size:8px;line-height:1.15;color:var(--muted);overflow-wrap:anywhere}
+      .v1524-calendar-day{display:grid;grid-template-rows:auto 1fr auto;gap:3px;min-height:68px;padding:5px;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+      .v1524-calendar-day-number{font-size:10px;font-weight:500;color:var(--muted)}
+      .v1524-calendar-shift{display:flex;align-items:center;justify-content:center;align-self:center;justify-self:center;width:30px;height:25px;border:1px solid currentColor;border-radius:8px;font-style:normal;font-size:12px;font-weight:600}
+      .v1524-calendar-shift.base-A{color:#7db8ff;background:rgba(59,130,246,.16)}.v1524-calendar-shift.base-C{color:#70d99c;background:rgba(34,197,94,.14)}.v1524-calendar-shift.base-L{color:#b8c1cc;background:rgba(148,163,184,.14)}
+      .v1524-calendar-events{display:block;min-height:13px;padding-top:3px;border-top:1px solid var(--line);font-size:8px;line-height:1.15;color:var(--muted);overflow-wrap:anywhere}
       .v1524-calendar-day.empty-day{visibility:hidden}
       @media(max-width:700px){
         .v1524-day-modal .form-grid{grid-template-columns:1fr!important}
@@ -273,14 +279,23 @@
     const y = Number(window.state?.turnYearV1512 || new Date().getFullYear());
     const m = Number(window.state?.turnMonthV1512 || new Date().getMonth()+1);
     const range = typeof window.v1512TurnMonthRange === 'function' ? window.v1512TurnMonthRange(y,m) : {start:`${y}-${String(m).padStart(2,'0')}-01`,end:`${y}-${String(m).padStart(2,'0')}-31`};
-    const [eq,pq,sq] = await Promise.all([
+    const [eq,pq,sq,rq] = await Promise.all([
       window.sb.from('turnos_novedades_v15').select('*').lte('fecha_inicio',range.end).gte('fecha_fin',range.start).order('fecha_inicio',{ascending:true}),
       window.sb.from('perfiles').select('id,nombre,rol'),
-      window.sb.from('turnos_malla_v1512').select('user_id,fecha,turno_base').gte('fecha',range.start).lte('fecha',range.end).order('fecha',{ascending:true})
+      window.sb.from('turnos_malla_v1512').select('user_id,fecha,turno_base').gte('fecha',range.start).lte('fecha',range.end).order('fecha',{ascending:true}),
+      window.sb.from('solicitudes_v15').select('id,estado,tipo')
     ]);
     if (eq.error) throw eq.error;
     if (pq.error) throw pq.error;
     if (sq.error) throw sq.error;
+    if (rq.error) throw rq.error;
+    const activeVacationRequests = new Set((rq.data || [])
+      .filter(request => request.tipo === 'vacaciones' && request.estado === 'aprobada')
+      .map(request => String(request.id)));
+    const reportEvents = (eq.data || []).filter(event => {
+      if (event.tipo !== 'vacaciones' || !event.solicitud_id) return true;
+      return activeVacationRequests.has(String(event.solicitud_id));
+    });
     const names = new Map((pq.data || []).map(x => [String(x.id), x.nombre || x.id]));
     const groups = new Map();
     const ensure = uid => {
@@ -289,7 +304,7 @@
       return groups.get(key);
     };
 
-    (eq.data || []).forEach(ev => {
+    reportEvents.forEach(ev => {
       const g = ensure(ev.user_id);
       const dates = eachDateClipped(String(ev.fecha_inicio || ''),String(ev.fecha_fin || ev.fecha_inicio || ''),range.start,range.end);
       if (ev.tipo === 'encierro_planificado') dates.forEach(d=>g.encDentro.add(d));
@@ -335,13 +350,16 @@
   function eventCodesOn(row,date){
     return row.eventos.filter(ev=>String(ev.fecha_inicio||'')<=date&&String(ev.fecha_fin||ev.fecha_inicio||'')>=date).map(ev=>codeFor(ev.tipo));
   }
+  function reportLegendHtml(){
+    return `<div class="v1524-report-legend" aria-label="Glosa del informe">${Object.entries(LABELS).map(([type,label])=>`<span><i class="v1524-report-code v1512-event-badge ${escHtml(codeFor(type))}">${escHtml(codeFor(type))}</i>${escHtml(label)}</span>`).join('')}</div>`;
+  }
   function calendarHtml(r,row){
     const days=new Date(r.y,r.m,0).getDate(),offset=(new Date(r.y,r.m-1,1).getDay()+6)%7;
     const cells=Array.from({length:offset},()=>'<span class="v1524-calendar-day empty-day"></span>');
     for(let day=1;day<=days;day++){
       const date=`${r.y}-${String(r.m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const base=row.turnos?.get(date)||'—',events=eventCodesOn(row,date);
-      cells.push(`<span class="v1524-calendar-day"><b>${day}</b><i class="base-${escHtml(base)}">${escHtml(base)}</i>${events.length?`<small>${escHtml([...new Set(events)].join(' · '))}</small>`:''}</span>`);
+      cells.push(`<span class="v1524-calendar-day"><b class="v1524-calendar-day-number">${day}</b><i class="v1524-calendar-shift base-${escHtml(base)}">${escHtml(base)}</i><small class="v1524-calendar-events">${events.length?escHtml([...new Set(events)].join(' · ')):'&nbsp;'}</small></span>`);
     }
     return `<section class="v1524-user-calendar"><h4>${escHtml(row.nombre)}</h4><div class="v1524-calendar-week"><b>Lun</b><b>Mar</b><b>Mié</b><b>Jue</b><b>Vie</b><b>Sáb</b><b>Dom</b>${cells.join('')}</div></section>`;
   }
@@ -377,7 +395,7 @@
       const summaryRows = r.rows.map(x=>`<tr data-v1524-report-user="${escHtml(x.uid)}"><td>${escHtml(x.nombre)}</td><td>${x.encDentro}</td><td>${x.encFuera}</td><td>${x.suspendido}</td><td>${x.diasAdicionales}</td><td>${x.he.toFixed(1)} h</td><td>${x.hf.toFixed(1)} h</td><td>${x.vacaciones}</td><td>${x.licencias}</td><td>${x.faltas}</td><td>${x.otros}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Sin eventos registrados para el período.</td></tr>';
       const detail = r.rows.map(g=>`<section class="v1524-detail-group" data-v1524-report-user="${escHtml(g.uid)}"><h4>${escHtml(g.nombre)} · ${g.eventos.length} evento(s)</h4><div class="v1524-detail-scroll"><table class="v1524-detail-table"><thead><tr><th>Fecha</th><th>Turno base</th><th>Evento</th><th>Cantidad</th><th>Horario</th><th>Detalle / motivo</th></tr></thead><tbody>${g.eventos.map(ev=>`<tr><td>${escHtml(dateRangeLabel(ev))}</td><td>${escHtml(ev.turno_base || '—')}</td><td>${escHtml(labelFor(ev.tipo))}</td><td>${escHtml(qtyLabel(ev))}</td><td>${escHtml(hoursLabel(ev))}</td><td>${escHtml(ev.motivo || ev.observacion || 'Sin detalle')}</td></tr>`).join('')}</tbody></table></div></section>`).join('') || '<div class="empty">Sin detalle de eventos.</div>';
       const monthName = window.MONTHS_ES?.[r.m-1] || String(r.m);
-      document.getElementById('modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" style="width:min(1240px,100%);max-height:92vh;overflow:auto"><div class="row-between"><div><h3>Informe mensual · Turnos y Novedades</h3><div class="muted">${escHtml(monthName)} ${r.y}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div><label class="v1524-report-user-filter">Colaborador<select class="field" onchange="v1524FilterTurnReport(this.value)"><option value="">Todos los colaboradores</option>${r.rows.map(row=>`<option value="${escHtml(row.uid)}">${escHtml(row.nombre)}</option>`).join('')}</select></label><h4>Resumen calendario</h4><div id="v1524ReportCalendars" class="v1524-report-calendars"></div><h4>Resumen de eventos por colaborador</h4><div class="muted">El resumen muestra únicamente cantidades por tipo de evento. El detalle se presenta agrupado por colaborador.</div><div class="v1524-report-summary"><table id="v1524ReportSummaryTable"><thead><tr><th>Colaborador</th><th>Enc. dentro turno</th><th>Enc. fuera turno</th><th>Suspendido encierro</th><th>Días adicionales</th><th>Horas extra</th><th>Horas feriado</th><th>Vacaciones</th><th>Lic. médica</th><th>Falta / ausencia</th><th>Otros</th></tr></thead><tbody>${summaryRows}</tbody><tfoot></tfoot></table></div><h4 style="margin-top:18px">Listado de eventos con detalle</h4><div class="v1524-detail-groups">${detail}</div><div class="actions" style="margin-top:18px"><button class="btn" onclick="v1516ExportTurnReportExcel()">Exportar Excel</button><button class="btn primary" onclick="v1516ExportTurnReportPdf()">Generar PDF</button></div></div></div>`;
+      document.getElementById('modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" style="width:min(1240px,100%);max-height:92vh;overflow:auto"><div class="row-between"><div><h3>Informe mensual · Turnos y Novedades</h3><div class="muted">${escHtml(monthName)} ${r.y}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div><label class="v1524-report-user-filter">Colaborador<select class="field" onchange="v1524FilterTurnReport(this.value)"><option value="">Todos los colaboradores</option>${r.rows.map(row=>`<option value="${escHtml(row.uid)}">${escHtml(row.nombre)}</option>`).join('')}</select></label><h4>Glosa</h4>${reportLegendHtml()}<h4>Resumen calendario</h4><div id="v1524ReportCalendars" class="v1524-report-calendars"></div><h4>Resumen de eventos por colaborador</h4><div class="muted">El resumen muestra únicamente cantidades por tipo de evento. El detalle se presenta agrupado por colaborador.</div><div class="v1524-report-summary"><table id="v1524ReportSummaryTable"><thead><tr><th>Colaborador</th><th>Enc. dentro turno</th><th>Enc. fuera turno</th><th>Suspendido encierro</th><th>Días adicionales</th><th>Horas extra</th><th>Horas feriado</th><th>Vacaciones</th><th>Lic. médica</th><th>Falta / ausencia</th><th>Otros</th></tr></thead><tbody>${summaryRows}</tbody><tfoot></tfoot></table></div><h4 style="margin-top:18px">Listado de eventos con detalle</h4><div class="v1524-detail-groups">${detail}</div><div class="actions" style="margin-top:18px"><button class="btn" onclick="v1516ExportTurnReportExcel()">Exportar Excel</button><button class="btn primary" onclick="v1516ExportTurnReportPdf()">Generar PDF</button></div></div></div>`;
       window.state.v1524TurnReportUser='';window.v1524FilterTurnReport('');
     } catch (err) { window.toast?.(err.message || String(err),'error'); }
   };
@@ -423,10 +441,21 @@
     doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,x.he.toFixed(1),x.hf.toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
     selected.forEach(row=>{
       doc.addPage();window.pdfHeader?.(doc,'Resumen calendario de turnos',`${row.nombre} · ${monthName} ${r.y}`);
-      const days=calendarExportRows(r,row),offset=(new Date(r.y,r.m-1,1).getDay()+6)%7,cells=[...Array(offset).fill(''),...days.map(day=>`${day.day}\n${day.base}${day.events?' · '+day.events:''}`)];
+      const legendItems=Object.entries(LABELS).map(([type,label])=>`${codeFor(type)} · ${label}`),legendRows=[];
+      for(let index=0;index<legendItems.length;index+=5)legendRows.push(legendItems.slice(index,index+5));
+      doc.setFontSize(8);doc.setFont(undefined,'bold');doc.text('Glosa',14,42);doc.setFont(undefined,'normal');
+      doc.autoTable({startY:44,body:legendRows,theme:'grid',styles:{fontSize:5.8,cellPadding:1.3,textColor:[52,64,84],fillColor:[246,248,251]},columnStyles:{0:{cellWidth:53},1:{cellWidth:53},2:{cellWidth:53},3:{cellWidth:53},4:{cellWidth:53}}});
+      const days=calendarExportRows(r,row),offset=(new Date(r.y,r.m-1,1).getDay()+6)%7,cells=[...Array(offset).fill(null),...days];
       while(cells.length%7)cells.push('');
       const weeks=[];for(let index=0;index<cells.length;index+=7)weeks.push(cells.slice(index,index+7));
-      doc.autoTable({startY:44,head:[['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']],body:weeks,styles:{fontSize:8,cellPadding:3,minCellHeight:22,textColor:[25,31,40],valign:'top'},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
+      const shiftColors={A:[220,235,255],C:[220,247,231],L:[235,239,244]};
+      doc.autoTable({startY:(doc.lastAutoTable?.finalY||57)+4,head:[['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']],body:weeks.map(week=>week.map(day=>day?{content:'',day,styles:{minCellHeight:25}}:'')),styles:{fontSize:7,cellPadding:2,minCellHeight:25,textColor:[25,31,40],valign:'top'},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]},didDrawCell:data=>{
+        if(data.section!=='body'||!data.cell.raw||typeof data.cell.raw!=='object')return;
+        const day=data.cell.raw.day,x=data.cell.x,y=data.cell.y,w=data.cell.width,h=data.cell.height,base=String(day.base||'—'),events=String(day.events||'');
+        doc.setTextColor(78,91,112);doc.setFontSize(6.5);doc.setFont(undefined,'normal');doc.text(String(day.day),x+2,y+4);
+        const fill=shiftColors[base]||[242,244,247];doc.setFillColor(...fill);doc.setDrawColor(170,181,195);doc.roundedRect(x+w/2-5,y+7,10,7,1.5,1.5,'FD');doc.setTextColor(25,31,40);doc.setFontSize(7.5);doc.setFont(undefined,'bold');doc.text(base,x+w/2,y+11.7,{align:'center'});
+        doc.setDrawColor(211,218,227);doc.line(x+2,y+h-7,x+w-2,y+h-7);doc.setFont(undefined,'normal');doc.setFontSize(5.5);doc.setTextColor(91,104,120);doc.text(events||' ',x+2,y+h-3,{maxWidth:w-4});
+      }});
     });
     doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
     let y = 44;
