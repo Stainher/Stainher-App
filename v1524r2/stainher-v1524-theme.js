@@ -235,6 +235,44 @@
       color:#182230!important;font-weight:500!important
     }
 
+    /* Turnos: ficha diaria y formularios internos sin superficies oscuras. */
+    html[data-theme="light"] body #modalRoot .v1524-day-modal,
+    html[data-theme="light"] body #modalRoot .v1524-base-card,
+    html[data-theme="light"] body #modalRoot .v1524-event-card,
+    html[data-theme="light"] body #modalRoot .v1524-existing-event,
+    html[data-theme="light"] body #modalRoot .v1524-rule-box{
+      background:#fff!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body #modalRoot .v1524-base-card,
+    html[data-theme="light"] body #modalRoot .v1524-event-card{
+      box-shadow:0 1px 2px rgba(16,24,40,.04)!important
+    }
+    html[data-theme="light"] body #modalRoot .v1524-rule-box,
+    html[data-theme="light"] body #modalRoot .v1524-existing-event{
+      background:#f8fafc!important
+    }
+    html[data-theme="light"] body #modalRoot .v1524-day-modal :where(p,span,small,label,.muted,.empty){
+      color:#475467!important;font-weight:400!important
+    }
+    html[data-theme="light"] body #modalRoot .v1524-day-modal :where(h1,h2,h3,h4,h5,h6){
+      color:#182230!important;font-weight:600!important
+    }
+    html[data-theme="light"] body #modalRoot .v1524-day-modal .v1524-rule-box :where(b,strong){
+      color:#182230!important;font-weight:500!important
+    }
+    html[data-theme="light"] body #modalRoot :where(.v1524-user-calendar,.v1524-calendar-day,.v1524-detail-group){
+      background:#fff!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body #modalRoot :where(.v1524-detail-group h4,.v1524-report-summary thead th){
+      background:#eef3f8!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body #modalRoot .v1524-report-summary :where(th,td){
+      background:#fff!important;color:#344054!important;border-color:#d7dee8!important;font-weight:400!important
+    }
+    html[data-theme="light"] body #modalRoot .v1524-report-summary tfoot td{
+      background:#eef3f8!important;color:#182230!important;font-weight:500!important
+    }
+
     /* V15.24 revisión 2: neutraliza reglas móviles antiguas que usan !important. */
     html[data-theme="light"] body .sidebar,
     html[data-theme="light"] body .sidebar-bottom,
@@ -251,6 +289,18 @@
     html[data-theme="light"] body .sidebar .nav button:hover,
     html[data-theme="light"] body .sidebar .nav button.active{
       background:#e7eef7!important;color:#101828!important
+    }
+    body .sidebar .nav{
+      display:flex!important;flex-direction:column!important;align-items:stretch!important;
+      gap:4px!important;min-height:0!important;overflow-y:auto!important
+    }
+    body .sidebar .nav button[data-page]{
+      flex:0 0 auto!important;width:100%!important;height:auto!important;min-height:48px!important;
+      margin:0!important;padding:9px 10px!important;line-height:1.25!important;
+      white-space:normal!important;overflow:visible!important;text-align:left!important
+    }
+    body .sidebar .nav button[data-page]>:first-child{
+      flex:0 0 auto!important;align-self:flex-start!important
     }
     html[data-theme="light"] body .v151-mobile-head,
     html[data-theme="light"] body #v151MobileBottom,
@@ -378,7 +428,44 @@
     @media(max-width:760px){.userbox>.stainher-theme-toggle{width:auto;min-width:150px}}
   `;
   function preference(){try{const v=localStorage.getItem(KEY);if(v===DARK||v===LIGHT)return v}catch(_){ }return matchMedia?.('(prefers-color-scheme: light)').matches?LIGHT:DARK}
-  function refreshCharts(value){if(!window.Chart)return;Chart.defaults.color=value===LIGHT?'#344054':'#cbd5e1';Chart.defaults.borderColor=value===LIGHT?'rgba(71,84,103,.2)':'rgba(148,163,184,.16)';for(const chart of Object.values(window.state?.charts||{}))try{chart?.update?.('none')}catch(_){ }}
+  function refreshCharts(value){
+    if(!window.Chart)return;
+    const light=value===LIGHT;
+    const textColor=light?'#475467':'#c7d2df';
+    const gridColor=light?'rgba(71,84,103,.16)':'rgba(184,200,218,.14)';
+    const pastel=light
+      ?['rgba(111,155,196,.72)','rgba(104,174,157,.72)','rgba(204,165,108,.72)','rgba(155,137,190,.70)','rgba(194,132,150,.68)']
+      :['rgba(137,179,216,.70)','rgba(127,195,174,.68)','rgba(220,185,125,.68)','rgba(180,159,213,.68)','rgba(213,153,172,.66)'];
+    const borders=light?['#557fa7','#4c9582','#a97b3e','#7965a0','#9e6074']:['#a9cbea','#9dd8c6','#efd29b','#c8b4e7','#e7afc0'];
+    Chart.defaults.color=textColor;Chart.defaults.borderColor=gridColor;
+    const charts=new Set([...Object.values(window.state?.charts||{}),...Object.values(Chart.instances||{})]);
+    for(const chart of charts)try{
+      if(!chart?.data?.datasets)continue;
+      const type=chart.config?.type||chart.data.datasets[0]?.type;
+      chart.data.datasets.forEach((dataset,index)=>{
+        if(type==='line'||dataset.type==='line'){
+          dataset.borderColor=borders[index%borders.length];
+          dataset.backgroundColor=pastel[index%pastel.length].replace(/\.[0-9]+\)$/,light?'.16)':'.20)');
+          dataset.pointBackgroundColor=borders[index%borders.length];
+          dataset.pointBorderColor=light?'#fff':'#111923';dataset.pointRadius=3;dataset.borderWidth=2;
+        }else{
+          const count=Math.max(dataset.data?.length||1,1);
+          dataset.backgroundColor=Array.from({length:count},(_,i)=>pastel[(i+index)%pastel.length]);
+          dataset.borderColor=Array.from({length:count},(_,i)=>borders[(i+index)%borders.length]);
+          dataset.borderWidth=1;
+        }
+      });
+      const scales=chart.options?.scales||{};
+      Object.values(scales).forEach(scale=>{
+        scale.ticks={...(scale.ticks||{}),color:textColor};
+        scale.title={...(scale.title||{}),color:textColor};
+        scale.grid={...(scale.grid||{}),color:gridColor};
+        scale.border={...(scale.border||{}),color:gridColor};
+      });
+      if(chart.options?.plugins?.legend?.labels)chart.options.plugins.legend.labels.color=textColor;
+      chart.update('none');
+    }catch(_){ }
+  }
   const TAB_HOSTS='.nav,.v151-mobile-bottom,.prev-view-tabs,.contract-tabs,.v1512-lead-tabs,.v1519-corr-tabs,.v1516-corr-top-tabs,.v153-corr-tabs,.v154-corr-tabs-fixed,.v1520-tabs,.v156-nav,.v157-nav,[role="tablist"]';
   function tabIdentity(button){return button.dataset.page||button.dataset.tab||button.dataset.view||button.getAttribute('onclick')||button.textContent.trim()}
   function syncActiveTab(button){
@@ -389,7 +476,7 @@
   }
   function apply(theme,persist=false){const value=theme===LIGHT?LIGHT:DARK;document.documentElement.dataset.theme=value;if(persist)try{localStorage.setItem(KEY,value)}catch(_){ }document.querySelectorAll('[data-stainher-theme-toggle]').forEach(b=>{b.innerHTML=value===DARK?'☀ Tema claro':'☾ Tema oscuro';b.setAttribute('aria-label',value===DARK?'Activar tema claro':'Activar tema oscuro');b.setAttribute('aria-pressed',String(value===LIGHT))});refreshCharts(value);window.dispatchEvent(new CustomEvent('stainher:theme-change',{detail:{theme:value}}));}
   function ensureToggle(){const accountMenu=document.getElementById('v157UserMenu'),host=accountMenu||document.querySelector('.userbox');if(!host||host.querySelector('[data-stainher-theme-toggle]'))return;const b=document.createElement('button');b.type='button';b.className=accountMenu?'stainher-theme-toggle':'logout stainher-theme-toggle';b.dataset.stainherThemeToggle='1';b.onclick=()=>apply(document.documentElement.dataset.theme===DARK?LIGHT:DARK,true);if(accountMenu)host.insertBefore(b,host.querySelector('.danger'));else host.insertBefore(b,document.getElementById('logoutBtn'));apply(document.documentElement.dataset.theme||preference())}
-  function install(){if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;new MutationObserver(ensureToggle).observe(root,{childList:true,subtree:true});document.addEventListener('click',event=>{const button=event.target.closest?.('button,[role="tab"]');if(button?.closest(TAB_HOSTS))syncActiveTab(button)},true);apply(document.documentElement.dataset.theme||preference())}
+  function install(){if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;let chartRefreshTimer;new MutationObserver(()=>{ensureToggle();clearTimeout(chartRefreshTimer);chartRefreshTimer=setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),120)}).observe(root,{childList:true,subtree:true});document.addEventListener('click',event=>{const button=event.target.closest?.('button,[role="tab"]');if(button?.closest(TAB_HOSTS)){syncActiveTab(button);setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),160)}},true);apply(document.documentElement.dataset.theme||preference())}
   apply(preference());if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   window.StainherTheme=Object.freeze({set:t=>apply(t,true),get:()=>document.documentElement.dataset.theme});
 })();
@@ -397,7 +484,7 @@
 /* V15.24 · carga coordinada de correcciones globales publicadas el 03-09-2026. */
 (()=>{
   const source=document.currentScript?.src||location.href;
-  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js'];
+  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
     if(existing){

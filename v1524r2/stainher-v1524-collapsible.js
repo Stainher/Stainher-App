@@ -112,6 +112,13 @@
     const page=document.getElementById(`page-${pageId}`);if(!page)return;
     page.querySelectorAll('details:not([data-keep-open="1"])').forEach(details=>{details.open=false});
   }
+  function authoritativeToggle(event){
+    const control=event.target.closest?.('#page-inicio details>summary');
+    const details=control?.parentElement;
+    if(!control||details?.tagName!=='DETAILS'||event.target.closest('a,button,input,select,textarea'))return;
+    event.preventDefault();event.stopImmediatePropagation();
+    details.open=!details.open;
+  }
   function mountStyle(){
     if(document.getElementById('stainher-collapsible-style'))return;
     const style=document.createElement('style');style.id='stainher-collapsible-style';style.textContent=`
@@ -142,6 +149,7 @@
      * cancelan el click antes de que Safari ejecute la acción nativa de
      * <summary>; por eso abrimos/cerramos aquí una sola vez y no dependemos de
      * esos listeners heredados. */
+    window.addEventListener('click',authoritativeToggle,true);
     document.addEventListener('click',event=>{
       const control=event.target.closest?.('summary.stainher-disclosure-summary');
       const details=control?.parentElement;

@@ -225,17 +225,23 @@
     return originalCloseModal.apply(this, arguments);
   };
 
-  const originalApprove = window.v158ApproveReliabilityReport;
-  if (typeof originalApprove === 'function') {
-    window.v158ApproveReliabilityReport = async function(){
-      window.__STAINHER_KEEP_RELIABILITY_REVIEW__ = true;
-      try { return await originalApprove.apply(this, arguments); }
-      finally {
-        window.__STAINHER_KEEP_RELIABILITY_REVIEW__ = false;
-        setTimeout(ensureReviewActions, 200);
-      }
-    };
-  }
+  window.v158ApproveReliabilityReport = async function(){
+    const currentRole=String(window.v11Role?.()||window.state?.profile?.rol||'').toLowerCase();
+    if(!['administrador','confiabilidad'].includes(currentRole))return window.toast?.('La aprobación requiere perfil Administrador o Confiabilidad.','error');
+    const review=window.state?.v158ReliabilityReview;if(!review)return;
+    review.content=typeof window.v158CollectReview==='function'?window.v158CollectReview():review.content;
+    /* La descarga se inicia dentro del gesto del usuario, antes de esperar la
+     * escritura remota. Así Safari y la aplicación de escritorio no la bloquean. */
+    window.__STAINHER_KEEP_RELIABILITY_REVIEW__=true;
+    try{
+      await window.v158BuildReviewedReliabilityPdf();
+      if(typeof window.v158SaveReliabilityDraft==='function')await window.v158SaveReliabilityDraft('aprobado');
+    }finally{
+      window.__STAINHER_KEEP_RELIABILITY_REVIEW__=false;
+      window.closeModal?.();
+      setTimeout(ensureReviewActions,200);
+    }
+  };
 
   mountStyle();
   wrapRender('renderCorrectivoShell');

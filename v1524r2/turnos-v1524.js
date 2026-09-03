@@ -79,9 +79,19 @@
       .v1524-detail-table{width:100%;min-width:820px;border-collapse:collapse}
       .v1524-detail-table th,.v1524-detail-table td{padding:7px 9px;border-top:1px solid #26313c;text-align:left;vertical-align:top}
       .v1524-detail-table th{color:#9fb3c8;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+      .v1524-report-user-filter{display:grid;gap:6px;max-width:420px;margin:16px 0}
+      .v1524-report-calendars{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,390px),1fr));gap:12px;margin:10px 0 18px}
+      .v1524-user-calendar{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel,#0d141c)}
+      .v1524-user-calendar h4{margin:0 0 8px}
+      .v1524-calendar-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+      .v1524-calendar-week>b{text-align:center;color:var(--muted);font-size:10px;font-weight:500}
+      .v1524-calendar-day{display:grid;align-content:start;gap:2px;min-height:58px;padding:5px;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+      .v1524-calendar-day>b{font-size:11px;font-weight:500}.v1524-calendar-day>i{font-style:normal;font-size:12px}.v1524-calendar-day>small{font-size:8px;line-height:1.15;color:var(--muted);overflow-wrap:anywhere}
+      .v1524-calendar-day.empty-day{visibility:hidden}
       @media(max-width:700px){
         .v1524-day-modal .form-grid{grid-template-columns:1fr!important}
         .v1524-day-modal .form-grid>*{grid-column:1!important}
+        .v1524-calendar-day{min-height:48px;padding:3px}.v1524-calendar-day>small{font-size:7px}
       }
     `;
     document.head.appendChild(style);
@@ -263,17 +273,19 @@
     const y = Number(window.state?.turnYearV1512 || new Date().getFullYear());
     const m = Number(window.state?.turnMonthV1512 || new Date().getMonth()+1);
     const range = typeof window.v1512TurnMonthRange === 'function' ? window.v1512TurnMonthRange(y,m) : {start:`${y}-${String(m).padStart(2,'0')}-01`,end:`${y}-${String(m).padStart(2,'0')}-31`};
-    const [eq,pq] = await Promise.all([
+    const [eq,pq,sq] = await Promise.all([
       window.sb.from('turnos_novedades_v15').select('*').lte('fecha_inicio',range.end).gte('fecha_fin',range.start).order('fecha_inicio',{ascending:true}),
-      window.sb.from('perfiles').select('id,nombre,rol')
+      window.sb.from('perfiles').select('id,nombre,rol'),
+      window.sb.from('turnos_malla_v1512').select('user_id,fecha,turno_base').gte('fecha',range.start).lte('fecha',range.end).order('fecha',{ascending:true})
     ]);
     if (eq.error) throw eq.error;
     if (pq.error) throw pq.error;
+    if (sq.error) throw sq.error;
     const names = new Map((pq.data || []).map(x => [String(x.id), x.nombre || x.id]));
     const groups = new Map();
     const ensure = uid => {
       const key = String(uid || '');
-      if (!groups.has(key)) groups.set(key,{uid:key,nombre:names.get(key)||'Usuario',encDentro:new Set(),encFuera:new Set(),suspendido:new Set(),diasAdicionales:new Set(),he:0,hf:0,vacaciones:new Set(),licencias:new Set(),faltas:new Set(),otros:0,eventos:[]});
+      if (!groups.has(key)) groups.set(key,{uid:key,nombre:names.get(key)||'Usuario',encDentro:new Set(),encFuera:new Set(),suspendido:new Set(),diasAdicionales:new Set(),he:0,hf:0,vacaciones:new Set(),licencias:new Set(),faltas:new Set(),otros:0,eventos:[],turnos:new Map()});
       return groups.get(key);
     };
 
@@ -292,10 +304,11 @@
       else g.otros += 1;
       g.eventos.push(ev);
     });
+    (sq.data||[]).forEach(shift=>ensure(shift.user_id).turnos.set(String(shift.fecha),String(shift.turno_base||'')));
 
     const rows = [...groups.values()].map(g=>({
       uid:g.uid,nombre:g.nombre,encDentro:g.encDentro.size,encFuera:g.encFuera.size,suspendido:g.suspendido.size,diasAdicionales:g.diasAdicionales.size,he:g.he,hf:g.hf,vacaciones:g.vacaciones.size,licencias:g.licencias.size,faltas:g.faltas.size,otros:g.otros,
-      eventos:g.eventos.sort((a,b)=>String(a.fecha_inicio).localeCompare(String(b.fecha_inicio)))
+      eventos:g.eventos.sort((a,b)=>String(a.fecha_inicio).localeCompare(String(b.fecha_inicio))),turnos:g.turnos
     })).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
     const total = rows.reduce((a,r)=>({nombre:'TOTAL GENERAL',encDentro:a.encDentro+r.encDentro,encFuera:a.encFuera+r.encFuera,suspendido:a.suspendido+r.suspendido,diasAdicionales:a.diasAdicionales+r.diasAdicionales,he:a.he+r.he,hf:a.hf+r.hf,vacaciones:a.vacaciones+r.vacaciones,licencias:a.licencias+r.licencias,faltas:a.faltas+r.faltas,otros:a.otros+r.otros}),{encDentro:0,encFuera:0,suspendido:0,diasAdicionales:0,he:0,hf:0,vacaciones:0,licencias:0,faltas:0,otros:0});
     return {y,m,range,rows,total};
@@ -315,23 +328,65 @@
     return String(ev.fecha_fin || '') && ev.fecha_fin !== ev.fecha_inicio ? `${a} al ${b}` : a;
   }
 
+  function reportRows(r){
+    const uid=String(window.state?.v1524TurnReportUser||'');
+    return uid?r.rows.filter(row=>row.uid===uid):r.rows;
+  }
+  function eventCodesOn(row,date){
+    return row.eventos.filter(ev=>String(ev.fecha_inicio||'')<=date&&String(ev.fecha_fin||ev.fecha_inicio||'')>=date).map(ev=>codeFor(ev.tipo));
+  }
+  function calendarHtml(r,row){
+    const days=new Date(r.y,r.m,0).getDate(),offset=(new Date(r.y,r.m-1,1).getDay()+6)%7;
+    const cells=Array.from({length:offset},()=>'<span class="v1524-calendar-day empty-day"></span>');
+    for(let day=1;day<=days;day++){
+      const date=`${r.y}-${String(r.m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const base=row.turnos?.get(date)||'—',events=eventCodesOn(row,date);
+      cells.push(`<span class="v1524-calendar-day"><b>${day}</b><i class="base-${escHtml(base)}">${escHtml(base)}</i>${events.length?`<small>${escHtml([...new Set(events)].join(' · '))}</small>`:''}</span>`);
+    }
+    return `<section class="v1524-user-calendar"><h4>${escHtml(row.nombre)}</h4><div class="v1524-calendar-week"><b>Lun</b><b>Mar</b><b>Mié</b><b>Jue</b><b>Vie</b><b>Sáb</b><b>Dom</b>${cells.join('')}</div></section>`;
+  }
+  function renderReportCalendars(){
+    const r=window.state?.v1516TurnReport,host=document.getElementById('v1524ReportCalendars');if(!r||!host)return;
+    const rows=reportRows(r);host.innerHTML=rows.map(row=>calendarHtml(r,row)).join('')||'<div class="empty">Sin planificación para el colaborador seleccionado.</div>';
+  }
+  function rowsTotal(rows){
+    return rows.reduce((a,row)=>{for(const key of ['encDentro','encFuera','suspendido','diasAdicionales','he','hf','vacaciones','licencias','faltas','otros'])a[key]+=Number(row[key]||0);return a},{encDentro:0,encFuera:0,suspendido:0,diasAdicionales:0,he:0,hf:0,vacaciones:0,licencias:0,faltas:0,otros:0});
+  }
+  function calendarExportRows(r,row){
+    const days=new Date(r.y,r.m,0).getDate(),out=[];
+    for(let day=1;day<=days;day++){
+      const date=`${r.y}-${String(r.m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      out.push({date,day,base:row.turnos?.get(date)||'—',events:[...new Set(eventCodesOn(row,date))].join(' · ')});
+    }
+    return out;
+  }
+  window.v1524FilterTurnReport=function(uid=''){
+    window.state.v1524TurnReportUser=String(uid||'');
+    document.querySelectorAll('[data-v1524-report-user]').forEach(node=>node.hidden=!!uid&&node.dataset.v1524ReportUser!==uid);
+    const r=window.state?.v1516TurnReport,total=r?rowsTotal(reportRows(r)):null,foot=document.querySelector('#v1524ReportSummaryTable tfoot');
+    if(foot&&total)foot.innerHTML=`<tr><td>TOTAL SELECCIÓN</td><td>${total.encDentro}</td><td>${total.encFuera}</td><td>${total.suspendido}</td><td>${total.diasAdicionales}</td><td>${total.he.toFixed(1)} h</td><td>${total.hf.toFixed(1)} h</td><td>${total.vacaciones}</td><td>${total.licencias}</td><td>${total.faltas}</td><td>${total.otros}</td></tr>`;
+    renderReportCalendars();
+  };
+
   window.v1516TurnMonthlyRows = buildReport;
 
   window.v1516OpenTurnMonthlyReport = async function(){
     try {
       const r = await buildReport();
       window.state.v1516TurnReport = r;
-      const summaryRows = r.rows.map(x=>`<tr><td>${escHtml(x.nombre)}</td><td>${x.encDentro}</td><td>${x.encFuera}</td><td>${x.suspendido}</td><td>${x.diasAdicionales}</td><td>${x.he.toFixed(1)} h</td><td>${x.hf.toFixed(1)} h</td><td>${x.vacaciones}</td><td>${x.licencias}</td><td>${x.faltas}</td><td>${x.otros}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Sin eventos registrados para el período.</td></tr>';
-      const detail = r.rows.map(g=>`<section class="v1524-detail-group"><h4>${escHtml(g.nombre)} · ${g.eventos.length} evento(s)</h4><div class="v1524-detail-scroll"><table class="v1524-detail-table"><thead><tr><th>Fecha</th><th>Turno base</th><th>Evento</th><th>Cantidad</th><th>Horario</th><th>Detalle / motivo</th></tr></thead><tbody>${g.eventos.map(ev=>`<tr><td>${escHtml(dateRangeLabel(ev))}</td><td>${escHtml(ev.turno_base || '—')}</td><td>${escHtml(labelFor(ev.tipo))}</td><td>${escHtml(qtyLabel(ev))}</td><td>${escHtml(hoursLabel(ev))}</td><td>${escHtml(ev.motivo || ev.observacion || 'Sin detalle')}</td></tr>`).join('')}</tbody></table></div></section>`).join('') || '<div class="empty">Sin detalle de eventos.</div>';
+      const summaryRows = r.rows.map(x=>`<tr data-v1524-report-user="${escHtml(x.uid)}"><td>${escHtml(x.nombre)}</td><td>${x.encDentro}</td><td>${x.encFuera}</td><td>${x.suspendido}</td><td>${x.diasAdicionales}</td><td>${x.he.toFixed(1)} h</td><td>${x.hf.toFixed(1)} h</td><td>${x.vacaciones}</td><td>${x.licencias}</td><td>${x.faltas}</td><td>${x.otros}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Sin eventos registrados para el período.</td></tr>';
+      const detail = r.rows.map(g=>`<section class="v1524-detail-group" data-v1524-report-user="${escHtml(g.uid)}"><h4>${escHtml(g.nombre)} · ${g.eventos.length} evento(s)</h4><div class="v1524-detail-scroll"><table class="v1524-detail-table"><thead><tr><th>Fecha</th><th>Turno base</th><th>Evento</th><th>Cantidad</th><th>Horario</th><th>Detalle / motivo</th></tr></thead><tbody>${g.eventos.map(ev=>`<tr><td>${escHtml(dateRangeLabel(ev))}</td><td>${escHtml(ev.turno_base || '—')}</td><td>${escHtml(labelFor(ev.tipo))}</td><td>${escHtml(qtyLabel(ev))}</td><td>${escHtml(hoursLabel(ev))}</td><td>${escHtml(ev.motivo || ev.observacion || 'Sin detalle')}</td></tr>`).join('')}</tbody></table></div></section>`).join('') || '<div class="empty">Sin detalle de eventos.</div>';
       const monthName = window.MONTHS_ES?.[r.m-1] || String(r.m);
-      document.getElementById('modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" style="width:min(1240px,100%);max-height:92vh;overflow:auto"><div class="row-between"><div><h3>Informe mensual · Turnos y Novedades</h3><div class="muted">${escHtml(monthName)} ${r.y}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div><h4>Resumen de eventos por colaborador</h4><div class="muted">El resumen muestra únicamente cantidades por tipo de evento. El detalle se presenta agrupado por colaborador.</div><div class="v1524-report-summary"><table><thead><tr><th>Colaborador</th><th>Enc. dentro turno</th><th>Enc. fuera turno</th><th>Suspendido encierro</th><th>Días adicionales</th><th>Horas extra</th><th>Horas feriado</th><th>Vacaciones</th><th>Lic. médica</th><th>Falta / ausencia</th><th>Otros</th></tr></thead><tbody>${summaryRows}</tbody><tfoot><tr><td>TOTAL GENERAL</td><td>${r.total.encDentro}</td><td>${r.total.encFuera}</td><td>${r.total.suspendido}</td><td>${r.total.diasAdicionales}</td><td>${r.total.he.toFixed(1)} h</td><td>${r.total.hf.toFixed(1)} h</td><td>${r.total.vacaciones}</td><td>${r.total.licencias}</td><td>${r.total.faltas}</td><td>${r.total.otros}</td></tr></tfoot></table></div><h4 style="margin-top:18px">Listado de eventos con detalle</h4><div class="v1524-detail-groups">${detail}</div><div class="actions" style="margin-top:18px"><button class="btn" onclick="v1516ExportTurnReportExcel()">Exportar Excel</button><button class="btn primary" onclick="v1516ExportTurnReportPdf()">Generar PDF</button></div></div></div>`;
+      document.getElementById('modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" style="width:min(1240px,100%);max-height:92vh;overflow:auto"><div class="row-between"><div><h3>Informe mensual · Turnos y Novedades</h3><div class="muted">${escHtml(monthName)} ${r.y}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div><label class="v1524-report-user-filter">Colaborador<select class="field" onchange="v1524FilterTurnReport(this.value)"><option value="">Todos los colaboradores</option>${r.rows.map(row=>`<option value="${escHtml(row.uid)}">${escHtml(row.nombre)}</option>`).join('')}</select></label><h4>Resumen calendario</h4><div id="v1524ReportCalendars" class="v1524-report-calendars"></div><h4>Resumen de eventos por colaborador</h4><div class="muted">El resumen muestra únicamente cantidades por tipo de evento. El detalle se presenta agrupado por colaborador.</div><div class="v1524-report-summary"><table id="v1524ReportSummaryTable"><thead><tr><th>Colaborador</th><th>Enc. dentro turno</th><th>Enc. fuera turno</th><th>Suspendido encierro</th><th>Días adicionales</th><th>Horas extra</th><th>Horas feriado</th><th>Vacaciones</th><th>Lic. médica</th><th>Falta / ausencia</th><th>Otros</th></tr></thead><tbody>${summaryRows}</tbody><tfoot></tfoot></table></div><h4 style="margin-top:18px">Listado de eventos con detalle</h4><div class="v1524-detail-groups">${detail}</div><div class="actions" style="margin-top:18px"><button class="btn" onclick="v1516ExportTurnReportExcel()">Exportar Excel</button><button class="btn primary" onclick="v1516ExportTurnReportPdf()">Generar PDF</button></div></div></div>`;
+      window.state.v1524TurnReportUser='';renderReportCalendars();
     } catch (err) { window.toast?.(err.message || String(err),'error'); }
   };
 
   window.v1516ExportTurnReportExcel = function(){
     const r = window.state?.v1516TurnReport;
     if (!r || !window.XLSX) return;
-    const summary = [...r.rows.map(x=>({
+    const selected=reportRows(r),total=rowsTotal(selected);
+    const summary = [...selected.map(x=>({
       'Colaborador':x.nombre,
       'Encierro dentro de turno':x.encDentro,
       'Encierro fuera de turno':x.encFuera,
@@ -344,12 +399,13 @@
       'Falta / ausencia':x.faltas,
       'Otros':x.otros
     })),{
-      'Colaborador':'TOTAL GENERAL','Encierro dentro de turno':r.total.encDentro,'Encierro fuera de turno':r.total.encFuera,'Suspendido por encierro':r.total.suspendido,'Días adicionales':r.total.diasAdicionales,'Horas extra':r.total.he,'Horas feriado':r.total.hf,'Vacaciones':r.total.vacaciones,'Licencia médica':r.total.licencias,'Falta / ausencia':r.total.faltas,'Otros':r.total.otros
+      'Colaborador':'TOTAL SELECCIÓN','Encierro dentro de turno':total.encDentro,'Encierro fuera de turno':total.encFuera,'Suspendido por encierro':total.suspendido,'Días adicionales':total.diasAdicionales,'Horas extra':total.he,'Horas feriado':total.hf,'Vacaciones':total.vacaciones,'Licencia médica':total.licencias,'Falta / ausencia':total.faltas,'Otros':total.otros
     }];
-    const detail=[];
-    r.rows.forEach(g=>g.eventos.forEach(ev=>detail.push({'Colaborador':g.nombre,'Fecha / rango':dateRangeLabel(ev),'Turno base':ev.turno_base || '','Tipo de evento':labelFor(ev.tipo),'Cantidad':Number(ev.cantidad || 0),'Unidad':ev.unidad || '','Hora inicio':String(ev.hora_inicio || '').slice(0,5),'Hora término':String(ev.hora_fin || '').slice(0,5),'Detalle / motivo':ev.motivo || ev.observacion || ''})));
+    const detail=[],calendar=[];
+    selected.forEach(g=>{g.eventos.forEach(ev=>detail.push({'Colaborador':g.nombre,'Fecha / rango':dateRangeLabel(ev),'Turno base':ev.turno_base || '','Tipo de evento':labelFor(ev.tipo),'Cantidad':Number(ev.cantidad || 0),'Unidad':ev.unidad || '','Hora inicio':String(ev.hora_inicio || '').slice(0,5),'Hora término':String(ev.hora_fin || '').slice(0,5),'Detalle / motivo':ev.motivo || ev.observacion || ''}));calendarExportRows(r,g).forEach(day=>calendar.push({'Colaborador':g.nombre,'Fecha':day.date,'Día':day.day,'Turno base':day.base,'Novedades':day.events}))});
     const wb = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(summary),'Resumen por colaborador');
+    window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(calendar),'Calendario mensual');
     window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(detail),'Detalle agrupado');
     window.XLSX.writeFile(wb,`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}.xlsx`);
   };
@@ -358,20 +414,28 @@
     const r = window.state?.v1516TurnReport;
     const C = typeof window.ensurePdf === 'function' ? window.ensurePdf() : null;
     if (!r || !C) return window.toast?.('No se pudo cargar el generador PDF.','error');
-    const doc = new C({orientation:'landscape',unit:'mm',format:'a4'});
+    const selected=reportRows(r),total=rowsTotal(selected),doc = new C({orientation:'landscape',unit:'mm',format:'a4'});
     const monthName = window.MONTHS_ES?.[r.m-1] || String(r.m);
     window.pdfHeader?.(doc,'Informe Mensual de Turnos y Novedades',`${monthName} ${r.y}`);
     doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
-    doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...r.rows.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,x.he.toFixed(1),x.hf.toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL GENERAL',r.total.encDentro,r.total.encFuera,r.total.suspendido,r.total.diasAdicionales,r.total.he.toFixed(1),r.total.hf.toFixed(1),r.total.vacaciones,r.total.licencias,r.total.faltas,r.total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
+    doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,x.he.toFixed(1),x.hf.toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
+    selected.forEach(row=>{
+      doc.addPage();window.pdfHeader?.(doc,'Resumen calendario de turnos',`${row.nombre} · ${monthName} ${r.y}`);
+      const days=calendarExportRows(r,row),offset=(new Date(r.y,r.m-1,1).getDay()+6)%7,cells=[...Array(offset).fill(''),...days.map(day=>`${day.day}\n${day.base}${day.events?' · '+day.events:''}`)];
+      while(cells.length%7)cells.push('');
+      const weeks=[];for(let index=0;index<cells.length;index+=7)weeks.push(cells.slice(index,index+7));
+      doc.autoTable({startY:44,head:[['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']],body:weeks,styles:{fontSize:8,cellPadding:3,minCellHeight:22,textColor:[25,31,40],valign:'top'},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
+    });
     doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
     let y = 44;
-    r.rows.forEach(g=>{
+    selected.forEach(g=>{
       if (y > 175) { doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);y=44; }
       doc.setFontSize(9);doc.setFont(undefined,'bold');doc.text(g.nombre,14,y);doc.setFont(undefined,'normal');
       doc.autoTable({startY:y+3,head:[['Fecha','Turno','Evento','Cantidad','Horario','Detalle / motivo']],body:g.eventos.map(ev=>[dateRangeLabel(ev),ev.turno_base || '—',labelFor(ev.tipo),qtyLabel(ev),hoursLabel(ev),ev.motivo || ev.observacion || 'Sin detalle']),styles:{fontSize:7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]},columnStyles:{5:{cellWidth:96}}});
       y = (doc.lastAutoTable?.finalY || y+12) + 7;
     });
-    doc.save(`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}.pdf`);
+    const suffix=selected.length===1?'_'+selected[0].nombre.replace(/[^a-z0-9]+/gi,'_'):'';
+    doc.save(`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}${suffix}.pdf`);
   };
 
   function enhancePage(){
