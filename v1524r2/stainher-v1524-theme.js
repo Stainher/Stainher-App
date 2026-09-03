@@ -20,15 +20,180 @@
     [data-theme="light"] th{color:#344054}[data-theme="light"] th,[data-theme="light"] td{border-color:#d7dee8}
     [data-theme="light"] .gantt-table thead th,[data-theme="light"] .gantt-table .gantt-equipo,[data-theme="light"] .gantt-table .gantt-actividad{background:#eef3f8;color:#182230}
     [data-theme="light"] .btn.primary{color:#fff}[data-theme="light"] .muted,[data-theme="light"] small{color:var(--muted)}
+
+    /* Cobertura final para componentes históricos con colores oscuros literales. */
+    [data-theme="light"] .topbar,[data-theme="light"] .mobile-topbar,[data-theme="light"] .mobile-header,
+    [data-theme="light"] header.app-header,[data-theme="light"] .page-header{background:#fff!important;color:#182230!important;border-color:var(--line)!important}
+    [data-theme="light"] .topbar h1,[data-theme="light"] .topbar h2,[data-theme="light"] .mobile-topbar h1,
+    [data-theme="light"] .mobile-header h1,[data-theme="light"] .page-header h1,[data-theme="light"] .page-header h2{color:#182230!important}
+    [data-theme="light"] .crew-card,[data-theme="light"] .dotacion-card,[data-theme="light"] .group-card,
+    [data-theme="light"] .summary-card,[data-theme="light"] .reminder-card,[data-theme="light"] .alert-card,
+    [data-theme="light"] .upcoming-card,[data-theme="light"] .birthday-card{background:#fff!important;color:#182230!important;border-color:var(--line)!important}
+    [data-theme="light"] .crew-card h3,[data-theme="light"] .crew-card h4,[data-theme="light"] .dotacion-card h3,
+    [data-theme="light"] .group-card h3,[data-theme="light"] .reminder-card h3,[data-theme="light"] .alert-card h3,
+    [data-theme="light"] .upcoming-card h3,[data-theme="light"] .birthday-card h3{color:#182230!important}
+    [data-theme="light"] .turnos-legend,[data-theme="light"] .turnos-table thead th,
+    [data-theme="light"] .turnos-table tbody th,[data-theme="light"] .turnos-table .worker-cell,
+    [data-theme="light"] .v1512-turn-grid thead th,[data-theme="light"] .v1512-turn-grid tbody th,
+    [data-theme="light"] .v1512-turn-grid .worker-cell{background:#eef3f8!important;color:#182230!important;border-color:#d7dee8!important}
+    [data-theme="light"] .turnos-legend span,[data-theme="light"] .turnos-table tbody th *,
+    [data-theme="light"] .turnos-table .worker-cell *{color:#344054!important}
+    [data-theme="light"] .event-card,[data-theme="light"] .event-card *{color:#344054}
+    [data-theme="light"] .event-card{background:#fff!important}
+    [data-theme="light"] .event-card h3,[data-theme="light"] .event-card h4,[data-theme="light"] .event-card strong{color:#182230!important}
+
+    /* Auditoría transversal: superficies históricas de todos los módulos. */
+    [data-theme="light"] .home-datebox,[data-theme="light"] .home-kpi,[data-theme="light"] .home-panel,
+    [data-theme="light"] .home-equipment-mini,[data-theme="light"] .home-alert-card,[data-theme="light"] .home-contract-item,
+    [data-theme="light"] .v1521-home-person,[data-theme="light"] .v1522-home-person,[data-theme="light"] .v1524-home-person,
+    [data-theme="light"] .control-card-v95,[data-theme="light"] .leadership-card,[data-theme="light"] .v11-eval,
+    [data-theme="light"] .v11-system-card,[data-theme="light"] .v12-person-card,[data-theme="light"] .v13-check-section,
+    [data-theme="light"] .v13-doc-details,[data-theme="light"] .v13-usage-item,[data-theme="light"] .v15-check-card,
+    [data-theme="light"] .v15-summary-card,[data-theme="light"] .v1512-mini-kpi,[data-theme="light"] .v1512-record-card,
+    [data-theme="light"] .v1516-user-card,[data-theme="light"] .v1517-own-kpis,[data-theme="light"] .v1519-prev-card,
+    [data-theme="light"] .v152-request-card,[data-theme="light"] .v1520-contract-card,[data-theme="light"] .v1523-user-card,
+    [data-theme="light"] .v155-group-card,[data-theme="light"] .v155-person-card,[data-theme="light"] .v156-page-card,
+    [data-theme="light"] .v156-person-card,[data-theme="light"] .v157-ext-card,[data-theme="light"] .v157-group,
+    [data-theme="light"] .v158-review-block,[data-theme="light"] .v158-review-kpi,[data-theme="light"] .v158-user-card{
+      background:#fff!important;color:#182230!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .contract-tabs,[data-theme="light"] .v1519-contract-tabs,[data-theme="light"] .v154-corr-tabs-fixed,
+    [data-theme="light"] .v156-nav,[data-theme="light"] .v157-nav,[data-theme="light"] .v157-user-menu,
+    [data-theme="light"] .v1519-action-pop,[data-theme="light"] .v1519-inventory-details,
+    [data-theme="light"] .v1523-prev-equipment-group,[data-theme="light"] .v1523-turn-day-detail{
+      background:#f8fafc!important;color:#182230!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .contract-tab.active,[data-theme="light"] .v1519-contract-tabs .btn.active,
+    [data-theme="light"] .prev-view-tab.active,[data-theme="light"] .v1520-tabs .btn.active{
+      background:#dbeafe!important;color:#12345b!important;border-color:#86b7ef!important
+    }
+    [data-theme="light"] .v151-mobile-head,[data-theme="light"] .v151-mobile-bottom,
+    [data-theme="light"] .v15-mobile-toolbar,[data-theme="light"] .v157-user-trigger{
+      background:#fff!important;color:#182230!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .v151-mobile-head h1,[data-theme="light"] .v151-mobile-head h2,
+    [data-theme="light"] .v151-mobile-bottom button,[data-theme="light"] .v15-mobile-toolbar button{color:#182230!important}
+    [data-theme="light"] .v151-mobile-bottom button.active{background:#e7eef7!important;color:#101828!important}
+    [data-theme="light"] .v1512-turn-legend,[data-theme="light"] .v1524-compact-legend,
+    [data-theme="light"] .v1512-turn-wrap,[data-theme="light"] .v1520-turn-matrix,
+    [data-theme="light"] .v1520-turn-calendar,[data-theme="light"] .v1520-gantt,
+    [data-theme="light"] .v1519-gantt-wrap,[data-theme="light"] .v1523-prev-day-grid{
+      background:#fff!important;color:#182230!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .v1512-turn-table th,[data-theme="light"] .v1512-turn-table td:first-child,
+    [data-theme="light"] .v1520-turn-matrix th,[data-theme="light"] .v1520-turn-matrix td:first-child,
+    [data-theme="light"] .v1520-weekday,[data-theme="light"] .v1520-gantt th,
+    [data-theme="light"] .v1520-gantt td:first-child,[data-theme="light"] .v1519-gantt th,
+    [data-theme="light"] .v1519-gantt td,[data-theme="light"] .v1519-gantt .sticky1,
+    [data-theme="light"] .v1519-gantt .sticky2,[data-theme="light"] .v1519-gantt .sticky3,
+    [data-theme="light"] .v1523-prev-day-grid thead th,[data-theme="light"] .v1523-prev-day-grid .equipment,
+    [data-theme="light"] .v1523-audit-table th:first-child,[data-theme="light"] .v1523-audit-table td:first-child{
+      background:#eef3f8!important;color:#182230!important;border-color:#d7dee8!important
+    }
+    [data-theme="light"] .v1520-day,[data-theme="light"] .v1523-reemb-grid-row,
+    [data-theme="light"] .v1523-turn-person,[data-theme="light"] .v1523-turn-event,
+    [data-theme="light"] .v1521-gantt-unplanned-item,[data-theme="light"] .v1523-prev-unplanned-group{
+      background:#fff!important;color:#182230!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .v1520-table th,[data-theme="light"] .v1523-reemb-grid-head,
+    [data-theme="light"] .v1523-prev-equipment-head{background:#eef3f8!important;color:#344054!important}
+    [data-theme="light"] .v1523-prev-period-note,[data-theme="light"] .v1519-period-summary,
+    [data-theme="light"] .v1512-period-note,[data-theme="light"] .edp-period-note,
+    [data-theme="light"] .sap-note{background:#edf4fb!important;color:#344054!important;border-color:#a9bfd8!important}
+    [data-theme="light"] .v11-permission-grid,[data-theme="light"] .permission-grid,
+    [data-theme="light"] .v12-form-table,[data-theme="light"] .v13-fatigue-table,
+    [data-theme="light"] .edp-table-v8,[data-theme="light"] .admin-table,[data-theme="light"] .inventory-table{
+      color:#182230!important;border-color:#d7dee8!important
+    }
+    [data-theme="light"] .global-meta .meta-chip,[data-theme="light"] .v1514-global-meta .meta-chip,
+    [data-theme="light"] .v15-version-chip,[data-theme="light"] .v1513-version-meta,
+    [data-theme="light"] .v1518-weekday,[data-theme="light"] .v1523-prev-view-badge{
+      background:#eef3f8!important;color:#344054!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .modal-bg{background:rgba(15,23,42,.38)}
+    [data-theme="light"] .v1521-review-page{background:#f3f6fa!important;color:#182230!important}
+    [data-theme="light"] .v158-review-actions{background:#fff!important;border-color:var(--line)!important}
+    [data-theme="light"] .field,[data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea,
+    [data-theme="light"] .inline-field,[data-theme="light"] .inline-input,[data-theme="light"] .inline-select{
+      background:#fff!important;color:#182230!important;border-color:#aebac8!important
+    }
+    [data-theme="light"] input::placeholder,[data-theme="light"] textarea::placeholder{color:#667085!important;opacity:1}
+    [data-theme="light"] .panel h1,[data-theme="light"] .panel h2,[data-theme="light"] .panel h3,[data-theme="light"] .panel h4,
+    [data-theme="light"] .home-panel h1,[data-theme="light"] .home-panel h2,[data-theme="light"] .home-panel h3,
+    [data-theme="light"] .contract-card h3,[data-theme="light"] .contract-card h4,
+    [data-theme="light"] .equipment-card h3,[data-theme="light"] .equipment-card h4,
+    [data-theme="light"] .vehicle-card h3,[data-theme="light"] .vehicle-card h4{color:#182230!important}
+    [data-theme="light"] .forecast-filter-v9,[data-theme="light"] .forecast-month-summary-v8,
+    [data-theme="light"] .latest-ep-card,[data-theme="light"] .merged-equipment,[data-theme="light"] .reimb-primary-v9,
+    [data-theme="light"] .section-v95,[data-theme="light"] .terrain-check-v95,[data-theme="light"] .terrain-form-v95,
+    [data-theme="light"] .v11-group-title,[data-theme="light"] .v11-terrain-head,[data-theme="light"] .v12-doc,
+    [data-theme="light"] .v14-license-options,[data-theme="light"] .v15-change,[data-theme="light"] .v15-event,
+    [data-theme="light"] .v15-wizard,[data-theme="light"] .v151-alert,[data-theme="light"] .v151-crew,
+    [data-theme="light"] .v151-detail-item,[data-theme="light"] .v151-dot-kpi,[data-theme="light"] .v151-event,
+    [data-theme="light"] .v151-person-row,[data-theme="light"] .v1512-person-mobile,
+    [data-theme="light"] .v1512-signature-frame,[data-theme="light"] .v1513-turn-period-value,
+    [data-theme="light"] .v1514-import-stat,[data-theme="light"] .v1517-profile-flags,
+    [data-theme="light"] .v152-alert-card,[data-theme="light"] .v153-person-row,[data-theme="light"] .v153-report-options,
+    [data-theme="light"] .v153-scope,[data-theme="light"] .v154-check-group,[data-theme="light"] .v154-doc-row,
+    [data-theme="light"] .v154-notification,[data-theme="light"] .v154-perm-row,[data-theme="light"] .v154-sign-full,
+    [data-theme="light"] .v154-signature-box,[data-theme="light"] .v156-changes,[data-theme="light"] .v159-gantt-equipment{
+      background:#fff!important;color:#182230!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .control-number-v95,[data-theme="light"] .iva-total-v8,[data-theme="light"] .no-store-v95,
+    [data-theme="light"] .terrain-status-v95,[data-theme="light"] .v11-readonly-badge,[data-theme="light"] .v11-readonly-note,
+    [data-theme="light"] .v15-type,[data-theme="light"] .v151-pill,[data-theme="light"] .v152-request-type,
+    [data-theme="light"] .v154-status-badge,[data-theme="light"] .v157-seg,[data-theme="light"] .v158-choice{
+      background:#eef3f8!important;color:#344054!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .v151-menu-btn,[data-theme="light"] .v15-notify-btn,
+    [data-theme="light"] .v154-check-choice,[data-theme="light"] .v157-ext-check{
+      background:#f8fafc!important;color:#182230!important;border-color:var(--line)!important
+    }
+    [data-theme="light"] .v1512-turn-cell,[data-theme="light"] .v159-gantt-item{color:#182230}
+    [data-theme="light"] .v1518-nav-icon{background:#e7eef7!important;color:#1769c2!important}
+    [data-theme="light"] .v156-progress,[data-theme="light"] .v157-progress{background:#dfe7f0!important}
+    [data-theme="light"] .vehicle-photo-main{background:#eef3f8!important;border-color:var(--line)!important}
+    [data-theme="light"] .btn.active,[data-theme="light"] button[aria-selected="true"],
+    [data-theme="light"] [role="tab"].active,[data-theme="light"] [role="tab"][aria-selected="true"]{
+      background:#dbeafe!important;color:#12345b!important;border-color:#86b7ef!important;
+      box-shadow:inset 0 0 0 1px rgba(23,105,194,.12)
+    }
+    [data-theme="dark"] .btn.active,[data-theme="dark"] button[aria-selected="true"],
+    [data-theme="dark"] [role="tab"].active,[data-theme="dark"] [role="tab"][aria-selected="true"]{
+      background:#202c3b;color:#fff;border-color:#5b789c
+    }
+
     .stainher-theme-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin:8px 0 0;min-height:40px}
     .v157-user-menu .stainher-theme-toggle{margin:0;text-align:left;justify-content:flex-start}
     @media(max-width:760px){.userbox>.stainher-theme-toggle{width:auto;min-width:150px}}
   `;
   function preference(){try{const v=localStorage.getItem(KEY);if(v===DARK||v===LIGHT)return v}catch(_){ }return matchMedia?.('(prefers-color-scheme: light)').matches?LIGHT:DARK}
   function refreshCharts(value){if(!window.Chart)return;Chart.defaults.color=value===LIGHT?'#344054':'#cbd5e1';Chart.defaults.borderColor=value===LIGHT?'rgba(71,84,103,.2)':'rgba(148,163,184,.16)';for(const chart of Object.values(window.state?.charts||{}))try{chart?.update?.('none')}catch(_){ }}
+  const TAB_HOSTS='.nav,.v151-mobile-bottom,.prev-view-tabs,.contract-tabs,.v1512-lead-tabs,.v1519-corr-tabs,.v1516-corr-top-tabs,.v153-corr-tabs,.v154-corr-tabs-fixed,.v1520-tabs,.v156-nav,.v157-nav,[role="tablist"]';
+  function tabIdentity(button){return button.dataset.page||button.dataset.tab||button.dataset.view||button.getAttribute('onclick')||button.textContent.trim()}
+  function syncActiveTab(button){
+    const host=button.closest(TAB_HOSTS);if(!host)return;
+    const page=host.closest('.page'),hostId=host.id||'',hostClass=[...host.classList].find(x=>!['active','hidden'].includes(x))||'',identity=tabIdentity(button);
+    const update=()=>{let current=host.isConnected?host:null;if(!current&&hostId)current=document.getElementById(hostId);if(!current&&page?.id&&hostClass)current=document.querySelector(`#${CSS.escape(page.id)} .${CSS.escape(hostClass)}`);if(!current&&hostClass)current=document.querySelector(`.${CSS.escape(hostClass)}`);if(!current)return;const buttons=[...current.querySelectorAll('button,[role="tab"]')],selected=buttons.find(x=>tabIdentity(x)===identity);if(!selected)return;buttons.forEach(x=>{const active=x===selected;x.classList.toggle('active',active);if(x.matches('[role="tab"],.contract-tab,.prev-view-tab,.btn'))x.setAttribute('aria-selected',String(active))})};
+    update();queueMicrotask(update);requestAnimationFrame(()=>requestAnimationFrame(update));setTimeout(update,80)
+  }
   function apply(theme,persist=false){const value=theme===LIGHT?LIGHT:DARK;document.documentElement.dataset.theme=value;if(persist)try{localStorage.setItem(KEY,value)}catch(_){ }document.querySelectorAll('[data-stainher-theme-toggle]').forEach(b=>{b.innerHTML=value===DARK?'☀ Tema claro':'☾ Tema oscuro';b.setAttribute('aria-label',value===DARK?'Activar tema claro':'Activar tema oscuro');b.setAttribute('aria-pressed',String(value===LIGHT))});refreshCharts(value);window.dispatchEvent(new CustomEvent('stainher:theme-change',{detail:{theme:value}}));}
   function ensureToggle(){const accountMenu=document.getElementById('v157UserMenu'),host=accountMenu||document.querySelector('.userbox');if(!host||host.querySelector('[data-stainher-theme-toggle]'))return;const b=document.createElement('button');b.type='button';b.className=accountMenu?'stainher-theme-toggle':'logout stainher-theme-toggle';b.dataset.stainherThemeToggle='1';b.onclick=()=>apply(document.documentElement.dataset.theme===DARK?LIGHT:DARK,true);if(accountMenu)host.insertBefore(b,host.querySelector('.danger'));else host.insertBefore(b,document.getElementById('logoutBtn'));apply(document.documentElement.dataset.theme||preference())}
-  function install(){if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;new MutationObserver(ensureToggle).observe(root,{childList:true,subtree:true});apply(document.documentElement.dataset.theme||preference())}
+  function install(){if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;new MutationObserver(ensureToggle).observe(root,{childList:true,subtree:true});document.addEventListener('click',event=>{const button=event.target.closest?.('button,[role="tab"]');if(button?.closest(TAB_HOSTS))syncActiveTab(button)},true);apply(document.documentElement.dataset.theme||preference())}
   apply(preference());if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   window.StainherTheme=Object.freeze({set:t=>apply(t,true),get:()=>document.documentElement.dataset.theme});
+})();
+
+/* V15.24 · carga coordinada de correcciones globales publicadas el 03-09-2026. */
+(()=>{
+  const source=document.currentScript?.src||location.href;
+  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js'];
+  modules.forEach(file=>{
+    if(document.querySelector(`script[data-stainher-module="${file}"]`))return;
+    const script=document.createElement('script');
+    script.src=new URL(file,source).href+'?v=20260903';
+    script.defer=true;
+    script.dataset.stainherModule=file;
+    document.head.appendChild(script);
+  });
 })();
