@@ -38,7 +38,8 @@
     node.querySelector('.stainher-disclosure-title').textContent=title;return node;
   }
   function forceStaffingSummary(details){
-    if(!details?.matches?.('#page-inicio .v1521-home-turn,#page-inicio .stainher-home-staffing,[data-stainher-home-panel="staffing"]')&&!details?.querySelector?.('.v1521-home-turn,.stainher-home-staffing,[data-stainher-home-panel="staffing"]'))return false;
+    const content=norm(details?.textContent);
+    if(!details?.matches?.('#page-inicio .v1521-home-turn,#page-inicio .stainher-home-staffing,[data-stainher-home-panel="staffing"]')&&!details?.querySelector?.('.v1521-home-turn,.v1524-home-kpis,.v1524-home-shifts,.stainher-home-staffing,[data-stainher-home-panel="staffing"]')&&!/Dotación en turno hoy|Personal de turno hoy/i.test(content))return false;
     const old=details.querySelector(':scope > summary');if(!old)return false;
     let label=old.querySelector('.stainher-disclosure-title,.stainher-home-collapse-summary>span:not(.stainher-disclosure-marker):not(.stainher-home-collapse-chevron)');
     if(!label){
@@ -47,7 +48,7 @@
       old.appendChild(label);
     }
     label.classList.add('stainher-disclosure-title');label.textContent='Dotación en turno hoy';
-    details.classList.add('v1521-home-turn','stainher-home-staffing');
+    details.classList.remove('v1521-home-turn');details.classList.add('stainher-home-staffing');
     details.dataset.stainherHomePanel='staffing';details.setAttribute('aria-label','Dotación en turno hoy');
     return true;
   }
@@ -74,13 +75,15 @@
     if(element.tagName==='DETAILS'){normalizeExisting(element,title);return}
     if(element.dataset.stainherCollapsible==='1')return;
     const details=document.createElement('details');
-    details.className=`${element.className} stainher-disclosure`.trim();
+    const staffing=element.matches('#page-inicio .v1521-home-turn,#page-inicio .stainher-home-staffing,[data-stainher-home-panel="staffing"]')||/Dotación en turno hoy|Personal de turno hoy/i.test(title);
+    const inherited=[...element.classList].filter(name=>!staffing||name!=='v1521-home-turn').join(' ');
+    details.className=`${inherited} stainher-disclosure${staffing?' stainher-home-staffing':''}`.trim();
     for(const attr of [...element.attributes])if(!['class','open'].includes(attr.name))details.setAttribute(attr.name,attr.value);
     details.dataset.stainherCollapsible='1';details.dataset.stainherDisclosure='1';
     const stateKey=keyFor(element,title);details.open=savedOpen(stateKey);
     const content=document.createElement('div');content.className='stainher-disclosure-content';
-    const heading=titleNode(element);if(heading)heading.remove();
-    while(element.firstChild)content.appendChild(element.firstChild);
+    if(staffing){element.dataset.noCollapse='1';element.dataset.stainherRenderHost='staffing';content.appendChild(element);details.dataset.stainherHomePanel='staffing'}
+    else{const heading=titleNode(element);if(heading)heading.remove();while(element.firstChild)content.appendChild(element.firstChild)}
     details.append(summary(title),content);element.replaceWith(details);
     details.addEventListener('toggle',()=>{});
   }
@@ -116,6 +119,8 @@
       .stainher-disclosure-title{min-width:0;overflow-wrap:anywhere;font-weight:500!important}
       .stainher-disclosure-content{min-width:0;padding-top:12px;border-top:1px solid var(--line,#334155)}
       .stainher-disclosure-content>:first-child{margin-top:0}
+      #page-inicio details.stainher-home-staffing>.stainher-disclosure-content>.v1521-home-turn>h3,
+      #page-inicio details.stainher-home-staffing>.stainher-disclosure-content>.v1521-home-turn>.row-between>div>h3{display:none!important}
       .stainher-development-credit-body{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(0,1fr);gap:8px 14px;padding-top:12px;border-top:1px solid var(--line,#334155)}
       .stainher-development-credit-body span{color:var(--muted,#94a3b8)}
       .stainher-development-credit-body div{color:var(--text,#fff);font-weight:400}

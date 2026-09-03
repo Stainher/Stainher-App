@@ -51,7 +51,9 @@
       ||candidates.find(panel=>/^Detalles$/i.test(clean(panel.querySelector(':scope>summary .stainher-disclosure-title,:scope>summary'))))
       ||(candidates.length===1?candidates[0]:null);
     if(staffingPanel){
-      staffingPanel.classList.add('v1521-home-turn','stainher-home-staffing');
+      if(staffingPanel.tagName==='DETAILS')staffingPanel.classList.remove('v1521-home-turn');
+      else staffingPanel.classList.add('v1521-home-turn');
+      staffingPanel.classList.add('stainher-home-staffing');
       staffingPanel.dataset.stainherHomePanel='staffing';
       staffingPanel.setAttribute('aria-label','Dotación en turno hoy');
       const summary=staffingPanel.querySelector(':scope>summary .stainher-disclosure-title,:scope>summary>span:first-of-type');

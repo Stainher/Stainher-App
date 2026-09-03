@@ -11,17 +11,36 @@
     const style = document.createElement('style');
     style.id = 'stainher-v1524-turn-legend-style';
     style.textContent = `
-      #page-turnos .v1512-turn-legend.v1524-compact-legend{
+      #page-turnos .v1524-turn-legend-host{
         display:block!important;
-        width:100%!important;
-        max-width:100%!important;
-        box-sizing:border-box!important;
         position:sticky!important;
         top:8px!important;
-        z-index:70!important;
+        z-index:980!important;
+        width:100%!important;
+        max-width:100%!important;
+        min-height:0!important;
+        height:auto!important;
+        margin:8px 0 10px!important;
+        padding:0!important;
+        overflow-x:auto!important;
+        overflow-y:hidden!important;
+        overscroll-behavior-x:contain!important;
+        -webkit-overflow-scrolling:touch!important;
+        box-sizing:border-box!important;
+      }
+      #page-turnos .v1512-turn-legend.v1524-compact-legend{
+        display:block!important;
+        width:max-content!important;
+        min-width:100%!important;
+        max-width:none!important;
+        box-sizing:border-box!important;
+        position:relative!important;
+        top:auto!important;
+        left:auto!important;
+        z-index:1!important;
         align-items:stretch!important;
         gap:8px 12px!important;
-        overflow:hidden!important;
+        overflow:visible!important;
         white-space:normal!important;
         padding:10px 12px!important;
         background:var(--panel,#0d151e)!important;
@@ -32,7 +51,7 @@
         box-shadow:0 5px 14px rgba(16,24,40,.10)!important;
       }
       @media(max-width:900px){
-        #page-turnos .v1512-turn-legend.v1524-compact-legend{
+        #page-turnos .v1524-turn-legend-host{
           top:calc(58px + env(safe-area-inset-top,0px))!important;
           z-index:980!important;
         }
@@ -44,8 +63,10 @@
       }
       #page-turnos .v1524-compact-legend .v1524-legend-items{
         display:grid!important;
-        grid-template-columns:repeat(3,minmax(0,1fr))!important;
-        grid-auto-flow:row!important;
+        grid-template-rows:repeat(3,minmax(28px,auto))!important;
+        grid-template-columns:none!important;
+        grid-auto-columns:minmax(150px,1fr)!important;
+        grid-auto-flow:column!important;
         gap:8px 12px!important;
         width:100%!important;
         max-width:100%!important;
@@ -79,7 +100,10 @@
           padding:9px 10px!important;
         }
         #page-turnos .v1524-compact-legend .v1524-legend-items{
-          grid-template-columns:repeat(3,minmax(0,1fr))!important;
+          grid-template-rows:repeat(3,minmax(27px,auto))!important;
+          grid-template-columns:none!important;
+          grid-auto-columns:minmax(126px,1fr)!important;
+          grid-auto-flow:column!important;
           gap:7px 6px!important;
         }
         #page-turnos .v1524-compact-legend .v1524-legend-items>span{
@@ -114,8 +138,11 @@
   function detachFromCalendarScroll(legend){
     const page=document.getElementById('page-turnos');
     if(!legend||!page)return;
+    const oldParent=legend.parentElement;
     const firstCell=page.querySelector('.v1520-turn-cell,.v1512-turn-cell,.v1512-day-mini');
-    let boundary=firstCell?.closest('.v1512-turn-wrap,.v1512-clean-table-wrap,.v1520-turn-matrix,.v1523-scroll-region,.table-wrap');
+    const table=page.querySelector('.v1512-turn-table,.v1520-turn-table,table');
+    let boundary=table?.closest('.v1512-turn-wrap,.v1512-clean-table-wrap,.v1520-turn-matrix,.v1523-scroll-region,.table-wrap');
+    if(!boundary) boundary=firstCell?.closest('.v1512-turn-wrap,.v1512-clean-table-wrap,.v1520-turn-matrix,.v1523-scroll-region,.table-wrap');
     if(!boundary&&firstCell){
       let node=firstCell.parentElement;
       while(node&&node!==page){
@@ -124,8 +151,14 @@
         node=node.parentElement;
       }
     }
-    if(!boundary) boundary=firstCell?.closest('table,.v1512-turn-grid,.v1520-turn-grid,.v1512-calendar,.v1520-calendar,.calendar-grid');
-    if(boundary?.parentElement&&legend!==boundary.previousElementSibling) boundary.insertAdjacentElement('beforebegin',legend);
+    if(!boundary) boundary=table||firstCell?.closest('table,.v1512-turn-grid,.v1520-turn-grid,.v1512-calendar,.v1520-calendar,.calendar-grid');
+    if(!boundary?.parentElement)return;
+    let host=page.querySelector(':scope .v1524-turn-legend-host');
+    if(!host){host=document.createElement('div');host.className='v1524-turn-legend-host';host.setAttribute('aria-label','Glosa de turnos')}
+    if(host!==boundary.previousElementSibling) boundary.insertAdjacentElement('beforebegin',host);
+    if(legend.parentElement!==host) host.appendChild(legend);
+    if(oldParent&&oldParent!==page&&oldParent!==host&&!oldParent.children.length&&!String(oldParent.textContent||'').trim()) oldParent.remove();
+    host.scrollLeft=0;
     legend.scrollLeft=0;
   }
 

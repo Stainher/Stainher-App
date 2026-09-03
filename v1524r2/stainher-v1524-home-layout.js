@@ -41,7 +41,7 @@
     if(!marker)return;
     const details=[marker.matches('details')?marker:null,marker.closest('details'),...page.querySelectorAll('details')].filter((node,index,list)=>node&&list.indexOf(node)===index&&(node===marker||node.contains(marker)));
     details.forEach(disclosure=>{
-      disclosure.classList.add('v1521-home-turn','stainher-home-staffing');disclosure.dataset.stainherHomePanel='staffing';disclosure.setAttribute('aria-label','Dotación en turno hoy');
+      disclosure.classList.remove('v1521-home-turn');disclosure.classList.add('stainher-home-staffing');disclosure.dataset.stainherHomePanel='staffing';disclosure.setAttribute('aria-label','Dotación en turno hoy');
       const summary=disclosure.querySelector(':scope>summary');if(!summary)return;
       let node=summary.querySelector('.stainher-disclosure-title,.stainher-home-collapse-summary>span:not(.stainher-disclosure-marker):not(.stainher-home-collapse-chevron),span:not(.stainher-disclosure-marker):not(.stainher-home-collapse-chevron)');
       if(!node){node=document.createElement('span');node.className='stainher-disclosure-title';[...summary.childNodes].filter(child=>child.nodeType===Node.TEXT_NODE&&cleanText(child)).forEach(child=>child.remove());summary.appendChild(node)}
@@ -55,8 +55,8 @@
     const staffing=findStaffing(page);
     const alerts=directPanel(page,'.v153-home-alert-panel');
     if(staffing){
-      staffing.classList.add('v1521-home-turn','stainher-home-staffing');
-      staffing.dataset.stainherHomePanel='staffing';
+      if(staffing.tagName==='DETAILS'){staffing.classList.remove('v1521-home-turn');staffing.classList.add('stainher-home-staffing');staffing.dataset.stainherHomePanel='staffing'}
+      else{staffing.classList.add('v1521-home-turn','stainher-home-staffing');staffing.dataset.stainherHomePanel='staffing'}
     }
     setDisclosureTitle(staffing,'Dotación en turno hoy');
     enforceStaffingTitle(page);
