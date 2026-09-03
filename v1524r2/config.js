@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260903-initial-route-r11';
+window.STAINHER_BUILD = 'V15.24-20260903-login-unblock-r12';
 
 /* Stainher App V15.24 · arranque visual estable en Inicio.
  * Este bloque se ejecuta desde config.js antes del primer renderizado visible.
@@ -25,16 +25,23 @@ window.STAINHER_BUILD = 'V15.24-20260903-initial-route-r11';
   `;
   document.head.appendChild(style);
 
-  let observer;
+  let observer,completed=false;
   function activateInicio(){
+    if(completed)return true;
     if(!window.matchMedia?.('(max-width:900px)').matches){
-      document.documentElement.dataset.stainherInitialRouteReady='1';
+      completed=true;
       observer?.disconnect();
+      document.documentElement.dataset.stainherInitialRouteReady='1';
       return true;
     }
     const page=document.getElementById('page-inicio');
     const title=document.getElementById('v151MobileTitle');
     if(!page||!title)return false;
+
+    /* Detener antes de modificar el DOM: cambiar el título también genera una
+     * mutación y Safari podía encadenar el observador indefinidamente. */
+    completed=true;
+    observer?.disconnect();
 
     document.querySelectorAll('.page[id^="page-"]').forEach(node=>{
       const selected=node===page;
@@ -50,13 +57,12 @@ window.STAINHER_BUILD = 'V15.24-20260903-initial-route-r11';
       button.classList.toggle('active',selected);
       button.setAttribute('aria-current',selected?'page':'false');
     });
-    title.textContent='⌂ Inicio';
+    if(title.textContent!=='⌂ Inicio')title.textContent='⌂ Inicio';
     const version=title.closest('.v151-mobile-title')?.querySelector('small');
     if(version)version.textContent='Stainher App · V15.24';
 
     requestAnimationFrame(()=>{
       document.documentElement.dataset.stainherInitialRouteReady='1';
-      observer?.disconnect();
     });
     return true;
   }
@@ -65,6 +71,7 @@ window.STAINHER_BUILD = 'V15.24-20260903-initial-route-r11';
   observer.observe(document.documentElement,{childList:true,subtree:true});
   if(!activateInicio())document.addEventListener('DOMContentLoaded',activateInicio,{once:true});
   setTimeout(()=>{
+    completed=true;
     document.documentElement.dataset.stainherInitialRouteReady='1';
     observer?.disconnect();
   },2500);
