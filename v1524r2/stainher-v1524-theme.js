@@ -510,7 +510,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?v=20260903-r15';script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?v=20260903-r19';script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
