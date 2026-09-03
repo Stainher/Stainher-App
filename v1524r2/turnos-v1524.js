@@ -94,6 +94,12 @@
       .v1524-calendar-shift.base-A{color:#7db8ff;background:rgba(59,130,246,.16)}.v1524-calendar-shift.base-C{color:#70d99c;background:rgba(34,197,94,.14)}.v1524-calendar-shift.base-L{color:#b8c1cc;background:rgba(148,163,184,.14)}
       .v1524-calendar-events{display:block;min-height:13px;padding-top:3px;border-top:1px solid var(--line);font-size:8px;line-height:1.15;color:var(--muted);overflow-wrap:anywhere}
       .v1524-calendar-day.empty-day{visibility:hidden}
+      .v1524-full-calendar{width:100%;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel,#0d141c)}
+      .v1524-full-calendar table{width:100%;min-width:1180px;border-collapse:collapse;table-layout:fixed}
+      .v1524-full-calendar th,.v1524-full-calendar td{height:34px;padding:3px;border:1px solid var(--line);text-align:center;font-size:8px;font-weight:400}
+      .v1524-full-calendar th:first-child,.v1524-full-calendar td:first-child{position:sticky;left:0;z-index:2;width:155px;padding:5px 7px;text-align:left;background:var(--panel,#0d141c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .v1524-full-calendar thead th{background:var(--panel2,#151f2a);color:var(--muted)}
+      .v1524-full-cell{display:grid;gap:2px;justify-items:center}.v1524-full-cell>i{font-style:normal;font-size:10px}.v1524-full-cell>small{width:100%;padding-top:2px;border-top:1px solid var(--line);font-size:6px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       @media(max-width:700px){
         .v1524-day-modal .form-grid{grid-template-columns:1fr!important}
         .v1524-day-modal .form-grid>*{grid-column:1!important}
@@ -363,9 +369,17 @@
     }
     return `<section class="v1524-user-calendar"><h4>${escHtml(row.nombre)}</h4><div class="v1524-calendar-week"><b>Lun</b><b>Mar</b><b>Mié</b><b>Jue</b><b>Vie</b><b>Sáb</b><b>Dom</b>${cells.join('')}</div></section>`;
   }
+  function fullCalendarHtml(r,rows){
+    const days=new Date(r.y,r.m,0).getDate();
+    const head=Array.from({length:days},(_,i)=>`<th>${i+1}</th>`).join('');
+    const body=rows.map(row=>`<tr><td title="${escHtml(row.nombre)}">${escHtml(row.nombre)}</td>${Array.from({length:days},(_,i)=>{const day=i+1,date=`${r.y}-${String(r.m).padStart(2,'0')}-${String(day).padStart(2,'0')}`,base=row.turnos?.get(date)||'—',events=[...new Set(eventCodesOn(row,date))].join(' · ');return `<td><span class="v1524-full-cell"><i>${escHtml(base)}</i><small>${events?escHtml(events):'&nbsp;'}</small></span></td>`}).join('')}</tr>`).join('');
+    return `<section class="v1524-full-calendar"><table><thead><tr><th>Colaborador</th>${head}</tr></thead><tbody>${body}</tbody></table></section>`;
+  }
   function renderReportCalendars(){
     const r=window.state?.v1516TurnReport,host=document.getElementById('v1524ReportCalendars');if(!r||!host)return;
-    const rows=reportRows(r);host.innerHTML=rows.map(row=>calendarHtml(r,row)).join('')||'<div class="empty">Sin planificación para el colaborador seleccionado.</div>';
+    const rows=reportRows(r),personal=!!String(window.state?.v1524TurnReportUser||'');
+    host.style.display=personal?'grid':'block';
+    host.innerHTML=(personal?rows.map(row=>calendarHtml(r,row)).join(''):fullCalendarHtml(r,rows))||'<div class="empty">Sin planificación para el período seleccionado.</div>';
   }
   function rowsTotal(rows){
     return rows.reduce((a,row)=>{for(const key of ['encDentro','encFuera','suspendido','diasAdicionales','he','hf','vacaciones','licencias','faltas','otros'])a[key]+=Number(row[key]||0);return a},{encDentro:0,encFuera:0,suspendido:0,diasAdicionales:0,he:0,hf:0,vacaciones:0,licencias:0,faltas:0,otros:0});
@@ -439,7 +453,8 @@
     window.pdfHeader?.(doc,'Informe Mensual de Turnos y Novedades',`${monthName} ${r.y}${selectionLabel}`);
     doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
     doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,x.he.toFixed(1),x.hf.toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
-    selected.forEach(row=>{
+    if(selected.length===1){
+      const row=selected[0];
       doc.addPage();window.pdfHeader?.(doc,'Resumen calendario de turnos',`${row.nombre} · ${monthName} ${r.y}`);
       const legendItems=Object.entries(LABELS).map(([type,label])=>`${codeFor(type)} · ${label}`),legendRows=[];
       for(let index=0;index<legendItems.length;index+=5)legendRows.push(legendItems.slice(index,index+5));
@@ -456,7 +471,16 @@
         const fill=shiftColors[base]||[242,244,247];doc.setFillColor(...fill);doc.setDrawColor(170,181,195);doc.roundedRect(x+w/2-5,y+7,10,7,1.5,1.5,'FD');doc.setTextColor(25,31,40);doc.setFontSize(7.5);doc.setFont(undefined,'bold');doc.text(base,x+w/2,y+11.7,{align:'center'});
         doc.setDrawColor(211,218,227);doc.line(x+2,y+h-7,x+w-2,y+h-7);doc.setFont(undefined,'normal');doc.setFontSize(5.5);doc.setTextColor(91,104,120);doc.text(events||' ',x+2,y+h-3,{maxWidth:w-4});
       }});
-    });
+    }else{
+      doc.addPage();window.pdfHeader?.(doc,'Calendario completo de turnos',`${monthName} ${r.y} · Todos los colaboradores`);
+      const legendItems=Object.entries(LABELS).map(([type,label])=>`${codeFor(type)} · ${label}`),legendRows=[];
+      for(let index=0;index<legendItems.length;index+=5)legendRows.push(legendItems.slice(index,index+5));
+      doc.setFontSize(8);doc.setFont(undefined,'bold');doc.text('Glosa',8,41);doc.setFont(undefined,'normal');
+      doc.autoTable({startY:43,margin:{left:8,right:8},body:legendRows,theme:'grid',styles:{fontSize:5,cellPadding:1,textColor:[52,64,84],fillColor:[246,248,251]}});
+      const days=new Date(r.y,r.m,0).getDate(),head=['Colaborador',...Array.from({length:days},(_,i)=>String(i+1))];
+      const body=selected.map(row=>[row.nombre,...Array.from({length:days},(_,i)=>{const day=i+1,date=`${r.y}-${String(r.m).padStart(2,'0')}-${String(day).padStart(2,'0')}`,base=row.turnos?.get(date)||'—',events=[...new Set(eventCodesOn(row,date))].join('·');return `${base}${events?'\n'+events:''}`})]);
+      doc.autoTable({startY:(doc.lastAutoTable?.finalY||55)+3,margin:{left:5,right:5},head:[head],body,tableWidth:287,styles:{fontSize:3.4,cellPadding:.6,minCellHeight:6,textColor:[25,31,40],halign:'center',valign:'middle',overflow:'linebreak'},headStyles:{fillColor:[35,43,54],textColor:[255,255,255],fontSize:3.4},columnStyles:{0:{cellWidth:40,halign:'left',fontSize:4}},didParseCell:data=>{if(data.section==='body'&&data.column.index>0){const text=Array.isArray(data.cell.text)?data.cell.text.join('\n'):String(data.cell.text||'');const base=text.charAt(0);data.cell.styles.fillColor=base==='A'?[232,241,255]:base==='C'?[232,249,238]:base==='L'?[241,244,247]:[255,255,255]}}});
+    }
     doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
     let y = 44;
     selected.forEach(g=>{
