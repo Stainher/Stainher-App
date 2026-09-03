@@ -378,7 +378,7 @@
       const detail = r.rows.map(g=>`<section class="v1524-detail-group" data-v1524-report-user="${escHtml(g.uid)}"><h4>${escHtml(g.nombre)} · ${g.eventos.length} evento(s)</h4><div class="v1524-detail-scroll"><table class="v1524-detail-table"><thead><tr><th>Fecha</th><th>Turno base</th><th>Evento</th><th>Cantidad</th><th>Horario</th><th>Detalle / motivo</th></tr></thead><tbody>${g.eventos.map(ev=>`<tr><td>${escHtml(dateRangeLabel(ev))}</td><td>${escHtml(ev.turno_base || '—')}</td><td>${escHtml(labelFor(ev.tipo))}</td><td>${escHtml(qtyLabel(ev))}</td><td>${escHtml(hoursLabel(ev))}</td><td>${escHtml(ev.motivo || ev.observacion || 'Sin detalle')}</td></tr>`).join('')}</tbody></table></div></section>`).join('') || '<div class="empty">Sin detalle de eventos.</div>';
       const monthName = window.MONTHS_ES?.[r.m-1] || String(r.m);
       document.getElementById('modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" style="width:min(1240px,100%);max-height:92vh;overflow:auto"><div class="row-between"><div><h3>Informe mensual · Turnos y Novedades</h3><div class="muted">${escHtml(monthName)} ${r.y}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div><label class="v1524-report-user-filter">Colaborador<select class="field" onchange="v1524FilterTurnReport(this.value)"><option value="">Todos los colaboradores</option>${r.rows.map(row=>`<option value="${escHtml(row.uid)}">${escHtml(row.nombre)}</option>`).join('')}</select></label><h4>Resumen calendario</h4><div id="v1524ReportCalendars" class="v1524-report-calendars"></div><h4>Resumen de eventos por colaborador</h4><div class="muted">El resumen muestra únicamente cantidades por tipo de evento. El detalle se presenta agrupado por colaborador.</div><div class="v1524-report-summary"><table id="v1524ReportSummaryTable"><thead><tr><th>Colaborador</th><th>Enc. dentro turno</th><th>Enc. fuera turno</th><th>Suspendido encierro</th><th>Días adicionales</th><th>Horas extra</th><th>Horas feriado</th><th>Vacaciones</th><th>Lic. médica</th><th>Falta / ausencia</th><th>Otros</th></tr></thead><tbody>${summaryRows}</tbody><tfoot></tfoot></table></div><h4 style="margin-top:18px">Listado de eventos con detalle</h4><div class="v1524-detail-groups">${detail}</div><div class="actions" style="margin-top:18px"><button class="btn" onclick="v1516ExportTurnReportExcel()">Exportar Excel</button><button class="btn primary" onclick="v1516ExportTurnReportPdf()">Generar PDF</button></div></div></div>`;
-      window.state.v1524TurnReportUser='';renderReportCalendars();
+      window.state.v1524TurnReportUser='';window.v1524FilterTurnReport('');
     } catch (err) { window.toast?.(err.message || String(err),'error'); }
   };
 
@@ -407,7 +407,8 @@
     window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(summary),'Resumen por colaborador');
     window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(calendar),'Calendario mensual');
     window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(detail),'Detalle agrupado');
-    window.XLSX.writeFile(wb,`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}.xlsx`);
+    const suffix=selected.length===1?'_'+selected[0].nombre.replace(/[^a-z0-9]+/gi,'_'):'';
+    window.XLSX.writeFile(wb,`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}${suffix}.xlsx`);
   };
 
   window.v1516ExportTurnReportPdf = function(){
@@ -416,7 +417,8 @@
     if (!r || !C) return window.toast?.('No se pudo cargar el generador PDF.','error');
     const selected=reportRows(r),total=rowsTotal(selected),doc = new C({orientation:'landscape',unit:'mm',format:'a4'});
     const monthName = window.MONTHS_ES?.[r.m-1] || String(r.m);
-    window.pdfHeader?.(doc,'Informe Mensual de Turnos y Novedades',`${monthName} ${r.y}`);
+    const selectionLabel=selected.length===1?` · ${selected[0].nombre}`:'';
+    window.pdfHeader?.(doc,'Informe Mensual de Turnos y Novedades',`${monthName} ${r.y}${selectionLabel}`);
     doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
     doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,x.he.toFixed(1),x.hf.toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
     selected.forEach(row=>{

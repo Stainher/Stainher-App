@@ -302,6 +302,23 @@
     body .sidebar .nav button[data-page]>:first-child{
       flex:0 0 auto!important;align-self:flex-start!important
     }
+    /* Escritorio: la cuenta queda anclada abajo y solo navega la lista de módulos. */
+    @media(min-width:761px){
+      body .sidebar{
+        position:sticky!important;top:0!important;height:100vh!important;height:100dvh!important;
+        min-height:100vh!important;min-height:100dvh!important;max-height:100vh!important;max-height:100dvh!important;
+        display:flex!important;flex-direction:column!important;overflow:hidden!important
+      }
+      body .sidebar>.nav{
+        flex:1 1 auto!important;min-height:0!important;max-height:none!important;
+        overflow-x:hidden!important;overflow-y:auto!important;padding-bottom:12px!important
+      }
+      body .sidebar>.sidebar-bottom{
+        position:static!important;inset:auto!important;flex:0 0 auto!important;
+        width:100%!important;margin-top:auto!important;padding-top:10px!important;padding-bottom:0!important;
+        z-index:3!important
+      }
+    }
     html[data-theme="light"] body .v151-mobile-head,
     html[data-theme="light"] body #v151MobileBottom,
     html[data-theme="light"] body .v151-mobile-bottom{
