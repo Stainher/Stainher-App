@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
+window.STAINHER_BUILD = 'V15.24-20260903-ui-consistency-r7';
 
 /* Controles date/month estables en iOS. La envolvente visual evita el ancho
  * intrínseco de Safari sin perder el selector nativo táctil. */
@@ -50,7 +50,7 @@ window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
 (function installStainherCoreLoader(){
   const MODULES=Object.freeze([
     {id:'turnos-v1524-script',src:'turnos-v1524.js?v=20260831-3',domain:'turnos'},
-    {id:'stainher-v1524-final-script',src:'stainher-v1524-final.js?v=20260831-2',domain:'core'},
+    {id:'stainher-v1524-final-script',src:'stainher-v1524-final.js?v=20260903-r6',domain:'core'},
     {id:'stainher-v1524-report-script',src:'stainher-v1524-report.js?v=20260831-2',domain:'informes'},
     {id:'stainher-v1524-hotfix1-script',src:'stainher-v1524-hotfix1.js?v=20260831-1',domain:'turnos'},
     {id:'stainher-v1524-hotfix2-script',src:'stainher-v1524-hotfix2.js?v=20260831-1',domain:'turnos'},
@@ -60,7 +60,11 @@ window.STAINHER_BUILD = 'V15.24-20260831-hotfix6-r2';
     {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?v=20260831-r2',domain:'contrato'},
       {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260831-r2',domain:'turnos'},
       {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260902-7',domain:'vacaciones'},
-      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260902-3',domain:'experiencia'}
+      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260903-r6',domain:'experiencia'},
+      {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?v=20260902-6',domain:'confiabilidad'},
+      {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?v=20260902-1',domain:'administracion'},
+      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-r7',domain:'tema'},
+      {id:'stainher-v1524-runtime-audit-script',src:'stainher-v1524-runtime-audit.js?v=20260902-1',domain:'diagnostico'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
   window.STAINHER_MODULES=MODULES;window.STAINHER_LOADER_STATUS=status;
