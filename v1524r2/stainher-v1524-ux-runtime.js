@@ -39,7 +39,7 @@
   }
   function enhanceHomePanels(){
     makeHomePanelCollapsible('#page-inicio .v153-home-alert-panel','Alertas y próximos hitos','stainher-home-alerts');
-    makeHomePanelCollapsible('#page-inicio .v1521-home-turn','Dotación en turno hoy','stainher-home-turns');
+    /* La dotación se convierte en la capa autoritativa, que conserva el host durante consultas asíncronas. */
   }
   function installSkipLink(){
     if(document.getElementById('stainherSkipLink'))return;
@@ -87,3 +87,4 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+

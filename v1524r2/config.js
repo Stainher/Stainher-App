@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260903-staffing-legend-r8';
+window.STAINHER_BUILD = 'V15.24-20260903-staffing-load-r9';
 
 /* Controles date/month estables en iOS. La envolvente visual evita el ancho
  * intrínseco de Safari sin perder el selector nativo táctil. */
@@ -60,7 +60,7 @@ window.STAINHER_BUILD = 'V15.24-20260903-staffing-legend-r8';
     {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?v=20260831-r2',domain:'contrato'},
       {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?v=20260831-r2',domain:'turnos'},
       {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?v=20260902-7',domain:'vacaciones'},
-      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260903-r6',domain:'experiencia'},
+      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?v=20260903-r9',domain:'experiencia'},
       {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?v=20260902-6',domain:'confiabilidad'},
       {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?v=20260902-1',domain:'administracion'},
       {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?v=20260903-r8',domain:'tema'},
