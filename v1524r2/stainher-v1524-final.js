@@ -275,7 +275,7 @@
     const host=page.querySelector('.v1521-home-turn');if(!host)return;
     try{
       const today=dateIso(new Date()),people=await visiblePeopleForHome(),ids=people.map(p=>String(p.user_id));
-      if(!ids.length){host.innerHTML='<h3>Personal de turno hoy</h3><div class="empty">No hay usuarios de turno asociados a este perfil.</div>';return}
+      if(!ids.length){host.innerHTML='<h3>Dotación en turno hoy</h3><div class="empty">No hay usuarios de turno asociados a este perfil.</div>';return}
       let sq=window.sb.from('turnos_malla_v1512').select('user_id,turno_base,estado_publicacion').eq('fecha',today).in('user_id',ids);
       const [shiftsQ,eventsQ]=await Promise.all([sq,window.sb.from('turnos_novedades_v15').select('user_id,tipo,turno_base,motivo,observacion').lte('fecha_inicio',today).gte('fecha_fin',today).in('user_id',ids)]);
       if(shiftsQ.error||eventsQ.error)throw(shiftsQ.error||eventsQ.error);
@@ -290,8 +290,8 @@
       const count=key=>rows.filter(x=>x.status.key===key).length;
       const effective=rows.filter(x=>x.status.effective).length;
       const section=(key,title)=>{const arr=rows.filter(x=>x.status.section===key);return `<section class="v1524-home-group"><h4>${escHtml(title)} · ${arr.length}</h4><div class="v1524-home-grid">${arr.map(x=>`<div class="v1524-home-person ${x.status.key==='suspended'?'suspended':''}"><div><b>${escHtml(x.nombre)}</b><small>${escHtml(homeRoleLabel(x))} · Base ${escHtml(x.base)}</small></div><span class="v1524-home-badge ${x.status.key}">${escHtml(x.status.label)}</span></div>`).join('')||'<div class="empty">Sin personal.</div>'}</div></section>`};
-      host.innerHTML=`<div class="row-between"><div><h3>Personal de turno hoy</h3><div class="muted">${fmtDate(today)} · programación ${canSeeDrafts()?'publicada y borrador visible para gestión':'publicada'} · actualización automática</div></div>${window.canViewV11?.('turnos')?'<button class="btn" onclick="v1519Navigate(\'turnos\')">Ver programación</button>':''}</div><div class="v1524-home-kpis"><div class="v1524-home-kpi"><span>Operativos hoy</span><b>${effective}</b></div><div class="v1524-home-kpi"><span>Turno normal</span><b>${count('normal')}</b></div><div class="v1524-home-kpi"><span>Encierro dentro de turno</span><b>${count('inside')}</b></div><div class="v1524-home-kpi"><span>Encierro fuera de turno</span><b>${count('outside')}</b></div><div class="v1524-home-kpi"><span>Suspendidos por encierro</span><b>${count('suspended')}</b></div></div><div class="v1524-home-shifts">${section('A','Turno A')}${section('C','Turno C')}${section('FUERA','Fuera de turno / adicional')}</div>`;
-    }catch(error){host.innerHTML=`<h3>Personal de turno hoy</h3><div class="notice error">No se pudo cargar el detalle operacional: ${escHtml(error.message||String(error))}</div>`}
+      host.innerHTML=`<div class="row-between"><div><h3>Dotación en turno hoy</h3><div class="muted">${fmtDate(today)} · programación ${canSeeDrafts()?'publicada y borrador visible para gestión':'publicada'} · actualización automática</div></div>${window.canViewV11?.('turnos')?'<button class="btn" onclick="v1519Navigate(\'turnos\')">Ver programación</button>':''}</div><div class="v1524-home-kpis"><div class="v1524-home-kpi"><span>Operativos hoy</span><b>${effective}</b></div><div class="v1524-home-kpi"><span>Turno normal</span><b>${count('normal')}</b></div><div class="v1524-home-kpi"><span>Encierro dentro de turno</span><b>${count('inside')}</b></div><div class="v1524-home-kpi"><span>Encierro fuera de turno</span><b>${count('outside')}</b></div><div class="v1524-home-kpi"><span>Suspendidos por encierro</span><b>${count('suspended')}</b></div></div><div class="v1524-home-shifts">${section('A','Turno A')}${section('C','Turno C')}${section('FUERA','Fuera de turno / adicional')}</div>`;
+    }catch(error){host.innerHTML=`<h3>Dotación en turno hoy</h3><div class="notice error">No se pudo cargar el detalle operacional: ${escHtml(error.message||String(error))}</div>`}
     applyVersion();
   }
 
@@ -304,7 +304,7 @@
     const details=document.createElement('details');details.className='panel v1513-changes v1524-changes';details.open=true;
     const changes=[
       ['Turnos y Novedades','Registro directo desde la malla, Encierro dentro/fuera de turno, Suspendido por encierro e informe agrupado por colaborador.'],
-      ['Inicio','Personal de turno hoy distingue turno normal, tipo de encierro y suspendidos por encierro.'],
+      ['Inicio','Dotación en turno hoy distingue turno normal, tipo de encierro y suspendidos por encierro.'],
       ['Publicación de turnos','Se recupera Publicar turnos; los perfiles de consulta solo ven la malla publicada y Supervisor/Técnico conservan la vista de su grupo.'],
       ['Cobertura','Suspendido por encierro descuenta disponibilidad y Encierro fuera de turno cuenta como presencia adicional efectiva.'],
       ['Móvil','Se mantienen los controles de fecha/mes corregidos para iOS de la revisión anterior.']

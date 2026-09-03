@@ -39,7 +39,7 @@
   }
   function enhanceHomePanels(){
     makeHomePanelCollapsible('#page-inicio .v153-home-alert-panel','Alertas y próximos hitos','stainher-home-alerts');
-    makeHomePanelCollapsible('#page-inicio .v1521-home-turn','Personal de turno hoy','stainher-home-turns');
+    makeHomePanelCollapsible('#page-inicio .v1521-home-turn','Dotación en turno hoy','stainher-home-turns');
   }
   function installSkipLink(){
     if(document.getElementById('stainherSkipLink'))return;

@@ -12,14 +12,16 @@
     style.id = 'stainher-v1524-turn-legend-style';
     style.textContent = `
       #page-turnos .v1512-turn-legend.v1524-compact-legend{
-        display:grid!important;
-        grid-template-columns:repeat(3,minmax(0,1fr))!important;
+        display:block!important;
+        width:100%!important;
+        max-width:100%!important;
+        box-sizing:border-box!important;
         position:sticky!important;
         top:8px!important;
         z-index:70!important;
         align-items:stretch!important;
         gap:8px 12px!important;
-        overflow:visible!important;
+        overflow:hidden!important;
         white-space:normal!important;
         padding:10px 12px!important;
         background:var(--panel,#0d151e)!important;
@@ -36,11 +38,24 @@
         }
       }
       #page-turnos .v1524-compact-legend .v1524-legend-label{
-        grid-column:1/-1!important;
+        display:block!important;
         min-height:auto!important;
         padding:0 0 2px!important;
       }
-      #page-turnos .v1524-compact-legend>span:not(.v1524-legend-label){
+      #page-turnos .v1524-compact-legend .v1524-legend-items{
+        display:grid!important;
+        grid-template-rows:repeat(3,minmax(27px,auto))!important;
+        grid-auto-flow:column!important;
+        grid-auto-columns:minmax(145px,1fr)!important;
+        gap:8px 12px!important;
+        width:100%!important;
+        max-width:100%!important;
+        overflow-x:auto!important;
+        overflow-y:hidden!important;
+        overscroll-behavior-inline:contain!important;
+        -webkit-overflow-scrolling:touch!important;
+      }
+      #page-turnos .v1524-compact-legend .v1524-legend-items>span{
         display:grid!important;
         grid-template-columns:34px minmax(0,1fr)!important;
         align-items:center!important;
@@ -64,11 +79,14 @@
       }
       @media(max-width:600px){
         #page-turnos .v1512-turn-legend.v1524-compact-legend{
-          grid-template-columns:repeat(3,minmax(0,1fr))!important;
-          gap:7px 6px!important;
           padding:9px 10px!important;
         }
-        #page-turnos .v1524-compact-legend>span:not(.v1524-legend-label){
+        #page-turnos .v1524-compact-legend .v1524-legend-items{
+          grid-template-rows:repeat(3,minmax(27px,auto))!important;
+          grid-auto-columns:minmax(132px,42vw)!important;
+          gap:7px 6px!important;
+        }
+        #page-turnos .v1524-compact-legend .v1524-legend-items>span{
           grid-template-columns:28px minmax(0,1fr)!important;
           gap:4px!important;
           min-height:27px!important;
@@ -86,19 +104,36 @@
   }
 
   function removeEmptySamples(root=document){
-    root.querySelectorAll?.('#page-turnos .v1524-compact-legend>i').forEach(sample=>{
+    root.querySelectorAll?.('#page-turnos .v1524-compact-legend>i,#page-turnos .v1524-compact-legend .v1524-legend-items>i').forEach(sample=>{
       if (sample.classList.contains('v1524-legend-separator') || !String(sample.textContent||'').trim()) sample.remove();
     });
-    root.querySelectorAll?.('#page-turnos .v1524-compact-legend>span:not(.v1524-legend-label)').forEach(item=>{
+    root.querySelectorAll?.('#page-turnos .v1524-compact-legend>span:not(.v1524-legend-label),#page-turnos .v1524-compact-legend .v1524-legend-items>span').forEach(item=>{
       const code=String(item.querySelector('i')?.textContent||'').trim();
       const label=String(item.textContent||'').replace(code,'').trim();
       if (!code && !label) item.remove();
     });
   }
 
+  function detachFromCalendarScroll(legend){
+    const scroll=legend?.closest('.v1512-turn-wrap,.v1512-clean-table-wrap,.v1520-turn-matrix,.v1523-scroll-region');
+    if(scroll&&scroll.parentElement)scroll.insertAdjacentElement('beforebegin',legend);
+  }
+
+  function groupLegendItems(legend){
+    if(!legend)return;
+    let items=legend.querySelector(':scope>.v1524-legend-items');
+    if(!items){items=document.createElement('div');items.className='v1524-legend-items';legend.appendChild(items)}
+    [...legend.children].filter(node=>node!==items&&node.matches('span:not(.v1524-legend-label)')).forEach(node=>items.appendChild(node));
+  }
+
   let queued=false;
   function enhance(){
     queued=false;
+    document.querySelectorAll('#page-turnos .v1512-turn-legend').forEach(legend=>{
+      legend.classList.add('v1524-compact-legend');
+      detachFromCalendarScroll(legend);
+      groupLegendItems(legend);
+    });
     removeEmptySamples();
   }
   function queueEnhance(){

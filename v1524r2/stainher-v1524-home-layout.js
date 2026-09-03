@@ -37,7 +37,7 @@
     panel.setAttribute('aria-label',title);
   }
   function enforceStaffingTitle(page){
-    page.querySelectorAll('.stainher-home-staffing summary .stainher-disclosure-title,.stainher-home-staffing summary>span:first-of-type,.v1521-home-turn summary .stainher-disclosure-title').forEach(node=>{
+    page.querySelectorAll('[data-stainher-home-panel="staffing"]>summary .stainher-disclosure-title,[data-stainher-home-panel="staffing"]>summary>span:not(.stainher-disclosure-marker):first-of-type,.stainher-home-staffing>summary .stainher-disclosure-title,.stainher-home-staffing>summary>span:not(.stainher-disclosure-marker):first-of-type,.v1521-home-turn>summary .stainher-disclosure-title').forEach(node=>{
       if(node.textContent!=="Dotación en turno hoy")node.textContent='Dotación en turno hoy';
       node.dataset.stainherFixedTitle='staffing';
     });
@@ -98,10 +98,14 @@
       .stainher-account-vacation{display:grid;gap:6px;margin:10px 0 0!important}
       .stainher-account-vacation strong{font-size:28px;line-height:1.15;color:var(--text,#fff)}
       .stainher-account-vacation span{font-size:12px}
+      #page-inicio [data-stainher-home-panel="staffing"]>summary .stainher-disclosure-title,
+      #page-inicio [data-stainher-home-panel="staffing"]>summary>span:not(.stainher-disclosure-marker):first-of-type,
       #page-inicio .stainher-home-staffing>summary .stainher-disclosure-title,
       #page-inicio details.v1521-home-turn>summary .stainher-disclosure-title{
         font-size:0!important
       }
+      #page-inicio [data-stainher-home-panel="staffing"]>summary .stainher-disclosure-title::after,
+      #page-inicio [data-stainher-home-panel="staffing"]>summary>span:not(.stainher-disclosure-marker):first-of-type::after,
       #page-inicio .stainher-home-staffing>summary .stainher-disclosure-title::after,
       #page-inicio details.v1521-home-turn>summary .stainher-disclosure-title::after{
         content:'Dotación en turno hoy';font-size:16px!important;font-weight:500!important
