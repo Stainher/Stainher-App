@@ -16,6 +16,7 @@
   ].join(',');
 
   const norm=value=>String(value||'').replace(/\s+/g,' ').trim();
+  const pointerLocks=new WeakMap();
   function keyFor(element,title){
     const page=element.closest('.page')?.id||'general';
     const siblings=[...(element.parentElement?.children||[])].filter(x=>x.matches?.(PANEL_SELECTOR));
@@ -117,7 +118,26 @@
     const details=control?.parentElement;
     if(!control||details?.tagName!=='DETAILS'||event.target.closest('a,button,input,select,textarea'))return;
     event.preventDefault();event.stopImmediatePropagation();
+    const lock=pointerLocks.get(details);
+    if(lock&&performance.now()<lock.until){details.open=lock.open;return}
     details.open=!details.open;
+  }
+  function pointerToggle(event){
+    if(event.pointerType==='mouse'&&event.button!==0)return;
+    const control=event.target.closest?.('#page-inicio details>summary');
+    const details=control?.parentElement;
+    if(!control||details?.tagName!=='DETAILS'||event.target.closest('a,button,input,select,textarea'))return;
+    const open=!details.open;
+    pointerLocks.set(details,{open,until:performance.now()+800});
+    details.open=open;
+  }
+  function preservePointerToggle(event){
+    const details=event.target;
+    if(details?.tagName!=='DETAILS'||!details.closest?.('#page-inicio'))return;
+    const lock=pointerLocks.get(details);
+    if(lock&&performance.now()<lock.until&&details.open!==lock.open){
+      queueMicrotask(()=>{if(details.isConnected)details.open=lock.open});
+    }
   }
   function mountStyle(){
     if(document.getElementById('stainher-collapsible-style'))return;
@@ -149,6 +169,8 @@
      * cancelan el click antes de que Safari ejecute la acción nativa de
      * <summary>; por eso abrimos/cerramos aquí una sola vez y no dependemos de
      * esos listeners heredados. */
+    window.addEventListener('pointerup',pointerToggle,true);
+    window.addEventListener('toggle',preservePointerToggle,true);
     window.addEventListener('click',authoritativeToggle,true);
     document.addEventListener('click',event=>{
       const control=event.target.closest?.('summary.stainher-disclosure-summary');
