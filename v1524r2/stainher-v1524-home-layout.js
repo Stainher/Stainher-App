@@ -14,6 +14,20 @@
     while(current&&current.parentElement!==page)current=current.parentElement;
     return current||node;
   }
+  function cleanText(node){return String(node?.textContent||'').replace(/\s+/g,' ').trim()}
+  function topPanels(page){
+    return [...page.children].filter(node=>node.matches?.('details,.panel')||node.querySelector?.(':scope > details,:scope > .panel'));
+  }
+  function isAlert(panel){return panel?.matches?.('.v153-home-alert-panel')||panel?.querySelector?.('.v153-home-alert-panel')}
+  function isVacation(panel){return /Saldo de vacaciones|Saldo vigente después de solicitudes aprobadas/i.test(cleanText(panel))}
+  function findStaffing(page){
+    const identified=directPanel(page,'[data-stainher-home-panel="staffing"],.stainher-home-staffing,.v1521-home-turn');
+    if(identified)return directChild(page,identified);
+    const panels=topPanels(page).filter(panel=>!isAlert(panel)&&!isVacation(panel));
+    return panels.find(panel=>/Personal de turno hoy|Dotación en turno hoy|Ver programación|Cargando programación|Turno A|Turno C/i.test(cleanText(panel)))
+      ||panels.find(panel=>/^Detalles$/i.test(cleanText(panel.querySelector?.(':scope > summary .stainher-disclosure-title,:scope > summary'))))
+      ||(panels.length===1?panels[0]:null);
+  }
   function setDisclosureTitle(panel,title){
     if(!panel)return;
     const disclosure=panel.matches('details')?panel:panel.closest('details');
@@ -24,9 +38,14 @@
   }
   function arrangeHome(){
     const page=document.getElementById('page-inicio');if(!page)return;
+    topPanels(page).filter(isVacation).forEach(panel=>panel.remove());
     const vacation=page.querySelector('#vacationBalanceHome');
-    const staffing=directPanel(page,'.v1521-home-turn');
+    const staffing=findStaffing(page);
     const alerts=directPanel(page,'.v153-home-alert-panel');
+    if(staffing){
+      staffing.classList.add('v1521-home-turn','stainher-home-staffing');
+      staffing.dataset.stainherHomePanel='staffing';
+    }
     setDisclosureTitle(staffing,'Dotación en turno hoy');
     const vacationPanel=vacation?.closest('details,.panel')||vacation;
     const staffingPanel=staffing&&directChild(page,staffing),alertsPanel=alerts&&directChild(page,alerts);

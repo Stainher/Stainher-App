@@ -13,12 +13,27 @@
     style.textContent = `
       #page-turnos .v1512-turn-legend.v1524-compact-legend{
         display:grid!important;
-        grid-template-columns:repeat(4,minmax(0,1fr))!important;
+        grid-template-columns:repeat(3,minmax(0,1fr))!important;
+        position:sticky!important;
+        top:8px!important;
+        z-index:70!important;
         align-items:stretch!important;
         gap:8px 12px!important;
         overflow:visible!important;
         white-space:normal!important;
         padding:10px 12px!important;
+        background:var(--panel,#0d151e)!important;
+        box-shadow:0 5px 14px rgba(0,0,0,.16)!important;
+      }
+      [data-theme="light"] #page-turnos .v1512-turn-legend.v1524-compact-legend{
+        background:#fff!important;
+        box-shadow:0 5px 14px rgba(16,24,40,.10)!important;
+      }
+      @media(max-width:900px){
+        #page-turnos .v1512-turn-legend.v1524-compact-legend{
+          top:calc(58px + env(safe-area-inset-top,0px))!important;
+          z-index:980!important;
+        }
       }
       #page-turnos .v1524-compact-legend .v1524-legend-label{
         grid-column:1/-1!important;
@@ -47,26 +62,21 @@
       #page-turnos .v1524-compact-legend>i:empty{
         display:none!important;
       }
-      @media(max-width:900px){
-        #page-turnos .v1512-turn-legend.v1524-compact-legend{
-          grid-template-columns:repeat(3,minmax(0,1fr))!important;
-        }
-      }
       @media(max-width:600px){
         #page-turnos .v1512-turn-legend.v1524-compact-legend{
-          grid-template-columns:repeat(2,minmax(0,1fr))!important;
-          gap:7px 10px!important;
+          grid-template-columns:repeat(3,minmax(0,1fr))!important;
+          gap:7px 6px!important;
           padding:9px 10px!important;
         }
         #page-turnos .v1524-compact-legend>span:not(.v1524-legend-label){
-          grid-template-columns:31px minmax(0,1fr)!important;
-          gap:6px!important;
+          grid-template-columns:28px minmax(0,1fr)!important;
+          gap:4px!important;
           min-height:27px!important;
           font-size:9px!important;
         }
         #page-turnos .v1524-compact-legend>span:not(.v1524-legend-label)>i{
-          width:31px!important;
-          min-width:31px!important;
+          width:28px!important;
+          min-width:28px!important;
           height:23px!important;
           font-size:9px!important;
         }

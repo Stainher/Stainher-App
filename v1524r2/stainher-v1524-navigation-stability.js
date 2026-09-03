@@ -13,15 +13,41 @@
     });
     document.title=`Stainher App ${VERSION}`;
   }
+  function normalizeMobileTitle(){
+    const title=document.getElementById('v151MobileTitle')||document.querySelector('.v151-mobile-title strong');
+    if(!title)return;
+    const value=String(title.textContent||'').replace(/\s+/g,' ').trim();
+    const match=value.match(/^([^\p{L}\p{N}]+)(.+)$/u);
+    if(!match)return;
+    const icon=match[1].trim(),label=match[2].trim();
+    if(!icon||!label)return;
+    if(title.dataset.stainherTitleValue===value&&title.querySelector('.stainher-mobile-title-icon'))return;
+    title.replaceChildren();
+    const iconNode=document.createElement('span');iconNode.className='stainher-mobile-title-icon';iconNode.textContent=icon;
+    const labelNode=document.createElement('span');labelNode.className='stainher-mobile-title-label';labelNode.textContent=label;
+    title.append(iconNode,labelNode);title.dataset.stainherTitleValue=value;
+  }
   function normalizeHome(){
     const page=document.getElementById('page-inicio');if(!page)return;
     const vacation=page.querySelector('#vacationBalanceHome');
     (vacation?.closest('details,.panel')||vacation)?.remove();
-    const staffing=page.querySelector('.v1521-home-turn');
-    const staffingPanel=staffing?.closest('details')||staffing;
+    const clean=node=>String(node?.textContent||'').replace(/\s+/g,' ').trim();
+    const direct=node=>{let current=node;while(current&&current.parentElement!==page)current=current.parentElement;return current||node};
+    const panels=[...page.children].filter(node=>node.matches?.('details,.panel'));
+    panels.filter(panel=>/Saldo de vacaciones|Saldo vigente después de solicitudes aprobadas/i.test(clean(panel))).forEach(panel=>panel.remove());
+    const alertNode=page.querySelector('.v153-home-alert-panel');
+    const alertPanel=alertNode&&direct(alertNode.closest('details')||alertNode);
+    const known=page.querySelector('[data-stainher-home-panel="staffing"],.stainher-home-staffing,.v1521-home-turn');
+    const candidates=[...page.children].filter(node=>node.matches?.('details,.panel')&&node!==alertPanel&&!/Saldo de vacaciones/i.test(clean(node)));
+    const staffingPanel=known&&direct(known.closest('details')||known)
+      ||candidates.find(panel=>/Personal de turno hoy|Dotación en turno hoy|Ver programación|Cargando programación|Turno A|Turno C/i.test(clean(panel)))
+      ||candidates.find(panel=>/^Detalles$/i.test(clean(panel.querySelector(':scope>summary .stainher-disclosure-title,:scope>summary'))))
+      ||(candidates.length===1?candidates[0]:null);
     if(staffingPanel){
+      staffingPanel.classList.add('v1521-home-turn','stainher-home-staffing');
+      staffingPanel.dataset.stainherHomePanel='staffing';
       staffingPanel.setAttribute('aria-label','Dotación en turno hoy');
-      const summary=staffingPanel.querySelector(':scope>summary .stainher-disclosure-title');
+      const summary=staffingPanel.querySelector(':scope>summary .stainher-disclosure-title,:scope>summary>span:first-of-type');
       if(summary&&summary.textContent!=='Dotación en turno hoy')summary.textContent='Dotación en turno hoy';
       staffingPanel.querySelectorAll('h3').forEach(title=>{if(/Personal de turno hoy|Detalles/i.test(title.textContent||''))title.textContent='Dotación en turno hoy'});
     }
@@ -43,7 +69,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeHome();
+    normalizeVersion();normalizeMobileTitle();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -61,7 +87,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeMobileTitle();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     installNavigation();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);

@@ -3,6 +3,19 @@
   'use strict';
   const KEY='stainher-theme-v1',DARK='dark',LIGHT='light';
   const css=`
+    /* Tipografía transversal: títulos consistentes, sin negrita. */
+    body h1,body h2,body h3,body h4,body h5,body h6,
+    body .page-title,body .section-title,body .panel-title,body .card-title,
+    body .stainher-disclosure-title,body .stainher-disclosure-summary,
+    body summary h1,body summary h2,body summary h3,body summary h4,
+    body .v151-mobile-title strong,body .sidebar .brand h1{
+      font-family:inherit!important;font-weight:500!important
+    }
+    body .v151-mobile-title strong{
+      display:flex!important;align-items:center!important;gap:7px!important
+    }
+    body .stainher-mobile-title-icon{display:inline-flex!important;flex:0 0 auto!important}
+    body .stainher-mobile-title-label{display:block!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
     :root[data-theme="light"]{color-scheme:light;--bg:#f3f6fa;--panel:#fff;--panel2:#eaf0f6;--line:#c7d1dd;--text:#182230;--muted:#5b6878;--green:#087a57;--yellow:#8a5a00;--red:#b4233c;--blue:#1769c2}
     :root[data-theme="dark"]{color-scheme:dark}
     [data-theme="light"] body{background:radial-gradient(circle at 10% 0%,#fff 0,#f3f6fa 38%);color:var(--text)}
@@ -316,7 +329,7 @@
 /* V15.24 · carga coordinada de correcciones globales publicadas el 03-09-2026. */
 (()=>{
   const source=document.currentScript?.src||location.href;
-  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-navigation-stability.js'];
+  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
     if(existing){
@@ -325,7 +338,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?v=20260903-r3';script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?v=20260903-r4';script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
