@@ -472,16 +472,22 @@
         doc.setDrawColor(211,218,227);doc.line(x+2,y+h-7,x+w-2,y+h-7);doc.setFont(undefined,'normal');doc.setFontSize(5.5);doc.setTextColor(91,104,120);doc.text(events||' ',x+2,y+h-3,{maxWidth:w-4});
       }});
     }else{
-      doc.addPage();window.pdfHeader?.(doc,'Calendario completo de turnos',`${monthName} ${r.y} · Todos los colaboradores`);
+      /* El consolidado usa una única hoja A3 horizontal. Con A4, AutoTable
+       * podía continuar filas en una segunda página cuando aumentaba la
+       * dotación. */
+      doc.addPage('a3','landscape');window.pdfHeader?.(doc,'Calendario completo de turnos',`${monthName} ${r.y} · Todos los colaboradores`);
       const legendItems=Object.entries(LABELS).map(([type,label])=>`${codeFor(type)} · ${label}`),legendRows=[];
       for(let index=0;index<legendItems.length;index+=5)legendRows.push(legendItems.slice(index,index+5));
       doc.setFontSize(8);doc.setFont(undefined,'bold');doc.text('Glosa',8,41);doc.setFont(undefined,'normal');
       doc.autoTable({startY:43,margin:{left:8,right:8},body:legendRows,theme:'grid',styles:{fontSize:5,cellPadding:1,textColor:[52,64,84],fillColor:[246,248,251]}});
       const days=new Date(r.y,r.m,0).getDate(),head=['Colaborador',...Array.from({length:days},(_,i)=>String(i+1))];
       const body=selected.map(row=>[row.nombre,...Array.from({length:days},(_,i)=>{const day=i+1,date=`${r.y}-${String(r.m).padStart(2,'0')}-${String(day).padStart(2,'0')}`,base=row.turnos?.get(date)||'—',events=[...new Set(eventCodesOn(row,date))].join('·');return `${base}${events?'\n'+events:''}`})]);
-      doc.autoTable({startY:(doc.lastAutoTable?.finalY||55)+3,margin:{left:5,right:5},head:[head],body,tableWidth:287,styles:{fontSize:3.4,cellPadding:.6,minCellHeight:6,textColor:[25,31,40],halign:'center',valign:'middle',overflow:'linebreak'},headStyles:{fillColor:[35,43,54],textColor:[255,255,255],fontSize:3.4},columnStyles:{0:{cellWidth:40,halign:'left',fontSize:4}},didParseCell:data=>{if(data.section==='body'&&data.column.index>0){const text=Array.isArray(data.cell.text)?data.cell.text.join('\n'):String(data.cell.text||'');const base=text.charAt(0);data.cell.styles.fillColor=base==='A'?[232,241,255]:base==='C'?[232,249,238]:base==='L'?[241,244,247]:[255,255,255]}}});
+      const pageWidth=doc.internal.pageSize.getWidth(),usableWidth=pageWidth-10,nameWidth=43,dayWidth=(usableWidth-nameWidth)/days;
+      const columnStyles={0:{cellWidth:nameWidth,halign:'left',fontSize:4.2}};
+      for(let column=1;column<=days;column++)columnStyles[column]={cellWidth:dayWidth};
+      doc.autoTable({startY:(doc.lastAutoTable?.finalY||55)+3,margin:{left:5,right:5},head:[head],body,tableWidth:usableWidth,pageBreak:'avoid',rowPageBreak:'avoid',styles:{fontSize:3.5,cellPadding:.55,minCellHeight:5.6,textColor:[25,31,40],halign:'center',valign:'middle',overflow:'linebreak'},headStyles:{fillColor:[35,43,54],textColor:[255,255,255],fontSize:3.5},columnStyles,didParseCell:data=>{if(data.section==='body'&&data.column.index>0){const text=Array.isArray(data.cell.text)?data.cell.text.join('\n'):String(data.cell.text||'');const base=text.charAt(0);data.cell.styles.fillColor=base==='A'?[232,241,255]:base==='C'?[232,249,238]:base==='L'?[241,244,247]:[255,255,255]}}});
     }
-    doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
+    doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
     let y = 44;
     selected.forEach(g=>{
       if (y > 175) { doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);y=44; }
