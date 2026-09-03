@@ -153,6 +153,104 @@
     [data-theme="light"] .v1518-nav-icon{background:#e7eef7!important;color:#1769c2!important}
     [data-theme="light"] .v156-progress,[data-theme="light"] .v157-progress{background:#dfe7f0!important}
     [data-theme="light"] .vehicle-photo-main{background:#eef3f8!important;border-color:var(--line)!important}
+
+    /* V15.24 revisión 2: neutraliza reglas móviles antiguas que usan !important. */
+    html[data-theme="light"] body .sidebar,
+    html[data-theme="light"] body .sidebar-bottom,
+    html[data-theme="light"] body .userbox{
+      background:#fff!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body .sidebar .brand h1,
+    html[data-theme="light"] body .sidebar .brand small,
+    html[data-theme="light"] body .sidebar .nav button,
+    html[data-theme="light"] body .sidebar .userbox strong,
+    html[data-theme="light"] body .sidebar .userbox small{
+      color:#344054!important
+    }
+    html[data-theme="light"] body .sidebar .nav button:hover,
+    html[data-theme="light"] body .sidebar .nav button.active{
+      background:#e7eef7!important;color:#101828!important
+    }
+    html[data-theme="light"] body .v151-mobile-head,
+    html[data-theme="light"] body #v151MobileBottom,
+    html[data-theme="light"] body .v151-mobile-bottom{
+      background:rgba(255,255,255,.98)!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body .v151-mobile-title strong,
+    html[data-theme="light"] body .v151-mobile-title small,
+    html[data-theme="light"] body .v151-mobile-bottom button,
+    html[data-theme="light"] body .v151-mobile-bottom button b{
+      color:#344054!important
+    }
+    html[data-theme="light"] body .v151-mobile-bottom button.active{
+      background:#e7eef7!important;color:#101828!important
+    }
+
+    html[data-theme="light"] body .v157-group,
+    html[data-theme="light"] body .v157-group>summary,
+    html[data-theme="light"] body .v157-group-body,
+    html[data-theme="light"] body .v157-person,
+    html[data-theme="light"] body .v157-person-detail,
+    html[data-theme="light"] body .v157-doc,
+    html[data-theme="light"] body .v157-user-menu{
+      background:#fff!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body .v157-group-head b,
+    html[data-theme="light"] body .v157-person-name,
+    html[data-theme="light"] body .v157-person-role,
+    html[data-theme="light"] body .v157-person-detail>summary,
+    html[data-theme="light"] body .v157-doc-name,
+    html[data-theme="light"] body .v157-doc-meta b,
+    html[data-theme="light"] body .v157-user-menu button{
+      color:#182230!important
+    }
+    html[data-theme="light"] body .v157-group-head span,
+    html[data-theme="light"] body .v157-doc-meta small{
+      color:#5b6878!important
+    }
+
+    html[data-theme="light"] body .stainher-native-control-shell,
+    html[data-theme="light"] body .stainher-date-picker>input,
+    html[data-theme="light"] body .v1519-period-summary,
+    html[data-theme="light"] body .v1523-prev-period-note,
+    html[data-theme="light"] body .global-meta .meta-chip,
+    html[data-theme="light"] body .v1514-global-meta .meta-chip{
+      background:#fff!important;color:#182230!important;border-color:#aebac8!important
+    }
+    html[data-theme="light"] body .stainher-native-control-shell__value,
+    html[data-theme="light"] body .v1519-period-summary span,
+    html[data-theme="light"] body .v1523-prev-period-note b{
+      color:#182230!important
+    }
+
+    html[data-theme="light"] body :where(
+      .v1520-kpi,.v1520-table-wrap,.v1520-contract-card,.v1520-readonly,
+      .v1519-inventory-details,.v1519-inventory-body,.v1523-reemb-grid,.v1523-reemb-grid-row,
+      .v1523-turn-day-detail,.v1523-turn-person,.v1523-turn-event,
+      .v1523-prev-equipment-group,.v1523-prev-day-grid,.v1523-prev-unplanned-group
+    ){
+      background:#fff!important;color:#182230!important;border-color:#c7d1dd!important
+    }
+    html[data-theme="light"] body :where(
+      .v1520-table th,.v1520-weekday,.v1520-turn-matrix th,.v1520-turn-matrix td:first-child,
+      .v1520-gantt th,.v1520-gantt td:first-child,.v1523-reemb-grid-head,
+      .v1523-prev-equipment-head,.v1523-prev-day-grid thead th,.v1523-prev-day-grid .equipment,
+      .v1523-prev-unplanned-group>header
+    ){
+      background:#eef3f8!important;color:#344054!important;border-color:#d7dee8!important
+    }
+
+    /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
+    :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
+    :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
+      max-width:100%!important;font-size:clamp(16px,3.7vw,24px)!important;
+      line-height:1.08!important;letter-spacing:-.035em!important;white-space:nowrap!important;
+      overflow:visible!important;font-variant-numeric:tabular-nums!important
+    }
+    @media(max-width:430px){
+      :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
+      :is(#page-contrato,#page-administracion) .v1524-contract-money-value{font-size:16px!important}
+    }
     [data-theme="light"] .btn.active,[data-theme="light"] button[aria-selected="true"],
     [data-theme="light"] [role="tab"].active,[data-theme="light"] [role="tab"][aria-selected="true"]{
       background:#dbeafe!important;color:#12345b!important;border-color:#86b7ef!important;
@@ -187,12 +285,12 @@
 /* V15.24 · carga coordinada de correcciones globales publicadas el 03-09-2026. */
 (()=>{
   const source=document.currentScript?.src||location.href;
-  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js'];
+  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js'];
   modules.forEach(file=>{
     if(document.querySelector(`script[data-stainher-module="${file}"]`))return;
     const script=document.createElement('script');
-    script.src=new URL(file,source).href+'?v=20260903';
-    script.defer=true;
+    script.src=new URL(file,source).href+'?v=20260903-r2';
+    script.async=false;
     script.dataset.stainherModule=file;
     document.head.appendChild(script);
   });

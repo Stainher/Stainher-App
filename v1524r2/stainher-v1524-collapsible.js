@@ -35,7 +35,7 @@
   }
   function summary(title){
     const node=document.createElement('summary');node.className='stainher-disclosure-summary';
-    node.innerHTML=`<span class="stainher-disclosure-marker" aria-hidden="true">▶</span><span class="stainher-disclosure-title"></span>`;
+    node.innerHTML=`<span class="stainher-disclosure-marker" aria-hidden="true"></span><span class="stainher-disclosure-title"></span>`;
     node.querySelector('.stainher-disclosure-title').textContent=title;return node;
   }
   function normalizeExisting(details,title){
@@ -43,8 +43,8 @@
     const old=details.querySelector(':scope > summary');if(!old)return;
     const label=title||norm(old.textContent);old.classList.add('stainher-disclosure-summary');
     old.querySelector('.stainher-home-collapse-chevron')?.remove();
-    if(!old.querySelector('.stainher-disclosure-marker'))old.prepend(Object.assign(document.createElement('span'),{className:'stainher-disclosure-marker',textContent:'▶'}));
-    const marker=old.querySelector('.stainher-disclosure-marker');marker?.setAttribute('aria-hidden','true');
+    if(!old.querySelector('.stainher-disclosure-marker'))old.prepend(Object.assign(document.createElement('span'),{className:'stainher-disclosure-marker'}));
+    const marker=old.querySelector('.stainher-disclosure-marker');if(marker){marker.textContent='';marker.setAttribute('aria-hidden','true')}
     if(!old.querySelector('.stainher-disclosure-title')){
       const text=document.createElement('span');text.className='stainher-disclosure-title';
       const remaining=[...old.childNodes].filter(x=>x!==marker);remaining.forEach(x=>text.appendChild(x));
@@ -70,7 +70,7 @@
   }
   function enhance(root=document){
     root.querySelectorAll?.(PANEL_SELECTOR).forEach(convert);
-    root.querySelectorAll?.('details.v157-group,details.kpi-help,details.v12-doc,details.v13-doc-details').forEach(x=>normalizeExisting(x,''));
+    root.querySelectorAll?.('#appView details:not([data-no-disclosure-marker])').forEach(x=>{if(!x.closest('.modal'))normalizeExisting(x,'')});
   }
   function mountStyle(){
     if(document.getElementById('stainher-collapsible-style'))return;
@@ -78,7 +78,7 @@
       .stainher-disclosure{overflow:hidden}
       .stainher-disclosure-summary{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;min-height:48px;cursor:pointer;list-style:none;color:var(--text,#fff);font-size:17px;font-weight:800}
       .stainher-disclosure-summary::-webkit-details-marker{display:none}.stainher-disclosure-summary::marker{content:''}
-      .stainher-disclosure-marker{display:inline-grid;place-items:center;width:20px;flex:0 0 20px;color:currentColor;font-size:15px;line-height:1;transition:transform .18s ease}
+      .stainher-disclosure-marker{display:block!important;width:0!important;height:0!important;flex:0 0 auto!important;border-top:7px solid transparent!important;border-bottom:7px solid transparent!important;border-left:11px solid currentColor!important;color:inherit!important;font-size:0!important;line-height:0!important;transform-origin:38% 50%;transition:transform .18s ease}
       details[open]>.stainher-disclosure-summary>.stainher-disclosure-marker{transform:rotate(90deg)}
       .stainher-disclosure-title{min-width:0;overflow-wrap:anywhere}
       .stainher-disclosure-content{min-width:0;padding-top:12px;border-top:1px solid var(--line,#334155)}
