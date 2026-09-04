@@ -1,4 +1,4 @@
-/* Stainher App V15.24 r16 · Análisis técnico de Confiabilidad asistido por IA.
+/* Stainher App V15.24 r16 · Análisis técnico de Confiabilidad asistido por IA Gemini.
  * Mantiene KPI/MTBF/MTTR/Disponibilidad calculados por Stainher.
  * La IA sólo interpreta las intervenciones y completa campos de revisión técnica.
  */
@@ -7,7 +7,7 @@
   if(window.__STAINHER_RELIABILITY_AI_R16__)return;
 
   const META_KEYS=[
-    '__ai_generated','__ai_generated_at','__ai_model','__ai_history_months',
+    '__ai_generated','__ai_generated_at','__ai_model','__ai_provider','__ai_history_months',
     '__ai_source_signature','__ai_intervention_count','__ai_historical_count',
     '__ai_evidences','__ai_status','__ai_version'
   ];
@@ -103,11 +103,12 @@
         content.__ai_status='stale';
       }else{
         const when=content.__ai_generated_at?new Date(content.__ai_generated_at).toLocaleString('es-CL'):'fecha no disponible';
-        setStatus(`Análisis IA vigente · ${content.__ai_intervention_count||0} intervenciones del período · histórico ${content.__ai_historical_count||0} · generado ${when}.`,'ok');
+        const provider=content.__ai_provider==='gemini'?'Gemini':'IA';
+        setStatus(`Análisis ${provider} vigente · ${content.__ai_intervention_count||0} intervenciones del período · histórico ${content.__ai_historical_count||0} · generado ${when}.`,'ok');
         content.__ai_status='current';
       }
     }else{
-      setStatus('La IA interpreta las intervenciones y propone texto técnico. Los KPI, MTBF, MTTR, disponibilidad y Pareto continúan siendo calculados por Stainher.','');
+      setStatus('Gemini interpreta las intervenciones y propone texto técnico. Los KPI, MTBF, MTTR, disponibilidad y Pareto continúan siendo calculados por Stainher.','');
     }
     renderEvidence(content);
   }
@@ -120,7 +121,7 @@
       panel.className='v16-ai-panel';
       panel.innerHTML=`
         <div class="v16-ai-head">
-          <div><div class="v16-ai-title">✨ Análisis técnico asistido por IA <span class="v16-ai-badge">r16</span></div><div class="v16-ai-sub">Analiza el detalle de las intervenciones del período y el historial del equipo para detectar recurrencias, patrones, hipótesis y recomendaciones. El resultado queda editable antes de aprobar el PDF.</div></div>
+          <div><div class="v16-ai-title">✨ Análisis técnico asistido por IA <span class="v16-ai-badge">Gemini · r16</span></div><div class="v16-ai-sub">Analiza el detalle de las intervenciones del período y el historial del equipo para detectar recurrencias, patrones, hipótesis y recomendaciones. El resultado queda editable antes de aprobar el PDF.</div></div>
         </div>
         <div class="v16-ai-controls">
           <label>Histórico de referencia<select data-v16-ai-history><option value="6">Últimos 6 meses</option><option value="12" selected>Últimos 12 meses</option><option value="18">Últimos 18 meses</option><option value="24">Últimos 24 meses</option></select></label>
@@ -158,7 +159,7 @@
       review.content={...(review.content||{}),...(collected||{})};
     }
     const sourceSignature=aiSourceSignature(review);
-    setBusy(true);setStatus('Analizando observaciones, recurrencias e historial técnico…','');
+    setBusy(true);setStatus('Analizando observaciones, recurrencias e historial técnico con Gemini…','');
     try{
       const {data,error}=await window.sb.functions.invoke('analyze-stainher-reliability',{body:{
         from:window.state?.correctivoFrom,to:window.state?.correctivoTo,
@@ -167,7 +168,9 @@
       }});
       if(error)throw error;
       if(!data?.ok){
-        if(data?.code==='AI_NOT_CONFIGURED')throw new Error('El servicio IA aún no tiene configurada la clave OPENAI_API_KEY en Supabase.');
+        if(data?.code==='AI_NOT_CONFIGURED')throw new Error('El servicio IA aún no tiene configurada la clave GEMINI_API_KEY en Supabase.');
+        if(data?.code==='AI_QUOTA')throw new Error(data.message||'Se alcanzó temporalmente el límite gratuito de Gemini.');
+        if(data?.code==='AI_KEY_INVALID')throw new Error(data.message||'La clave de Gemini no es válida.');
         if(data?.code==='NO_DATA')throw new Error('No se encontraron intervenciones para el período seleccionado.');
         throw new Error(data?.message||'El servicio IA no pudo completar el análisis.');
       }
@@ -181,7 +184,8 @@
       Object.assign(review.content,{
         __ai_generated:true,
         __ai_generated_at:data.generated_at||new Date().toISOString(),
-        __ai_model:data.model||'IA',
+        __ai_model:data.model||'Gemini',
+        __ai_provider:data.provider||'gemini',
         __ai_history_months:historyMonths,
         __ai_source_signature:sourceSignature,
         __ai_intervention_count:Number(data.current_count||validCount),
@@ -190,11 +194,11 @@
         __ai_status:'current',__ai_version:'r16'
       });
       syncAiState();
-      window.toast?.('Análisis IA generado. Revisa y edita el contenido antes de aprobar el informe.','success');
+      window.toast?.('Análisis Gemini generado. Revisa y edita el contenido antes de aprobar el informe.','success');
     }catch(error){
-      console.error('[Confiabilidad IA r16]',error);
+      console.error('[Confiabilidad IA Gemini r16]',error);
       setStatus(String(error?.message||error||'No fue posible generar el análisis IA.'),'error');
-      window.toast?.('No fue posible generar el análisis IA. Revisa la configuración del servicio.','error');
+      window.toast?.('No fue posible generar el análisis IA. Revisa la configuración de Gemini.','error');
     }finally{setBusy(false)}
   }
   function patchCollect(){
