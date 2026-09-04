@@ -1,0 +1,1 @@
+V15.24 r14 elimina la dependencia efectiva de identificadores r23 en config.js. La revisión obtiene config.js con no-store, reemplaza STAINHER_BUILD y todos los parámetros estáticos de módulos antes de ejecutarlos, y aplica un identificador único de assets por sesión. release.json e index.html apuntan a v1524r14/.
