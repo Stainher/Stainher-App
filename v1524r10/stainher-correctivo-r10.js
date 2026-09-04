@@ -200,3 +200,121 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+/* r11 · Vista Correctivo específica para Supervisor.
+ * El Supervisor opera y consulta: registra averías y revisa el historial.
+ * No expone Confiabilidad, informes, importación ni controles KPI.
+ */
+(function installSupervisorCorrectivoScopeR11(){
+  if(window.__STAINHER_SUPERVISOR_CORRECTIVO_R11__)return;
+  window.__STAINHER_SUPERVISOR_CORRECTIVO_R11__=true;
+
+  const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  function role(){
+    try{return norm(window.v11Role?.()||window.state?.profile?.rol||'')}catch(_){return ''}
+  }
+  function isSupervisor(){return role()==='supervisor'}
+  function buttonText(el){return String(el?.textContent||'').replace(/\s+/g,' ').trim()}
+  function shouldHideAction(el){
+    const t=buttonText(el);
+    return /^Confiabilidad$/i.test(t)||/Generar informe/i.test(t)||/Importar.*(?:Excel|CSV)/i.test(t);
+  }
+  function historyButton(page){
+    return [...page.querySelectorAll('button')].find(b=>/Historial de intervenciones/i.test(buttonText(b)))||null;
+  }
+  function historyIsActive(btn){
+    return !!btn&&(btn.classList.contains('active')||btn.classList.contains('primary')||btn.getAttribute('aria-selected')==='true');
+  }
+
+  function installSupervisorStyle(){
+    if(document.getElementById('stainher-supervisor-correctivo-r11-style'))return;
+    const s=document.createElement('style');
+    s.id='stainher-supervisor-correctivo-r11-style';
+    s.textContent=`
+      #page-correctivo.stainher-supervisor-correctivo-r11 .stainher-r11-hidden{display:none!important}
+      #page-correctivo.stainher-supervisor-correctivo-r11 #corrBody>.grid-kpi,
+      #page-correctivo.stainher-supervisor-correctivo-r11 #corrBody>.two-col,
+      #page-correctivo.stainher-supervisor-correctivo-r11 #corrBody>.trend-panel,
+      #page-correctivo.stainher-supervisor-correctivo-r11 #corrBody>.stainher-r11-reliability{display:none!important}
+    `;
+    document.head.appendChild(s);
+  }
+
+  let selectingHistory=false;
+  function ensureHistoryMode(page){
+    const hb=historyButton(page);if(!hb||historyIsActive(hb)||selectingHistory)return;
+    selectingHistory=true;
+    setTimeout(()=>{
+      try{hb.click()}finally{setTimeout(()=>{selectingHistory=false;applySupervisorView()},20)}
+    },0);
+  }
+
+  function simplifyHistory(page){
+    const heading=[...page.querySelectorAll('h2,h3,h4,summary')].find(h=>/Historial del per[ií]odo/i.test(h.textContent||''));
+    const panel=heading?.closest?.('.panel,details,section,article')||null;
+    const table=panel?.querySelector?.('table')||null;
+    if(table){
+      const headers=[...table.querySelectorAll('thead th')];
+      const hideIdx=[];
+      headers.forEach((th,i)=>{
+        if(/Excluir KPI|Motivo|Acci[oó]n/i.test(buttonText(th))){hideIdx.push(i);th.classList.add('stainher-r11-hidden')}
+      });
+      table.querySelectorAll('tbody tr').forEach(tr=>{
+        [...tr.children].forEach((td,i)=>{if(hideIdx.includes(i))td.classList.add('stainher-r11-hidden')});
+      });
+    }
+    page.querySelectorAll('.stainher-corr-field-r10').forEach(field=>{
+      const label=field.querySelector('.stainher-corr-label-r10');
+      if(/Excluir KPI|Motivo|Acci[oó]n/i.test(buttonText(label)))field.classList.add('stainher-r11-hidden');
+    });
+  }
+
+  function hideReliabilityContent(page){
+    const body=page.querySelector('#corrBody');if(!body)return;
+    [...body.children].forEach(el=>{
+      if(el.matches('.grid-kpi,.two-col,.trend-panel'))el.classList.add('stainher-r11-reliability');
+      else if(el.classList.contains('notice')&&/Metodolog[ií]a|MTTR|MTBF|Disponibilidad|KPI/i.test(buttonText(el)))el.classList.add('stainher-r11-reliability');
+    });
+  }
+
+  function applySupervisorView(){
+    const page=document.getElementById('page-correctivo');if(!page)return;
+    if(!isSupervisor()){
+      page.classList.remove('stainher-supervisor-correctivo-r11');
+      page.querySelectorAll('.stainher-r11-hidden,.stainher-r11-reliability').forEach(el=>el.classList.remove('stainher-r11-hidden','stainher-r11-reliability'));
+      return;
+    }
+    page.classList.add('stainher-supervisor-correctivo-r11');
+    page.querySelectorAll('button').forEach(btn=>{
+      if(shouldHideAction(btn)){
+        btn.classList.add('stainher-r11-hidden');
+        btn.setAttribute('aria-hidden','true');
+        btn.tabIndex=-1;
+      }
+    });
+    ensureHistoryMode(page);
+    hideReliabilityContent(page);
+    simplifyHistory(page);
+  }
+
+  document.addEventListener('click',ev=>{
+    if(!isSupervisor())return;
+    const btn=ev.target?.closest?.('#page-correctivo button');
+    if(!btn||!shouldHideAction(btn))return;
+    ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
+  },true);
+
+  function boot(){
+    installSupervisorStyle();applySupervisorView();
+    const page=document.getElementById('page-correctivo')||document.body;
+    let pending=false;
+    new MutationObserver(()=>{
+      if(pending)return;pending=true;
+      requestAnimationFrame(()=>{pending=false;applySupervisorView()});
+    }).observe(page,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','aria-selected']});
+    let n=0;const timer=setInterval(()=>{applySupervisorView();if(++n>40)clearInterval(timer)},250);
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  window.addEventListener('stainher:modules-ready',()=>setTimeout(applySupervisorView,0));
+})();
