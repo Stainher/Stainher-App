@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Stainher App V15.24 r13</title>
+  <style>body{margin:0;background:#080d12;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:grid;place-items:center;min-height:100vh}.load{opacity:.82}.err{padding:24px;max-width:760px}</style>
+</head>
+<body>
+  <div class="load">Cargando Stainher App V15.24 r13…</div>
+  <script>
+  (async()=>{
+    const BUILD='20260904-d8-r13-force-browser-update';
+    const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+    try{
+      // Verificación de revisión vigente. La URL aleatoria evita caché de navegador, proxy y CDN.
+      try{
+        const vr=await fetch('../release.json?_='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+        if(vr.ok){
+          const release=await vr.json();
+          const target=String(release.path||'').replace(/^\/+|\/+$/g,'');
+          if(target && !location.pathname.includes('/'+target+'/') && !location.pathname.endsWith('/'+target)){
+            location.replace('../'+target+'/?build='+encodeURIComponent(release.build||BUILD)+'&_='+bust()+location.hash);
+            return;
+          }
+        }
+      }catch(versionErr){console.warn('[r13] no se pudo consultar release.json',versionErr)}
+
+      // Carga la revisión funcional anterior con un build nuevo para invalidar todos sus recursos locales.
+      const src=await fetch('../v1524r12/index.html?source='+encodeURIComponent(BUILD)+'&_='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+      if(!src.ok)throw new Error('No se pudo cargar la revisión funcional base');
+      let html=await src.text();
+      html=html.replaceAll('20260903-d8-r12-supervisor-correctivo',BUILD);
+      html=html.replace(/<title>Stainher App V15\.24<\/title>/i,'<title>Stainher App V15.24 r13</title>');
+      html=html.replace(/\[r12\]/g,'[r13]');
+      // La identificación visible también se actualiza aunque la base contenga una revisión anterior.
+      html=html.replace(/V15\.24\s+r\d+/g,'V15.24 r13');
+      document.open('text/html','replace');
+      document.write(html);
+      document.close();
+    }catch(e){
+      console.error(e);
+      document.body.innerHTML='<div class="err"><h2>No fue posible iniciar Stainher App</h2><p>'+String(e.message||e)+'</p><p style="opacity:.75">Actualiza esta página una vez. Si el problema continúa, utiliza el acceso principal de Stainher App.</p></div>';
+    }
+  })();
+  </script>
+</body>
+</html>
