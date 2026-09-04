@@ -1,15 +1,14 @@
-/* Stainher App V15.24 r16 · Estabilidad de Turnos y Novedades en escritorio.
- * Sustituye Hotfix 3 únicamente en r16.
+/* Stainher App V15.24 r16/r17 · Estabilidad de Turnos y Novedades en escritorio.
+ * Sustituye Hotfix 3 únicamente en r16+.
  * - Elimina el MutationObserver auto-mutante sobre #page-turnos.
  * - Conserva la glosa compacta y colores de eventos.
- * - Deduplica renders concurrentes de Turnos.
+ * - Deduplica renders concurrentes sin volver a envolver la misma cadena.
  * - Memoriza eventos por fecha durante un render para reducir trabajo repetido.
  */
 (function installStainherTurnosStabilityR16(){
   'use strict';
   if(window.__STAINHER_TURNOS_STABILITY_R16__)return;
   window.__STAINHER_TURNOS_STABILITY_R16__=true;
-  /* Compatibilidad con el módulo sustituido. */
   window.__STAINHER_V1524_HOTFIX3__=true;
 
   const EVENTS=[
@@ -30,6 +29,15 @@
   const STYLE_ID='stainher-turnos-stability-r16-style';
   const dateEventCache=new WeakMap();
   let renderPromise=null;
+
+  function chainHasFlag(fn,flag){
+    const seen=new Set();let cur=fn;
+    while(typeof cur==='function'&&!seen.has(cur)){
+      if(cur[flag])return true;
+      seen.add(cur);cur=cur.__base;
+    }
+    return false;
+  }
 
   function mountStyle(){
     if(document.getElementById(STYLE_ID))return;
@@ -81,9 +89,10 @@
     page.querySelectorAll(':scope > .v1524-event-glossary,.v1524-turn-hint').forEach(x=>x.remove());
     let legend=page.querySelector('#v1524CompactTurnLegend');
     if(!legend){
-      const holder=document.createElement('div');holder.innerHTML=legendHtml();legend=holder.firstElementChild;
       const legacy=page.querySelector('.v1512-turn-legend');
-      if(legacy)legacy.replaceWith(legend);
+      if(!legacy)return;
+      const holder=document.createElement('div');holder.innerHTML=legendHtml();legend=holder.firstElementChild;
+      legacy.replaceWith(legend);
     }
     const content=page.querySelector('#v1520TurnContent');
     const matrix=content?.querySelector('.v1520-turn-matrix');
@@ -91,28 +100,30 @@
     if(matrix&&table){
       if(legend.parentElement!==matrix||legend.nextElementSibling!==table)matrix.insertBefore(legend,table);
     }else if(content){
-      if(legend.parentElement!==page||legend.nextElementSibling!==content)content.insertAdjacentElement('beforebegin',legend);
-    }else if(!legend.isConnected){
-      (page.querySelector('.v1520-tabs,.v1512-turn-toolbar')||page.firstElementChild)?.insertAdjacentElement('afterend',legend);
+      if(legend.nextElementSibling!==content)content.insertAdjacentElement('beforebegin',legend);
     }
     normalizeBadges(page);
   }
 
   function patchEventsOn(){
     const current=window.v1520EventsOn;
-    if(typeof current!=='function'||current.__v16Memoized)return;
+    if(typeof current!=='function'||chainHasFlag(current,'__v16Memoized'))return true;
     const wrapped=function(data,date){
       if(!data||typeof data!=='object')return current.apply(this,arguments);
       let map=dateEventCache.get(data);if(!map){map=new Map();dateEventCache.set(data,map)}
       const key=String(date||'');if(map.has(key))return map.get(key);
       const out=current.apply(this,arguments)||[];map.set(key,out);return out;
     };
-    wrapped.__v16Memoized=true;wrapped.__base=current;window.v1520EventsOn=wrapped;
+    wrapped.__v16Memoized=true;wrapped.__base=current;window.v1520EventsOn=wrapped;return true;
   }
 
   function patchRenderer(){
     const current=window.renderTurnosV15;
-    if(typeof current!=='function'||current.__v16TurnStable)return false;
+    if(typeof current!=='function')return false;
+    // Importante: otros módulos pueden envolver nuestro renderer después.
+    // Si la marca ya existe en cualquier nivel de __base, NO volver a envolver.
+    // Reenvolverlo generaba S2 -> wrapper -> S1 y una espera circular del mismo Promise.
+    if(chainHasFlag(current,'__v16TurnStable'))return true;
     const wrapped=function(){
       if(renderPromise)return renderPromise;
       const self=this,args=arguments;
@@ -120,7 +131,7 @@
         .then(()=>current.apply(self,args))
         .then(out=>{installLegendRenderer();ensureStableLegend();return out})
         .catch(error=>{
-          console.error('[Turnos r16]',error);
+          console.error('[Turnos r16/r17]',error);
           const page=document.getElementById('page-turnos');
           if(page&&/Cargando/i.test(page.textContent||''))page.innerHTML=`<div class="notice error">No fue posible completar la vista de Turnos y Novedades. ${String(error?.message||error||'')}</div>`;
           throw error;
@@ -136,14 +147,23 @@
     let tries=0;
     const timer=setInterval(()=>{
       tries++;patchEventsOn();
-      if(patchRenderer()||window.renderTurnosV15?.__v16TurnStable){clearInterval(timer);ensureStableLegend()}
-      else if(tries>40)clearInterval(timer);
+      if(chainHasFlag(window.renderTurnosV15,'__v16TurnStable')){
+        clearInterval(timer);ensureStableLegend();return;
+      }
+      if(patchRenderer()){
+        clearInterval(timer);ensureStableLegend();return;
+      }
+      if(tries>40)clearInterval(timer);
     },125);
     document.addEventListener('click',event=>{
       const nav=event.target?.closest?.('[data-page="turnos"]');
       if(nav)requestAnimationFrame(()=>requestAnimationFrame(ensureStableLegend));
     },true);
-    window.addEventListener('stainher:modules-ready',()=>{patchEventsOn();patchRenderer();ensureStableLegend()},{once:true});
+    window.addEventListener('stainher:modules-ready',()=>{
+      patchEventsOn();
+      if(!chainHasFlag(window.renderTurnosV15,'__v16TurnStable'))patchRenderer();
+      ensureStableLegend();
+    },{once:true});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
