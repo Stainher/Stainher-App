@@ -10,7 +10,7 @@
   <style>body{margin:0;background:#080d12;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:grid;place-items:center;min-height:100vh}.load{opacity:.82}.err{padding:24px;max-width:760px}</style>
 </head>
 <body>
-<div class="load">Cargando Stainher App V15.24 r18 · Turnos directo…</div>
+<div class="load">Cargando Stainher App V15.24 r18 · prueba integral…</div>
 <script>
 (async()=>{
   const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
@@ -19,10 +19,10 @@
     if(!response.ok)throw new Error('No se pudo cargar la base r17');
     let source=await response.text();
     const needle="h=h.replace('</body>',loader+'</body>');";
-    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build=20260904-r18-turnos-direct&_='+ASSET_BUST+'\"><\\/script></body>');";
+    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build=20260904-r18-turnos-direct&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-diagnostics-r18.js?build=20260904-r18-ai-diag&_='+ASSET_BUST+'\"><\\/script></body>');";
     if(!source.includes(needle))throw new Error('La base r17 cambió y no se encontró el punto de inyección r18');
     source=source.replace(needle,replacement);
-    source=source.replace(/<title>Stainher App V15\.24 r17<\/title>/,'<title>Stainher App V15.24 r18 · prueba Turnos</title>');
+    source=source.replace(/<title>Stainher App V15\.24 r17<\/title>/,'<title>Stainher App V15.24 r18 · prueba integral</title>');
     document.open('text/html','replace');document.write(source);document.close();
   }catch(error){
     console.error('[r18 test loader]',error);
