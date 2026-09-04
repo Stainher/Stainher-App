@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "r17",
-  "build": "20260904-d8-r17-turnos-gemini-hotfix",
-  "path": "v1524r17/",
-  "publishedAt": "2026-09-04T14:33:00-04:00"
+  "revision": "r18",
+  "build": "20260904-d9-r18-turnos-gemini-v6-final",
+  "path": "v1524r18/",
+  "publishedAt": "2026-09-04T15:56:00-04:00"
 }
