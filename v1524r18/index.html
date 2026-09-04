@@ -6,27 +6,38 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Stainher App V15.24 r18 · prueba Turnos</title>
+  <title>Stainher App V15.24 r18</title>
   <style>body{margin:0;background:#080d12;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:grid;place-items:center;min-height:100vh}.load{opacity:.82}.err{padding:24px;max-width:760px}</style>
 </head>
 <body>
-<div class="load">Cargando Stainher App V15.24 r18 · prueba integral…</div>
+<div class="load">Cargando Stainher App V15.24 r18…</div>
 <script>
 (async()=>{
+  const BUILD='20260904-d9-r18-turnos-gemini-v6-final';
   const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
   try{
     const response=await fetch('../v1524r17/index.html?r18base='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
-    if(!response.ok)throw new Error('No se pudo cargar la base r17');
+    if(!response.ok)throw new Error('No se pudo cargar la base consolidada r17');
     let source=await response.text();
     const needle="h=h.replace('</body>',loader+'</body>');";
-    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build=20260904-r18-turnos-direct&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-diagnostics-r18.js?build=20260904-r18-ai-diag&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-loading-r18.js?build=20260904-r18-ai-loading-v2&_='+ASSET_BUST+'\"><\\/script></body>');";
-    if(!source.includes(needle))throw new Error('La base r17 cambió y no se encontró el punto de inyección r18');
+    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-diagnostics-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-loading-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script></body>');";
+    if(!source.includes(needle))throw new Error('La base consolidada cambió y no se encontró el punto de inyección r18');
     source=source.replace(needle,replacement);
-    source=source.replace(/<title>Stainher App V15\.24 r17<\/title>/,'<title>Stainher App V15.24 r18 · prueba integral</title>');
+    source=source.replace("const BUILD='20260904-d8-r17-turnos-gemini-hotfix';","const BUILD='"+BUILD+"';");
+    source=source.replace("const REV='r17';","const REV='r18';");
+    source=source.replace("const REV_NUM=17;","const REV_NUM=18;");
+    source=source.replace(/Stainher App V15\.24 r17/g,'Stainher App V15.24 r18');
+    source=source.replace(/Stainher App · V15\.24 r17/g,'Stainher App · V15.24 r18');
+    source=source.replace(/Importador consolidado · r17/g,'Importador consolidado · r18');
+    source=source.replace(/Gemini · r17/g,'Gemini · r18');
+    source=source.replace(/Consolidación r17/g,'Consolidación r18');
+    source=source.replace(/La revisión r17/g,'La revisión r18');
+    source=source.replace(/V15\.24-20260904-authoritative-r17-turnos-gemini-hotfix/g,'V15.24-20260904-authoritative-r18-turnos-gemini-v6');
+    source=source.replace(/<title>Stainher App V15\.24 r18<\/title>/,'<title>Stainher App V15.24 r18</title>');
     document.open('text/html','replace');document.write(source);document.close();
   }catch(error){
-    console.error('[r18 test loader]',error);
-    document.body.innerHTML='<div class="err"><h2>No fue posible iniciar la prueba r18</h2><p>'+String(error?.message||error)+'</p></div>';
+    console.error('[r18 loader]',error);
+    document.body.innerHTML='<div class="err"><h2>No fue posible iniciar Stainher App V15.24 r18</h2><p>'+String(error?.message||error)+'</p></div>';
   }
 })();
 </script>
