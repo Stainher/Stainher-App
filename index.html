@@ -6,18 +6,18 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Stainher App V15.24 r14</title>
+  <title>Stainher App V15.24 r15</title>
 </head>
 <body>
 <script>
 (async()=>{
   const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
-  const fallback={path:'v1524r14/',build:'20260904-d8-r14-authoritative-cache'};
+  const fallback={path:'v1524r15/',build:'20260904-d8-r15-desktop-home-tabs'};
   let release=fallback;
   try{
     const r=await fetch('./release.json?_='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
     if(r.ok)release=await r.json();
-  }catch(e){console.warn('[boot] release.json no disponible, usando fallback r14',e)}
+  }catch(e){console.warn('[boot] release.json no disponible, usando fallback r15',e)}
   const target=String(release.path||fallback.path).replace(/^\/+|\/+$/g,'');
   const qs=new URLSearchParams(location.search);
   qs.set('build',release.build||fallback.build);
@@ -25,6 +25,6 @@
   location.replace('./'+target+'/?'+qs.toString()+location.hash);
 })();
 </script>
-<noscript><a href="./v1524r14/">Abrir Stainher App V15.24 r14</a></noscript>
+<noscript><a href="./v1524r15/">Abrir Stainher App V15.24 r15</a></noscript>
 </body>
 </html>
