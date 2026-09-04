@@ -122,3 +122,77 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+/* r15 · Días adicionales acumulados del mes visible en Turnos y Novedades. */
+(function installMonthlyAdditionalDaysR15(){
+  'use strict';
+  if(window.__STAINHER_MONTHLY_ADDITIONAL_R15__)return;
+  window.__STAINHER_MONTHLY_ADDITIONAL_R15__=true;
+
+  const iso=value=>{
+    const text=String(value||'').slice(0,10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(text)?text:null;
+  };
+  const nextDay=value=>{
+    const d=new Date(value+'T12:00:00');
+    d.setDate(d.getDate()+1);
+    return d.toISOString().slice(0,10);
+  };
+  function monthlyAdditional(data){
+    const range=data?.range;
+    if(!range?.start||!range?.end)return 0;
+    const days=new Set();
+    for(const event of (data?.events||[])){
+      if(String(event?.tipo||'')!=='dia_adicional')continue;
+      let start=iso(event.fecha_inicio),end=iso(event.fecha_fin)||start;
+      if(!start)continue;
+      if(end<range.start||start>range.end)continue;
+      if(start<range.start)start=range.start;
+      if(end>range.end)end=range.end;
+      for(let date=start;date<=end;date=nextDay(date)){
+        days.add(`${String(event.user_id||'sin-usuario')}|${date}`);
+      }
+    }
+    return days.size;
+  }
+  function patchCoverage(){
+    const current=window.v1520TurnCoverage;
+    if(typeof current!=='function')return false;
+    if(current.__stainherMonthlyAdditionalR15)return true;
+    const wrapped=function(data,date){
+      const result=current.apply(this,arguments)||{};
+      const additional=monthlyAdditional(data);
+      return Object.assign({},result,{additional,additionalMonthly:additional});
+    };
+    wrapped.__stainherMonthlyAdditionalR15=true;
+    wrapped.__base=current;
+    window.v1520TurnCoverage=wrapped;
+    try{v1520TurnCoverage=wrapped}catch(_){ }
+    return true;
+  }
+  function syncLabel(){
+    document.querySelectorAll('#page-turnos .v1520-kpis .v1520-kpi span').forEach(node=>{
+      if(/^Días adicionales(?:\s*·\s*mes)?$/i.test(String(node.textContent||'').trim()))node.textContent='Días adicionales · mes';
+    });
+  }
+  function refreshVisibleTurnPage(){
+    const page=document.getElementById('page-turnos');
+    if(!page||page.hidden||page.classList.contains('hidden'))return;
+    if(typeof window.renderTurnosV15==='function')setTimeout(()=>window.renderTurnosV15(),0);
+  }
+  function boot(){
+    if(patchCoverage())refreshVisibleTurnPage();
+    syncLabel();
+    let tries=0;
+    const timer=setInterval(()=>{
+      tries++;
+      patchCoverage();
+      syncLabel();
+      if(tries>40)clearInterval(timer);
+    },125);
+    const page=document.getElementById('page-turnos')||document.body;
+    if(page)new MutationObserver(()=>{patchCoverage();syncLabel()}).observe(page,{childList:true,subtree:true});
+    window.addEventListener('stainher:modules-ready',()=>{patchCoverage();syncLabel();refreshVisibleTurnPage()});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
