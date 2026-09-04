@@ -1,6 +1,7 @@
 /* Stainher App V15.24 r16 · Análisis técnico de Confiabilidad asistido por IA Gemini.
  * Mantiene KPI/MTBF/MTTR/Disponibilidad calculados por Stainher.
  * La IA sólo interpreta las intervenciones y completa campos de revisión técnica.
+ * Fix: evita bucle de MutationObserver al abrir la revisión de Confiabilidad.
  */
 (function bootstrapStainherReliabilityAI(){
   'use strict';
@@ -14,6 +15,7 @@
   const TEXT_KEYS=['resumen','hallazgos','hipotesis','recomendaciones','conclusiones'];
   const ALLOWED_ROLES=new Set(['administrador','confiabilidad']);
   const STYLE_ID='stainher-reliability-ai-r16-style';
+  let uiSyncQueued=false;
 
   function norm(value){
     return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
@@ -33,12 +35,17 @@
     }
     return h.toString(16).padStart(8,'0');
   }
+  function setTextIfChanged(el,value){
+    if(!el)return;
+    const next=String(value??'');
+    if(el.textContent!==next)el.textContent=next;
+  }
   function aiSourceSignature(review){
     const rows=(review?.rows||review?.valid||[]).map(item=>[
-      item.id||item.uuid||item.created_at||'', item.updated_at||'',
-      item.equipo||item.equipo_original||'', item.guia||item.numero_guia||'',
-      item.fecha_inicio||'', item.fecha_termino||'', item.estado_normalizado||item.estado_final||'',
-      Number(item.duracion_horas||0), Number(item.duracion_minutos||0), Boolean(item.excluir_kpi),
+      item.id||item.uuid||item.created_at||'',item.updated_at||'',
+      item.equipo||item.equipo_original||'',item.guia||item.numero_guia||'',
+      item.fecha_inicio||'',item.fecha_termino||'',item.estado_normalizado||item.estado_final||'',
+      Number(item.duracion_horas||0),Number(item.duracion_minutos||0),Boolean(item.excluir_kpi),
       item.observaciones||item.observacion||''
     ]).sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
     const payload=JSON.stringify({
@@ -75,27 +82,33 @@
   function statusElement(){return document.querySelector('#modalRoot .v16-ai-status')}
   function setStatus(message,type){
     const el=statusElement();if(!el)return;
-    el.className='v16-ai-status'+(type?' '+type:'');el.textContent=message;
+    const nextClass='v16-ai-status'+(type?' '+type:'');
+    if(el.className!==nextClass)el.className=nextClass;
+    setTextIfChanged(el,message);
   }
   function setBusy(busy){
     const button=document.querySelector('#modalRoot [data-v16-ai-generate]');
-    if(button){button.disabled=!!busy;button.textContent=busy?'Analizando intervenciones…':(getReview()?.content?.__ai_generated?'Regenerar análisis IA':'Generar análisis IA')}
-    const select=document.querySelector('#modalRoot [data-v16-ai-history]');if(select)select.disabled=!!busy;
+    if(button){
+      if(button.disabled!==!!busy)button.disabled=!!busy;
+      setTextIfChanged(button,busy?'Analizando intervenciones…':(getReview()?.content?.__ai_generated?'Regenerar análisis IA':'Generar análisis IA'));
+    }
+    const select=document.querySelector('#modalRoot [data-v16-ai-history]');
+    if(select&&select.disabled!==!!busy)select.disabled=!!busy;
   }
   function renderEvidence(content){
     const holder=document.querySelector('#modalRoot [data-v16-ai-evidence]');
     if(!holder)return;
     const rows=Array.isArray(content?.__ai_evidences)?content.__ai_evidences:[];
-    if(!rows.length){holder.innerHTML='';return}
-    holder.innerHTML=`<details class="v16-ai-evidence"><summary>Evidencia utilizada por la IA (${rows.length} hallazgo${rows.length===1?'':'s'})</summary><ul>${rows.slice(0,12).map(item=>`<li><b>${esc(item.equipo||'Equipo')}</b> · ${esc(item.hallazgo||'Hallazgo')} <span class="v16-ai-badge">Confianza ${esc(item.nivel_confianza||'—')}</span>${Array.isArray(item.guias)&&item.guias.length?`<br><small>Guías: ${esc(item.guias.join(', '))}</small>`:''}</li>`).join('')}</ul></details>`;
+    const html=!rows.length?'':`<details class="v16-ai-evidence"><summary>Evidencia utilizada por la IA (${rows.length} hallazgo${rows.length===1?'':'s'})</summary><ul>${rows.slice(0,12).map(item=>`<li><b>${esc(item.equipo||'Equipo')}</b> · ${esc(item.hallazgo||'Hallazgo')} <span class="v16-ai-badge">Confianza ${esc(item.nivel_confianza||'—')}</span>${Array.isArray(item.guias)&&item.guias.length?`<br><small>Guías: ${esc(item.guias.join(', '))}</small>`:''}</li>`).join('')}</ul></details>`;
+    if(holder.innerHTML!==html)holder.innerHTML=html;
   }
   function syncAiState(){
     const review=getReview();if(!review)return;
     const content=review.content||{};
     const select=document.querySelector('#modalRoot [data-v16-ai-history]');
-    if(select&&content.__ai_history_months)select.value=String(content.__ai_history_months);
+    if(select&&content.__ai_history_months&&select.value!==String(content.__ai_history_months))select.value=String(content.__ai_history_months);
     const button=document.querySelector('#modalRoot [data-v16-ai-generate]');
-    if(button)button.textContent=content.__ai_generated?'Regenerar análisis IA':'Generar análisis IA';
+    if(button)setTextIfChanged(button,content.__ai_generated?'Regenerar análisis IA':'Generar análisis IA');
     if(content.__ai_generated){
       const stale=content.__ai_source_signature&&content.__ai_source_signature!==aiSourceSignature(review);
       if(stale){
@@ -179,7 +192,8 @@
       TEXT_KEYS.forEach(key=>{
         const value=String(analysis[key]||'').trim();if(!value)return;
         review.content[key]=value;
-        const field=document.querySelector(`#modalRoot [data-v158-review="${key}"]`);if(field)field.value=value;
+        const field=document.querySelector(`#modalRoot [data-v158-review="${key}"]`);
+        if(field&&field.value!==value)field.value=value;
       });
       Object.assign(review.content,{
         __ai_generated:true,
@@ -222,13 +236,32 @@
     };
     wrapped.__v16AI=true;wrapped.__base=fn;window.v158OpenReliabilityReview=wrapped;
   }
+  function scheduleUiSync(){
+    if(uiSyncQueued)return;
+    uiSyncQueued=true;
+    const run=()=>{
+      uiSyncQueued=false;
+      patchCollect();patchOpen();ensurePanel();
+    };
+    if(typeof window.requestAnimationFrame==='function')window.requestAnimationFrame(run);
+    else setTimeout(run,0);
+  }
   function boot(){
     if(typeof window.v158OpenReliabilityReview!=='function'||typeof window.v158CollectReview!=='function'||!window.state){
       setTimeout(boot,150);return;
     }
     window.__STAINHER_RELIABILITY_AI_R16__=true;
+    window.__STAINHER_RELIABILITY_AI_R16_FIX__='modal-observer-20260904';
     mountStyle();patchCollect();patchOpen();
-    new MutationObserver(()=>{patchCollect();patchOpen();ensurePanel()}).observe(document.getElementById('modalRoot')||document.body,{childList:true,subtree:true});
+    const root=document.getElementById('modalRoot')||document.body;
+    new MutationObserver(mutations=>{
+      const relevant=mutations.some(mutation=>{
+        const target=mutation.target;
+        if(target?.nodeType===1&&target.closest?.('.v16-ai-panel'))return false;
+        return mutation.addedNodes.length>0||mutation.removedNodes.length>0;
+      });
+      if(relevant)scheduleUiSync();
+    }).observe(root,{childList:true,subtree:true});
     ensurePanel();
   }
   boot();
