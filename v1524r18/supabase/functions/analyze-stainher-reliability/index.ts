@@ -46,15 +46,45 @@ function compactRow(row: any) {
 }
 
 function extractInteractionText(value: any) {
+  if (typeof value?.output_text === "string" && value.output_text.trim()) {
+    return value.output_text.trim();
+  }
+  const parts: string[] = [];
   for (const step of value?.steps || []) {
     if (step?.type !== "model_output") continue;
     for (const item of step?.content || []) {
-      if (item?.type === "text" && typeof item?.text === "string" && item.text.trim()) {
-        return item.text.trim();
+      if (item?.type === "text" && typeof item?.text === "string" && item.text) {
+        parts.push(item.text);
       }
     }
   }
-  return "";
+  return parts.join("").trim();
+}
+
+function parseStructuredJson(raw: string) {
+  let text = String(raw || "").trim();
+  if (!text) throw new Error("empty");
+  text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  const attempts = [text];
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first >= 0 && last > first) attempts.push(text.slice(first, last + 1));
+
+  for (const attempt of attempts) {
+    try {
+      const parsed = JSON.parse(attempt);
+      if (typeof parsed === "string") {
+        try { return JSON.parse(parsed); } catch { /* continue */ }
+      }
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+    } catch { /* try next */ }
+  }
+  throw new Error("invalid_json");
+}
+
+function validAnalysis(value: any) {
+  const required = ["resumen", "hallazgos", "hipotesis", "recomendaciones", "conclusiones", "evidencias"];
+  return value && typeof value === "object" && required.every((key) => key in value) && Array.isArray(value.evidencias);
 }
 
 export default {
@@ -145,11 +175,11 @@ export default {
       const schema = {
         type: "object",
         properties: {
-          resumen: { type: "string", description: "Resumen ejecutivo técnico, conciso y basado en los datos del período." },
-          hallazgos: { type: "string", description: "Principales patrones, recurrencias y condiciones observadas, diferenciando evidencia actual e histórica." },
-          hipotesis: { type: "string", description: "Hipótesis o causas probables. No presentar como causa raíz aquello que no esté suficientemente sustentado." },
-          recomendaciones: { type: "string", description: "Acciones técnicas prudentes, específicas y vinculadas a los hallazgos." },
-          conclusiones: { type: "string", description: "Conclusión técnica del período sin alterar los KPI calculados por Stainher." },
+          resumen: { type: "string" },
+          hallazgos: { type: "string" },
+          hipotesis: { type: "string" },
+          recomendaciones: { type: "string" },
+          conclusiones: { type: "string" },
           evidencias: {
             type: "array",
             items: {
@@ -185,7 +215,7 @@ export default {
           },
           generation_config: {
             temperature: 0.2,
-            max_output_tokens: 3500,
+            max_output_tokens: 5000,
           },
           store: false,
         }),
@@ -211,6 +241,9 @@ export default {
       if (geminiBody?.status === "failed") {
         return response({ ok: false, code: "AI_PROVIDER_ERROR", message: cleanText(geminiBody?.error?.message, 700) || "Gemini informó que la interacción falló." });
       }
+      if (geminiBody?.status === "incomplete") {
+        return response({ ok: false, code: "AI_INCOMPLETE", message: "Gemini terminó la respuesta de forma incompleta. Intenta nuevamente; si persiste, reduce el histórico de referencia." });
+      }
 
       const outputText = extractInteractionText(geminiBody);
       if (!outputText) {
@@ -219,8 +252,14 @@ export default {
       }
 
       let analysis: any;
-      try { analysis = JSON.parse(outputText); }
-      catch { return response({ ok: false, code: "AI_FORMAT", message: "La respuesta de Gemini no pudo validarse como análisis estructurado." }); }
+      try { analysis = parseStructuredJson(outputText); }
+      catch {
+        console.error("[reliability-ai] structured output parse error", { status: geminiBody?.status || "unknown", chars: outputText.length });
+        return response({ ok: false, code: "AI_FORMAT", message: "La respuesta de Gemini llegó, pero no pudo reconstruirse como JSON válido." });
+      }
+      if (!validAnalysis(analysis)) {
+        return response({ ok: false, code: "AI_SCHEMA", message: "Gemini devolvió JSON, pero faltan campos requeridos del análisis técnico." });
+      }
 
       return response({
         ok: true,
