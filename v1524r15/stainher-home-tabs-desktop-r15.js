@@ -23,6 +23,23 @@
     if(KEYS.has(data))return data;
     return LABELS[String(button?.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()]||null;
   }
+  function patchLegacyRenderer(){
+    if(typeof window.v1518RenderAlerts==='function'&&!window.v1518RenderAlerts.__stainherR15){
+      const base=window.v1518RenderAlerts;
+      const wrapped=function(items){
+        const normalized=(Array.isArray(items)?items:[]).map(item=>{
+          if(!item||typeof item!=='object')return item;
+          const kind=item.kind||item.type||item.tipo||item.category;
+          return kind?Object.assign({},item,{kind,type:item.type||kind,category:item.category||kind}):item;
+        });
+        return base(normalized);
+      };
+      wrapped.__stainherR15=true;
+      wrapped.__base=base;
+      window.v1518RenderAlerts=wrapped;
+      try{v1518RenderAlerts=wrapped}catch(_){ }
+    }
+  }
   function mountStyle(){
     if(document.getElementById('stainher-home-tabs-r15-style'))return;
     const style=document.createElement('style');
@@ -49,6 +66,7 @@
     });
   }
   function patchGlobals(){
+    patchLegacyRenderer();
     window.v152SetAlertFilter=activate;
     window.v1524SetHomeAlertFilter=activate;
     try{v152SetAlertFilter=activate}catch(_){ }
@@ -62,6 +80,7 @@
     window.v152ShowAll=false;
     try{v152AlertFilter=key}catch(_){ }
     try{v152ShowAll=false}catch(_){ }
+    patchLegacyRenderer();
     syncButtons();
     try{
       const renderer=window.renderHomeAlertsV95;
