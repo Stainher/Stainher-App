@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Stainher App V15.24 r17</title>
+  <style>body{margin:0;background:#080d12;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:grid;place-items:center;min-height:100vh}.load{opacity:.82}.err{padding:24px;max-width:760px}</style>
+</head>
+<body>
+<div class="load">Cargando Stainher App V15.24 r17…</div>
+<script>
+(async()=>{
+  const BUILD='20260904-d8-r17-turnos-gemini-hotfix';
+  const REV='r17';
+  const REV_NUM=17;
+  const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+  const ASSET_BUST=bust();
+  try{
+    try{
+      const vr=await fetch('../release.json?_='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+      if(vr.ok){
+        const release=await vr.json();
+        const target=String(release.path||'').replace(/^\/+|\/+$/g,'');
+        const remoteRev=Number(String(release.revision||'').match(/\d+/)?.[0]||0);
+        if(target&&remoteRev>REV_NUM&&!location.pathname.includes('/'+target+'/')&&!location.pathname.endsWith('/'+target)){
+          location.replace('../'+target+'/?build='+encodeURIComponent(release.build||BUILD)+'&_='+bust()+location.hash);
+          return;
+        }
+      }
+    }catch(versionErr){console.warn('[r17] no se pudo consultar release.json',versionErr)}
+
+    const [baseResp,configResp]=await Promise.all([
+      fetch('../v1524r2/index.html?build='+encodeURIComponent(BUILD)+'&_='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}}),
+      fetch('../v1524r2/config.js?build='+encodeURIComponent(BUILD)+'&_='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}})
+    ]);
+    if(!baseResp.ok)throw new Error('No se pudo cargar la aplicación base');
+    if(!configResp.ok)throw new Error('No se pudo cargar la configuración autoritativa');
+    let h=await baseResp.text();
+    let cfg=await configResp.text();
+
+    function required(label,a,b){const n=h.split(a).length-1;if(!n)throw new Error('Consolidación r17: no se encontró '+label);h=h.split(a).join(b);return n}
+
+    cfg=cfg.replace(/window\.STAINHER_BUILD\s*=\s*['"][^'"]+['"]\s*;/,"window.STAINHER_BUILD = 'V15.24-20260904-authoritative-r17-turnos-gemini-hotfix';");
+    cfg=cfg.replace("src:'stainher-v1524-hotfix3.js?v=20260903-r23'","src:'../v1524r17/stainher-turnos-stability-r17.js?v=20260904-r17-turnos-gemini-hotfix'");
+    cfg=cfg.replace(/\?v=20260903-r23/g,'?v=20260904-r17&asset='+ASSET_BUST);
+    cfg=cfg.replace(/Stainher App · V15\.24(?:\s+r\d+)?/g,'Stainher App · V15.24 r17');
+    cfg=cfg.replace(/<\/script/gi,'<\\/script');
+
+    h=h.replace('<head>','<head><base href="../v1524r2/">');
+    h=h.replace(/<script\s+src=["']config\.js[^"']*["']><\/script>/i,'<script>'+cfg+'<\/script>');
+
+    required('lector Excel de averías',"const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});","const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:false});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});");
+    required('validación de averías',"r.clave_unica=makeClave(r);r._equipoNorm=equipoNorm;r._valido=!!(r.equipo_original&&fi&&hi&&ft&&ht);return r;","r.clave_unica=makeClave(r);r._equipoNorm=equipoNorm;r._errores=[];if(!r.equipo_original)r._errores.push('Equipo vacío');if(!fi)r._errores.push('Fecha inicio inválida o vacía');if(!hi)r._errores.push('Hora inicio inválida o vacía');if(!ft)r._errores.push('Fecha término inválida o vacía');if(!ht)r._errores.push('Hora término inválida o vacía');if(fi&&hi&&ft&&ht&&r.duracion_minutos===null)r._errores.push('Término anterior al inicio');r._valido=r._errores.length===0;return r;");
+    required('fila Excel',"const excluded=raw.filter(esRegistroNoCorrectivo);const candidate=raw.filter(r=>!esRegistroNoCorrectivo(r)).map(mapAveriaRow);const invalid=candidate.filter(r=>!r._valido);const valid=candidate.filter(r=>r._valido);","const excluded=raw.filter(esRegistroNoCorrectivo);const candidate=raw.filter(r=>!esRegistroNoCorrectivo(r)).map((item,i)=>{const x=mapAveriaRow(item);x._fila=i+2;return x;});const invalid=candidate.filter(r=>!r._valido);const valid=candidate.filter(r=>r._valido);");
+    required('detalle de errores',"const sample=nuevos.slice(0,10);","const sample=nuevos.slice(0,10);const invalidHtml=invalid.length?'<div class=\"panel\" style=\"border-color:rgba(251,113,133,.45)\"><h3 style=\"color:#fda4af\">Detalle de registros con error</h3><div style=\"overflow:auto\"><table><thead><tr><th>Fila Excel</th><th>Equipo</th><th>Guía</th><th>Inicio</th><th>Término</th><th>Error detectado</th></tr></thead><tbody>'+invalid.map(function(x){return '<tr><td>'+(x._fila||'—')+'</td><td>'+(x._equipoNorm||x.equipo_original||'—')+'</td><td>'+(x.numero_guia||'—')+'</td><td>'+(x.fecha_inicio||'—')+' '+(x.hora_inicio||'')+'</td><td>'+(x.fecha_termino||'—')+' '+(x.hora_termino||'')+'</td><td class=\"error\">'+((x._errores||['Registro inválido']).join(' · '))+'</td></tr>'}).join('')+'</tbody></table></div></div>':'';");
+    required('panel de errores',"</div><div class=\"panel\"><h3>Vista previa de registros nuevos</h3>","</div>${invalidHtml}<div class=\"panel\"><h3>Vista previa de registros nuevos</h3>");
+    required('limpieza de campos internos',"const clean=d.rows.map(({_equipoNorm,_valido,...r})=>({...r,importacion_id:imp.id}));","const clean=d.rows.map(({_equipoNorm,_valido,_errores,_fila,...r})=>({...r,importacion_id:imp.id}));");
+    required('identificador del importador',"<h3>Importar base de averías</h3>","<div class=\"row-between\" style=\"align-items:center\"><h3 style=\"margin:0\">Importar base de averías</h3><span style=\"font-size:11px;padding:4px 8px;border:1px solid #315b43;border-radius:99px;color:#86efac;background:rgba(22,101,52,.18)\">Importador consolidado · r17</span></div>");
+
+    h=h.replace(/Stainher App V15\.24(?:\s+r\d+)?/g,'Stainher App V15.24 r17');
+    h=h.replace(/Stainher App · V15\.24(?:\s+r\d+)?/g,'Stainher App · V15.24 r17');
+
+    const loader=`<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'${REV}',build:'${BUILD}',assetBust:'${ASSET_BUST}'};let started=false;function add(src,id,next){if(document.getElementById(id)){next&&next();return}const s=document.createElement('script');s.id=id;s.src=src+(src.includes('?')?'&':'?')+'_=${ASSET_BUST}';s.async=false;s.onload=()=>next&&next();s.onerror=()=>console.error('[r17] no se pudo cargar',src);document.head.appendChild(s)}function load(){if(started)return;started=true;add('../v1524r15/stainher-home-tabs-desktop-r15.js?build=${BUILD}','stainher-r17-tabs',function(){add('../v1524r10/stainher-correctivo-r10.js?build=${BUILD}','stainher-r17-correctivo-base',function(){add('../v1524r10/stainher-dotacion-scope-r10.js?build=${BUILD}','stainher-r17-dotacion',function(){add('../v1524r4/stainher-v1524-turn-report-onepage.js?build=${BUILD}','stainher-r17-turn-pdf',function(){add('../v1524r12/stainher-supervisor-correctivo-r12.js?build=${BUILD}','stainher-r17-supervisor-correctivo',function(){add('../v1524r16/stainher-reliability-ai-r16.js?build=${BUILD}','stainher-r17-reliability-ai',function(){const relabel=()=>document.querySelectorAll('#modalRoot .v16-ai-title .v16-ai-badge').forEach(x=>{if((x.textContent||'')!=='Gemini · r17')x.textContent='Gemini · r17'});new MutationObserver(relabel).observe(document.getElementById('modalRoot')||document.body,{childList:true,subtree:true});relabel()})})})})})})}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();<\/script>`;
+    h=h.replace('</body>',loader+'</body>');
+    document.open('text/html','replace');document.write(h);document.close();
+  }catch(e){
+    console.error(e);
+    document.body.innerHTML='<div class="err"><h2>No fue posible iniciar Stainher App</h2><p>'+String(e.message||e)+'</p><p style="opacity:.75">La revisión r17 detuvo la carga para evitar ejecutar recursos de una versión anterior.</p></div>';
+  }
+})();
+</script>
+</body>
+</html>
