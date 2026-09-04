@@ -13,7 +13,7 @@
 <div class="load">Cargando Stainher App V15.24 r16…</div>
 <script>
 (async()=>{
-  const BUILD='20260904-d8-r16-reliability-ai';
+  const BUILD='20260904-d8-r16-reliability-ai-gemini';
   const REV='r16';
   const REV_NUM=16;
   const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
@@ -43,8 +43,8 @@
 
     function required(label,a,b){const n=h.split(a).length-1;if(!n)throw new Error('Consolidación r16: no se encontró '+label);h=h.split(a).join(b);return n}
 
-    cfg=cfg.replace(/window\.STAINHER_BUILD\s*=\s*['"][^'"]+['"]\s*;/,"window.STAINHER_BUILD = 'V15.24-20260904-authoritative-r16';");
-    cfg=cfg.replace(/\?v=20260903-r23/g,'?v=20260904-r16&asset='+ASSET_BUST);
+    cfg=cfg.replace(/window\.STAINHER_BUILD\s*=\s*['"][^'"]+['"]\s*;/,"window.STAINHER_BUILD = 'V15.24-20260904-authoritative-r16-gemini';");
+    cfg=cfg.replace(/\?v=20260903-r23/g,'?v=20260904-r16-gemini&asset='+ASSET_BUST);
     cfg=cfg.replace(/Stainher App · V15\.24(?:\s+r\d+)?/g,'Stainher App · V15.24 r16');
     cfg=cfg.replace(/<\/script/gi,'<\\/script');
 
