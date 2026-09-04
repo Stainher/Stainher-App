@@ -19,7 +19,7 @@
     if(!response.ok)throw new Error('No se pudo cargar la base r17');
     let source=await response.text();
     const needle="h=h.replace('</body>',loader+'</body>');";
-    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build=20260904-r18-turnos-direct&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-diagnostics-r18.js?build=20260904-r18-ai-diag&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-loading-r18.js?build=20260904-r18-ai-loading&_='+ASSET_BUST+'\"><\\/script></body>');";
+    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build=20260904-r18-turnos-direct&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-diagnostics-r18.js?build=20260904-r18-ai-diag&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-loading-r18.js?build=20260904-r18-ai-loading-v2&_='+ASSET_BUST+'\"><\\/script></body>');";
     if(!source.includes(needle))throw new Error('La base r17 cambió y no se encontró el punto de inyección r18');
     source=source.replace(needle,replacement);
     source=source.replace(/<title>Stainher App V15\.24 r17<\/title>/,'<title>Stainher App V15.24 r18 · prueba integral</title>');
