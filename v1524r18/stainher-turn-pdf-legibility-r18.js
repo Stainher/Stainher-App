@@ -47,19 +47,19 @@
             // Calendario general: A3 horizontal. Solo tipografía propia de la cuadrícula.
             if(landscape&&width>350){
               if(bold&&size>=2.5&&size<=4.25){
-                // A / C / L y numeración de días: más visibles, manteniendo la celda original.
-                size=Math.min(6.2,Math.max(5.0,size*1.45));
+                // A / C / L y numeración de días: refuerzo alto de legibilidad.
+                size=Math.min(7.6,Math.max(6.3,size*1.75));
               }else if(!bold&&size>=2.0&&size<=3.25){
                 // ET / EF / SE / DA / HF / V / LM / P / CAP, etc.
-                size=Math.min(4.2,Math.max(3.7,size*1.30));
+                size=Math.min(5.4,Math.max(4.8,size*1.65));
               }
             }
 
             // Calendario individual: A4 horizontal. Los valores 6.8 y 4.7 son exclusivos
             // de turno y novedades dentro de las celdas del calendario personal.
             if(landscape&&width>=250&&width<350){
-              if(bold&&Math.abs(size-6.8)<0.2)size=9.4;
-              else if(!bold&&Math.abs(size-4.7)<0.2)size=6.1;
+              if(bold&&Math.abs(size-6.8)<0.2)size=11.2;
+              else if(!bold&&Math.abs(size-4.7)<0.2)size=7.2;
             }
           }catch(_){ }
           return originalSetFontSize.call(this,size);
@@ -75,7 +75,7 @@
     wrapped[FLAG]=true;
     wrapped.__base=current;
     window.v1516ExportTurnReportPdf=wrapped;
-    console.info('[r18] PDF Turnos: legibilidad de calendario mejorada');
+    console.info('[r18] PDF Turnos: legibilidad de calendario reforzada');
     return true;
   }
 
