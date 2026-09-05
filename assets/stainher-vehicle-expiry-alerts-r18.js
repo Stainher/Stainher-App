@@ -146,7 +146,7 @@
     const token=++alertSeq;
     removeVehicleAlertDom();
     const filter=String(window.v152AlertFilter||'todas').toLowerCase();
-    if(filter!=='todas'&&filter!=='recordatorios')return;
+    if(filter!=='todas'&&filter!=='vehiculos')return;
     const root=document.querySelector('#homeImpactAlerts,#homeAlertsV95');
     const list=root?.querySelector('.v152-alert-list');
     if(!list)return;
@@ -155,6 +155,16 @@
     if(!visible.length)return;
 
     list.querySelectorAll('.empty').forEach(node=>node.remove());
+    const filterbar=root.querySelector('.v152-alert-filterbar');
+    if(filterbar&&!filterbar.querySelector('[data-r18-vehicle-filter]')){
+      const button=document.createElement('button');
+      button.className=`btn ${filter==='vehiculos'?'primary':''}`;
+      button.dataset.r18VehicleFilter='1';
+      button.textContent='Vehículos';
+      button.addEventListener('click',()=>window.v152SetAlertFilter?.('vehiculos'));
+      filterbar.appendChild(button);
+    }
+
     const heading=document.createElement('div');
     heading.className='r18-vehicle-alert-heading';
     heading.dataset.r18VehicleAlert='1';
