@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "r18",
-  "build": "20260904-d16-r18-turn-pdf-final",
-  "path": "v1524r18/",
-  "publishedAt": "2026-09-04T21:55:00-04:00"
+  "revision": "r19",
+  "build": "20260905-d1-r19-single-index",
+  "path": "./",
+  "publishedAt": "2026-09-04T22:22:25-04:00"
 }
