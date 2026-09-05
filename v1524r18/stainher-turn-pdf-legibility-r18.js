@@ -79,11 +79,14 @@
     return true;
   }
 
+  // El exportador base se carga de forma diferida. Revisar durante 30 s garantiza que,
+  // si otro módulo reemplaza el exportador durante el arranque, esta mejora quede al final.
   let attempts=0;
-  (function boot(){
-    if(install())return;
-    if(++attempts<300)setTimeout(boot,100);
-  })();
+  const timer=setInterval(()=>{
+    install();
+    if(++attempts>=300)clearInterval(timer);
+  },100);
+  install();
 
   window.addEventListener('stainher:modules-ready',()=>setTimeout(install,0));
 })();
