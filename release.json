@@ -2,7 +2,7 @@
   "app": "Stainher App",
   "version": "V15.24",
   "revision": "r19",
-  "build": "20260905-d3-r19-turn-detail-vehicle-alerts",
+  "build": "20260905-d4-r19-vehicle-alert-filter",
   "path": "./",
-  "publishedAt": "2026-09-05T08:37:35-04:00"
+  "publishedAt": "2026-09-05T09:02:52-04:00"
 }
