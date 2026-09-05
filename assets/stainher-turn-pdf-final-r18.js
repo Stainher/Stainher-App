@@ -54,7 +54,9 @@
     window.pdfHeader?.(doc,'Calendario completo de turnos',`${monthName} ${r.y} · Todos los colaboradores`);
     const gridTop=drawCompactLegend(doc,39);
     const pageWidth=doc.internal.pageSize.getWidth(),pageHeight=doc.internal.pageSize.getHeight();
-    const left=5,right=5,bottom=7,nameWidth=46,days=new Date(r.y,r.m,0).getDate();
+    // El pie corporativo comienza a 15 mm del borde inferior. Se reservan
+    // 22 mm para impedir que la cuadrícula o sus novedades queden debajo.
+    const left=5,right=5,bottom=22,nameWidth=46,days=new Date(r.y,r.m,0).getDate();
     const usableWidth=pageWidth-left-right,dayWidth=(usableWidth-nameWidth)/days;
     const headHeight=7.2,availableHeight=Math.max(20,pageHeight-gridTop-bottom-headHeight);
     const rowHeight=rows.length?Math.min(11,availableHeight/rows.length):11;
@@ -90,7 +92,7 @@
       }
     });
     doc.setFont(undefined,'normal');doc.setFontSize(3.6);doc.setTextColor(91,104,120);
-    doc.text(`Dotación incluida: ${rows.length} colaborador(es) · Calendario completo en una hoja A3 horizontal.`,left,pageHeight-2.8);
+    doc.text(`Dotación incluida: ${rows.length} colaborador(es) · Calendario completo en una hoja A3 horizontal.`,left,pageHeight-18.5);
   }
 
   function drawPersonalCalendar(doc,r,row,monthName){
@@ -102,7 +104,10 @@
     const weeks=[];for(let i=0;i<cells.length;i+=7)weeks.push(cells.slice(i,i+7));
 
     const pageWidth=doc.internal.pageSize.getWidth(),pageHeight=doc.internal.pageSize.getHeight();
-    const left=5.5,right=5.5,bottom=7,headHeight=10,usableWidth=pageWidth-left-right,colWidth=usableWidth/7;
+    // La línea del pie corporativo se dibuja en pageHeight-15. El calendario
+    // termina antes de esa zona y conserva espacio para mostrar las novedades
+    // de la última semana sin que el pie las cubra.
+    const left=5.5,right=5.5,bottom=22,headHeight=10,usableWidth=pageWidth-left-right,colWidth=usableWidth/7;
     const availableHeight=Math.max(60,pageHeight-gridTop-bottom-headHeight);
     const rowHeight=availableHeight/Math.max(1,weeks.length);
     const weekdays=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -124,8 +129,8 @@
 
         doc.setFont(undefined,'bold');doc.setFontSize(8.2);doc.setTextColor(62,75,94);doc.text(String(day.day),x+2.4,y+6.2);
 
-        const badgeW=Math.min(20,colWidth*.48),badgeH=Math.min(11,Math.max(9,rowHeight*.36));
-        const badgeX=x+colWidth/2-badgeW/2,badgeY=y+Math.max(8,rowHeight*.28);
+        const badgeW=Math.min(20,colWidth*.48),badgeH=Math.min(10,Math.max(7.5,rowHeight*.28));
+        const badgeX=x+colWidth/2-badgeW/2,badgeY=y+Math.max(6.5,rowHeight*.28);
         if(day.base==='A')doc.setFillColor(210,230,255);else if(day.base==='C')doc.setFillColor(210,245,226);else if(day.base==='L')doc.setFillColor(229,235,242);else doc.setFillColor(240,243,247);
         doc.setDrawColor(145,160,178);doc.roundedRect(badgeX,badgeY,badgeW,badgeH,1.8,1.8,'FD');
         doc.setFont(undefined,'bold');doc.setFontSize(13.2);doc.setTextColor(17,24,39);doc.text(day.base,x+colWidth/2,badgeY+badgeH*.72,{align:'center',maxWidth:badgeW-2});
@@ -135,7 +140,7 @@
       });
     });
     doc.setFont(undefined,'normal');doc.setFontSize(3.7);doc.setTextColor(91,104,120);
-    doc.text(`Calendario personal completo · ${weeks.length} semanas · una sola hoja A4 horizontal.`,left,pageHeight-2.5);
+    doc.text(`Calendario personal completo · ${weeks.length} semanas · una sola hoja A4 horizontal.`,left,pageHeight-18.5);
   }
 
   function exportPdfFinalR18(){
