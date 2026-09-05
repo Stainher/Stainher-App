@@ -4,12 +4,11 @@
   if(window.__STAINHER_HOME_TABS_DESKTOP_R15__)return;
   window.__STAINHER_HOME_TABS_DESKTOP_R15__=true;
 
-  const KEYS=new Set(['todas','dotacion','cumpleanos','feriados','recordatorios','vehiculos']);
+  const KEYS=new Set(['todas','dotacion','cumpleanos','feriados','recordatorios']);
   const LABELS={
     'todas':'todas','dotacion':'dotacion','dotación':'dotacion',
     'cumpleanos':'cumpleanos','cumpleaños':'cumpleanos',
-    'feriados':'feriados','recordatorios':'recordatorios',
-    'vehiculos':'vehiculos','vehículos':'vehiculos'
+    'feriados':'feriados','recordatorios':'recordatorios'
   };
   const BAR_SELECTOR='#homeImpactAlerts .v152-alert-filterbar,#homeAlertsV95 .v152-alert-filterbar';
   const BUTTON_SELECTOR=BAR_SELECTOR.split(',').map(x=>x+' button').join(',');
