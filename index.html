@@ -142,21 +142,21 @@ window.STAINHER_BUILD = 'V15.24-20260905-authoritative-r19-single-index';
  * capas históricas. El módulo final espera a que Turnos V15.24 esté listo. */
 (function installStainherCoreLoader(){
   const MODULES=Object.freeze([
-    {id:'turnos-v1524-script',src:'turnos-v1524.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'turnos'},
-    {id:'stainher-v1524-final-script',src:'stainher-v1524-final.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'core'},
-    {id:'stainher-v1524-hotfix1-script',src:'stainher-v1524-hotfix1.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'turnos'},
-    {id:'stainher-v1524-hotfix2-script',src:'stainher-v1524-hotfix2.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'turnos'},
-    {id:'stainher-v1524-hotfix3-script',src:'stainher-turnos-stability-r17.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'turnos'},
-    {id:'stainher-v1524-report-hotfix4-script',src:'stainher-v1524-report-hotfix4.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'informes'},
-    {id:'stainher-v1524-home-badges-compact-script',src:'stainher-v1524-home-badges-compact.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'inicio'},
-    {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'contrato'},
-      {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'turnos'},
-      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'vacaciones'},
-      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'experiencia'},
-      {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'confiabilidad'},
-      {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'administracion'},
-      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'tema'},
-      {id:'stainher-v1524-runtime-audit-script',src:'stainher-v1524-runtime-audit.js?build=20260905-d3-r19-turn-detail-vehicle-alerts',domain:'diagnostico'}
+    {id:'turnos-v1524-script',src:'turnos-v1524.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'turnos'},
+    {id:'stainher-v1524-final-script',src:'stainher-v1524-final.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'core'},
+    {id:'stainher-v1524-hotfix1-script',src:'stainher-v1524-hotfix1.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'turnos'},
+    {id:'stainher-v1524-hotfix2-script',src:'stainher-v1524-hotfix2.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'turnos'},
+    {id:'stainher-v1524-hotfix3-script',src:'stainher-turnos-stability-r17.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'turnos'},
+    {id:'stainher-v1524-report-hotfix4-script',src:'stainher-v1524-report-hotfix4.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'informes'},
+    {id:'stainher-v1524-home-badges-compact-script',src:'stainher-v1524-home-badges-compact.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'inicio'},
+    {id:'stainher-v1524-contract-money-fit-script',src:'stainher-v1524-contract-money-fit.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'contrato'},
+      {id:'stainher-v1524-turn-views-personal-script',src:'stainher-v1524-turn-views-personal-summary.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'turnos'},
+      {id:'stainher-v1524-vacation-balance-script',src:'stainher-v1524-vacation-balance.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'vacaciones'},
+      {id:'stainher-v1524-ux-runtime-script',src:'stainher-v1524-ux-runtime.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'experiencia'},
+      {id:'stainher-v1524-reliability-actions-script',src:'stainher-v1524-reliability-actions.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'confiabilidad'},
+      {id:'stainher-v1524-admin-crud-script',src:'stainher-v1524-admin-crud.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'administracion'},
+      {id:'stainher-v1524-theme-script',src:'stainher-v1524-theme.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'tema'},
+      {id:'stainher-v1524-runtime-audit-script',src:'stainher-v1524-runtime-audit.js?build=20260905-d2-r19-turn-pdf-footer-safe',domain:'diagnostico'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
   window.STAINHER_MODULES=MODULES;window.STAINHER_LOADER_STATUS=status;
@@ -11803,6 +11803,6 @@ openPlanModal=async function(){
   document.getElementById('planForm').onsubmit=async event=>{event.preventDefault();const values=Object.fromEntries(new FormData(event.target));if(!dateInEdp(values.fecha_programada,period.year,period.month))return toast(`La fecha debe quedar entre ${fmtDateCL(range.start)} y ${fmtDateCL(range.end)}.`,'error');values.anio=period.year;values.mes=period.month;const query=await sb.from('programacion_preventiva').insert(values);if(query.error)return toast(query.error.message,'error');state.v1519PlanCatalogLoaded=false;closeModal();await renderPreventivo();toast('Actividad programada dentro del período contractual','success')};
 };
 </script>
-<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'r19',build:'20260905-d3-r19-turn-detail-vehicle-alerts'};const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-v1524-turn-report-onepage.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=file+'?build=20260905-d3-r19-turn-detail-vehicle-alerts';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.then(()=>{const relabel=()=>document.querySelectorAll('#modalRoot .v16-ai-title .v16-ai-badge').forEach(x=>x.textContent='Gemini · r19');new MutationObserver(relabel).observe(document.getElementById('modalRoot')||document.body,{childList:true,subtree:true});relabel()}).catch(error=>console.error('[r19]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
+<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'r19',build:'20260905-d2-r19-turn-pdf-footer-safe'};const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-v1524-turn-report-onepage.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=file+'?build=20260905-d2-r19-turn-pdf-footer-safe';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.then(()=>{const relabel=()=>document.querySelectorAll('#modalRoot .v16-ai-title .v16-ai-badge').forEach(x=>x.textContent='Gemini · r19');new MutationObserver(relabel).observe(document.getElementById('modalRoot')||document.body,{childList:true,subtree:true});relabel()}).catch(error=>console.error('[r19]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
 </body>
 </html>
