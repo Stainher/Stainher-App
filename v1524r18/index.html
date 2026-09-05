@@ -13,14 +13,14 @@
 <div class="load">Cargando Stainher App V15.24 r18…</div>
 <script>
 (async()=>{
-  const BUILD='20260904-d15-r18-turn-pdf-font-larger';
+  const BUILD='20260904-d16-r18-turn-pdf-final';
   const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
   try{
     const response=await fetch('../v1524r17/index.html?r18base='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
     if(!response.ok)throw new Error('No se pudo cargar la base consolidada r17');
     let source=await response.text();
     const needle="h=h.replace('</body>',loader+'</body>');";
-    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-turnos-light-contrast-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-turnos-holidays-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-turn-pdf-legibility-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-plan-assistant-responsive-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-vehicle-expiry-alerts-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-diagnostics-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-loading-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script></body>');";
+    const replacement="h=h.replace('</body>',loader+'<script src=\"../v1524r18/stainher-turnos-direct-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-turnos-light-contrast-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-turnos-holidays-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-turn-pdf-final-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-plan-assistant-responsive-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-vehicle-expiry-alerts-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-diagnostics-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script><script src=\"../v1524r18/stainher-reliability-ai-loading-r18.js?build="+BUILD+"&_='+ASSET_BUST+'\"><\\/script></body>');";
     if(!source.includes(needle))throw new Error('La base consolidada cambió y no se encontró el punto de inyección r18');
     source=source.replace(needle,replacement);
     source=source.replace("const BUILD='20260904-d8-r17-turnos-gemini-hotfix';","const BUILD='"+BUILD+"';");
