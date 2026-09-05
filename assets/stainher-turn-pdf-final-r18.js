@@ -143,6 +143,17 @@
     doc.text(`Calendario personal completo · ${weeks.length} semanas · una sola hoja A4 horizontal.`,left,pageHeight-18.5);
   }
 
+  function detailBody(group){
+    const rows=(group.eventos||[]).map(ev=>[dateRangeLabel(ev),ev.turno_base||'—',labelFor(ev.tipo),qtyLabel(ev),hoursLabel(ev),ev.motivo||ev.observacion||'Sin detalle']);
+    return rows.length?rows:[[{content:'Sin novedades registradas en el período.',colSpan:6,styles:{halign:'center',textColor:[91,104,120],fontStyle:'italic'}}]];
+  }
+
+  function drawIndividualHistory(doc,group,startY){
+    doc.setFontSize(9);doc.setFont(undefined,'bold');doc.setTextColor(25,31,40);
+    doc.text(`Detalle histórico · ${group.nombre}`,14,startY);
+    doc.autoTable({startY:startY+3,head:[['Fecha','Turno','Evento','Cantidad','Horario','Detalle / motivo']],body:detailBody(group),styles:{fontSize:7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]},columnStyles:{5:{cellWidth:96}}});
+  }
+
   function exportPdfFinalR18(){
     const r=window.state?.v1516TurnReport,C=typeof window.ensurePdf==='function'?window.ensurePdf():null;
     if(!r||!C)return window.toast?.('No se pudo cargar el generador PDF.','error');
@@ -152,16 +163,21 @@
     doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
     doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,Number(x.he||0).toFixed(1),Number(x.hf||0).toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
 
-    if(selected.length===1)drawPersonalCalendar(doc,r,selected[0],monthName);else drawConsolidatedCalendar(doc,r,selected,monthName);
+    if(selected.length===1){
+      drawIndividualHistory(doc,selected[0],(doc.lastAutoTable?.finalY||58)+8);
+      drawPersonalCalendar(doc,r,selected[0],monthName);
+    }else{
+      drawConsolidatedCalendar(doc,r,selected,monthName);
 
-    doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
-    let y=44;
-    selected.forEach(g=>{
-      if(y>175){doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);y=44;}
-      doc.setFontSize(9);doc.setFont(undefined,'bold');doc.text(g.nombre,14,y);doc.setFont(undefined,'normal');
-      doc.autoTable({startY:y+3,head:[['Fecha','Turno','Evento','Cantidad','Horario','Detalle / motivo']],body:(g.eventos||[]).map(ev=>[dateRangeLabel(ev),ev.turno_base||'—',labelFor(ev.tipo),qtyLabel(ev),hoursLabel(ev),ev.motivo||ev.observacion||'Sin detalle']),styles:{fontSize:7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]},columnStyles:{5:{cellWidth:96}}});
-      y=(doc.lastAutoTable?.finalY||y+12)+7;
-    });
+      doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
+      let y=44;
+      selected.forEach(g=>{
+        if(y>175){doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);y=44;}
+        doc.setFontSize(9);doc.setFont(undefined,'bold');doc.text(g.nombre,14,y);doc.setFont(undefined,'normal');
+        doc.autoTable({startY:y+3,head:[['Fecha','Turno','Evento','Cantidad','Horario','Detalle / motivo']],body:detailBody(g),styles:{fontSize:7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]},columnStyles:{5:{cellWidth:96}}});
+        y=(doc.lastAutoTable?.finalY||y+12)+7;
+      });
+    }
     const suffix=selected.length===1?'_'+selected[0].nombre.replace(/[^a-z0-9]+/gi,'_'):'';
     doc.save(`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}${suffix}.pdf`);
   }

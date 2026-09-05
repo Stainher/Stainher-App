@@ -18,6 +18,7 @@
 
   const esc=value=>String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const isAdmin=()=>{try{return !!window.isAdmin?.()}catch(_){return false}};
+  const canEditVehicles=()=>{try{return typeof window.v1520CanEdit==='function'?!!window.v1520CanEdit('vehiculos'):isAdmin()}catch(_){return isAdmin()}};
   const fmtDate=value=>{try{return window.fmtDateCL?.(value)||String(value||'')}catch(_){return String(value||'')}};
   const daysUntil=value=>{
     if(!value)return null;
@@ -35,16 +36,16 @@
     s.textContent=`
       .vehicle-fields [data-r18-control-gases]{min-width:0}
       .vehicle-fields [data-r18-control-gases] input{width:100%;box-sizing:border-box}
-      #homeAlertsV95 .r18-vehicle-alert-heading{grid-column:1/-1;display:flex;align-items:center;gap:7px;margin-top:5px;padding:8px 2px 2px;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
-      #homeAlertsV95 .r18-vehicle-alert-heading:before{content:'🚙';font-size:13px}
-      #homeAlertsV95 .v152-alert-card.r18-vehicle-expiry{border-style:solid}
-      #homeAlertsV95 .v152-alert-card.r18-vehicle-expiry[data-overdue="1"]{border-color:rgba(251,113,133,.58)}
+      :is(#homeImpactAlerts,#homeAlertsV95) .r18-vehicle-alert-heading{grid-column:1/-1;display:flex;align-items:center;gap:7px;margin-top:5px;padding:8px 2px 2px;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+      :is(#homeImpactAlerts,#homeAlertsV95) .r18-vehicle-alert-heading:before{content:'🚙';font-size:13px}
+      :is(#homeImpactAlerts,#homeAlertsV95) .v152-alert-card.r18-vehicle-expiry{border-style:solid}
+      :is(#homeImpactAlerts,#homeAlertsV95) .v152-alert-card.r18-vehicle-expiry[data-overdue="1"]{border-color:rgba(251,113,133,.58)}
     `;
     document.head.appendChild(s);
   }
 
   async function saveGasExpiry(vehicleId,value){
-    if(!isAdmin()||!window.sb)return;
+    if(!canEditVehicles()||!window.sb)return;
     const next=value||null;
     const {error}=await window.sb.from('vehiculos_contrato').update({control_gases_vence:next,updated_at:new Date().toISOString()}).eq('id',vehicleId);
     if(error)return window.toast?.(error.message||String(error),'error');
@@ -64,7 +65,7 @@
       label.dataset.r18ControlGases='1';
       label.innerHTML=`Control de gases vence<input class="inline-input" type="date" value="${esc(vehicle.control_gases_vence||'')}">`;
       const input=label.querySelector('input');
-      if(!isAdmin()){
+      if(!canEditVehicles()){
         input.disabled=true;
         input.setAttribute('aria-readonly','true');
       }else{
@@ -74,18 +75,44 @@
     });
   }
 
+  function decorateVehicleModal(vehicleId=''){
+    const form=document.getElementById('v1518VehicleForm');
+    if(!form||form.elements?.control_gases_vence)return;
+    const vehicle=(window.state?.contractData?.vehiculos||[]).find(x=>String(x.id)===String(vehicleId))||{};
+    const label=document.createElement('label');
+    label.dataset.r18ControlGases='1';
+    label.innerHTML=`Control de gases vence<input class="field" type="date" name="control_gases_vence" value="${esc(vehicle.control_gases_vence||'')}">`;
+    const stateField=form.elements?.estado?.closest?.('label');
+    form.insertBefore(label,stateField||form.querySelector('.full')||null);
+  }
+
   function wrapVehicleRenderer(){
-    const current=window.renderContractVehiculos;
+    const current=window.renderStandaloneVehiculos;
     if(typeof current!=='function'||current.__r18VehicleExpiry)return false;
-    const wrapped=function(){
-      const out=current.apply(this,arguments);
-      requestAnimationFrame(()=>decorateVehicleCards(document));
+    const wrapped=async function(){
+      const out=await current.apply(this,arguments);
+      decorateVehicleCards(document);
       return out;
     };
     wrapped.__r18VehicleExpiry=true;
     wrapped.__base=current;
-    window.renderContractVehiculos=wrapped;
-    try{renderContractVehiculos=wrapped}catch(_){ }
+    window.renderStandaloneVehiculos=wrapped;
+    try{renderStandaloneVehiculos=wrapped}catch(_){ }
+    return true;
+  }
+
+  function wrapVehicleModal(){
+    const current=window.v1518VehicleModal;
+    if(typeof current!=='function'||current.__r18VehicleExpiry)return false;
+    const wrapped=function(id=''){
+      const out=current.apply(this,arguments);
+      decorateVehicleModal(id);
+      return out;
+    };
+    wrapped.__r18VehicleExpiry=true;
+    wrapped.__base=current;
+    window.v1518VehicleModal=wrapped;
+    try{v1518VehicleModal=wrapped}catch(_){ }
     return true;
   }
 
@@ -112,24 +139,31 @@
   }
 
   function removeVehicleAlertDom(){
-    document.querySelectorAll('#homeAlertsV95 [data-r18-vehicle-alert]').forEach(n=>n.remove());
+    document.querySelectorAll(':is(#homeImpactAlerts,#homeAlertsV95) [data-r18-vehicle-alert]').forEach(n=>n.remove());
   }
 
   async function renderVehicleAlerts(){
     const token=++alertSeq;
     removeVehicleAlertDom();
     const filter=String(window.v152AlertFilter||'todas').toLowerCase();
-    if(filter!=='todas'&&filter!=='recordatorios')return;
-    const list=document.querySelector('#homeAlertsV95 .v152-alert-list');
+    if(filter!=='todas'&&filter!=='vehiculos')return;
+    const root=document.querySelector('#homeImpactAlerts,#homeAlertsV95');
+    const list=root?.querySelector('.v152-alert-list');
     if(!list)return;
     const items=await loadVehicleAlerts();if(token!==alertSeq)return;
-    const now=new Date(),year=now.getFullYear(),month=now.getMonth();
-    const visible=filter==='recordatorios'?items:items.filter(item=>{
-      if(item.days!=null&&item.days<0)return true;
-      const d=new Date(String(item.date).slice(0,10)+'T12:00:00');
-      return d.getFullYear()===year&&d.getMonth()===month;
-    });
+    const visible=items;
     if(!visible.length)return;
+
+    list.querySelectorAll('.empty').forEach(node=>node.remove());
+    const filterbar=root.querySelector('.v152-alert-filterbar');
+    if(filterbar&&!filterbar.querySelector('[data-r18-vehicle-filter]')){
+      const button=document.createElement('button');
+      button.className=`btn ${filter==='vehiculos'?'primary':''}`;
+      button.dataset.r18VehicleFilter='1';
+      button.textContent='Vehículos';
+      button.addEventListener('click',()=>window.v152SetAlertFilter?.('vehiculos'));
+      filterbar.appendChild(button);
+    }
 
     const heading=document.createElement('div');
     heading.className='r18-vehicle-alert-heading';
@@ -167,8 +201,10 @@
   function install(){
     mountStyle();
     wrapVehicleRenderer();
+    wrapVehicleModal();
     wrapHomeAlerts();
     decorateVehicleCards(document);
+    decorateVehicleModal();
   }
 
   function boot(){
