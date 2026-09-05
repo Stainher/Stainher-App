@@ -12,7 +12,7 @@
 <script>
 (async()=>{
   const bust=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
-  const fallback={path:'v1524r18/',build:'20260904-d14-r18-turn-pdf-legibility'};
+  const fallback={path:'v1524r18/',build:'20260904-d15-r18-turn-pdf-font-larger'};
   let release=fallback;
   try{
     const r=await fetch('./release.json?_='+bust(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
