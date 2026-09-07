@@ -458,6 +458,7 @@
     const charts=new Set([...Object.values(window.state?.charts||{}),...Object.values(Chart.instances||{})]);
     for(const chart of charts)try{
       if(!chart?.data?.datasets)continue;
+      if(['chartEq','chartHours','chartTrend'].includes(chart.canvas?.id))continue;
       const type=chart.config?.type||chart.data.datasets[0]?.type;
       chart.data.datasets.forEach((dataset,index)=>{
         if(type==='line'||dataset.type==='line'){
@@ -501,7 +502,7 @@
 /* V15.24 · carga coordinada de correcciones globales publicadas el 03-09-2026. */
 (()=>{
   const source=document.currentScript?.src||location.href;
-  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js','stainher-v1524-signature-upload.js'];
+  const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
     if(existing){

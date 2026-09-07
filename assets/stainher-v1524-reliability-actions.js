@@ -134,10 +134,21 @@
     ['chartEq','chartHours','chartTrend'].forEach(id=>{
       const canvas=document.getElementById(id);
       const chart=canvas&&window.Chart?(typeof Chart.getChart==='function'?Chart.getChart(canvas):Object.values(Chart.instances||{}).find(item=>item?.canvas===canvas)):null;
-      try{chart?.resize?.();chart?.update?.('none')}catch(error){console.warn(`[Confiabilidad PDF] No se pudo preparar ${id}`,error)}
+      try{
+        if(!chart)return;
+        const fill=id==='chartHours'?'#55a98c':id==='chartTrend'?'rgba(49,112,181,.18)':'#5798d0';
+        const border=id==='chartHours'?'#286f5d':'#2d6698';
+        for(const dataset of chart.data?.datasets||[]){
+          const line=chart.config?.type==='line'||dataset.type==='line',count=Math.max(dataset.data?.length||1,1);
+          dataset.backgroundColor=line?fill:Array(count).fill(fill);dataset.borderColor=line?border:Array(count).fill(border);dataset.borderWidth=line?3:1.5;
+        }
+        chart.resize?.();chart.update?.('none');
+        if(chart.config?.type!=='line')for(const meta of chart.getDatasetMeta?.(0)?.data||[]){meta.options.backgroundColor=fill;meta.options.borderColor=border;meta.options.borderWidth=1.5}
+        chart.draw?.();canvas.dataset.stainherChartContrast='light';
+      }catch(error){console.warn(`[Confiabilidad PDF] No se pudo preparar ${id}`,error)}
     });
     window.StainherReliabilityCharts?.preparePdf?.();
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(resolve,80))));
     return ()=>{details.forEach(([panel,open])=>{panel.open=open});window.StainherReliabilityCharts?.schedule?.()};
   }
 

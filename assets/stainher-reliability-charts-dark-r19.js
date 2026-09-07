@@ -25,11 +25,12 @@
     const light=(forcedTheme||theme())==='light',colors=palette(canvas.id,light);
     for(const dataset of chart.data?.datasets||[]){
       const line=(chart.config?.type==='line'||dataset.type==='line');
-      dataset.backgroundColor=colors.fill;
-      dataset.borderColor=colors.border;
+      const count=Math.max(dataset.data?.length||1,1);
+      dataset.backgroundColor=line?colors.fill:Array(count).fill(colors.fill);
+      dataset.borderColor=line?colors.border:Array(count).fill(colors.border);
       dataset.borderWidth=line?3:1.5;
       if(line){dataset.pointBackgroundColor=colors.border;dataset.pointBorderColor=light?'#fff':'#07111b';dataset.pointRadius=4;dataset.pointHoverRadius=6;dataset.tension=.25}
-      else{dataset.hoverBackgroundColor=colors.border;dataset.borderRadius=5;dataset.maxBarThickness=72}
+      else{dataset.hoverBackgroundColor=Array(count).fill(colors.border);dataset.borderRadius=5;dataset.maxBarThickness=72}
     }
     const text=light?'#475467':'#d6e2ef',grid=light?'rgba(71,84,103,.16)':'rgba(151,177,204,.24)';
     for(const scale of Object.values(chart.options?.scales||{})){
@@ -37,7 +38,11 @@
       scale.grid={...(scale.grid||{}),color:grid};
       scale.border={...(scale.border||{}),color:grid};
     }
-    try{chart.resize();chart.update('none')}catch(error){console.warn('[Confiabilidad gráficos]',error)}
+    try{
+      chart.resize();chart.update('none');
+      for(const meta of chart.getDatasetMeta?.(0)?.data||[]){meta.options.backgroundColor=colors.fill;meta.options.borderColor=colors.border;meta.options.borderWidth=1.5}
+      chart.draw?.();
+    }catch(error){console.warn('[Confiabilidad gráficos]',error)}
     canvas.dataset.stainherChartContrast=light?'light':'dark';
     return true;
   }

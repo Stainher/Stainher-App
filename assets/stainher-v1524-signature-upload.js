@@ -16,6 +16,11 @@
       .v1524-signature-upload input[type="file"]{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
       .v1524-signature-upload-note{color:var(--muted);font-size:10px;font-weight:400}
       .v1524-signature-save{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:10px;font-weight:400}
+      .v1524-profile-signature{display:grid;gap:10px;margin:10px 0 0!important}
+      .v1524-profile-signature-preview{display:flex;align-items:center;justify-content:center;min-height:112px;border:1px dashed var(--line);border-radius:10px;background-color:#fff;background-image:linear-gradient(45deg,#eef1f4 25%,transparent 25%),linear-gradient(-45deg,#eef1f4 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eef1f4 75%),linear-gradient(-45deg,transparent 75%,#eef1f4 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+      .v1524-profile-signature-preview img{display:block;max-width:92%;max-height:96px;object-fit:contain}
+      .v1524-profile-signature-actions{display:flex;gap:8px;flex-wrap:wrap}
+      .v1524-profile-signature-actions .btn{flex:1 1 160px}
       [data-theme="light"] .v1524-signature-upload-label{background:#eef3f8;color:#182230;border-color:#c7d1dd}
     `;
     document.head.appendChild(style);
@@ -25,7 +30,7 @@
     const id=canvas.id;
     canvas.dataset.signatureUploaded='1';
     try{if(typeof V12_SIG!=='undefined'&&id)V12_SIG[id]=true}catch(_){ }
-    const state=id?document.getElementById(id+'_state'):null;
+    const state=(id?document.getElementById(id+'_state'):null)||canvas.parentElement?.querySelector?.('.v154-signature-state');
     if(state){state.textContent='Firma cargada';state.classList.add('ok')}
     canvas.dispatchEvent(new CustomEvent('stainher:signature-loaded',{bubbles:true,detail:{canvasId:id}}));
   }
@@ -68,6 +73,37 @@
     document.querySelectorAll('.v1524-use-saved-signature').forEach(button=>button.disabled=false);
   }
 
+  async function removeSignature(){
+    const uid=await currentUserId();if(!uid||!window.sb)throw new Error('No se pudo identificar al usuario.');
+    const result=await window.sb.from('firmas_usuario_v1524').delete().eq('user_id',uid);
+    if(result.error)throw result.error;
+    window.__STAINHER_SAVED_SIGNATURE__=null;
+    document.querySelectorAll('.v1524-use-saved-signature').forEach(button=>button.disabled=true);
+  }
+
+  function imageFromFile(file){
+    return new Promise((resolve,reject)=>{
+      if(!file)return reject(new Error('Selecciona una firma.'));
+      if(!/^image\/png$/i.test(file.type||'')&&!/\.png$/i.test(file.name||''))return reject(new Error('Selecciona una firma en formato PNG transparente.'));
+      if(file.size>5*1024*1024)return reject(new Error('La imagen de firma no debe superar 5 MB.'));
+      const reader=new FileReader();reader.onerror=()=>reject(new Error('No se pudo leer la imagen de firma.'));
+      reader.onload=()=>{const image=new Image();image.onerror=()=>reject(new Error('La imagen de firma no es válida.'));image.onload=()=>resolve(image);image.src=String(reader.result||'')};reader.readAsDataURL(file);
+    });
+  }
+
+  async function mountAccountSignature(){
+    const modal=document.querySelector('#modalRoot .modal');if(!modal||modal.querySelector('#v1524ProfileSignature'))return;
+    const profile=modal.querySelector('.panel');if(!profile)return;
+    const card=document.createElement('section');card.id='v1524ProfileSignature';card.className='panel v1524-profile-signature';
+    card.innerHTML='<div><h4 style="margin:0 0 4px">Firma personal</h4><div class="muted">Guarda una firma PNG transparente para utilizarla en solicitudes y aprobaciones.</div></div><div class="v1524-profile-signature-preview"><span class="muted">Buscando firma guardada…</span></div><div class="v1524-profile-signature-actions"><label class="btn primary" style="cursor:pointer;text-align:center">Cargar o reemplazar PNG<input type="file" accept="image/png,.png" hidden></label><button type="button" class="btn danger-btn" data-remove-signature disabled>Eliminar firma</button></div><small class="muted">La imagen debe contener transparencia. Se ajustará automáticamente al espacio de firma.</small>';
+    profile.insertAdjacentElement('afterend',card);
+    const preview=card.querySelector('.v1524-profile-signature-preview'),input=card.querySelector('input'),remove=card.querySelector('[data-remove-signature]');
+    const show=data=>{preview.innerHTML=data?`<img alt="Firma personal guardada" src="${data}">`:'<span class="muted">No tienes una firma guardada.</span>';remove.disabled=!data};
+    const saved=window.__STAINHER_SAVED_SIGNATURE__||await savedSignature();if(!card.isConnected)return;if(saved)window.__STAINHER_SAVED_SIGNATURE__=saved;show(saved);
+    input.addEventListener('change',async()=>{try{const image=await imageFromFile(input.files?.[0]);if(!hasTransparency(image))throw new Error('El PNG debe tener fondo transparente.');const canvas=document.createElement('canvas');canvas.width=1000;canvas.height=220;drawImage(canvas,image);await saveSignature(canvas);show(window.__STAINHER_SAVED_SIGNATURE__);window.toast?.('Firma guardada en tu perfil.','success')}catch(error){window.toast?.(error.message||String(error),'error')}finally{input.value=''}});
+    remove.addEventListener('click',async()=>{if(!confirm('¿Eliminar la firma guardada de tu perfil?'))return;try{await removeSignature();show(null);window.toast?.('Firma eliminada del perfil.','success')}catch(error){window.toast?.(error.message||String(error),'error')}});
+  }
+
   function loadFile(canvas,file,input){
     if(!file)return;
     if(!/^image\/png$/i.test(file.type||'')&&!/\.png$/i.test(file.name||'')){input.value='';return window.toast?.('Selecciona una firma en formato PNG transparente.','error')}
@@ -96,7 +132,12 @@
     root.querySelectorAll?.('canvas.v12-signature,canvas[id*="Sig"],canvas[id*="firma" i]').forEach(enhance);
   }
 
-  mountStyle();scan();
+  function installAccount(){
+    const base=window.v157OpenAccount;if(typeof base!=='function'||base.__stainherSignatureProfile)return;
+    const wrapped=function(){const result=base.apply(this,arguments);Promise.resolve(result).finally(()=>mountAccountSignature().catch(error=>console.warn('[Firma de perfil]',error)));return result};
+    wrapped.__stainherSignatureProfile=true;wrapped.__base=base;window.v157OpenAccount=wrapped;
+  }
+
+  mountStyle();scan();installAccount();
   new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1){if(node.matches?.('canvas.v12-signature,canvas[id*="Sig"],canvas[id*="firma" i]'))enhance(node);scan(node)}}))).observe(document.documentElement,{childList:true,subtree:true});
 })();
-
