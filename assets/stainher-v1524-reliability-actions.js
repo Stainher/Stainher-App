@@ -136,8 +136,9 @@
       const chart=canvas&&window.Chart?(typeof Chart.getChart==='function'?Chart.getChart(canvas):Object.values(Chart.instances||{}).find(item=>item?.canvas===canvas)):null;
       try{chart?.resize?.();chart?.update?.('none')}catch(error){console.warn(`[Confiabilidad PDF] No se pudo preparar ${id}`,error)}
     });
+    window.StainherReliabilityCharts?.preparePdf?.();
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    return ()=>details.forEach(([panel,open])=>{panel.open=open});
+    return ()=>{details.forEach(([panel,open])=>{panel.open=open});window.StainherReliabilityCharts?.schedule?.()};
   }
 
   function sectionTitle(doc,title,y){
@@ -220,7 +221,29 @@
     });
     doc.setFont('helvetica','normal');doc.setFontSize(6.2);doc.setTextColor(80,89,99);
     doc.text('Cada punto representa un equipo. Los cortes corresponden a las medianas del período seleccionado.',left,bottom+17);
-    return bottom+23;
+    let analysisY=bottom+23;
+    if(analysisY>132){doc.addPage();analysisY=20}
+    analysisY=sectionTitle(doc,'Análisis de la matriz de criticidad',analysisY);
+    const groups={critical:[],acute:[],chronic:[],low:[]};
+    items.forEach(item=>{
+      const highX=item.failures>=cutX,highY=item.mttr>=cutY;
+      const entry=`${item.name} (${item.failures} falla${item.failures===1?'':'s'}; MTTR ${item.mttr.toFixed(1)} h)`;
+      if(highX&&highY)groups.critical.push(entry);else if(highY)groups.acute.push(entry);else if(highX)groups.chronic.push(entry);else groups.low.push(entry);
+    });
+    const join=list=>list.length?list.join(', '):'Ningún equipo';
+    const paragraphs=[
+      `Agudas y crónicas · prioridad inmediata: ${join(groups.critical)}. Combinan alta recurrencia y tiempos elevados de reparación; requieren análisis de causa raíz, acciones definitivas y seguimiento de eficacia.`,
+      `Agudas · reducir tiempo de recuperación: ${join(groups.acute)}. Presentan menor frecuencia, pero cada evento provoca una indisponibilidad relevante; corresponde revisar diagnóstico, repuestos, acceso y procedimientos de restitución.`,
+      `Crónicas · eliminar recurrencia: ${join(groups.chronic)}. Registran muchas fallas de menor duración; corresponde identificar el modo repetitivo y aplicar una solución permanente.`,
+      `Sin relevancia relativa · mantener seguimiento: ${join(groups.low)}. Se ubican bajo ambas medianas del período; no constituyen prioridad comparativa, sin perjuicio de su criticidad operacional o de seguridad.`
+    ];
+    doc.setFont('helvetica','normal');doc.setFontSize(7.4);doc.setTextColor(35,43,52);
+    paragraphs.forEach(paragraph=>{
+      const lines=doc.splitTextToSize(paragraph,266);
+      if(analysisY+lines.length*3.6>188){doc.addPage();analysisY=20}
+      doc.text(lines,16,analysisY,{maxWidth:266,lineHeightFactor:1.2});analysisY+=lines.length*3.6+3;
+    });
+    return analysisY+3;
   }
 
   function downloadPdf(doc,fileName){
