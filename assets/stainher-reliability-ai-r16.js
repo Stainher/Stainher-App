@@ -134,7 +134,7 @@
       panel.className='v16-ai-panel';
       panel.innerHTML=`
         <div class="v16-ai-head">
-          <div><div class="v16-ai-title">✨ Análisis técnico asistido por IA <span class="v16-ai-badge">Gemini · r16</span></div><div class="v16-ai-sub">Analiza el detalle de las intervenciones del período y el historial del equipo para detectar recurrencias, patrones, hipótesis y recomendaciones. El resultado queda editable antes de aprobar el PDF.</div></div>
+          <div><div class="v16-ai-title">✨ Análisis técnico asistido por IA <span class="v16-ai-badge">Gemini · r19</span></div><div class="v16-ai-sub">Analiza el detalle de las intervenciones del período y el historial del equipo para detectar recurrencias, patrones, hipótesis y recomendaciones. El resultado queda editable antes de aprobar el PDF.</div></div>
         </div>
         <div class="v16-ai-controls">
           <label>Histórico de referencia<select data-v16-ai-history><option value="6">Últimos 6 meses</option><option value="12" selected>Últimos 12 meses</option><option value="18">Últimos 18 meses</option><option value="24">Últimos 24 meses</option></select></label>
