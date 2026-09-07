@@ -1,6 +1,7 @@
 (function(){
   'use strict';
   const w=window;
+  const BUILD='20260907-d18-r19-descargo-saldo-vacaciones';
   const BALANCE_DISCLAIMER='Información referencial. Para conocer el saldo oficial y actualizado de vacaciones, debes confirmarlo directamente con el área de Recursos Humanos.';
   function escAttr(v){return String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
   function normalizeSignature(data){
@@ -52,7 +53,8 @@
   }
   async function addEditField(uid){
     const form=document.getElementById('editUserFormV1517');
-    if(!form||form.querySelector('[name="saldo_vacaciones"]')||!w.sb)return;
+    if(!form||!w.sb)return;
+    const existing=form.querySelector('[name="saldo_vacaciones"]');if(existing){const label=existing.closest('label');if(label&&!label.querySelector('[data-balance-disclaimer]'))label.insertAdjacentHTML('beforeend',`<small class="muted" data-balance-disclaimer>${escAttr(BALANCE_DISCLAIMER)}</small>`);return}
     const q=await w.sb.from('perfiles').select('saldo_vacaciones').eq('id',uid).maybeSingle();
     if(q.error){w.toast?.('No se pudo cargar el saldo de vacaciones: '+q.error.message,'error');return}
     const label=document.createElement('label');
@@ -142,7 +144,7 @@
       const wrapped=async function(...args){const out=await base.apply(this,args);addCreateDefault();return out};
       wrapped.__vacBalance=true;w.openUserModal=wrapped;
     }
-    if(typeof w.v1517VacationPdf==='function'&&!w.v1517VacationPdf.__vacFlow){
+    if(typeof w.v1517VacationPdf==='function'&&w.v1517VacationPdf.__vacFlow!==BUILD){
       const pdf=function(r){
         const C=w.ensurePdf?.(),doc=new C({unit:'mm',format:'a4'});
         w.installCorporatePdfV95?.(doc,'Comprobante de Vacaciones','Solicitud finalizada · Tres firmas');
@@ -164,20 +166,20 @@
         const boxes=[{x:14,w:55,label:'Solicitante',name:r.perfiles?.nombre||'',sig:r.firma_solicitante,at:r.firmado_solicitante_at},{x:77.5,w:55,label:w.v1519RoleLabel?.(r.aprobador_rol||'Aprobador')||'Aprobador',name:r.aprobador_nombre||'',sig:r.firma_aprobador,at:r.firmado_aprobador_at},{x:141,w:55,label:'Recursos Humanos',name:r.rrhh_nombre||'',sig:r.firma_rrhh,at:r.firmado_rrhh_at}];
         boxes.forEach(b=>{doc.setTextColor(25,31,40);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(b.label,b.x,y);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(b.name||'Nombre no registrado',b.x,y+4,{maxWidth:b.w});doc.rect(b.x,y+7,b.w,32);if(b.sig)try{doc.addImage(b.sig,'PNG',b.x+3,y+10,b.w-6,25)}catch(_){}doc.setFontSize(6.5);doc.text(signedAt(b.at),b.x,y+43,{maxWidth:b.w});});
         return doc;
-      };pdf.__vacFlow=true;w.v1517VacationPdf=pdf;
+      };pdf.__vacFlow=BUILD;w.v1517VacationPdf=pdf;
     }
     if(typeof w.v1517VacationReceiptData==='function'&&!w.v1517VacationReceiptData.__signatureFit){
       const base=w.v1517VacationReceiptData;
       const wrapped=async function(...args){const receipt=await base.apply(this,args);for(const key of ['firma_solicitante','firma_aprobador','firma_rrhh'])if(receipt?.[key])receipt[key]=await normalizeSignature(receipt[key]);return receipt};
       wrapped.__signatureFit=true;w.v1517VacationReceiptData=wrapped;
     }
-    if(typeof w.renderInicio==='function'&&!w.renderInicio.__vacBalance){
+    if(typeof w.renderInicio==='function'&&w.renderInicio.__vacBalance!==BUILD){
       const base=w.renderInicio;
-      const wrapped=async function(...args){const out=await base.apply(this,args);const page=document.getElementById('page-inicio');if(!page||!w.state?.session||page.querySelector('#vacationBalanceHome'))return out;const q=await w.sb.from('perfiles').select('saldo_vacaciones').eq('id',w.state.session.user.id).maybeSingle();if(q.error)return out;const card=document.createElement('div');card.id='vacationBalanceHome';card.className='panel';card.innerHTML=`<div class="row-between"><div><h3>Saldo de vacaciones</h3><div class="muted">Saldo registrado después de solicitudes aprobadas</div></div><strong style="font-size:28px">${Number(q.data?.saldo_vacaciones??15).toFixed(2)} días</strong></div><div class="notice warn" style="margin-top:10px"><b>Importante:</b> ${escAttr(BALANCE_DISCLAIMER)}</div>`;const anchor=page.querySelector('.grid-kpi,.v15-summary-grid,.panel');anchor?.insertAdjacentElement('beforebegin',card);return out};
-      wrapped.__vacBalance=true;w.renderInicio=wrapped;
+      const wrapped=async function(...args){const out=await base.apply(this,args);const page=document.getElementById('page-inicio');if(!page||!w.state?.session)return out;const q=await w.sb.from('perfiles').select('saldo_vacaciones').eq('id',w.state.session.user.id).maybeSingle();if(q.error)return out;let card=page.querySelector('#vacationBalanceHome');if(!card){card=document.createElement('div');card.id='vacationBalanceHome';card.className='panel';const anchor=page.querySelector('.grid-kpi,.v15-summary-grid,.panel');anchor?.insertAdjacentElement('beforebegin',card)}card.innerHTML=`<div class="row-between"><div><h3>Saldo de vacaciones</h3><div class="muted">Saldo registrado después de solicitudes aprobadas</div></div><strong style="font-size:28px">${Number(q.data?.saldo_vacaciones??15).toFixed(2)} días</strong></div><div class="notice warn" style="margin-top:10px"><b>Importante:</b> ${escAttr(BALANCE_DISCLAIMER)}</div>`;return out};
+      wrapped.__vacBalance=BUILD;w.renderInicio=wrapped;
     }
-    if(typeof w.v154RequestModal==='function'&&!w.v154RequestModal.__vacPreview){
-      const base=w.v154RequestModal;const wrapped=async function(...args){const out=await base.apply(this,args);await installVacationPreview();return out};wrapped.__vacPreview=true;w.v154RequestModal=wrapped;w.v152RequestModal=wrapped;w.v15VacationModal=wrapped;
+    if(typeof w.v154RequestModal==='function'&&w.v154RequestModal.__vacPreview!==BUILD){
+      const base=w.v154RequestModal;const wrapped=async function(...args){const out=await base.apply(this,args);await installVacationPreview();const host=document.getElementById('vacationRequestPreview'),ensure=()=>{if(host&&!host.textContent.includes('saldo oficial y actualizado'))host.insertAdjacentHTML('beforeend',`<div class="notice warn"><b>Importante:</b> ${escAttr(BALANCE_DISCLAIMER)}</div>`)};ensure();if(host&&host.dataset.disclaimerObserver!==BUILD){host.dataset.disclaimerObserver=BUILD;new MutationObserver(ensure).observe(host,{childList:true,subtree:true})}return out};wrapped.__vacPreview=BUILD;w.v154RequestModal=wrapped;w.v152RequestModal=wrapped;w.v15VacationModal=wrapped;
     }
     if(typeof w.v1521DeleteRequest==='function'&&!w.v1521DeleteRequest.__vacSafeDelete){
       const safeDelete=async function(id){
