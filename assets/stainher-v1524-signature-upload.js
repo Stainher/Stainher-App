@@ -35,13 +35,24 @@
     canvas.dispatchEvent(new CustomEvent('stainher:signature-loaded',{bubbles:true,detail:{canvasId:id}}));
   }
 
+  function visibleBounds(image){
+    const probe=document.createElement('canvas'),limit=1400,ratio=Math.min(1,limit/Math.max(image.width,image.height));
+    probe.width=Math.max(1,Math.round(image.width*ratio));probe.height=Math.max(1,Math.round(image.height*ratio));
+    const ctx=probe.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,probe.width,probe.height);ctx.drawImage(image,0,0,probe.width,probe.height);
+    const pixels=ctx.getImageData(0,0,probe.width,probe.height).data;let left=probe.width,top=probe.height,right=-1,bottom=-1;
+    for(let y=0;y<probe.height;y++)for(let x=0;x<probe.width;x++){const i=(y*probe.width+x)*4,a=pixels[i+3],visible=a>10&&(a<245||pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245);if(!visible)continue;left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
+    if(right<left||bottom<top)return{x:0,y:0,w:image.width,h:image.height};
+    const pad=Math.max(3,Math.round(Math.max(right-left,bottom-top)*.04)),x=Math.max(0,left-pad),y=Math.max(0,top-pad),r=Math.min(probe.width-1,right+pad),b=Math.min(probe.height-1,bottom+pad);
+    return{x:x/ratio,y:y/ratio,w:(r-x+1)/ratio,h:(b-y+1)/ratio};
+  }
+
   function drawImage(canvas,image){
     const ctx=canvas.getContext('2d');
     if(!ctx)throw new Error('El área de firma no está disponible.');
-    const cw=canvas.width,ch=canvas.height,scale=Math.min((cw-28)/image.width,(ch-22)/image.height);
-    const width=image.width*scale,height=image.height*scale,x=(cw-width)/2,y=(ch-height)/2;
+    const cw=canvas.width,ch=canvas.height,bounds=visibleBounds(image),scale=Math.min((cw-36)/bounds.w,(ch-16)/bounds.h);
+    const width=bounds.w*scale,height=bounds.h*scale,x=(cw-width)/2,y=(ch-height)/2;
     ctx.clearRect(0,0,cw,ch);
-    ctx.drawImage(image,x,y,width,height);
+    ctx.drawImage(image,bounds.x,bounds.y,bounds.w,bounds.h,x,y,width,height);
     markSigned(canvas);
   }
 
