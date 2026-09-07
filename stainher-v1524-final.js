@@ -363,7 +363,7 @@
 (function installD12RecoveryLoader(){
   if(window.__STAINHER_D12_RECOVERY_LOADER__)return;
   window.__STAINHER_D12_RECOVERY_LOADER__=true;
-  const BUILD='20260907-d13-r19-justificativo-representante-legal';
+  const BUILD='20260907-d14-r19-firma-representante-legal';
   window.STAINHER_BUILD=BUILD;
   window.STAINHER_RELEASE={version:'V15.24',revision:'r19',build:BUILD};
   const files=[
