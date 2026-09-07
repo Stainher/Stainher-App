@@ -1,8 +1,9 @@
 (function(){
   'use strict';
-  const BUILD='20260907-d9-r19-justificativo-firma-personal';
+  const BUILD='20260907-d10-r19-indice-firma-justificativo';
   const isJust=x=>x?.tipo==='justificativo';
-  const role=()=>String(window.v11Role?.()||window.state?.profile?.rol||'').toLowerCase();
+  const role=()=>String(window.v11Role?.()||window.state?.profile?.rol||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const canRequestJustification=()=>['tecnico','supervisor'].includes(role())||/^(tecnico|supervisor)(?:_|\b)/.test(role());
   const row=id=>(window.state?.v154Requests||[]).find(x=>String(x.id)===String(id));
   const safe=v=>window.esc?window.esc(String(v??'')):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const date=v=>window.fmtDateCL?.(v)||v||'—';
@@ -24,7 +25,8 @@
   const baseModal=window.v154RequestModal;
   window.v154RequestModal=async function(...args){
     const out=await baseModal?.(...args),form=document.getElementById('v1522ReqForm');
-    if(!form||!['tecnico','supervisor'].includes(role()))return out;
+    if(!form||!canRequestJustification())return out;
+    if(form.tipo.querySelector('option[value="justificativo"]'))return out;
     const option=document.createElement('option');option.value='justificativo';option.textContent='Justificativo laboral';form.tipo.appendChild(option);
     const comment=form.comentario?.closest('label');if(!comment)return out;
     const fields=document.createElement('div');fields.className='v1524-just-fields';fields.innerHTML=`<label class="full hidden" data-just-institution>Institución o destinatario<input class="field" name="justificativo_institucion" maxlength="180" placeholder="Ej.: Universidad, instituto u otra institución"></label><label class="full hidden" data-just-text>Texto complementario para el documento<textarea class="field" name="justificativo_texto" maxlength="2000" rows="3" placeholder="Información adicional que RR.HH. debe considerar (opcional)"></textarea></label><div class="full hidden" data-just-sign><h4>Firma personal</h4><p class="muted">Utiliza tu firma guardada, dibuja o carga una firma PNG transparente.</p><canvas id="v1524JustificationApplicantSig" class="v12-signature" width="1000" height="220"></canvas><div class="v154-signature-state">Firma pendiente</div></div>`;comment.before(fields);

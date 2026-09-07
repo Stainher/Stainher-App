@@ -354,16 +354,16 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 
-/* Cargador de recuperación d9.
+/* Cargador de recuperación d10.
  * La versión publicada mantiene compatibilidad con el index histórico, que
  * referencia varios módulos de /assets desde la raíz. Esta capa los carga
  * desde su ubicación real y garantiza que firma, gráficos y justificativos
  * queden activos aunque una referencia heredada falle.
  */
-(function installD9RecoveryLoader(){
-  if(window.__STAINHER_D9_RECOVERY_LOADER__)return;
-  window.__STAINHER_D9_RECOVERY_LOADER__=true;
-  const BUILD='20260907-d9-r19-justificativo-firma-personal';
+(function installD10RecoveryLoader(){
+  if(window.__STAINHER_D10_RECOVERY_LOADER__)return;
+  window.__STAINHER_D10_RECOVERY_LOADER__=true;
+  const BUILD='20260907-d10-r19-indice-firma-justificativo';
   window.STAINHER_BUILD=BUILD;
   window.STAINHER_RELEASE={version:'V15.24',revision:'r19',build:BUILD};
   const files=[
@@ -378,10 +378,10 @@
   ];
   let chain=Promise.resolve();
   for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{
-    const clean=file.replace(/^assets\//,'').replace(/\.js$/,''),id=`stainher-d8-${clean}`;
+    const clean=file.replace(/^assets\//,'').replace(/\.js$/,''),id=`stainher-d10-${clean}`;
     if(document.getElementById(id))return resolve();
     const script=document.createElement('script');script.id=id;script.src=`${file}?build=${BUILD}`;script.async=false;
     script.onload=resolve;script.onerror=()=>reject(new Error(`No se pudo cargar ${file}`));document.head.appendChild(script);
   }));
-  chain.catch(error=>console.error('[Stainher d8]',error));
+  chain.catch(error=>console.error('[Stainher d10]',error));
 })();

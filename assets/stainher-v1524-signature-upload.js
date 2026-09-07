@@ -93,6 +93,7 @@
 
   async function mountAccountSignature(){
     const modal=document.querySelector('#modalRoot .modal');if(!modal||modal.querySelector('#v1524ProfileSignature'))return;
+    if(!/^mi cuenta$/i.test(String(modal.querySelector('h3')?.textContent||'').trim()))return;
     const profile=modal.querySelector('.panel');if(!profile)return;
     const card=document.createElement('section');card.id='v1524ProfileSignature';card.className='panel v1524-profile-signature';
     card.innerHTML='<div><h4 style="margin:0 0 4px">Firma personal</h4><div class="muted">Guarda una firma PNG transparente para utilizarla en solicitudes y aprobaciones.</div></div><div class="v1524-profile-signature-preview"><span class="muted">Buscando firma guardada…</span></div><div class="v1524-profile-signature-actions"><label class="btn primary" style="cursor:pointer;text-align:center">Cargar o reemplazar PNG<input type="file" accept="image/png,.png" hidden></label><button type="button" class="btn danger-btn" data-remove-signature disabled>Eliminar firma</button></div><small class="muted">La imagen debe contener transparencia. Se ajustará automáticamente al espacio de firma.</small>';
@@ -139,5 +140,7 @@
   }
 
   mountStyle();scan();installAccount();
-  new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1){if(node.matches?.('canvas.v12-signature,canvas[id*="Sig"],canvas[id*="firma" i]'))enhance(node);scan(node)}}))).observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener('stainher:modules-ready',installAccount);
+  document.addEventListener('click',event=>{if(event.target?.closest?.('[onclick*="v157OpenAccount"]'))setTimeout(()=>mountAccountSignature().catch(error=>console.warn('[Firma de perfil]',error)),0)},true);
+  new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1){if(node.matches?.('canvas.v12-signature,canvas[id*="Sig"],canvas[id*="firma" i]'))enhance(node);scan(node);if(node.matches?.('#modalRoot,.modal')||node.querySelector?.('#modalRoot .modal,.modal'))mountAccountSignature().catch(error=>console.warn('[Firma de perfil]',error))}}))).observe(document.documentElement,{childList:true,subtree:true});
 })();
