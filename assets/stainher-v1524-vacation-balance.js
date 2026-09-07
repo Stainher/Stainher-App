@@ -1,17 +1,18 @@
 (function(){
   'use strict';
   const w=window;
-  const BUILD='20260907-d18-r19-descargo-saldo-vacaciones';
+  const BUILD='20260907-d19-r19-nombre-administrador-comprobante';
   const BALANCE_DISCLAIMER='Información referencial. Para conocer el saldo oficial y actualizado de vacaciones, debes confirmarlo directamente con el área de Recursos Humanos.';
   function escAttr(v){return String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+  function dedupeAccountBalances(){const modal=document.querySelector('#modalRoot .modal');if(!modal)return;const cards=[...modal.querySelectorAll('#accountVacationBalance,.stainher-account-vacation')];cards.slice(1).forEach(card=>card.remove())}
   function normalizeSignature(data){
     if(!data||!/^data:image\/png;base64,/i.test(String(data)))return Promise.resolve(data);
     return new Promise(resolve=>{const image=new Image();image.onerror=()=>resolve(data);image.onload=()=>{try{
       const probe=document.createElement('canvas'),limit=1400,ratio=Math.min(1,limit/Math.max(image.width,image.height));probe.width=Math.max(1,Math.round(image.width*ratio));probe.height=Math.max(1,Math.round(image.height*ratio));
       const ctx=probe.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,probe.width,probe.height);ctx.drawImage(image,0,0,probe.width,probe.height);const pixels=ctx.getImageData(0,0,probe.width,probe.height).data;let left=probe.width,top=probe.height,right=-1,bottom=-1;
       for(let y=0;y<probe.height;y++)for(let x=0;x<probe.width;x++){const i=(y*probe.width+x)*4,a=pixels[i+3],visible=a>10&&(a<245||pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245);if(!visible)continue;left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
-      if(right<left||bottom<top)return resolve(data);const pad=Math.max(3,Math.round(Math.max(right-left,bottom-top)*.04)),sx=Math.max(0,left-pad),sy=Math.max(0,top-pad),sr=Math.min(probe.width-1,right+pad),sb=Math.min(probe.height-1,bottom+pad),sw=sr-sx+1,sh=sb-sy+1;
-      const out=document.createElement('canvas');out.width=1000;out.height=300;const target=out.getContext('2d'),scale=Math.min(940/sw,270/sh),dw=sw*scale,dh=sh*scale;target.clearRect(0,0,out.width,out.height);target.drawImage(probe,sx,sy,sw,sh,(out.width-dw)/2,(out.height-dh)/2,dw,dh);resolve(out.toDataURL('image/png'));
+      if(right<left||bottom<top)return resolve(data);const pad=Math.max(2,Math.round(Math.max(right-left,bottom-top)*.015)),sx=Math.max(0,left-pad),sy=Math.max(0,top-pad),sr=Math.min(probe.width-1,right+pad),sb=Math.min(probe.height-1,bottom+pad),sw=sr-sx+1,sh=sb-sy+1;
+      const out=document.createElement('canvas');out.width=1000;out.height=300;const target=out.getContext('2d'),scale=Math.min(990/sw,292/sh),dw=sw*scale,dh=sh*scale;target.clearRect(0,0,out.width,out.height);target.drawImage(probe,sx,sy,sw,sh,(out.width-dw)/2,(out.height-dh)/2,dw,dh);resolve(out.toDataURL('image/png'));
     }catch(_){resolve(data)}};image.src=String(data)});
   }
   function installVacationStyles(){
@@ -133,6 +134,8 @@
     });
   }
   function install(){
+    dedupeAccountBalances();
+    if(!w.__STAINHER_ACCOUNT_BALANCE_DEDUPE__){w.__STAINHER_ACCOUNT_BALANCE_DEDUPE__=true;new MutationObserver(dedupeAccountBalances).observe(document.getElementById('modalRoot')||document.body,{childList:true,subtree:true})}
     installVacationStyles();
     if(typeof w.openEditUserModal==='function'&&!w.openEditUserModal.__vacBalance){
       const base=w.openEditUserModal;
@@ -164,14 +167,14 @@
         y=doc.lastAutoTable.finalY+6;doc.setFont('helvetica','italic');doc.setFontSize(7);doc.setTextColor(75,85,99);const disclaimerLines=doc.splitTextToSize(`Importante: ${BALANCE_DISCLAIMER}`,182);doc.text(disclaimerLines,14,y);y+=disclaimerLines.length*3.2+6;
         const signedAt=value=>{if(!value)return'Fecha y hora no registradas';const d=new Date(value);if(Number.isNaN(d.getTime()))return'Fecha y hora no registradas';return new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(d).replace(',', ' ·')+' h'};
         const boxes=[{x:14,w:55,label:'Solicitante',name:r.perfiles?.nombre||'',sig:r.firma_solicitante,at:r.firmado_solicitante_at},{x:77.5,w:55,label:w.v1519RoleLabel?.(r.aprobador_rol||'Aprobador')||'Aprobador',name:r.aprobador_nombre||'',sig:r.firma_aprobador,at:r.firmado_aprobador_at},{x:141,w:55,label:'Recursos Humanos',name:r.rrhh_nombre||'',sig:r.firma_rrhh,at:r.firmado_rrhh_at}];
-        boxes.forEach(b=>{doc.setTextColor(25,31,40);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(b.label,b.x,y);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(b.name||'Nombre no registrado',b.x,y+4,{maxWidth:b.w});doc.rect(b.x,y+7,b.w,32);if(b.sig)try{doc.addImage(b.sig,'PNG',b.x+3,y+10,b.w-6,25)}catch(_){}doc.setFontSize(6.5);doc.text(signedAt(b.at),b.x,y+43,{maxWidth:b.w});});
+        boxes.forEach(b=>{doc.setTextColor(25,31,40);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(b.label,b.x,y);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(b.name||'Nombre no registrado',b.x,y+4,{maxWidth:b.w});doc.rect(b.x,y+7,b.w,32);if(b.sig)try{doc.addImage(b.sig,'PNG',b.x+1,y+8,b.w-2,29)}catch(_){}doc.setFontSize(6.5);doc.text(signedAt(b.at),b.x,y+43,{maxWidth:b.w});});
         return doc;
       };pdf.__vacFlow=BUILD;w.v1517VacationPdf=pdf;
     }
-    if(typeof w.v1517VacationReceiptData==='function'&&!w.v1517VacationReceiptData.__signatureFit){
+    if(typeof w.v1517VacationReceiptData==='function'&&w.v1517VacationReceiptData.__receiptFix!==BUILD){
       const base=w.v1517VacationReceiptData;
-      const wrapped=async function(...args){const receipt=await base.apply(this,args);for(const key of ['firma_solicitante','firma_aprobador','firma_rrhh'])if(receipt?.[key])receipt[key]=await normalizeSignature(receipt[key]);return receipt};
-      wrapped.__signatureFit=true;w.v1517VacationReceiptData=wrapped;
+      const wrapped=async function(...args){const receipt=await base.apply(this,args);try{const q=await w.sb.rpc('obtener_firmantes_solicitud_v1524',{p_id:String(receipt.id)});if(!q.error&&q.data){receipt.aprobador_nombre=q.data.aprobador_nombre||receipt.aprobador_nombre;receipt.aprobador_email=q.data.aprobador_email||receipt.aprobador_email;receipt.rrhh_nombre=q.data.rrhh_nombre||receipt.rrhh_nombre;if(q.data.solicitante_nombre)receipt.perfiles={...(receipt.perfiles||{}),nombre:q.data.solicitante_nombre}}else if(q.error)console.warn('[vacaciones] No se pudieron resolver los firmantes',q.error)}catch(error){console.warn('[vacaciones] No se pudieron resolver los firmantes',error)}for(const key of ['firma_solicitante','firma_aprobador','firma_rrhh'])if(receipt?.[key])receipt[key]=await normalizeSignature(receipt[key]);return receipt};
+      wrapped.__receiptFix=BUILD;wrapped.__signatureFit=true;w.v1517VacationReceiptData=wrapped;
     }
     if(typeof w.renderInicio==='function'&&w.renderInicio.__vacBalance!==BUILD){
       const base=w.renderInicio;
