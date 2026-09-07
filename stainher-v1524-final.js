@@ -354,16 +354,16 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 
-/* Cargador de recuperación d8.
+/* Cargador de recuperación d9.
  * La versión publicada mantiene compatibilidad con el index histórico, que
  * referencia varios módulos de /assets desde la raíz. Esta capa los carga
  * desde su ubicación real y garantiza que firma, gráficos y justificativos
  * queden activos aunque una referencia heredada falle.
  */
-(function installD8RecoveryLoader(){
-  if(window.__STAINHER_D8_RECOVERY_LOADER__)return;
-  window.__STAINHER_D8_RECOVERY_LOADER__=true;
-  const BUILD='20260907-d8-r19-justificativos-rrhh';
+(function installD9RecoveryLoader(){
+  if(window.__STAINHER_D9_RECOVERY_LOADER__)return;
+  window.__STAINHER_D9_RECOVERY_LOADER__=true;
+  const BUILD='20260907-d9-r19-justificativo-firma-personal';
   window.STAINHER_BUILD=BUILD;
   window.STAINHER_RELEASE={version:'V15.24',revision:'r19',build:BUILD};
   const files=[
