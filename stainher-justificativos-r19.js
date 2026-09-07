@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const BUILD='20260907-d14-r19-firma-representante-legal';
+  const BUILD='20260907-d15-r19-firma-representante-legal';
   const LEGAL_REPRESENTATIVE={name:'Luis Poblete López',role:'Representante Legal'};
   const MODULE_URL=document.currentScript?.src||location.href;
   const LEGAL_SIGNATURE_URL=new URL('assets/firma-timbre-luis-poblete.png',MODULE_URL).href+`?build=${BUILD}`;
