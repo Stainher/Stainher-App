@@ -353,35 +353,3 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
-
-/* Cargador de recuperación d12.
- * La versión publicada mantiene compatibilidad con el index histórico, que
- * referencia varios módulos de /assets desde la raíz. Esta capa los carga
- * desde su ubicación real y garantiza que firma, gráficos y justificativos
- * queden activos aunque una referencia heredada falle.
- */
-(function installD12RecoveryLoader(){
-  if(window.__STAINHER_D12_RECOVERY_LOADER__)return;
-  window.__STAINHER_D12_RECOVERY_LOADER__=true;
-  const BUILD='20260907-d18-r19-descargo-saldo-vacaciones';
-  window.STAINHER_BUILD=BUILD;
-  window.STAINHER_RELEASE={version:'V15.24',revision:'r19',build:BUILD};
-  const files=[
-    'assets/stainher-v1524-hotfix1.js','assets/stainher-v1524-hotfix2.js',
-    'assets/stainher-turnos-stability-r17.js','assets/stainher-v1524-report-hotfix4.js',
-    'assets/stainher-v1524-home-badges-compact.js','assets/stainher-v1524-contract-money-fit.js',
-    'assets/stainher-v1524-turn-views-personal-summary.js','assets/stainher-v1524-vacation-balance.js',
-    'assets/stainher-v1524-ux-runtime.js','assets/stainher-v1524-reliability-actions.js',
-    'assets/stainher-v1524-admin-crud.js','assets/stainher-v1524-theme.js',
-    'assets/stainher-v1524-runtime-audit.js','assets/stainher-reliability-charts-dark-r19.js',
-    'assets/stainher-v1524-signature-upload.js','stainher-justificativos-r19.js'
-  ];
-  let chain=Promise.resolve();
-  for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{
-    const clean=file.replace(/^assets\//,'').replace(/\.js$/,''),id=`stainher-d12-${clean}`;
-    if(document.getElementById(id))return resolve();
-    const script=document.createElement('script');script.id=id;script.src=`${file}?build=${BUILD}`;script.async=false;
-    script.onload=resolve;script.onerror=()=>reject(new Error(`No se pudo cargar ${file}`));document.head.appendChild(script);
-  }));
-  chain.catch(error=>console.error('[Stainher d12]',error));
-})();

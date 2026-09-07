@@ -346,24 +346,3 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
-
-
-/* Integración segura d12 sobre el índice completo funcional. */
-(function installD12FeatureLoader(){
-  if(window.__STAINHER_D12_FEATURE_LOADER__)return;
-  window.__STAINHER_D12_FEATURE_LOADER__=true;
-  const BUILD='20260907-d12-r19-restauracion-integral-firma-justificativo';
-  window.STAINHER_BUILD=BUILD;
-  window.STAINHER_RELEASE={version:'V15.24',revision:'r19',build:BUILD};
-  const files=[
-    ['stainher-v1524-signature-upload-script','stainher-v1524-signature-upload.js','firmas'],
-    ['stainher-justificativos-r19-script','../stainher-justificativos-r19.js','justificativos']
-  ];
-  let chain=Promise.resolve();
-  for(const [id,file,domain] of files)chain=chain.then(()=>new Promise((resolve,reject)=>{
-    if(document.getElementById(id))return resolve();
-    const script=document.createElement('script');script.id=id;script.src=`${file}?build=${BUILD}`;script.async=false;
-    script.onload=resolve;script.onerror=()=>reject(new Error(`No se pudo cargar ${domain}: ${file}`));document.head.appendChild(script);
-  }));
-  chain.then(()=>window.dispatchEvent(new CustomEvent('stainher:features-ready',{detail:{build:BUILD}}))).catch(error=>console.error('[Stainher d12]',error));
-})();

@@ -2,7 +2,7 @@
  * Complementa la firma dibujada sin cambiar los flujos de aprobación existentes.
  */
 (function installSignatureUpload(){
-  const BUILD='20260907-d18-r19-descargo-saldo-vacaciones';
+  const BUILD='20260907-d20-r19-restauracion-funcional-integral';
   if(window.__STAINHER_V1524_SIGNATURE_UPLOAD__===BUILD)return;
   window.__STAINHER_V1524_SIGNATURE_UPLOAD__=BUILD;
 

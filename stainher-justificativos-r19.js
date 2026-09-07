@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const BUILD='20260907-d19-r19-nombre-administrador-comprobante';
+  const BUILD='20260907-d20-r19-restauracion-funcional-integral';
   const LEGAL_REPRESENTATIVE={name:'Luis Poblete López',role:'Representante Legal'};
   const MODULE_URL=document.currentScript?.src||location.href;
   const LEGAL_SIGNATURE_URL=new URL('assets/firma-timbre-luis-poblete.png',MODULE_URL).href+`?build=${BUILD}`;

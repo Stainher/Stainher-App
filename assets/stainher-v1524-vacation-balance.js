@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const w=window;
-  const BUILD='20260907-d19-r19-nombre-administrador-comprobante';
+  const BUILD='20260907-d20-r19-restauracion-funcional-integral';
   const BALANCE_DISCLAIMER='Información referencial. Para conocer el saldo oficial y actualizado de vacaciones, debes confirmarlo directamente con el área de Recursos Humanos.';
   function escAttr(v){return String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
   function dedupeAccountBalances(){const modal=document.querySelector('#modalRoot .modal');if(!modal)return;const cards=[...modal.querySelectorAll('#accountVacationBalance,.stainher-account-vacation')];cards.slice(1).forEach(card=>card.remove())}

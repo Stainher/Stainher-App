@@ -2,7 +2,7 @@ window.STAINHER_CONFIG = {
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = 'V15.24-20260903-consolidated-r23';
+window.STAINHER_BUILD = '20260907-d20-r19-restauracion-funcional-integral';
 
 /* Stainher App V15.24 · arranque visual estable en Inicio.
  * Este bloque se ejecuta desde config.js antes del primer renderizado visible.
