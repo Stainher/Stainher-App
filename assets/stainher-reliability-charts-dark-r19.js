@@ -3,6 +3,7 @@
   'use strict';
   if(window.__STAINHER_RELIABILITY_CHARTS_R19__)return;
   window.__STAINHER_RELIABILITY_CHARTS_R19__=true;
+  document.documentElement.dataset.stainherReliabilityCharts='r19';
 
   const IDS=new Set(['chartEq','chartHours','chartTrend']);
   const STATE_KEYS={chartEq:'a',chartHours:'b',chartTrend:'c'};
@@ -37,6 +38,7 @@
       scale.border={...(scale.border||{}),color:grid};
     }
     try{chart.resize();chart.update('none')}catch(error){console.warn('[Confiabilidad gráficos]',error)}
+    canvas.dataset.stainherChartContrast=light?'light':'dark';
     return true;
   }
   function refresh(forcedTheme){

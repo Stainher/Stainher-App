@@ -2,7 +2,7 @@
   "app": "Stainher App",
   "version": "V15.24",
   "revision": "r19",
-  "build": "20260907-d4-r19-reliability-scatter-analysis",
+  "build": "20260907-d5-r19-reliability-chart-contrast",
   "path": "./",
   "publishedAt": "2026-09-07T11:05:00-03:00"
 }
