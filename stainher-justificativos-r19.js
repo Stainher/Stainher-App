@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const BUILD='20260907-d11-r19-indice-firma-justificativo';
+  const BUILD='20260907-d12-r19-restauracion-integral-firma-justificativo';
   const isJust=x=>x?.tipo==='justificativo';
   const role=()=>String(window.v11Role?.()||window.state?.profile?.rol||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
   const canRequestJustification=()=>['tecnico','supervisor'].includes(role())||/^(tecnico|supervisor)(?:_|\b)/.test(role());
