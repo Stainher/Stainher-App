@@ -2,8 +2,9 @@
  * Complementa la firma dibujada sin cambiar los flujos de aprobación existentes.
  */
 (function installSignatureUpload(){
-  if(window.__STAINHER_V1524_SIGNATURE_UPLOAD__)return;
-  window.__STAINHER_V1524_SIGNATURE_UPLOAD__=true;
+  const BUILD='20260907-d18-r19-descargo-saldo-vacaciones';
+  if(window.__STAINHER_V1524_SIGNATURE_UPLOAD__===BUILD)return;
+  window.__STAINHER_V1524_SIGNATURE_UPLOAD__=BUILD;
 
   function mountStyle(){
     if(document.getElementById('stainher-v1524-signature-upload-style'))return;
@@ -127,8 +128,9 @@
   }
 
   function enhance(canvas){
-    if(!canvas||canvas.dataset.signatureUploadReady==='1')return;
-    canvas.dataset.signatureUploadReady='1';
+    if(!canvas||canvas.dataset.signatureUploadReady===BUILD)return;
+    canvas.nextElementSibling?.matches?.('.v1524-signature-upload')&&canvas.nextElementSibling.remove();
+    canvas.dataset.signatureUploadReady=BUILD;
     const controls=document.createElement('div');
     controls.className='v1524-signature-upload';
     controls.innerHTML='<button type="button" class="v1524-signature-upload-label v1524-use-saved-signature" disabled>Usar firma guardada</button><label class="v1524-signature-upload-label">Cargar firma PNG<input type="file" accept="image/png,.png" aria-label="Cargar firma PNG transparente"></label><label class="v1524-signature-save"><input type="checkbox" data-save-signature>Guardar en mi perfil</label><span class="v1524-signature-upload-note">PNG transparente · máximo 5 MB</span>';
