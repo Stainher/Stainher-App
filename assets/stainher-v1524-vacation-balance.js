@@ -96,7 +96,7 @@
       const error=profile.error||hol.error||mesh.error;if(error){host.innerHTML=`<h4>Vista previa de vacaciones</h4><div class="notice error">No se pudo calcular: ${escAttr(error.message)}</div>`;return}
       const holidays=new Set((hol.data||[]).map(x=>x.fecha)),role=String(profile.data?.rol||''),personName=String(dot.data?.nombre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),cargo=String(dot.data?.cargo||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),fixedFriday=personName.includes('juan ignacio soto'),fixedThursday=personName.includes('jose antonio humberto cisternas')||/expert[oa].*prevencion/.test(cargo),fixed=fixedFriday||fixedThursday,seven=!fixed&&(!!dot.data?.aplica_turnos||['tecnico','supervisor','apr'].includes(role)),days=[];
       for(let d=new Date(start+'T12:00:00'),last=new Date(end+'T12:00:00');d<=last;d.setDate(d.getDate()+1)){const iso=d.toISOString().slice(0,10),weekend=[0,6].includes(d.getDay()),holiday=holidays.has(iso);days.push({iso,weekend,holiday,workday:!weekend&&!holiday})}
-      const scheduled=(mesh.data||[]).filter(x=>['A','C'].includes(x.turno_base)).length,fixedLastDay=fixedFriday?5:4,fixedDays=days.filter(x=>{const weekday=new Date(x.iso+'T12:00:00').getDay();return weekday>=1&&weekday<=fixedLastDay&&!x.holiday}).length,discount=fixed?fixedDays:seven?scheduled:days.filter(x=>x.workday).length,balance=Number(profile.data?.saldo_vacaciones??15),projected=balance-discount,missing=!fixed&&seven&&(mesh.data||[]).length<days.length;
+      const scheduled=(mesh.data||[]).filter(x=>['A','C'].includes(x.turno_base)).length,fixedLastDay=fixedFriday?5:4,savedShifts=new Map((mesh.data||[]).map(x=>[x.fecha,x.turno_base])),fixedDays=days.filter(x=>{const weekday=new Date(x.iso+'T12:00:00').getDay(),turn=savedShifts.get(x.iso)||(weekday>=1&&weekday<=fixedLastDay?'A':'L');return ['A','C'].includes(turn)&&!x.holiday}).length,discount=fixed?fixedDays:seven?scheduled:days.filter(x=>x.workday).length,balance=Number(profile.data?.saldo_vacaciones??15),projected=balance-discount,missing=!fixed&&seven&&(mesh.data||[]).length<days.length;
       host.innerHTML=`<div class="row-between"><div><h4>Vista previa de vacaciones</h4><div class="muted">${fixed?`Jornada permanente · lunes a ${fixedFriday?'viernes':'jueves'} Turno A`:seven?'Turno 7×7 · días A/C programados':'Jornada administrativa · lunes a viernes sin festivos'}</div></div><span class="status ${projected<0?'bad':'ok'}">${discount} días a descontar</span></div><div class="v15-summary-grid" style="margin-top:10px"><div class="v15-summary-card"><span>Período</span><strong>${days.length}</strong></div><div class="v15-summary-card"><span>Hábiles</span><strong>${days.filter(x=>x.workday).length}</strong></div><div class="v15-summary-card"><span>Fin de semana</span><strong>${days.filter(x=>x.weekend).length}</strong></div><div class="v15-summary-card"><span>Festivos</span><strong>${days.filter(x=>x.holiday).length}</strong></div><div class="v15-summary-card"><span>Saldo actual</span><strong>${balance.toFixed(2)}</strong></div><div class="v15-summary-card"><span>Saldo proyectado</span><strong>${projected.toFixed(2)}</strong></div></div>${missing?'<div class="notice warn">La malla 7×7 no cubre todo el período. Revisa la programación antes de enviar.</div>':''}${projected<0?'<div class="notice error">Saldo insuficiente: la aprobación final será bloqueada.</div>':''}<div class="notice warn"><b>Importante:</b> ${escAttr(BALANCE_DISCLAIMER)}</div>`;
     };
     const typeField=form.querySelector('[name="tipo"]'),dateFields=[form.querySelector('[name="fecha_inicio"]'),form.querySelector('[name="fecha_fin"]')].filter(Boolean),today=new Date().toISOString().slice(0,10);
@@ -120,9 +120,14 @@
     }
     const missing=ids.filter(id=>!names.has(id));
     if(missing.length){
-      const q=await w.sb.from('perfiles').select('id,nombre,email,rol').in('id',missing);
-      if(q.error)w.v1523RecordError?.('solicitudes/solicitantes',q.error);
-      else for(const profile of q.data||[])if(profile?.nombre)names.set(String(profile.id),String(profile.nombre).trim());
+      const [profiles,dotacion]=await Promise.all([
+        w.sb.from('perfiles').select('id,nombre,email,rol').in('id',missing),
+        w.sb.from('dotacion_contrato').select('user_id,nombre,cargo').in('user_id',missing)
+      ]);
+      if(profiles.error)w.v1523RecordError?.('solicitudes/solicitantes-perfiles',profiles.error);
+      else for(const profile of profiles.data||[])if(profile?.nombre)names.set(String(profile.id),String(profile.nombre).trim());
+      if(dotacion.error)w.v1523RecordError?.('solicitudes/solicitantes-dotacion',dotacion.error);
+      else for(const person of dotacion.data||[])if(person?.nombre&&!names.has(String(person.user_id)))names.set(String(person.user_id),String(person.nombre).trim());
     }
     const ownId=String(w.state?.session?.user?.id||''),ownName=String(w.state?.profile?.nombre||'').trim();
     rows.forEach((row,index)=>{

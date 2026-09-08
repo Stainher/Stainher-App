@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const BUILD='20260907-d20-r19-restauracion-funcional-integral';
+  const BUILD='20260908-d22-r21-justificativo-historico-nombres';
   const LEGAL_REPRESENTATIVE={name:'Luis Poblete López',role:'Representante Legal'};
   const MODULE_URL=document.currentScript?.src||location.href;
   const LEGAL_SIGNATURE_URL=new URL('assets/firma-timbre-luis-poblete.png',MODULE_URL).href+`?build=${BUILD}`;
@@ -51,10 +51,11 @@
       form.querySelector('[data-just-institution]')?.classList.toggle('hidden',!active);form.querySelector('[data-just-text]')?.classList.toggle('hidden',!active);form.querySelector('[data-just-info]')?.classList.toggle('hidden',!active);
       if(form.justificativo_institucion)form.justificativo_institucion.required=active;
       comment.classList.toggle('hidden',active);form.comentario.required=!active;
-      if(active){start?.classList.remove('hidden');end?.classList.add('hidden');form.fecha_inicio.required=true;form.fecha_inicio.removeAttribute('min');form.fecha_fin.required=false}
+      if(active){start?.classList.remove('hidden');end?.classList.add('hidden');form.fecha_inicio.required=true;form.fecha_inicio.removeAttribute('min');form.fecha_fin.required=false;form.fecha_fin.removeAttribute('min')}
       else{form.fecha_inicio?.setAttribute('min',new Date().toISOString().slice(0,10));form.comentario.placeholder=''}
     };
     form.tipo.onchange=sync;
+    form.tipo.addEventListener('change',()=>queueMicrotask(sync));
     const baseSubmit=form.onsubmit;
     form.onsubmit=async event=>{
       if(form.tipo.value!=='justificativo')return baseSubmit?.call(form,event);
