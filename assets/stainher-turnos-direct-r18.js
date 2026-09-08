@@ -7,7 +7,7 @@
   if(window.__STAINHER_TURNOS_DIRECT_R18__)return;
   window.__STAINHER_TURNOS_DIRECT_R18__=true;
 
-  const BUILD='20260904-r18-turnos-direct';
+  const BUILD='20260908-r22-mobile-calendar-labels';
   const ABSENCE=new Set(['vacaciones','licencia_medica','falta','ausencia','permiso','permiso_ausencia','suspendido_encierro']);
   const LABELS={encierro_planificado:'Encierro dentro de turno',encierro_no_planificado:'Encierro fuera de turno',suspendido_encierro:'Suspendido por encierro',dia_adicional:'Día adicional',hora_extra:'Horas extra',feriado:'Horas feriado',vacaciones:'Vacaciones',licencia_medica:'Licencia médica',permiso:'Permiso / ausencia',falta:'Falta / ausencia',capacitacion:'Capacitación',otro:'Otra novedad',encierro:'Encierro'};
   const CODES={encierro_planificado:'ET',encierro_no_planificado:'EF',suspendido_encierro:'SE',dia_adicional:'DA',hora_extra:'HE',feriado:'HF',vacaciones:'V',licencia_medica:'LM',permiso:'P',falta:'F',capacitacion:'CAP',otro:'EV',encierro:'ENC'};
@@ -54,8 +54,12 @@
       #page-turnos .r18-event-row small{display:block;color:var(--muted);margin-top:2px}
       #page-turnos .r18-mobile{display:none}
       #page-turnos .r18-mobile-person{border:1px solid var(--line);border-radius:11px;padding:9px;background:var(--panel,#0d141c);margin-bottom:9px}
+      #page-turnos .r18-mobile-person>.r18-person-name{display:block;line-height:1.25}
+      #page-turnos .r18-mobile-person>.r18-person-role{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.25}
       #page-turnos .r18-mobile-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:7px}
       #page-turnos .r18-mobile-day{min-height:48px;border:1px solid var(--line);border-radius:7px;padding:4px;text-align:center;font-size:8px}
+      #page-turnos .r18-mobile-date{display:flex;align-items:baseline;justify-content:center;gap:3px;line-height:1}
+      #page-turnos .r18-mobile-weekday{color:var(--muted);font-size:7px;font-weight:500}
       @media(max-width:900px){#page-turnos .r18-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#page-turnos .r18-kpis-secondary{grid-template-columns:1fr 1fr 1fr}#page-turnos .r18-turn-toolbar{grid-template-columns:44px 1fr 44px}#page-turnos .r18-turn-toolbar label{grid-column:1/-1}#page-turnos .r18-event-row{grid-template-columns:1fr 1fr}#page-turnos .r18-event-row>*:nth-child(5){grid-column:1/-1}.r18-event-row .actions{grid-column:1/-1}.r18-desktop{display:none!important}#page-turnos .r18-mobile{display:block}}
       @media(max-width:520px){#page-turnos .r18-kpis,#page-turnos .r18-kpis-secondary{grid-template-columns:1fr 1fr}#page-turnos .r18-turn-actions .btn{width:100%}}
     `;document.head.appendChild(s);
@@ -103,7 +107,7 @@
 
   function mobileHtml(d,idx,y,m,edit){
     const days=daysIn(y,m);
-    return `<div class="r18-mobile">${(d.people||[]).map(p=>`<article class="r18-mobile-person"><b>${esc(p.nombre||'')}</b><small>${esc(p.cargo||'')}</small><div class="r18-mobile-days">${Array.from({length:days},(_,i)=>{const date=iso(y,m,i+1),sh=idx.shifts.get(`${p.user_id}|${date}`),base=String(sh?.turno_base||'—'),events=idx.byUserDate.get(`${p.user_id}|${date}`)||[];return `<div class="r18-mobile-day ${edit?'editable':''}" data-r18-uid="${esc(p.user_id)}" data-r18-date="${date}"><b>${i+1}</b><br><span class="r18-shift ${esc(base)}">${esc(base)}</span>${events.length?`<div class="r18-cell-events">${eventBadges(events)}</div>`:''}</div>`}).join('')}</div></article>`).join('')||'<div class="empty">Sin personas en la malla.</div>'}</div>`;
+    return `<div class="r18-mobile">${(d.people||[]).map(p=>`<article class="r18-mobile-person"><b class="r18-person-name">${esc(p.nombre||'')}</b><small class="r18-person-role">${esc(p.cargo||'')}</small><div class="r18-mobile-days">${Array.from({length:days},(_,i)=>{const date=iso(y,m,i+1),weekday=new Intl.DateTimeFormat('es-CL',{weekday:'short'}).format(new Date(date+'T12:00:00')).replace('.','').replace(/^./,letter=>letter.toUpperCase()),sh=idx.shifts.get(`${p.user_id}|${date}`),base=String(sh?.turno_base||'—'),events=idx.byUserDate.get(`${p.user_id}|${date}`)||[];return `<div class="r18-mobile-day ${edit?'editable':''}" data-r18-uid="${esc(p.user_id)}" data-r18-date="${date}"><span class="r18-mobile-date"><small class="r18-mobile-weekday">${esc(weekday)}</small><b>${i+1}</b></span><span class="r18-shift ${esc(base)}">${esc(base)}</span>${events.length?`<div class="r18-cell-events">${eventBadges(events)}</div>`:''}</div>`}).join('')}</div></article>`).join('')||'<div class="empty">Sin personas en la malla.</div>'}</div>`;
   }
 
   function eventsHtml(d,idx,edit){
