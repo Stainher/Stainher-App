@@ -59,19 +59,19 @@
     const q=await w.sb.from('perfiles').select('saldo_vacaciones').eq('id',uid).maybeSingle();
     if(q.error){w.toast?.('No se pudo cargar el saldo de vacaciones: '+q.error.message,'error');return}
     const label=document.createElement('label');
-    label.innerHTML=`Saldo de vacaciones (días)<input class="field" name="saldo_vacaciones" type="number" min="0" step="0.5" value="${escAttr(Number(q.data?.saldo_vacaciones??15))}"><small class="muted">Valor editable manualmente. Saldo inicial: 15 días.</small><small class="muted">${escAttr(BALANCE_DISCLAIMER)}</small>`;
+    label.innerHTML=`Saldo de vacaciones (días)<input class="field" name="saldo_vacaciones" type="text" inputmode="decimal" pattern="[0-9]+([,.][0-9]{1,2})?" value="${escAttr(Number(q.data?.saldo_vacaciones??15).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2}))}"><small class="muted">Acepta valores con dos decimales, por ejemplo 26,33. Saldo inicial: 15 días.</small><small class="muted">${escAttr(BALANCE_DISCLAIMER)}</small>`;
     const permissions=form.querySelector('.v11-permissions,.permission-grid,[data-permission-editor]');
     form.insertBefore(label,permissions||form.querySelector('.full')||form.firstChild);
     const input=label.querySelector('input');
     let saved=String(input.value);
     input.addEventListener('change',async()=>{
-      const value=Number(input.value);
+      const value=Number(String(input.value).trim().replace(',','.'));
       if(!Number.isFinite(value)||value<0){input.value=saved;return w.toast?.('Ingresa un saldo válido igual o superior a 0.','error')}
       input.disabled=true;
       const up=await w.sb.from('perfiles').update({saldo_vacaciones:value}).eq('id',uid);
       input.disabled=false;
       if(up.error){input.value=saved;return w.toast?.('No se pudo actualizar el saldo: '+up.error.message,'error')}
-      saved=String(value);w.toast?.('Saldo de vacaciones actualizado','success');
+      saved=value.toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2});input.value=saved;w.toast?.('Saldo de vacaciones actualizado','success');
     });
   }
   async function installVacationPreview(){
@@ -89,17 +89,19 @@
       const uid=w.state?.session?.user?.id;
       const [profile,dot,hol,mesh]=await Promise.all([
         w.sb.from('perfiles').select('rol,saldo_vacaciones').eq('id',uid).maybeSingle(),
-        w.sb.from('dotacion_contrato').select('cargo,aplica_turnos').eq('user_id',uid).maybeSingle(),
+        w.sb.from('dotacion_contrato').select('nombre,cargo,aplica_turnos').eq('user_id',uid).maybeSingle(),
         w.sb.from('feriados_vacaciones').select('fecha,nombre').gte('fecha',start).lte('fecha',end),
         w.sb.from('turnos_malla_v1512').select('fecha,turno_base').eq('user_id',uid).gte('fecha',start).lte('fecha',end)
       ]);if(current!==seq)return;
       const error=profile.error||hol.error||mesh.error;if(error){host.innerHTML=`<h4>Vista previa de vacaciones</h4><div class="notice error">No se pudo calcular: ${escAttr(error.message)}</div>`;return}
-      const holidays=new Set((hol.data||[]).map(x=>x.fecha)),role=String(profile.data?.rol||''),seven=!!dot.data?.aplica_turnos||['tecnico','supervisor','apr'].includes(role),days=[];
+      const holidays=new Set((hol.data||[]).map(x=>x.fecha)),role=String(profile.data?.rol||''),personName=String(dot.data?.nombre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),cargo=String(dot.data?.cargo||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),fixedFriday=personName.includes('juan ignacio soto'),fixedThursday=personName.includes('jose antonio humberto cisternas')||/expert[oa].*prevencion/.test(cargo),fixed=fixedFriday||fixedThursday,seven=!fixed&&(!!dot.data?.aplica_turnos||['tecnico','supervisor','apr'].includes(role)),days=[];
       for(let d=new Date(start+'T12:00:00'),last=new Date(end+'T12:00:00');d<=last;d.setDate(d.getDate()+1)){const iso=d.toISOString().slice(0,10),weekend=[0,6].includes(d.getDay()),holiday=holidays.has(iso);days.push({iso,weekend,holiday,workday:!weekend&&!holiday})}
-      const scheduled=(mesh.data||[]).filter(x=>['A','C'].includes(x.turno_base)).length,discount=seven?scheduled:days.filter(x=>x.workday).length,balance=Number(profile.data?.saldo_vacaciones??15),projected=balance-discount,missing=seven&&(mesh.data||[]).length<days.length;
-      host.innerHTML=`<div class="row-between"><div><h4>Vista previa de vacaciones</h4><div class="muted">${seven?'Turno 7×7 · días A/C programados':'Jornada administrativa · lunes a viernes sin festivos'}</div></div><span class="status ${projected<0?'bad':'ok'}">${discount} días a descontar</span></div><div class="v15-summary-grid" style="margin-top:10px"><div class="v15-summary-card"><span>Período</span><strong>${days.length}</strong></div><div class="v15-summary-card"><span>Hábiles</span><strong>${days.filter(x=>x.workday).length}</strong></div><div class="v15-summary-card"><span>Fin de semana</span><strong>${days.filter(x=>x.weekend).length}</strong></div><div class="v15-summary-card"><span>Festivos</span><strong>${days.filter(x=>x.holiday).length}</strong></div><div class="v15-summary-card"><span>Saldo actual</span><strong>${balance.toFixed(2)}</strong></div><div class="v15-summary-card"><span>Saldo proyectado</span><strong>${projected.toFixed(2)}</strong></div></div>${missing?'<div class="notice warn">La malla 7×7 no cubre todo el período. Revisa la programación antes de enviar.</div>':''}${projected<0?'<div class="notice error">Saldo insuficiente: la aprobación final será bloqueada.</div>':''}<div class="notice warn"><b>Importante:</b> ${escAttr(BALANCE_DISCLAIMER)}</div>`;
+      const scheduled=(mesh.data||[]).filter(x=>['A','C'].includes(x.turno_base)).length,fixedLastDay=fixedFriday?5:4,fixedDays=days.filter(x=>{const weekday=new Date(x.iso+'T12:00:00').getDay();return weekday>=1&&weekday<=fixedLastDay&&!x.holiday}).length,discount=fixed?fixedDays:seven?scheduled:days.filter(x=>x.workday).length,balance=Number(profile.data?.saldo_vacaciones??15),projected=balance-discount,missing=!fixed&&seven&&(mesh.data||[]).length<days.length;
+      host.innerHTML=`<div class="row-between"><div><h4>Vista previa de vacaciones</h4><div class="muted">${fixed?`Jornada permanente · lunes a ${fixedFriday?'viernes':'jueves'} Turno A`:seven?'Turno 7×7 · días A/C programados':'Jornada administrativa · lunes a viernes sin festivos'}</div></div><span class="status ${projected<0?'bad':'ok'}">${discount} días a descontar</span></div><div class="v15-summary-grid" style="margin-top:10px"><div class="v15-summary-card"><span>Período</span><strong>${days.length}</strong></div><div class="v15-summary-card"><span>Hábiles</span><strong>${days.filter(x=>x.workday).length}</strong></div><div class="v15-summary-card"><span>Fin de semana</span><strong>${days.filter(x=>x.weekend).length}</strong></div><div class="v15-summary-card"><span>Festivos</span><strong>${days.filter(x=>x.holiday).length}</strong></div><div class="v15-summary-card"><span>Saldo actual</span><strong>${balance.toFixed(2)}</strong></div><div class="v15-summary-card"><span>Saldo proyectado</span><strong>${projected.toFixed(2)}</strong></div></div>${missing?'<div class="notice warn">La malla 7×7 no cubre todo el período. Revisa la programación antes de enviar.</div>':''}${projected<0?'<div class="notice error">Saldo insuficiente: la aprobación final será bloqueada.</div>':''}<div class="notice warn"><b>Importante:</b> ${escAttr(BALANCE_DISCLAIMER)}</div>`;
     };
-    form.querySelector('[name="tipo"]')?.addEventListener('change',update);form.querySelector('[name="fecha_inicio"]')?.addEventListener('change',update);form.querySelector('[name="fecha_fin"]')?.addEventListener('change',update);update();
+    const typeField=form.querySelector('[name="tipo"]'),dateFields=[form.querySelector('[name="fecha_inicio"]'),form.querySelector('[name="fecha_fin"]')].filter(Boolean),today=new Date().toISOString().slice(0,10);
+    const allowHistoricalVacation=()=>{const historical=typeField?.value==='vacaciones';dateFields.forEach(input=>historical?input.removeAttribute('min'):input.setAttribute('min',today));let note=form.querySelector('[data-historical-vacation]');if(historical&&!note){note=document.createElement('div');note.className='full notice';note.dataset.historicalVacation='1';note.innerHTML='<b>Período histórico habilitado:</b> puedes seleccionar vacaciones de meses o años anteriores. La solicitud conservará su flujo de aprobación y descontará el saldo al ser autorizada.';const firstDate=dateFields[0]?.closest('label');firstDate?.parentNode?.insertBefore(note,dateFields[1]?.closest('label')?.nextSibling||firstDate.nextSibling)}else if(!historical)note?.remove()};
+    typeField?.addEventListener('change',()=>{allowHistoricalVacation();update()});dateFields.forEach(input=>input.addEventListener('change',update));allowHistoricalVacation();update();
   }
   function addCreateDefault(){
     const form=document.getElementById('userFormV1517');
