@@ -23,4 +23,26 @@
   };
   wrapped.__registeredSchedules=true;
   w.v1520LoadTurnData=wrapped;
+  // Group only the visible roster; preserve each person's original cells/actions.
+  const matrix=w.v1520TurnMatrix;
+  if(typeof matrix==='function'){
+    w.v1520TurnMatrix=function(data,...args){
+      const groups=[
+        {title:'Personal técnico y supervisores',people:[]},
+        {title:'Personal administrativo',people:[]},
+        {title:'Prevención',people:[]}
+      ];
+      for(const person of data.people||[]){
+        const cargo=norm(person.cargo);
+        const group=/prevencion|\bapr\b/.test(cargo)?2:
+          /administr|confiabilidad|planifica|programa|gerente|contador/.test(cargo)?1:0;
+        groups[group].people.push(person);
+      }
+      if(!groups.some(group=>group.people.length))return matrix.call(this,data,...args);
+      return groups.filter(group=>group.people.length).map(group=>
+        `<section class="stainher-turn-personnel-group" style="margin:16px 0;min-width:0"><h4>${group.title} · ${group.people.length}</h4>${matrix.call(this,{...data,people:group.people},...args)}</section>`
+      ).join('');
+    };
+  }
+
 })();
