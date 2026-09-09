@@ -161,10 +161,12 @@
     page.querySelectorAll('[data-r18-uid][data-r18-date]').forEach(cell=>{
       const uid=String(cell.dataset.r18Uid||''),date=String(cell.dataset.r18Date||'');
       const dayEvents=events.filter(ev=>String(ev.user_id)===uid&&eventCovers(ev,date));
-      cell.querySelectorAll(':scope > .r18-cell-events').forEach(node=>node.remove());
-      if(!dayEvents.length)return;
-      const host=document.createElement('div');host.className='r18-cell-events r30-restored-events';
-      host.innerHTML=dayEvents.map(eventBadge).join('');cell.appendChild(host);
+      const desired=dayEvents.map(eventBadge).join('');
+      let host=cell.querySelector(':scope > .r18-cell-events');
+      if(!desired){if(host)host.remove();return}
+      if(!host){host=document.createElement('div');host.className='r18-cell-events r30-restored-events';host.innerHTML=desired;cell.appendChild(host);return}
+      host.classList.add('r30-restored-events');
+      if(host.innerHTML!==desired)host.innerHTML=desired;
     });
   }
 
