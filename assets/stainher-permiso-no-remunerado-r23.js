@@ -7,7 +7,7 @@
   window.v152RequestLabel=function(type){return String(type||'')==='permiso'?'Permiso no remunerado':baseLabel?.(type)||String(type||'Solicitud')};
   const baseStatus=window.v1517RequestStatus;
   window.v1517RequestStatus=function(request){if(String(request?.estado||'')==='cancelada')return ['bad','Cancelada por el solicitante'];return baseStatus?.(request)||['warn',request?.estado||'Pendiente']};
-  function updateFormLabel(){const option=document.querySelector('#modalRoot form select[name="tipo"] option[value="permiso"]');if(option)option.textContent='Permiso no remunerado'}
+  function updateFormLabel(){const option=document.querySelector('#modalRoot form select[name="tipo"] option[value="permiso"]');if(option&&option.textContent!=='Permiso no remunerado')option.textContent='Permiso no remunerado'}
   const baseModal=window.v154RequestModal;
   if(typeof baseModal==='function'){
     const wrapped=async function(...args){const result=await baseModal.apply(this,args);updateFormLabel();return result};wrapped.__unpaidLeave=BUILD;
