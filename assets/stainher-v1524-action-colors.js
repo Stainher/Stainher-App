@@ -16,6 +16,45 @@
     if(/\b(cerrar|volver|cancelar|limpiar)\b/.test(text))return'neutral';
     return'';
   }
+  function canManageLeadership(){
+    try{return typeof window.canManageLeadershipV11==='function'&&!!window.canManageLeadershipV11()}catch(_){return false}
+  }
+  function leadershipTemplates(){return Array.isArray(window.state?.v1512ControlTemplates)?window.state.v1512ControlTemplates:[]}
+  function findTemplateForCard(card,templates){
+    const title=norm(card.querySelector('h4')?.textContent||'');
+    return templates.find(t=>norm(t?.nombre)===title)||null;
+  }
+  async function retireCustomLeadershipControl(id){
+    if(!canManageLeadership())return window.toast?.('No tienes permiso para eliminar este control.','error');
+    const templates=leadershipTemplates(),template=templates.find(t=>String(t?.id)===String(id));
+    if(!template)return window.toast?.('No se encontró el control personalizado.','error');
+    if(!window.confirm(`¿Eliminar el control “${template.nombre}”?\n\nSe quitará del catálogo activo y se conservarán las ejecuciones y programaciones históricas.`))return;
+    try{
+      const query=await window.sb.from('liderazgo_plantillas_v1512').update({activo:false,updated_at:new Date().toISOString()}).eq('id',id);
+      if(query.error)throw query.error;
+      try{window.v1512Audit?.('liderazgo','desactivar_control_personalizado',String(id),{codigo:template.codigo,nombre:template.nombre})}catch(_){ }
+      if(window.state)window.state.v1512ControlTemplates=templates.filter(t=>String(t?.id)!==String(id));
+      await window.renderLiderazgoV95?.();
+      window.toast?.('Control eliminado del catálogo. El historial se conserva.','success');
+    }catch(error){window.toast?.(error?.message||'No se pudo eliminar el control.','error')}
+  }
+  window.v1524RetireCustomLeadershipControl=retireCustomLeadershipControl;
+  function enhanceLeadershipCustomControls(){
+    const page=document.getElementById('page-liderazgo');
+    if(!page||!canManageLeadership())return;
+    const templates=leadershipTemplates();if(!templates.length)return;
+    const cards=[...page.querySelectorAll('#v1512Lead_controles .control-grid-v95 > .control-card-v95')];
+    cards.forEach(card=>{
+      const badge=norm(card.querySelector('.status')?.textContent||''),number=String(card.querySelector('.control-number-v95')?.textContent||'').trim();
+      if(badge!=='personalizado'&&number!=='+')return;
+      if(card.querySelector('[data-v1524-custom-delete]'))return;
+      const template=findTemplateForCard(card,templates);if(!template)return;
+      const admin=document.createElement('div');admin.className='v1524-custom-control-admin';admin.dataset.v1524CustomDelete='1';
+      const button=document.createElement('button');button.type='button';button.className='btn danger-btn stainher-action-danger';button.textContent='Eliminar control';button.dataset.actionTone='danger';
+      button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();retireCustomLeadershipControl(template.id)});
+      admin.appendChild(button);card.appendChild(admin);
+    });
+  }
   function enhance(root=document){
     const buttons=[];
     if(root.matches?.('button,input[type="button"],input[type="submit"]'))buttons.push(root);
@@ -24,6 +63,7 @@
       const tone=toneFor(button);TONES.forEach(name=>button.classList.toggle(`stainher-action-${name}`,name===tone));
       if(tone)button.dataset.stainherActionTone=tone;else delete button.dataset.stainherActionTone;
     });
+    enhanceLeadershipCustomControls();
   }
   function mountStyle(){
     if(document.getElementById('stainher-action-colors-style'))return;
@@ -44,13 +84,12 @@
       :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-positive{order:3}
       :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-danger{order:4}
 
-      /* Inicio · el control de eliminar recordatorio no participa de la cuadrícula.
-       * Se mantiene como acción de peligro, pero compacto y anclado a la esquina. */
+      /* Inicio · eliminar recordatorio queda a la izquierda del contador de días. */
       #page-inicio .v152-alert-card.manual{position:relative!important}
       #page-inicio .v152-alert-card.manual .v152-alert-delete{
         position:absolute!important;
         top:7px!important;
-        right:7px!important;
+        right:82px!important;
         grid-area:auto!important;
         grid-column:auto!important;
         grid-row:auto!important;
@@ -73,7 +112,13 @@
         overflow:hidden!important;
         z-index:5!important;
       }
-      @media(max-width:760px){:where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"]){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}:where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.btn{width:100%!important;min-width:0!important}}
+      #page-liderazgo .v1524-custom-control-admin{display:flex;justify-content:flex-end;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+      #page-liderazgo .v1524-custom-control-admin .btn{min-height:34px!important;padding:7px 10px!important;font-size:11px!important}
+      @media(max-width:760px){
+        :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"]){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.btn{width:100%!important;min-width:0!important}
+        #page-inicio .v152-alert-card.manual .v152-alert-delete{right:68px!important}
+      }
     `;document.head.appendChild(style);
   }
   function boot(){
