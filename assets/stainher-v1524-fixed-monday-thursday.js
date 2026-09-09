@@ -10,7 +10,18 @@
   const shiftFor=(person,date)=>{const day=new Date(date+'T12:00:00').getDay(),last=mondayFriday(person)?5:4;return day>=1&&day<=last?'A':'L'};
   function installTurnSchedule(){
     if(typeof window.v1520LoadTurnData==='function'&&!window.v1520LoadTurnData.__fixedMondayThursday){
-      const base=window.v1520LoadTurnData;const wrapped=async function(){const data=await base.apply(this,arguments),all=data.allPeople||[],people=all.filter(person=>person.estado==='activo'&&person.user_id&&fixed(person)),selected=String(window.state?.turnGroupV1512||'');if(!data.groups.some(group=>group[0]===GROUP_ID))data.groups.push([GROUP_ID,GROUP_NAME]);if(!selected||selected===GROUP_ID){const map=new Map((selected===GROUP_ID?[]:data.people||[]).map(person=>[String(person.user_id),person]));people.forEach(person=>map.set(String(person.user_id),person));data.people=[...map.values()]}if((!selected||selected===GROUP_ID)&&people.length){data.shifts=data.shifts||[];const saved=new Set(data.shifts.map(row=>`${row.user_id}|${row.fecha}`));for(const person of people)for(const date of isoDates(data.range.start,data.range.end)){const key=`${person.user_id}|${date}`;if(!saved.has(key))data.shifts.push({user_id:person.user_id,fecha:date,turno_base:shiftFor(person,date),estado_publicacion:'publicado',observacion:mondayFriday(person)?'Jornada permanente lunes a viernes':'Jornada permanente lunes a jueves'})}}return data};wrapped.__fixedMondayThursday=true;window.v1520LoadTurnData=wrapped;
+      const base=window.v1520LoadTurnData;const wrapped=async function(){const data=await base.apply(this,arguments),all=data.allPeople||[],people=all.filter(person=>person.estado==='activo'&&person.user_id&&fixed(person)),selected=String(window.state?.turnGroupV1512||'');if(!data.groups.some(group=>group[0]===GROUP_ID))data.groups.push([GROUP_ID,GROUP_NAME]);if(!selected||selected===GROUP_ID){const map=new Map((selected===GROUP_ID?[]:data.people||[]).map(person=>[String(person.user_id),person]));people.forEach(person=>map.set(String(person.user_id),person));data.people=[...map.values()]}if((!selected||selected===GROUP_ID)&&people.length){data.shifts=data.shifts||[];const saved=new Set(data.shifts.map(row=>`${row.user_id}|${row.fecha}`));for(const person of people)for(const date of isoDates(data.range.start,data.range.end)){const key=`${person.user_id}|${date}`;if(!saved.has(key))data.shifts.push({user_id:person.user_id,fecha:date,turno_base:shiftFor(person,date),estado_publicacion:'publicado',observacion:mondayFriday(person)?'Jornada permanente lunes a viernes':'Jornada permanente lunes a jueves'})}
+        // Permanent schedules are added after the published-shift filter. Fetch
+        // their events with the same authenticated client and final visible IDs.
+        const visible=new Set((data.people||[]).map(person=>String(person.user_id)));
+        const fixedIds=people.map(person=>String(person.user_id)).filter(id=>visible.has(id));
+        if(fixedIds.length){
+          const q=await window.sb.from('turnos_novedades_v15').select('*').in('user_id',fixedIds).lte('fecha_inicio',data.range.end).gte('fecha_fin',data.range.start).order('fecha_inicio');
+          if(q.error)throw q.error;
+          const fixedSet=new Set(fixedIds);
+          data.events=[...(data.events||[]).filter(event=>!fixedSet.has(String(event.user_id))),...(q.data||[])];
+        }
+      }return data};wrapped.__fixedMondayThursday=true;window.v1520LoadTurnData=wrapped;
     }
     if(typeof window.v1513TurnEligible==='function'&&!window.v1513TurnEligible.__fixedMondayThursday){const base=window.v1513TurnEligible;const wrapped=person=>fixed(person)||base(person);wrapped.__fixedMondayThursday=true;window.v1513TurnEligible=wrapped}
   }
