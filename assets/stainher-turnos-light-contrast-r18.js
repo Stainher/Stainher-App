@@ -77,19 +77,19 @@
   document.head.appendChild(style);
 })();
 
-/* V15.24 r30 · restaura la glosa y la superposición visible de novedades.
- * El renderizador directo r18 reemplaza al render histórico después de que se
- * instala la antigua glosa. Esta capa vuelve a colocar la glosa sobre la vista
- * activa y reconstruye los badges desde los datos ya autorizados para el perfil.
- * También recupera novedades históricas de un solo día con fecha_fin NULL,
- * respetando la visibilidad de malla publicada para perfiles sin edición.
+/* V15.24 r32 · glosa coloreada + HF visibles en malla/listado.
+ * Usa la misma semántica visual del informe mensual.
+ * Las HF automáticas son solo una proyección visual: feriado legal + turno A/C
+ * publicado y sin ausencia. No crea ni modifica registros en Supabase.
  */
-(function installTurnosGlossEventsR30(){
+(function installTurnosGlossEventsR32(){
   'use strict';
-  if(window.__STAINHER_TURNOS_GLOSS_EVENTS_R30__)return;
-  window.__STAINHER_TURNOS_GLOSS_EVENTS_R30__=true;
+  if(window.__STAINHER_TURNOS_GLOSS_EVENTS_R32__)return;
+  window.__STAINHER_TURNOS_GLOSS_EVENTS_R32__=true;
 
-  const BUILD='20260909-r30-turn-gloss-events';
+  const BUILD='20260909-r32-hf-gloss-colors-stable';
+  const HOLIDAY_SHIFT_HOURS=12;
+  const ABSENCE_TYPES=new Set(['vacaciones','licencia_medica','permiso','permiso_ausencia','falta','ausencia','suspendido_encierro']);
   const LABELS={
     encierro_planificado:'Encierro dentro de turno',encierro_no_planificado:'Encierro fuera de turno',
     suspendido_encierro:'Suspendido por encierro',dia_adicional:'Día adicional',hora_extra:'Horas extra',
@@ -100,28 +100,71 @@
   const CODES={
     encierro_planificado:'ET',encierro_no_planificado:'EF',suspendido_encierro:'SE',dia_adicional:'DA',
     hora_extra:'HE',feriado:'HF',vacaciones:'V',licencia_medica:'LM',permiso:'P',permiso_ausencia:'P',
-    falta:'F',ausencia:'F',capacitacion:'CAP',otro:'EV',encierro:'ENC'
+    falta:'F',ausencia:'F',capacitacion:'CAP',otro:'Otr',encierro:'ENC'
   };
   const LEGEND=[
     ['A','Turno A','shift'],['C','Turno C','shift'],['L','Libre','shift'],
     ['ET','Encierro dentro de turno'],['EF','Encierro fuera de turno'],['SE','Suspendido por encierro'],
     ['DA','Día adicional'],['HE','Horas extra'],['HF','Horas feriado'],['V','Vacaciones'],
     ['LM','Licencia médica'],['P','Permiso no remunerado'],['F','Falta / ausencia'],
-    ['CAP','Capacitación'],['EV','Otra novedad']
+    ['CAP','Capacitación'],['Otr','Otra novedad']
   ];
 
   const esc=value=>String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const label=type=>LABELS[String(type||'')]||window.v1520TurnTypeLabel?.(type)||String(type||'Evento').replaceAll('_',' ');
-  const code=type=>CODES[String(type||'')]||window.v1520TurnTypeShort?.(type)||'EV';
+  const code=type=>CODES[String(type||'')]||window.v1520TurnTypeShort?.(type)||'Otr';
   const eventEnd=ev=>String(ev?.fecha_fin||ev?.fecha_inicio||'');
   const eventCovers=(ev,date)=>String(ev?.fecha_inicio||'')<=date&&eventEnd(ev)>=date;
+  const codeClass=value=>String(value||'Otr').replace(/[^A-Za-z0-9_-]/g,'');
   const canSeeDrafts=()=>{
     try{return !!window.isAdmin?.()||(!!window.v1520CanEdit?.('turnos')&&!window.state?.v15PreviewRole)}catch(_){return false}
   };
 
-  function mountR30Style(){
-    if(document.getElementById('stainher-turnos-gloss-events-r30-style'))return;
-    const style=document.createElement('style');style.id='stainher-turnos-gloss-events-r30-style';style.textContent=`
+  function fallbackHolidayEntries(){
+    try{
+      if(typeof CHILE_HOLIDAYS!=='undefined'&&Array.isArray(CHILE_HOLIDAYS))return CHILE_HOLIDAYS;
+    }catch(_){ }
+    return [];
+  }
+  function holidayMap(data){
+    const map=new Map();
+    const database=Array.isArray(data?.holidays)?data.holidays:[];
+    database.forEach(item=>{const date=String(item?.fecha||''),name=String(item?.nombre||'Feriado');if(date)map.set(date,name)});
+    if(!map.size){
+      fallbackHolidayEntries().forEach(item=>{const date=String(item?.[0]||''),name=String(item?.[1]||'Feriado');if(date)map.set(date,name)});
+    }
+    if(!data?.range)return map;
+    for(const date of [...map.keys()])if(date<data.range.start||date>data.range.end)map.delete(date);
+    return map;
+  }
+  function derivedHolidayEvents(data){
+    if(!data?.range)return [];
+    const holidays=holidayMap(data);if(!holidays.size)return [];
+    const realEvents=Array.isArray(data.events)?data.events:[];
+    const shifts=Array.isArray(data.shifts)?data.shifts:[];
+    const out=[];
+    for(const sh of shifts){
+      const date=String(sh?.fecha||''),uid=String(sh?.user_id||''),base=String(sh?.turno_base||'');
+      if(!uid||!holidays.has(date)||!['A','C'].includes(base))continue;
+      if(sh?.estado_publicacion&&String(sh.estado_publicacion)!=='publicado')continue;
+      const onDay=realEvents.filter(ev=>String(ev.user_id)===uid&&eventCovers(ev,date));
+      if(onDay.some(ev=>String(ev.tipo)==='feriado'))continue;
+      if(onDay.some(ev=>ABSENCE_TYPES.has(String(ev.tipo))))continue;
+      const name=holidays.get(date)||'Feriado';
+      out.push({
+        id:`derived-hf-${uid}-${date}`,user_id:uid,tipo:'feriado',fecha_inicio:date,fecha_fin:date,
+        cantidad:HOLIDAY_SHIFT_HOURS,unidad:'horas',turno_base:base,
+        motivo:`${name} · Calculado desde malla publicada`,observacion:`${name} · Calculado desde malla publicada`,
+        __derivedHoliday:true
+      });
+    }
+    return out;
+  }
+  function visibleEvents(data){return [...(Array.isArray(data?.events)?data.events:[]),...derivedHolidayEvents(data)]}
+
+  function mountR32Style(){
+    if(document.getElementById('stainher-turnos-gloss-events-r32-style'))return;
+    const style=document.createElement('style');style.id='stainher-turnos-gloss-events-r32-style';style.textContent=`
       #page-turnos .r30-turn-legend{display:flex;align-items:center;gap:7px 10px;flex-wrap:wrap;margin:4px 0 12px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel,#0d141c);color:var(--muted);font-size:9px}
       #page-turnos .r30-turn-legend>strong{color:var(--text,#fff);font-size:10px;font-weight:600!important;margin-right:2px}
       #page-turnos .r30-turn-legend-item{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
@@ -130,25 +173,57 @@
       #page-turnos .r30-restored-events{display:flex!important;gap:2px!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;margin-top:3px!important;max-width:100%!important}
       #page-turnos .r30-restored-events .r18-event-code{min-width:20px!important;max-width:100%!important;padding:1px 3px!important;line-height:1.15!important;white-space:nowrap!important}
       #page-turnos .r18-turn-cell,#page-turnos .r18-mobile-day{height:auto!important;min-height:42px!important;vertical-align:middle!important}
+      #page-turnos .r32-derived-hf{border-style:dashed!important}
+      #page-turnos .r32-derived-hf .r18-event-code{font-size:8px!important}
+
+      #page-turnos .r18-event-code.ET{color:#6ee7b7!important;background:rgba(52,211,153,.16)!important;border-color:#34d399!important}
+      #page-turnos .r18-event-code.EF{color:#fdba74!important;background:rgba(251,146,60,.18)!important;border-color:#fb923c!important}
+      #page-turnos .r18-event-code.SE{color:#fda4af!important;background:rgba(244,63,94,.18)!important;border-color:#fb7185!important}
+      #page-turnos .r18-event-code.DA{color:#7dd3fc!important;background:rgba(14,165,233,.16)!important;border-color:#38bdf8!important}
+      #page-turnos .r18-event-code.HE{color:#fde047!important;background:rgba(250,204,21,.14)!important;border-color:#eab308!important}
+      #page-turnos .r18-event-code.HF{color:#d8b4fe!important;background:rgba(168,85,247,.18)!important;border-color:#a855f7!important}
+      #page-turnos .r18-event-code.V{color:#7dd3fc!important;background:rgba(14,165,233,.14)!important;border-color:#0ea5e9!important}
+      #page-turnos .r18-event-code.LM{color:#f0abfc!important;background:rgba(217,70,239,.16)!important;border-color:#d946ef!important}
+      #page-turnos .r18-event-code.P{color:#bef264!important;background:rgba(132,204,22,.15)!important;border-color:#84cc16!important}
+      #page-turnos .r18-event-code.F{color:#fda4af!important;background:rgba(220,38,38,.16)!important;border-color:#ef4444!important}
+      #page-turnos .r18-event-code.CAP{color:#a5b4fc!important;background:rgba(99,102,241,.16)!important;border-color:#6366f1!important}
+      #page-turnos .r18-event-code.Otr{color:#cbd5e1!important;background:rgba(100,116,139,.18)!important;border-color:#64748b!important}
+      #page-turnos .r18-event-code.ENC{color:#cbd5e1!important;background:rgba(100,116,139,.18)!important;border-color:#64748b!important}
+
       html[data-theme="light"] #page-turnos .r30-turn-legend{background:#fff!important;color:#475467!important;border-color:#cbd5e1!important}
       html[data-theme="light"] #page-turnos .r30-turn-legend>strong{color:#182230!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.ET{color:#067647!important;background:#e7f8f1!important;border-color:#69b99d!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.EF{color:#b54708!important;background:#fff4e8!important;border-color:#f0a45f!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.SE{color:#b4233c!important;background:#fdecef!important;border-color:#d47a8d!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.DA{color:#026aa2!important;background:#e8f6ff!important;border-color:#70b6db!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.HE{color:#7a5a00!important;background:#fff8d8!important;border-color:#d9b83f!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.HF{color:#6941a5!important;background:#f4ebff!important;border-color:#aa87d6!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.V{color:#026aa2!important;background:#e8f6ff!important;border-color:#70b6db!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.LM{color:#9b2c9d!important;background:#fceafa!important;border-color:#d68bd2!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.P{color:#4d7c0f!important;background:#f0f9df!important;border-color:#9bc451!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.F{color:#b42318!important;background:#feeceb!important;border-color:#dd8079!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.CAP{color:#444ce7!important;background:#eef0ff!important;border-color:#9197e8!important}
+      html[data-theme="light"] #page-turnos .r18-event-code.Otr,html[data-theme="light"] #page-turnos .r18-event-code.ENC{color:#475467!important;background:#eef2f6!important;border-color:#98a2b3!important}
       @media(max-width:900px){#page-turnos .r30-turn-legend{gap:6px 8px;padding:8px;font-size:8px}#page-turnos .r30-turn-legend-item{white-space:normal}}
     `;document.head.appendChild(style);
   }
 
   function legendHtml(){
-    return `<div class="r30-turn-legend" data-r30-turn-legend><strong>Glosa:</strong>${LEGEND.map(([key,text,kind])=>`<span class="r30-turn-legend-item">${kind==='shift'?`<i class="r18-shift ${esc(key)}">${esc(key)}</i>`:`<i class="r18-event-code">${esc(key)}</i>`}<span>${esc(text)}</span></span>`).join('')}</div>`;
+    return `<div class="r30-turn-legend" data-r30-turn-legend data-r32-legend="1"><strong>Glosa:</strong>${LEGEND.map(([key,text,kind])=>`<span class="r30-turn-legend-item">${kind==='shift'?`<i class="r18-shift ${esc(key)}">${esc(key)}</i>`:`<i class="r18-event-code ${codeClass(key)}">${esc(key)}</i>`}<span>${esc(text)}</span></span>`).join('')}</div>`;
   }
 
   function eventBadge(ev){
     const c=code(ev?.tipo),qty=Number(ev?.cantidad||0),isHours=['hora_extra','feriado'].includes(String(ev?.tipo||''));
     const suffix=isHours&&qty?` ${Number.isInteger(qty)?qty:qty.toFixed(1)}h`:'';
     const detail=[label(ev?.tipo),ev?.motivo||ev?.observacion||'',isHours&&qty?`${qty} horas`:'' ].filter(Boolean).join(' · ');
-    return `<span class="r18-event-code" title="${esc(detail)}">${esc(c+suffix)}</span>`;
+    return `<span class="r18-event-code ${codeClass(c)}" title="${esc(detail)}">${esc(c+suffix)}</span>`;
   }
 
   function restoreLegend(page){
-    if(!page||page.querySelector('[data-r30-turn-legend]'))return;
+    if(!page)return;
+    const current=page.querySelector('[data-r30-turn-legend]');
+    if(current?.dataset.r32Legend==='1')return;
+    if(current){current.replaceWith(document.createRange().createContextualFragment(legendHtml()));return}
     const tabs=page.querySelector('.r18-turn-tabs');
     if(tabs)tabs.insertAdjacentHTML('afterend',legendHtml());
     else page.querySelector('[data-r18-content]')?.insertAdjacentHTML('beforebegin',legendHtml());
@@ -157,7 +232,7 @@
   function restoreCellEvents(page){
     const data=window.state?.v1520TurnData||window.state?.v1512TurnData;
     if(!page||!data)return;
-    const events=Array.isArray(data.events)?data.events:[];
+    const events=visibleEvents(data);
     page.querySelectorAll('[data-r18-uid][data-r18-date]').forEach(cell=>{
       const uid=String(cell.dataset.r18Uid||''),date=String(cell.dataset.r18Date||'');
       const dayEvents=events.filter(ev=>String(ev.user_id)===uid&&eventCovers(ev,date));
@@ -170,18 +245,65 @@
     });
   }
 
+  function derivedRowHtml(ev,data){
+    const people=[...(data.people||[]),...(data.allPeople||[])];
+    const person=people.find(p=>String(p.user_id)===String(ev.user_id));
+    return `<div><b>${esc(window.v1520Date?.(ev.fecha_inicio)||window.fmtDateCL?.(ev.fecha_inicio)||ev.fecha_inicio)}</b><small></small></div><div><b>${esc(person?.nombre||'Usuario')}</b><small>${esc(person?.cargo||'')}</small></div><div>${eventBadge(ev)} ${esc(label(ev.tipo))}</div><div><b>${HOLIDAY_SHIFT_HOURS} horas</b><small>Automático</small></div><div>${esc(ev.observacion)}</div><div></div>`;
+  }
+
+  function restoreDerivedEventRows(page){
+    const data=window.state?.v1520TurnData||window.state?.v1512TurnData,host=page?.querySelector('.r18-events');
+    if(!data||!host)return;
+    const desired=derivedHolidayEvents(data).sort((a,b)=>String(b.fecha_inicio).localeCompare(String(a.fecha_inicio)));
+    const existing=new Map([...host.querySelectorAll('.r32-derived-hf')].map(node=>[String(node.dataset.r32DerivedHf||''),node]));
+    const fragment=document.createDocumentFragment();
+    for(const ev of desired){
+      const key=`${ev.user_id}|${ev.fecha_inicio}`;
+      const signature=`${key}|${ev.cantidad}|${ev.observacion}`;
+      let row=existing.get(key);
+      if(row){
+        existing.delete(key);
+        if(row.dataset.r32Signature!==signature){row.innerHTML=derivedRowHtml(ev,data);row.dataset.r32Signature=signature}
+        continue;
+      }
+      row=document.createElement('article');row.className='r18-event-row r32-derived-hf';row.dataset.r32DerivedHf=key;row.dataset.r32Signature=signature;row.innerHTML=derivedRowHtml(ev,data);fragment.appendChild(row);
+    }
+    existing.forEach(node=>node.remove());
+    if(fragment.childNodes.length)host.prepend(fragment);
+  }
+
+  function decorateExistingCodes(page){
+    page?.querySelectorAll('.r18-event-code').forEach(node=>{
+      let text=String(node.textContent||'').trim(),head=text.split(/\s+/)[0];
+      if(head==='EV'||head==='OTR'||head==='EC'){text=text.replace(/^(EV|OTR|EC)\b/,'Otr');head='Otr';if(node.textContent!==text)node.textContent=text}
+      const cls=codeClass(head);if(cls&&!node.classList.contains(cls))node.classList.add(cls);
+    });
+  }
+
+  function decorateReportLegend(){
+    document.querySelectorAll('#modalRoot .v1524-report-code').forEach(node=>{
+      const text=String(node.textContent||'').trim();
+      if(['EV','EC','OTR'].includes(text))node.textContent='Otr';
+      const cls=codeClass(node.textContent);if(cls&&!node.classList.contains(cls))node.classList.add(cls);
+    });
+  }
+
   let decorating=false;
   function decorate(){
     if(decorating)return;decorating=true;
     requestAnimationFrame(()=>{
-      try{const page=document.getElementById('page-turnos');if(page){restoreLegend(page);restoreCellEvents(page)}}finally{decorating=false}
+      try{
+        const page=document.getElementById('page-turnos');
+        if(page){restoreLegend(page);restoreCellEvents(page);restoreDerivedEventRows(page);decorateExistingCodes(page)}
+        decorateReportLegend();
+      }finally{decorating=false}
     });
   }
 
   function mergeMissingSingleDayEvents(data,rows){
     if(!data||!Array.isArray(rows)||!rows.length)return data;
     const ids=new Set((data.people||[]).map(p=>String(p.user_id||'')).filter(Boolean));
-    const published=new Set((data.shifts||[]).map(sh=>`${sh.user_id}|${sh.fecha}`));
+    const published=new Set((data.shifts||[]).filter(sh=>!sh.estado_publicacion||String(sh.estado_publicacion)==='publicado').map(sh=>`${sh.user_id}|${sh.fecha}`));
     const allowDrafts=canSeeDrafts();
     const existing=new Set((data.events||[]).map(ev=>String(ev.id||`${ev.user_id}|${ev.tipo}|${ev.fecha_inicio}|${ev.created_at||''}`)));
     const extra=rows.filter(ev=>ids.has(String(ev.user_id))&&(allowDrafts||published.has(`${ev.user_id}|${ev.fecha_inicio}`))).filter(ev=>{
@@ -193,23 +315,31 @@
 
   function patchLoader(){
     const current=window.v1520LoadTurnData;
-    if(typeof current!=='function'||current.__r30NullEndEvents)return;
+    if(typeof current!=='function'||current.__r32TurnPresentation)return;
     const wrapped=async function(){
       const data=await current.apply(this,arguments);
       try{
         if(!window.sb||!data?.range)return data;
-        const ids=(data.people||[]).map(p=>String(p.user_id||'')).filter(Boolean);if(!ids.length)return data;
-        const query=await window.sb.from('turnos_novedades_v15').select('*').is('fecha_fin',null).gte('fecha_inicio',data.range.start).lte('fecha_inicio',data.range.end).in('user_id',ids).order('fecha_inicio');
-        if(!query.error)mergeMissingSingleDayEvents(data,query.data||[]);
-      }catch(error){console.warn('[Turnos r30] recuperación eventos históricos',error)}
+        const ids=(data.people||[]).map(p=>String(p.user_id||'')).filter(Boolean);
+        const queries=[window.sb.from('feriados_vacaciones').select('fecha,nombre').gte('fecha',data.range.start).lte('fecha',data.range.end).order('fecha')];
+        if(ids.length)queries.push(window.sb.from('turnos_novedades_v15').select('*').is('fecha_fin',null).gte('fecha_inicio',data.range.start).lte('fecha_inicio',data.range.end).in('user_id',ids).order('fecha_inicio'));
+        const results=await Promise.all(queries),holidays=results[0],missing=results[1];
+        if(!holidays?.error)data.holidays=holidays.data||[];
+        if(missing&&!missing.error)mergeMissingSingleDayEvents(data,missing.data||[]);
+      }catch(error){console.warn('[Turnos r32] complemento de presentación',error)}
       return data;
     };
-    wrapped.__r30NullEndEvents=true;wrapped.__base=current;window.v1520LoadTurnData=wrapped;
+    wrapped.__r32TurnPresentation=true;wrapped.__base=current;window.v1520LoadTurnData=wrapped;
   }
 
   function boot(){
-    mountR30Style();patchLoader();decorate();
-    const attach=()=>{const page=document.getElementById('page-turnos');if(page&&!page.dataset.r30Observer){page.dataset.r30Observer='1';new MutationObserver(decorate).observe(page,{childList:true,subtree:true})}};
+    mountR32Style();patchLoader();decorate();
+    const attach=()=>{
+      const page=document.getElementById('page-turnos');
+      if(page&&!page.dataset.r32Observer){page.dataset.r32Observer='1';new MutationObserver(decorate).observe(page,{childList:true,subtree:true})}
+      const modal=document.getElementById('modalRoot');
+      if(modal&&!modal.dataset.r32Observer){modal.dataset.r32Observer='1';new MutationObserver(decorate).observe(modal,{childList:true,subtree:true})}
+    };
     attach();setTimeout(()=>{patchLoader();attach();decorate()},900);setTimeout(()=>{patchLoader();attach();decorate()},1800);
     window.addEventListener('stainher:modules-ready',()=>setTimeout(()=>{patchLoader();attach();decorate()},0));
   }

@@ -43,6 +43,36 @@
       :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-primary{order:2}
       :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-positive{order:3}
       :where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.stainher-action-danger{order:4}
+
+      /* Inicio · el control de eliminar recordatorio no participa de la cuadrícula.
+       * Se mantiene como acción de peligro, pero compacto y anclado a la esquina. */
+      #page-inicio .v152-alert-card.manual{position:relative!important}
+      #page-inicio .v152-alert-card.manual .v152-alert-delete{
+        position:absolute!important;
+        top:7px!important;
+        right:7px!important;
+        grid-area:auto!important;
+        grid-column:auto!important;
+        grid-row:auto!important;
+        align-self:auto!important;
+        justify-self:auto!important;
+        display:inline-grid!important;
+        place-items:center!important;
+        width:24px!important;
+        height:24px!important;
+        min-width:24px!important;
+        min-height:24px!important;
+        max-width:24px!important;
+        max-height:24px!important;
+        margin:0!important;
+        padding:0!important;
+        border-radius:6px!important;
+        font-size:15px!important;
+        line-height:1!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        z-index:5!important;
+      }
       @media(max-width:760px){:where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"]){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}:where(.equipment-card,.vehicle-card,.v1523-user-card,.v157-person-card,.v1519-inventory-card) :where(.actions,[class*="-actions"])>.btn{width:100%!important;min-width:0!important}}
     `;document.head.appendChild(style);
   }
