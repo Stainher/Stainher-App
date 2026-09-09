@@ -48,6 +48,40 @@
       node.classList.add('stainher-disclosure-title');if(node.textContent!=='Dotación en turno hoy')node.textContent='Dotación en turno hoy';node.dataset.stainherFixedTitle='staffing';
     });
   }
+  function normalizedRole(value){
+    return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  function personnelGroup(role){
+    const cargo=normalizedRole(role);
+    if(/prevencion|\bapr\b/.test(cargo))return 2;
+    if(/administr|confiabilidad|planifica|programa|gerente|contador/.test(cargo))return 1;
+    return 0;
+  }
+  function groupHomeStaffing(staffing){
+    if(!staffing)return;
+    const shifts=staffing.querySelector?.('.v1524-home-shifts');
+    if(!shifts||shifts.dataset.stainherPersonnelGrouped==='1')return;
+    const cards=[...shifts.querySelectorAll('.v1524-home-person')];
+    if(!cards.length)return;
+    const groups=[
+      {title:'Personal técnico y supervisores',cards:[]},
+      {title:'Personal administrativo',cards:[]},
+      {title:'Prevención',cards:[]}
+    ];
+    cards.forEach(card=>{
+      const roleLine=String(card.querySelector('small')?.textContent||'').split('·')[0].trim();
+      groups[personnelGroup(roleLine)].cards.push(card);
+    });
+    const sections=groups.filter(group=>group.cards.length).map(group=>{
+      const section=document.createElement('section');section.className='v1524-home-group';section.dataset.stainherPersonnelGroup=normalizedRole(group.title);
+      const title=document.createElement('h4');title.textContent=`${group.title} · ${group.cards.length}`;
+      const grid=document.createElement('div');grid.className='v1524-home-grid';group.cards.forEach(card=>grid.appendChild(card));
+      section.append(title,grid);return section;
+    });
+    if(!sections.length)return;
+    shifts.replaceChildren(...sections);
+    shifts.dataset.stainherPersonnelGrouped='1';
+  }
   function arrangeHome(){
     const page=document.getElementById('page-inicio');if(!page)return;
     topPanels(page).filter(panel=>isVacation(panel)&&panel.id!=='vacationBalanceHome'&&!panel.querySelector('#vacationBalanceHome')).forEach(panel=>panel.remove());
@@ -60,6 +94,7 @@
     }
     setDisclosureTitle(staffing,'Dotación en turno hoy');
     enforceStaffingTitle(page);
+    groupHomeStaffing(staffing);
     const vacationPanel=vacation?.closest('details,.panel')||vacation;
     const staffingPanel=staffing&&directChild(page,staffing),alertsPanel=alerts&&directChild(page,alerts);
     // Preserve the current server-calculated balance.
