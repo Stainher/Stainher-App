@@ -65,9 +65,11 @@
   }
   function vacationAccrual(startValue,at=new Date()){
     const match=String(startValue||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!match)return null;
-    const start=new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]))),end=new Date(Date.UTC(at.getFullYear(),at.getMonth(),at.getDate()));if(start>end)return {months:0,days:0,total:0};
-    let months=(end.getUTCFullYear()-start.getUTCFullYear())*12+end.getUTCMonth()-start.getUTCMonth(),anchor=new Date(start);anchor.setUTCMonth(anchor.getUTCMonth()+months);if(anchor>end){months--;anchor=new Date(start);anchor.setUTCMonth(anchor.getUTCMonth()+months)}
-    const days=Math.max(0,Math.floor((end-anchor)/86400000)),total=months*1.25+days*(1.25/30);return {months,days,total:Math.round(total*100)/100};
+    const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(at),part=k=>Number(parts.find(p=>p.type===k).value);
+    const start=new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]))),end=new Date(Date.UTC(part('year'),part('month')-1,part('day')));if(start>end)return {months:0,days:0,total:0};
+    const anniversary=n=>{const first=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth()+n,1)),last=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth()+1,0)).getUTCDate();first.setUTCDate(Math.min(start.getUTCDate(),last));return first};
+    let months=(end.getUTCFullYear()-start.getUTCFullYear())*12+end.getUTCMonth()-start.getUTCMonth(),anchor=anniversary(months);if(anchor>end){months--;anchor=anniversary(months)}
+    const days=Math.min(30,Math.max(0,Math.floor((end-anchor)/86400000))),total=months*1.25+days*(1.25/30);return {months,days,total:Math.round(total*100)/100};
   }
   function enhanceContractDates(){
     const page=document.getElementById('page-dotacion'),rows=window.state?.contractData?.dotacion||[];if(!page||!rows.length)return;

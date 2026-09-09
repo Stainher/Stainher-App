@@ -82,11 +82,11 @@
     const uid=window.state?.session?.user?.id;if(!uid||!window.sb)return;
     const card=document.createElement('div');card.id='accountVacationBalance';card.className='panel stainher-account-vacation';card.dataset.loading='1';
     const profile=modal.querySelector('.panel');profile?.insertAdjacentElement('afterend',card);
-    const query=await window.sb.from('perfiles').select('saldo_vacaciones').eq('id',uid).maybeSingle();
-    if(query.error||!modal.isConnected){card.remove();return}
+    const query=await window.stainherReadVacationBalance(uid);
+    if(!modal.isConnected){card.remove();return}if(query.error){card.textContent='No se pudo actualizar el saldo. Vuelve a consultar.';delete card.dataset.loading;return}
     const balance=Number(query.data?.saldo_vacaciones??15);
     delete card.dataset.loading;
-    card.innerHTML=`<small class="muted">Saldo de vacaciones vigente</small><strong>${escHtml(balance.toFixed(2))} días</strong><span class="muted">Actualizado después de solicitudes aprobadas por Recursos Humanos.</span>`;
+    card.innerHTML=`<small class="muted">Saldo de vacaciones vigente</small><strong>${escHtml(balance.toFixed(2))} días</strong><span class="muted">${escHtml(window.stainherVacationBalanceNote(query.data))}</span>`;
   }
   function install(){
     if(typeof window.renderInicio==='function'&&!window.renderInicio.__stainherHomeLayout){
