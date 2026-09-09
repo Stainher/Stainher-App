@@ -77,17 +77,17 @@
   document.head.appendChild(style);
 })();
 
-/* V15.24 r31 · glosa coloreada + HF visibles en malla/listado.
+/* V15.24 r32 · glosa coloreada + HF visibles en malla/listado.
  * Usa la misma semántica visual del informe mensual.
  * Las HF automáticas son solo una proyección visual: feriado legal + turno A/C
  * publicado y sin ausencia. No crea ni modifica registros en Supabase.
  */
-(function installTurnosGlossEventsR31(){
+(function installTurnosGlossEventsR32(){
   'use strict';
-  if(window.__STAINHER_TURNOS_GLOSS_EVENTS_R31__)return;
-  window.__STAINHER_TURNOS_GLOSS_EVENTS_R31__=true;
+  if(window.__STAINHER_TURNOS_GLOSS_EVENTS_R32__)return;
+  window.__STAINHER_TURNOS_GLOSS_EVENTS_R32__=true;
 
-  const BUILD='20260909-r31-hf-gloss-colors';
+  const BUILD='20260909-r32-hf-gloss-colors-stable';
   const HOLIDAY_SHIFT_HOURS=12;
   const ABSENCE_TYPES=new Set(['vacaciones','licencia_medica','permiso','permiso_ausencia','falta','ausencia','suspendido_encierro']);
   const LABELS={
@@ -120,7 +120,7 @@
     try{return !!window.isAdmin?.()||(!!window.v1520CanEdit?.('turnos')&&!window.state?.v15PreviewRole)}catch(_){return false}
   };
 
-  function holidayEntries(){
+  function fallbackHolidayEntries(){
     try{
       if(typeof CHILE_HOLIDAYS!=='undefined'&&Array.isArray(CHILE_HOLIDAYS))return CHILE_HOLIDAYS;
     }catch(_){ }
@@ -128,10 +128,13 @@
   }
   function holidayMap(data){
     const map=new Map();
-    for(const item of holidayEntries()){
-      const date=String(item?.[0]||''),name=String(item?.[1]||'Feriado');
-      if(date&&data?.range&&date>=data.range.start&&date<=data.range.end)map.set(date,name);
+    const database=Array.isArray(data?.holidays)?data.holidays:[];
+    database.forEach(item=>{const date=String(item?.fecha||''),name=String(item?.nombre||'Feriado');if(date)map.set(date,name)});
+    if(!map.size){
+      fallbackHolidayEntries().forEach(item=>{const date=String(item?.[0]||''),name=String(item?.[1]||'Feriado');if(date)map.set(date,name)});
     }
+    if(!data?.range)return map;
+    for(const date of [...map.keys()])if(date<data.range.start||date>data.range.end)map.delete(date);
     return map;
   }
   function derivedHolidayEvents(data){
@@ -159,9 +162,9 @@
   }
   function visibleEvents(data){return [...(Array.isArray(data?.events)?data.events:[]),...derivedHolidayEvents(data)]}
 
-  function mountR31Style(){
-    if(document.getElementById('stainher-turnos-gloss-events-r31-style'))return;
-    const style=document.createElement('style');style.id='stainher-turnos-gloss-events-r31-style';style.textContent=`
+  function mountR32Style(){
+    if(document.getElementById('stainher-turnos-gloss-events-r32-style'))return;
+    const style=document.createElement('style');style.id='stainher-turnos-gloss-events-r32-style';style.textContent=`
       #page-turnos .r30-turn-legend{display:flex;align-items:center;gap:7px 10px;flex-wrap:wrap;margin:4px 0 12px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel,#0d141c);color:var(--muted);font-size:9px}
       #page-turnos .r30-turn-legend>strong{color:var(--text,#fff);font-size:10px;font-weight:600!important;margin-right:2px}
       #page-turnos .r30-turn-legend-item{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
@@ -170,8 +173,8 @@
       #page-turnos .r30-restored-events{display:flex!important;gap:2px!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;margin-top:3px!important;max-width:100%!important}
       #page-turnos .r30-restored-events .r18-event-code{min-width:20px!important;max-width:100%!important;padding:1px 3px!important;line-height:1.15!important;white-space:nowrap!important}
       #page-turnos .r18-turn-cell,#page-turnos .r18-mobile-day{height:auto!important;min-height:42px!important;vertical-align:middle!important}
-      #page-turnos .r31-derived-hf{border-style:dashed!important}
-      #page-turnos .r31-derived-hf .r18-event-code{font-size:8px!important}
+      #page-turnos .r32-derived-hf{border-style:dashed!important}
+      #page-turnos .r32-derived-hf .r18-event-code{font-size:8px!important}
 
       #page-turnos .r18-event-code.ET{color:#6ee7b7!important;background:rgba(52,211,153,.16)!important;border-color:#34d399!important}
       #page-turnos .r18-event-code.EF{color:#fdba74!important;background:rgba(251,146,60,.18)!important;border-color:#fb923c!important}
@@ -206,7 +209,7 @@
   }
 
   function legendHtml(){
-    return `<div class="r30-turn-legend" data-r30-turn-legend><strong>Glosa:</strong>${LEGEND.map(([key,text,kind])=>`<span class="r30-turn-legend-item">${kind==='shift'?`<i class="r18-shift ${esc(key)}">${esc(key)}</i>`:`<i class="r18-event-code ${codeClass(key)}">${esc(key)}</i>`}<span>${esc(text)}</span></span>`).join('')}</div>`;
+    return `<div class="r30-turn-legend" data-r30-turn-legend data-r32-legend="1"><strong>Glosa:</strong>${LEGEND.map(([key,text,kind])=>`<span class="r30-turn-legend-item">${kind==='shift'?`<i class="r18-shift ${esc(key)}">${esc(key)}</i>`:`<i class="r18-event-code ${codeClass(key)}">${esc(key)}</i>`}<span>${esc(text)}</span></span>`).join('')}</div>`;
   }
 
   function eventBadge(ev){
@@ -219,15 +222,11 @@
   function restoreLegend(page){
     if(!page)return;
     const current=page.querySelector('[data-r30-turn-legend]');
-    if(current){
-      if(current.dataset.r31Legend==='1')return;
-      current.outerHTML=legendHtml().replace('data-r30-turn-legend','data-r30-turn-legend data-r31-legend="1"');
-      return;
-    }
-    const html=legendHtml().replace('data-r30-turn-legend','data-r30-turn-legend data-r31-legend="1"');
+    if(current?.dataset.r32Legend==='1')return;
+    if(current){current.replaceWith(document.createRange().createContextualFragment(legendHtml()));return}
     const tabs=page.querySelector('.r18-turn-tabs');
-    if(tabs)tabs.insertAdjacentHTML('afterend',html);
-    else page.querySelector('[data-r18-content]')?.insertAdjacentHTML('beforebegin',html);
+    if(tabs)tabs.insertAdjacentHTML('afterend',legendHtml());
+    else page.querySelector('[data-r18-content]')?.insertAdjacentHTML('beforebegin',legendHtml());
   }
 
   function restoreCellEvents(page){
@@ -246,21 +245,31 @@
     });
   }
 
+  function derivedRowHtml(ev,data){
+    const people=[...(data.people||[]),...(data.allPeople||[])];
+    const person=people.find(p=>String(p.user_id)===String(ev.user_id));
+    return `<div><b>${esc(window.v1520Date?.(ev.fecha_inicio)||window.fmtDateCL?.(ev.fecha_inicio)||ev.fecha_inicio)}</b><small></small></div><div><b>${esc(person?.nombre||'Usuario')}</b><small>${esc(person?.cargo||'')}</small></div><div>${eventBadge(ev)} ${esc(label(ev.tipo))}</div><div><b>${HOLIDAY_SHIFT_HOURS} horas</b><small>Automático</small></div><div>${esc(ev.observacion)}</div><div></div>`;
+  }
+
   function restoreDerivedEventRows(page){
     const data=window.state?.v1520TurnData||window.state?.v1512TurnData,host=page?.querySelector('.r18-events');
     if(!data||!host)return;
-    host.querySelectorAll('.r31-derived-hf').forEach(node=>node.remove());
-    const derived=derivedHolidayEvents(data).sort((a,b)=>String(b.fecha_inicio).localeCompare(String(a.fecha_inicio)));
-    if(!derived.length)return;
-    const people=[...(data.people||[]),...(data.allPeople||[])];
+    const desired=derivedHolidayEvents(data).sort((a,b)=>String(b.fecha_inicio).localeCompare(String(a.fecha_inicio)));
+    const existing=new Map([...host.querySelectorAll('.r32-derived-hf')].map(node=>[String(node.dataset.r32DerivedHf||''),node]));
     const fragment=document.createDocumentFragment();
-    for(const ev of derived){
-      const person=people.find(p=>String(p.user_id)===String(ev.user_id));
-      const row=document.createElement('article');row.className='r18-event-row r31-derived-hf';row.dataset.r31DerivedHf=`${ev.user_id}|${ev.fecha_inicio}`;
-      row.innerHTML=`<div><b>${esc(window.v1520Date?.(ev.fecha_inicio)||window.fmtDateCL?.(ev.fecha_inicio)||ev.fecha_inicio)}</b><small></small></div><div><b>${esc(person?.nombre||'Usuario')}</b><small>${esc(person?.cargo||'')}</small></div><div>${eventBadge(ev)} ${esc(label(ev.tipo))}</div><div><b>${HOLIDAY_SHIFT_HOURS} horas</b><small>Automático</small></div><div>${esc(ev.observacion)}</div><div></div>`;
-      fragment.appendChild(row);
+    for(const ev of desired){
+      const key=`${ev.user_id}|${ev.fecha_inicio}`;
+      const signature=`${key}|${ev.cantidad}|${ev.observacion}`;
+      let row=existing.get(key);
+      if(row){
+        existing.delete(key);
+        if(row.dataset.r32Signature!==signature){row.innerHTML=derivedRowHtml(ev,data);row.dataset.r32Signature=signature}
+        continue;
+      }
+      row=document.createElement('article');row.className='r18-event-row r32-derived-hf';row.dataset.r32DerivedHf=key;row.dataset.r32Signature=signature;row.innerHTML=derivedRowHtml(ev,data);fragment.appendChild(row);
     }
-    host.prepend(fragment);
+    existing.forEach(node=>node.remove());
+    if(fragment.childNodes.length)host.prepend(fragment);
   }
 
   function decorateExistingCodes(page){
@@ -306,27 +315,30 @@
 
   function patchLoader(){
     const current=window.v1520LoadTurnData;
-    if(typeof current!=='function'||current.__r31TurnPresentation)return;
+    if(typeof current!=='function'||current.__r32TurnPresentation)return;
     const wrapped=async function(){
       const data=await current.apply(this,arguments);
       try{
         if(!window.sb||!data?.range)return data;
-        const ids=(data.people||[]).map(p=>String(p.user_id||'')).filter(Boolean);if(!ids.length)return data;
-        const query=await window.sb.from('turnos_novedades_v15').select('*').is('fecha_fin',null).gte('fecha_inicio',data.range.start).lte('fecha_inicio',data.range.end).in('user_id',ids).order('fecha_inicio');
-        if(!query.error)mergeMissingSingleDayEvents(data,query.data||[]);
-      }catch(error){console.warn('[Turnos r31] recuperación eventos históricos',error)}
+        const ids=(data.people||[]).map(p=>String(p.user_id||'')).filter(Boolean);
+        const queries=[window.sb.from('feriados_vacaciones').select('fecha,nombre').gte('fecha',data.range.start).lte('fecha',data.range.end).order('fecha')];
+        if(ids.length)queries.push(window.sb.from('turnos_novedades_v15').select('*').is('fecha_fin',null).gte('fecha_inicio',data.range.start).lte('fecha_inicio',data.range.end).in('user_id',ids).order('fecha_inicio'));
+        const results=await Promise.all(queries),holidays=results[0],missing=results[1];
+        if(!holidays?.error)data.holidays=holidays.data||[];
+        if(missing&&!missing.error)mergeMissingSingleDayEvents(data,missing.data||[]);
+      }catch(error){console.warn('[Turnos r32] complemento de presentación',error)}
       return data;
     };
-    wrapped.__r31TurnPresentation=true;wrapped.__base=current;window.v1520LoadTurnData=wrapped;
+    wrapped.__r32TurnPresentation=true;wrapped.__base=current;window.v1520LoadTurnData=wrapped;
   }
 
   function boot(){
-    mountR31Style();patchLoader();decorate();
+    mountR32Style();patchLoader();decorate();
     const attach=()=>{
       const page=document.getElementById('page-turnos');
-      if(page&&!page.dataset.r31Observer){page.dataset.r31Observer='1';new MutationObserver(decorate).observe(page,{childList:true,subtree:true})}
+      if(page&&!page.dataset.r32Observer){page.dataset.r32Observer='1';new MutationObserver(decorate).observe(page,{childList:true,subtree:true})}
       const modal=document.getElementById('modalRoot');
-      if(modal&&!modal.dataset.r31Observer){modal.dataset.r31Observer='1';new MutationObserver(decorate).observe(modal,{childList:true,subtree:true})}
+      if(modal&&!modal.dataset.r32Observer){modal.dataset.r32Observer='1';new MutationObserver(decorate).observe(modal,{childList:true,subtree:true})}
     };
     attach();setTimeout(()=>{patchLoader();attach();decorate()},900);setTimeout(()=>{patchLoader();attach();decorate()},1800);
     window.addEventListener('stainher:modules-ready',()=>setTimeout(()=>{patchLoader();attach();decorate()},0));
