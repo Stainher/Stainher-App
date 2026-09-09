@@ -50,7 +50,7 @@
   }
   function arrangeHome(){
     const page=document.getElementById('page-inicio');if(!page)return;
-    topPanels(page).filter(isVacation).forEach(panel=>panel.remove());
+    topPanels(page).filter(panel=>isVacation(panel)&&panel.id!=='vacationBalanceHome'&&!panel.querySelector('#vacationBalanceHome')).forEach(panel=>panel.remove());
     const vacation=page.querySelector('#vacationBalanceHome');
     const staffing=findStaffing(page);
     const alerts=directPanel(page,'.v153-home-alert-panel');
@@ -62,10 +62,11 @@
     enforceStaffingTitle(page);
     const vacationPanel=vacation?.closest('details,.panel')||vacation;
     const staffingPanel=staffing&&directChild(page,staffing),alertsPanel=alerts&&directChild(page,alerts);
-    vacationPanel?.remove();
+    // Preserve the current server-calculated balance.
     const candidates=[staffingPanel,alertsPanel].filter(Boolean).sort((a,b)=>a===b?0:a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1);
     if(!candidates.length)return;
     const marker=document.createComment('stainher-home-panels');page.insertBefore(marker,candidates[0]);
+    if(vacationPanel)page.insertBefore(directChild(page,vacationPanel),marker);
     if(staffingPanel)page.insertBefore(staffingPanel,marker);
     if(alertsPanel)page.insertBefore(alertsPanel,marker);
     page.querySelectorAll('details').forEach(details=>{
