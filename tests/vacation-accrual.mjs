@@ -1,0 +1,68 @@
+// Run: PGLITE_MODULE=/path/to/@electric-sql/pglite/dist/index.js node tests/vacation-accrual.mjs
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const {PGlite}=await import(process.env.PGLITE_MODULE||'@electric-sql/pglite');
+const db=new PGlite();
+const admin='00000000-0000-0000-0000-000000000001', user='00000000-0000-0000-0000-000000000002', other='00000000-0000-0000-0000-000000000003';
+await db.exec(`create role anon; create role authenticated; create schema auth;
+create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('test.uid',true),'')::uuid $$;
+create table perfiles(id uuid primary key,nombre text,rol text,activo boolean default true,saldo_vacaciones numeric(8,2) default 15);
+create table dotacion_contrato(user_id uuid unique,fecha_inicio_contrato date,aplica_turnos boolean,cargo text);
+create table solicitudes_v15(id uuid primary key,tipo text,estado text,solicitante_user_id uuid,aprobador_user_id uuid,fecha_inicio date,fecha_fin date,vacaciones_dias_totales int,vacaciones_dias_habiles int,vacaciones_fines_semana int,vacaciones_festivos int,vacaciones_dias_descontados numeric,vacaciones_saldo_anterior numeric,vacaciones_saldo_final numeric,vacaciones_regla text,vacaciones_contabilizadas_at timestamptz);
+create table vacaciones_movimientos(id uuid default gen_random_uuid(),user_id uuid,solicitud_id uuid unique,dias numeric,saldo_anterior numeric,saldo_final numeric,created_at timestamptz default now());
+create table feriados_vacaciones(fecha date);
+create table turnos_malla_v1512(user_id uuid,fecha date,turno_base text);
+create table turnos_novedades_v15(solicitud_id uuid);
+create table notificaciones_v15(referencia_id text,modulo_destino text);
+create table email_envios_v1518(referencia_id text,modulo text);
+insert into perfiles values('${admin}','Admin','administrador',true,15),('${user}','Juan','confiabilidad',true,2.46),('${other}','Other','tecnico',true,15);
+insert into dotacion_contrato values('${user}','2026-05-22',false,'Confiabilidad'),('${other}',null,false,'');
+set test.uid='${admin}';`);
+await db.exec(fs.readFileSync('supabase/migrations/20260908235547_fix_vacation_rules_fixed_schedules.sql','utf8').split('-- Corrige el único')[0]);
+await db.exec(fs.readFileSync('supabase/migrations/20260907184000_fix_admin_delete_request_uuid.sql','utf8'));
+// Live function has compact formatting. Normalize only the expected integration anchor.
+await db.exec(`do $$ declare def text; begin def:=pg_get_functiondef('public.admin_eliminar_solicitud(uuid)'::regprocedure); execute replace(def,E'    select saldo_vacaciones\n    into v_saldo_actual','    select saldo_vacaciones into v_saldo_actual'); end $$;`);
+await db.exec(fs.readFileSync('supabase/migrations/20260909011555_vacation_accrual_on_read.sql','utf8'));
+const scalar=async q=>(await db.query(q)).rows[0];
+const refresh=async id=>(await scalar(`select public.actualizar_saldo_vacaciones_v1524('${id}') as v`)).v;
+assert.equal(Number((await refresh(user)).saldo_vacaciones),2.46,'activation preserves adjusted balance');
+const earned=async(a,b)=>Number((await scalar(`select stainher_private.vacation_earned('${a}','${b}') as n`)).n);
+assert.equal(Math.round(await earned('2026-05-22','2026-09-08')*100)/100,4.46);
+assert.equal(await earned('2026-01-31','2026-02-28'),1.25);
+assert.equal(await earned('2024-02-29','2025-02-28'),15);
+assert.equal(await earned('2026-01-01','2027-01-01'),15);
+for(const start of ['2024-02-29','2026-01-31','2026-01-01']){
+ let previous=0;for(let i=0;i<400;i++){const date=new Date(start+'T12:00:00Z');date.setUTCDate(date.getUTCDate()+i);const value=await earned(start,date.toISOString().slice(0,10));assert.ok(value>=previous,'accrual never decreases');previous=value;}
+}
+await db.exec(`update stainher_private.vacation_accrual set baseline_date=(now() at time zone 'America/Santiago')::date-10, credited=0 where user_id='${user}';`);
+const first=await refresh(user);assert.ok(first.dias_sumados>0);const balance=first.saldo_vacaciones;
+assert.equal((await refresh(user)).saldo_vacaciones,balance,'repeat refresh is idempotent');
+await db.exec(`update perfiles set saldo_vacaciones=20 where id='${user}';`);
+assert.equal((await refresh(user)).saldo_vacaciones,20,'manual adjustment retained');
+assert.equal((await refresh(other)).estado_devengo,'sin_fecha_inicio');
+await db.exec(`update dotacion_contrato set fecha_inicio_contrato=current_date+10 where user_id='${other}';`);
+assert.equal((await refresh(other)).estado_devengo,'contrato_futuro');
+await db.exec(`update perfiles set activo=false where id='${user}';`);
+assert.equal((await refresh(user)).estado_devengo,'inactivo');
+await db.exec(`update perfiles set activo=true where id='${user}';`);
+assert.equal((await refresh(user)).dias_sumados,0,'reactivation starts a fresh window');
+await db.exec(`update dotacion_contrato set fecha_inicio_contrato='2020-01-01' where user_id='${user}';`);
+assert.equal((await refresh(user)).saldo_vacaciones,20,'contract correction does not recredit history');
+await db.exec(`set test.uid='${other}';`);
+await assert.rejects(()=>refresh(user),/No autorizado/);
+await db.exec(`set test.uid='';`);
+await assert.rejects(()=>refresh(user),/Sesión activa/);
+assert.equal((await scalar("select has_function_privilege('anon','public.actualizar_saldo_vacaciones_v1524(uuid)','EXECUTE') as ok")).ok,false);
+assert.equal((await scalar("select has_table_privilege('authenticated','stainher_private.vacation_accrual','UPDATE') as ok")).ok,false);
+await db.exec(`set test.uid='${admin}'; create trigger apply_vacations after update on solicitudes_v15 for each row execute function aplicar_descuento_vacaciones_aprobadas();
+insert into solicitudes_v15(id,tipo,estado,solicitante_user_id,aprobador_user_id,fecha_inicio,fecha_fin) values ('10000000-0000-0000-0000-000000000001','vacaciones','pendiente','${user}','${admin}','2026-09-16','2026-09-17');
+update stainher_private.vacation_accrual set baseline_date=(now() at time zone 'America/Santiago')::date-10 where user_id='${user}';
+update solicitudes_v15 set estado='aprobada' where id='10000000-0000-0000-0000-000000000001';`);
+const receipt=await scalar('select vacaciones_saldo_anterior as before,vacaciones_saldo_final as after from solicitudes_v15');
+assert.ok(Number(receipt.before)>20,'approval refreshes unconsulted accrual');assert.equal(Number(receipt.before)-Number(receipt.after),2);
+await refresh(user);
+assert.deepEqual(await scalar('select vacaciones_saldo_anterior as before,vacaciones_saldo_final as after from solicitudes_v15'),receipt,'historical receipt immutable on query');
+const deleted=(await scalar("select admin_eliminar_solicitud('10000000-0000-0000-0000-000000000001') as v")).v;
+assert.equal(Number(deleted.saldo_vacaciones),Number(receipt.before),'restitution preserves accrual');
+console.log('PASS: calendar boundaries, baseline, repeated queries, manual adjustments, missing/future start, inactive/reactivation, permissions, approval, historical receipt and restitution.');
+await db.close();

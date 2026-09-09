@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const src=fs.readFileSync('assets/stainher-v1524-vacation-balance.js','utf8');
+let calls=0, resolve;
+const window={state:{session:{user:{id:'own'}},profile:{}},sb:{rpc:()=>{calls++;return new Promise(r=>resolve=r)}}};
+vm.runInNewContext(src.slice(0,src.indexOf('  function escAttr'))+'})();',{window});
+const a=window.stainherReadVacationBalance('own'), b=window.stainherReadVacationBalance('own');
+assert.equal(a,b);assert.equal(calls,1);resolve({data:{saldo_vacaciones:2.50,estado_devengo:'actualizado',fecha_calculo:'2026-09-09'}});await a;
+assert.equal(window.state.profile.saldo_vacaciones,2.50);
+const c=window.stainherReadVacationBalance('own');assert.equal(calls,2,'new consultation refreshes');resolve({error:{message:'network'}});assert.ok((await c).error);assert.equal(window.state.profile.saldo_vacaciones,2.50);
+assert.match(window.stainherVacationBalanceNote({estado_devengo:'sin_fecha_inicio'}),/Falta la fecha/);
+window.state.session=null;assert.ok((await window.stainherReadVacationBalance('own')).error);
+const admin=fs.readFileSync('assets/stainher-v1524-admin-crud.js','utf8');const start=admin.indexOf('  function vacationAccrual'),end=admin.indexOf('  function enhanceContractDates',start);const ctx={Intl,Date};vm.createContext(ctx);vm.runInContext(admin.slice(start,end),ctx);
+assert.equal(ctx.vacationAccrual('2026-01-31',new Date('2026-02-28T16:00:00Z')).total,1.25);
+assert.equal(ctx.vacationAccrual('2024-02-29',new Date('2025-02-28T16:00:00Z')).total,15);
+console.log('PASS: concurrent client reads, refresh on next consultation, error preservation, missing date notice and calendar alignment.');
