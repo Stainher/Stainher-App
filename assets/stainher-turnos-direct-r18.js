@@ -7,7 +7,7 @@
   if(window.__STAINHER_TURNOS_DIRECT_R18__)return;
   window.__STAINHER_TURNOS_DIRECT_R18__=true;
 
-  const BUILD='20260908-r22-mobile-calendar-labels';
+  const BUILD='20260909-r29-calendar-groups';
   const ABSENCE=new Set(['vacaciones','licencia_medica','falta','ausencia','permiso','permiso_ausencia','suspendido_encierro']);
   const LABELS={encierro_planificado:'Encierro dentro de turno',encierro_no_planificado:'Encierro fuera de turno',suspendido_encierro:'Suspendido por encierro',dia_adicional:'Día adicional',hora_extra:'Horas extra',feriado:'Horas feriado',vacaciones:'Vacaciones',licencia_medica:'Licencia médica',permiso:'Permiso / ausencia',falta:'Falta / ausencia',capacitacion:'Capacitación',otro:'Otra novedad',encierro:'Encierro'};
   const CODES={encierro_planificado:'ET',encierro_no_planificado:'EF',suspendido_encierro:'SE',dia_adicional:'DA',hora_extra:'HE',feriado:'HF',vacaciones:'V',licencia_medica:'LM',permiso:'P',falta:'F',capacitacion:'CAP',otro:'EV',encierro:'ENC'};
@@ -43,6 +43,10 @@
       #page-turnos .r18-matrix th{background:var(--panel2,#151f2a);color:var(--muted);position:sticky;top:0;z-index:2}
       #page-turnos .r18-matrix th:first-child,#page-turnos .r18-matrix td:first-child{position:sticky;left:0;width:170px;min-width:170px;text-align:left;background:var(--panel,#0d141c);z-index:3;padding:6px 8px}
       #page-turnos .r18-matrix th:first-child{z-index:4;background:var(--panel2,#151f2a)}
+      #page-turnos .r29-personnel-group{margin:18px 0;min-width:0;max-width:100%}
+      #page-turnos .r29-personnel-group>h3{margin:0 0 9px;padding:9px 12px;border-left:3px solid var(--accent,#60a5fa);background:var(--panel2,#151f2a);color:var(--text,#fff);font-size:14px}
+      #page-turnos .r18-matrix .r18-person-name{display:block!important;line-height:1.3;white-space:normal;overflow-wrap:anywhere}
+      #page-turnos .r18-matrix .r18-person-role{display:block!important;margin-top:4px;color:var(--muted,#94a3b8);font-size:9px;font-weight:400;line-height:1.3;white-space:normal}
       #page-turnos .r18-turn-cell.editable{cursor:pointer}
       #page-turnos .r18-turn-cell.editable:hover{outline:1px solid #60a5fa;outline-offset:-1px}
       #page-turnos .r18-shift{display:inline-flex;align-items:center;justify-content:center;min-width:25px;height:22px;border-radius:6px;border:1px solid currentColor;font-weight:900}
@@ -99,9 +103,21 @@
   function eventBadges(events){return (events||[]).slice(0,3).map(ev=>`<span class="r18-event-code" title="${esc(label(ev.tipo))}${ev.motivo?' · '+esc(ev.motivo):''}">${esc(code(ev.tipo))}</span>`).join('')}
 
   function matrixHtml(d,idx,y,m,edit){
+    const groups=[['Personal técnico y supervisores',[]],['Personal administrativo',[]],['Prevención',[]]];
+    for(const person of d.people||[]){
+      const cargo=String(person.cargo||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const group=/prevencion|\bapr\b/.test(cargo)?2:/administr|confiabilidad|planifica|programa|gerente|contador/.test(cargo)?1:0;
+      groups[group][1].push(person);
+    }
+    const visible=groups.filter(([,people])=>people.length);
+    if(!visible.length)return matrixGroupHtml(d,idx,y,m,edit);
+    return visible.map(([title,people])=>`<section class="r29-personnel-group"><h3>${title} · ${people.length}</h3>${matrixGroupHtml({...d,people},idx,y,m,edit)}</section>`).join('');
+  }
+
+  function matrixGroupHtml(d,idx,y,m,edit){
     const days=daysIn(y,m);
     const head=Array.from({length:days},(_,i)=>{const day=i+1,date=iso(y,m,day),dt=new Date(date+'T12:00:00');return `<th>${dt.toLocaleDateString('es-CL',{weekday:'short'}).slice(0,2)}<br>${day}</th>`}).join('');
-    const rows=(d.people||[]).map(p=>`<tr><td><b>${esc(p.nombre||'')}</b><small>${esc(p.cargo||'')}</small></td>${Array.from({length:days},(_,i)=>{const date=iso(y,m,i+1),sh=idx.shifts.get(`${p.user_id}|${date}`),base=String(sh?.turno_base||'—'),events=idx.byUserDate.get(`${p.user_id}|${date}`)||[];return `<td class="r18-turn-cell ${edit?'editable':''}" data-r18-uid="${esc(p.user_id)}" data-r18-date="${date}"><span class="r18-shift ${esc(base)}">${esc(base)}</span>${events.length?`<div class="r18-cell-events">${eventBadges(events)}</div>`:''}</td>`}).join('')}</tr>`).join('');
+    const rows=(d.people||[]).map(p=>`<tr><td><b class="r18-person-name">${esc(p.nombre||'')}</b><small class="r18-person-role">${esc(p.cargo||'')}</small></td>${Array.from({length:days},(_,i)=>{const date=iso(y,m,i+1),sh=idx.shifts.get(`${p.user_id}|${date}`),base=String(sh?.turno_base||'—'),events=idx.byUserDate.get(`${p.user_id}|${date}`)||[];return `<td class="r18-turn-cell ${edit?'editable':''}" data-r18-uid="${esc(p.user_id)}" data-r18-date="${date}"><span class="r18-shift ${esc(base)}">${esc(base)}</span>${events.length?`<div class="r18-cell-events">${eventBadges(events)}</div>`:''}</td>`}).join('')}</tr>`).join('');
     return `<div class="r18-matrix r18-desktop"><table><thead><tr><th>Colaborador</th>${head}</tr></thead><tbody>${rows||'<tr><td colspan="32">Sin personas en la malla.</td></tr>'}</tbody></table></div>${mobileHtml(d,idx,y,m,edit)}`;
   }
 
