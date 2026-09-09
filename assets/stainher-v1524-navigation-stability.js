@@ -37,11 +37,11 @@
   function normalizeHome(){
     const page=document.getElementById('page-inicio');if(!page)return;
     const vacation=page.querySelector('#vacationBalanceHome');
-    (vacation?.closest('details,.panel')||vacation)?.remove();
+    // Keep the current vacation balance visible.
     const clean=node=>String(node?.textContent||'').replace(/\s+/g,' ').trim();
     const direct=node=>{let current=node;while(current&&current.parentElement!==page)current=current.parentElement;return current||node};
     const panels=[...page.children].filter(node=>node.matches?.('details,.panel'));
-    panels.filter(panel=>/Saldo de vacaciones|Saldo vigente después de solicitudes aprobadas/i.test(clean(panel))).forEach(panel=>panel.remove());
+    panels.filter(panel=>panel.id!=='vacationBalanceHome'&&!panel.querySelector('#vacationBalanceHome')&&/Saldo de vacaciones|Saldo vigente después de solicitudes aprobadas/i.test(clean(panel))).forEach(panel=>panel.remove());
     const alertNode=page.querySelector('.v153-home-alert-panel');
     const alertPanel=alertNode&&direct(alertNode.closest('details')||alertNode);
     const known=page.querySelector('[data-stainher-home-panel="staffing"],.stainher-home-staffing,.v1521-home-turn');
