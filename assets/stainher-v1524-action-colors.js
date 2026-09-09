@@ -128,3 +128,16 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+/* Carga del asistente de formularios para controles personalizados. */
+(()=>{
+  if(window.__STAINHER_CUSTOM_CONTROL_BUILDER_LOADER__)return;
+  window.__STAINHER_CUSTOM_CONTROL_BUILDER_LOADER__=true;
+  const existing=document.querySelector('script[data-stainher-module="stainher-v1524-custom-control-builder.js"]');
+  if(existing)return;
+  const source=document.currentScript?.src||location.href,script=document.createElement('script');
+  script.src=new URL('stainher-v1524-custom-control-builder.js',source).href+'?build=20260909-r33-custom-control-builder';
+  script.async=false;script.dataset.stainherModule='stainher-v1524-custom-control-builder.js';
+  script.addEventListener('error',()=>console.error('[Stainher] No se pudo cargar el asistente de controles personalizados.'),{once:true});
+  document.head.appendChild(script);
+})();
