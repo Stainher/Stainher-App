@@ -36,6 +36,7 @@
     ayuda:String(field?.ayuda||field?.descripcion||'')
   });
   const canManage=()=>{try{return !!window.canManageLeadershipV11?.()}catch(_){return false}};
+  const signatureReady=id=>{try{return typeof V12_SIG!=='undefined'&&!!V12_SIG?.[id]}catch(_){return false}};
 
   function mountStyle(){
     if(document.getElementById('stainher-custom-control-builder-style'))return;
@@ -205,7 +206,7 @@
     form.onsubmit=async event=>{
       event.preventDefault();
       try{
-        if(!window.V12_SIG?.v1524GenericSig)throw new Error('Debes firmar el control.');
+        if(!signatureReady('v1524GenericSig'))throw new Error('Debes firmar el control.');
         const values=Object.fromEntries(new FormData(form)),responses=fields.map((field,index)=>({field,index,value:String(values[`v1524q${index}`]??'').trim()})).filter(x=>x.field.tipo!=='seccion');
         const missing=responses.find(x=>x.field.requerido&&!x.value);if(missing)throw new Error(`Completa el campo “${missing.field.label}”.`);
         const rows=responses.map(x=>[x.field.label,x.value||'—']),hasNonConformity=responses.some(x=>x.value==='No conforme'),date=String(values.fecha||today),dt=new Date(date+'T12:00:00'),free=window.v1512LeadershipFreeRole?.()||!template.requiere_programacion;
@@ -224,5 +225,9 @@
     };
   };
 
+  const builderOpen=window.v1512OpenTemplateModal,genericOpen=window.v1512OpenGenericControl;
+  const reinforce=()=>{window.v1512OpenTemplateModal=builderOpen;window.v1512OpenGenericControl=genericOpen};
+  window.addEventListener('stainher:modules-ready',reinforce);
+  setTimeout(reinforce,300);setTimeout(reinforce,1200);
   mountStyle();
 })();
