@@ -74,3 +74,16 @@
   setTimeout(()=>{install();refreshLeadershipIfVisible()},1200);
   setTimeout(install,2500);
 })();
+
+/* Carga del correo obligatorio para controles Stainher realizados. */
+(()=>{
+  if(window.__STAINHER_LEADERSHIP_MAIL_LOADER__)return;
+  window.__STAINHER_LEADERSHIP_MAIL_LOADER__=true;
+  const file='stainher-v1524-leadership-mail.js';
+  if(document.querySelector(`script[data-stainher-module="${file}"]`))return;
+  const source=document.currentScript?.src||location.href,script=document.createElement('script');
+  script.src=new URL(file,source).href+'?build=20260910-r35-leadership-mail-required';
+  script.async=false;script.dataset.stainherModule=file;
+  script.addEventListener('error',()=>console.error('[Stainher Liderazgo] No se pudo cargar el correo automático de controles.'),{once:true});
+  document.head.appendChild(script);
+})();
