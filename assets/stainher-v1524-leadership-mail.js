@@ -19,9 +19,10 @@
     if(!pdfBase64)throw new Error('No se pudo preparar el PDF para correo.');
     const name=cleanFile(fileName),label=String(meta?.control||controlLabel(name)),reference=recordId?String(recordId):null;
     const key=`liderazgo-control:${reference||crypto.randomUUID()}:${window.state?.session?.user?.id||'anon'}`;
+    const safeLabel=String(label).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const result=await sb.functions.invoke('send-leadership-control-email',{body:{
       subject:`Control Stainher realizado · ${label}`,
-      htmlContent:`<h2>Control Stainher realizado</h2><p>Se adjunta el formulario PDF del control <b>${String(label).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</b>.</p><p>El envío se distribuye automáticamente al usuario que realizó el control y al personal de Prevención, con copia al Administrador.</p>`,
+      htmlContent:`<h2>Control Stainher realizado</h2><p>Se adjunta el formulario PDF del control <b>${safeLabel}</b>.</p><p>El envío se distribuye automáticamente al usuario que realizó el control y al personal de Prevención, con copia al Administrador.</p>`,
       pdfBase64,pdfName:name,referencia_id:reference,idempotencyKey:key,
       controlNombre:label,fecha:meta?.fecha||null
     }});
@@ -88,17 +89,18 @@
     wrapped[WRAP]=true;window[name]=wrapped;
   }
 
-  function wrapFormAfterOpen(openerName,formId){
+  function wrapFormAfterOpen(openerName,formIds){
     const current=window[openerName];
     if(typeof current!=='function'||current[WRAP])return;
+    const ids=Array.isArray(formIds)?formIds:[formIds];
     const wrapped=async function(...args){
       const out=await current.apply(this,args);
       queueMicrotask(()=>{
-        const form=document.getElementById(formId),submit=form?.onsubmit;
+        const form=ids.map(id=>document.getElementById(id)).find(Boolean),submit=form?.onsubmit;
         if(!form||typeof submit!=='function'||submit[WRAP])return;
         const submitWrapped=async function(...submitArgs){
           const {result,captured}=await capturePdf(()=>submit.apply(this,submitArgs));
-          await deliverCaptured(captured,{control:controlLabel(captured?.fileName||formId)},false);
+          await deliverCaptured(captured,{control:controlLabel(captured?.fileName||form.id)},false);
           return result;
         };
         submitWrapped[WRAP]=true;form.onsubmit=submitWrapped;
@@ -111,8 +113,8 @@
   function install(){
     wrapSafeAutoSend();
     ['generateVehiculoV13','generateExtV12','generateTerrainPdfV11','generateEppV12','generateEnvV12','generateProtV12'].forEach(wrapGenerator);
-    wrapFormAfterOpen('v1512OpenGenericControl','v1524GenericForm');
-    wrapFormAfterOpen('v1512OpenExtraInspection','v1512ExtraForm');
+    wrapFormAfterOpen('v1512OpenGenericControl',['v1524GenericForm','v1512GenericForm']);
+    wrapFormAfterOpen('v1512OpenExtraInspection','v1512Extra');
   }
 
   window.StainherLeadershipMail=Object.freeze({send:delivery,install});
