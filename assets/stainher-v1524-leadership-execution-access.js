@@ -1,5 +1,5 @@
 /* Stainher App V15.24 · acceso de ejecución para Liderazgo en Terreno.
- * Prevención y perfiles administrativos pueden ejecutar controles libremente.
+ * Prevención y perfiles administrativos con acceso a Liderazgo pueden ejecutar controles libremente.
  * Supervisor/Técnico conservan las reglas de programación existentes.
  */
 (()=>{
@@ -30,7 +30,7 @@
   function isPreventionOrAdministrative(){
     const role=profileText();
     if(!role)return false;
-    return /(^|\b)(administrador|administrativo|administrativa|administracion|rrhh|recursos humanos|gerente|contador|contabilidad|confiabilidad|planificacion|planificador|planificadora|programacion|programador|programadora|prevencion|prevencionista|experto en prevencion|experta en prevencion|apr)(\b|$)/.test(role);
+    return /(^|\b)(administrador|administrativo|administrativa|administracion|confiabilidad|planificacion|planificador|planificadora|programacion|programador|programadora|prevencion|prevencionista|experto en prevencion|experta en prevencion|apr)(\b|$)/.test(role);
   }
 
   let baseCanExecute=typeof window.canExecuteLeadershipV11==='function'?window.canExecuteLeadershipV11:null;
