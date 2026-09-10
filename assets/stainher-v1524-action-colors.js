@@ -141,3 +141,16 @@
   script.addEventListener('error',()=>console.error('[Stainher] No se pudo cargar el asistente de controles personalizados.'),{once:true});
   document.head.appendChild(script);
 })();
+
+/* Carga del acceso libre de ejecución para Prevención y perfiles administrativos. */
+(()=>{
+  if(window.__STAINHER_LEADERSHIP_EXECUTION_ACCESS_LOADER__)return;
+  window.__STAINHER_LEADERSHIP_EXECUTION_ACCESS_LOADER__=true;
+  const existing=document.querySelector('script[data-stainher-module="stainher-v1524-leadership-execution-access.js"]');
+  if(existing)return;
+  const source=document.currentScript?.src||location.href,script=document.createElement('script');
+  script.src=new URL('stainher-v1524-leadership-execution-access.js',source).href+'?build=20260910-r34-leadership-free-admin-prev';
+  script.async=false;script.dataset.stainherModule='stainher-v1524-leadership-execution-access.js';
+  script.addEventListener('error',()=>console.error('[Stainher] No se pudo cargar la liberación de ejecución de Liderazgo.'),{once:true});
+  document.head.appendChild(script);
+})();
