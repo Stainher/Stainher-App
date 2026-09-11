@@ -4,7 +4,7 @@
   if(window.__STAINHER_HOME_VISIBILITY_FIX__)return;
   window.__STAINHER_HOME_VISIBILITY_FIX__=true;
 
-  const BUILD='20260911-r39-home-stable-no-personal-turn-summary';
+  const BUILD='20260911-r40-home-dom-only-no-render-wrapper';
 
   function normalize(v){
     return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
@@ -45,26 +45,11 @@
     cleanHomeTransientPanels();
   }
 
-  function wrapRenderInicio(){
-    const base=window.renderInicio;
-    if(typeof base!=='function'||base.__stainherHomeVisibilityFix===BUILD)return;
-    const wrapped=async function(){
-      const out=await base.apply(this,arguments);
-      cleanHomeTransientPanels();
-      if(homeIsVisible())setHomeHeaderNow();
-      return out;
-    };
-    wrapped.__stainherHomeVisibilityFix=BUILD;
-    wrapped.__stainherBase=base;
-    window.renderInicio=wrapped;
-  }
-
   let raf=0;
   function schedule(){
     if(raf)return;
     raf=requestAnimationFrame(()=>{
       raf=0;
-      wrapRenderInicio();
       cleanHomeTransientPanels();
       if(homeIsVisible())setHomeHeaderNow();
     });
@@ -83,8 +68,6 @@
   document.addEventListener('click',event=>{
     const button=event.target.closest?.('[data-page="inicio"],[data-v151-page="inicio"]');
     if(!button)return;
-    /* El encabezado cambia en fase de captura para que no permanezca visible el
-       título de la pantalla anterior mientras Inicio termina de renderizar. */
     try{window.v1514SetGlobalHeader?.('inicio')}catch(_){ }
     const mobile=document.getElementById('v151MobileTitle');
     if(mobile)mobile.textContent='⌂ Inicio';
@@ -93,10 +76,9 @@
 
   const root=document.getElementById('appView')||document.body;
   new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
-  window.addEventListener('stainher:modules-ready',()=>{wrapRenderInicio();schedule()});
+  window.addEventListener('stainher:modules-ready',schedule);
 
-  wrapRenderInicio();
   schedule();
-  setTimeout(()=>{wrapRenderInicio();schedule()},800);
-  setTimeout(()=>{wrapRenderInicio();schedule()},1800);
+  setTimeout(schedule,800);
+  setTimeout(schedule,1800);
 })();
