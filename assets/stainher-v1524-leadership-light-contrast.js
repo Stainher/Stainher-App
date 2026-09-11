@@ -81,4 +81,15 @@
     }
   `;
   document.head.appendChild(style);
+
+  /* La capa de contraste ya es parte del runtime activo; desde aquí se carga la
+     administración visible de controles publicados sin tocar el index legado. */
+  if(!window.__STAINHER_PUBLISHED_CONTROL_MANAGEMENT__&&!document.getElementById('stainher-v1524-published-control-management-live')){
+    const script=document.createElement('script');
+    script.id='stainher-v1524-published-control-management-live';
+    script.src='stainher-v1524-published-control-management.js?build=20260911-r33-admin-prevencion';
+    script.async=false;
+    script.addEventListener('error',()=>console.error('No se pudo cargar la administración de Controles Stainher publicados.'),{once:true});
+    document.head.appendChild(script);
+  }
 })();
