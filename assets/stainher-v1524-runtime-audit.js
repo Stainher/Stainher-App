@@ -42,7 +42,7 @@
     if(window.__STAINHER_HOME_VISIBILITY_FIX__||document.getElementById('stainher-v1524-home-visibility-fix-live'))return;
     const script=document.createElement('script');
     script.id='stainher-v1524-home-visibility-fix-live';
-    script.src='stainher-v1524-home-visibility-fix.js?build=20260911-r39-home-stable-no-personal-turn-summary';
+    script.src='stainher-v1524-home-visibility-fix.js?build=20260911-r40-home-dom-only-no-render-wrapper';
     script.async=false;
     script.addEventListener('error',()=>console.error('No se pudo cargar la corrección visual de Inicio.'),{once:true});
     document.head.appendChild(script);
