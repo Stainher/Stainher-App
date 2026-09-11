@@ -22,14 +22,14 @@ assert.equal(r.festivos,1);
 assert.equal(r.descontar,0,'Festivo aislado no descuenta saldo');
 assert.equal(r.modo,'solo_festivos');
 
-r=rule.calculate('2026-09-17','2026-09-21',new Set(['2026-09-18']));
+r=rule.calculate('2026-09-17','2026-09-21',new Set(['2026-09-18','2026-09-19']));
 assert.equal(r.habiles,2);
 assert.equal(r.fines,2);
-assert.equal(r.festivos,1);
+assert.equal(r.festivos,2);
 assert.equal(r.descontar,2,'Rango mixto descuenta solo jueves y lunes');
 assert.equal(r.modo,'habiles');
 
-r=rule.calculate('2026-09-18','2026-09-20',new Set(['2026-09-18']));
+r=rule.calculate('2026-09-18','2026-09-20',new Set(['2026-09-18','2026-09-19']));
 assert.equal(r.habiles,0);
 assert.equal(r.fines,2);
 assert.equal(r.descontar,2,'Festivo + fin de semana, sin hábiles, descuenta solo el fin de semana');
