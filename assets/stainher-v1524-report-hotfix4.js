@@ -2,6 +2,7 @@
  * - Oculta la columna Suspendido por encierro del resumen principal.
  * - Agrega bajo la tabla la sumatoria global ET, EF, Día extra (DA), HE y HF.
  * - Mantiene Suspendido por encierro únicamente en el detalle de eventos.
+ * - Corrige nombres reales en el informe activo usando la misma dotación visible de la malla.
  */
 (function installV1524ReportHotfix4(){
   if(window.__STAINHER_V1524_REPORT_HOTFIX4__) return;
@@ -46,11 +47,68 @@
 
   function operationalHtml(r){return `<div class="v1524-operational-totals"><h5>Totales operativos del período</h5><div class="v1524-operational-total-grid">${totals(r).map(x=>`<div class="v1524-operational-total"><small>${x.code}</small><b>${fmt(x.value)}${x.unit==='h'?' h':''}</b><span>${esc(x.label)}</span></div>`).join('')}</div></div>`;}
 
+  function addPerson(map,p){
+    if(!p||!p.nombre) return;
+    const name=String(p.nombre).trim();
+    if(!name) return;
+    for(const key of [p.user_id,p.id,p.usuario_id,p.perfil_id]) if(key!=null&&String(key)) map.set(String(key),name);
+  }
+
+  function visibleNames(){
+    const map=new Map();
+    const a=window.state?.v1520TurnData,b=window.state?.v1512TurnData;
+    for(const src of [a?.people,a?.allPeople,b?.people,b?.allPeople]) for(const p of src||[]) addPerson(map,p);
+    for(const profiles of [a?.profiles,b?.profiles]){
+      if(profiles instanceof Map){
+        for(const [key,p] of profiles.entries()){
+          if(p&&typeof p==='object') addPerson(map,{...p,user_id:p.user_id??key,id:p.id??key});
+          else if(typeof p==='string'&&p.trim()) map.set(String(key),p.trim());
+        }
+      }
+    }
+    return map;
+  }
+
+  function patchReportNames(r,modal){
+    if(!r?.rows?.length) return false;
+    const names=visibleNames();
+    let changed=false;
+    for(const row of r.rows){
+      const current=String(row.nombre||'').trim();
+      const resolved=names.get(String(row.uid||''));
+      if(resolved&&(!current||/^usuario$/i.test(current))){row.nombre=resolved;changed=true;}
+    }
+    if(!changed) return false;
+
+    const select=modal?.querySelector('.v1524-report-user-filter select');
+    select?.querySelectorAll('option[value]').forEach(opt=>{
+      if(!opt.value) return;
+      const row=r.rows.find(x=>String(x.uid)===String(opt.value));
+      if(row?.nombre) opt.textContent=row.nombre;
+    });
+
+    modal?.querySelectorAll('#v1524ReportSummaryTable tbody tr[data-v1524-report-user]').forEach(tr=>{
+      const row=r.rows.find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser));
+      if(row?.nombre&&tr.children[0]) tr.children[0].textContent=row.nombre;
+    });
+
+    modal?.querySelectorAll('.v1524-detail-group[data-v1524-report-user]').forEach(section=>{
+      const row=r.rows.find(x=>String(x.uid)===String(section.dataset.v1524ReportUser));
+      const h=section.querySelector('h4');
+      if(row?.nombre&&h) h.textContent=`${row.nombre} · ${(row.eventos||[]).length} evento(s)`;
+    });
+
+    const selected=String(window.state?.v1524TurnReportUser||'');
+    if(typeof window.v1524FilterTurnReport==='function') window.v1524FilterTurnReport(selected);
+    return true;
+  }
+
   function enhanceModal(){
     const r=window.state?.v1516TurnReport;
     if(!r) return;
     const modal=[...document.querySelectorAll('#modalRoot .modal')].find(x=>/Informe mensual/i.test(x.textContent||''));
     if(!modal) return;
+    patchReportNames(r,modal);
     const summary=modal.querySelector('.v1524-report-summary');
     removeSuspendedColumn(summary?.querySelector('table'));
     if(summary&&!modal.querySelector('.v1524-operational-totals')) summary.insertAdjacentHTML('afterend',operationalHtml(r));
@@ -76,7 +134,13 @@
   function install(){
     mountStyle();
     const current=window.v1516OpenTurnMonthlyReport||window.v1520TurnReport;
-    if(typeof current==='function'&&!current.__v1524reportHotfix4){baseOpen=current;const wrapped=function(){const out=baseOpen.apply(this,arguments);setTimeout(enhanceModal,0);return out};wrapped.__v1524reportHotfix4=true;window.v1516OpenTurnMonthlyReport=wrapped;window.v1520TurnReport=wrapped;}
+    if(typeof current==='function'&&!current.__v1524reportHotfix4){
+      baseOpen=current;
+      const wrapped=async function(){const out=await baseOpen.apply(this,arguments);requestAnimationFrame(enhanceModal);return out};
+      wrapped.__v1524reportHotfix4=true;
+      window.v1516OpenTurnMonthlyReport=wrapped;
+      window.v1520TurnReport=wrapped;
+    }
     window.v1524ExportVisibleReportExcel=exportExcel;window.v1524ExportVisibleReportPdf=exportPdf;
   }
   let tries=0;(function boot(){install();if((!baseOpen||!window.state)&&++tries<120)return setTimeout(boot,100)})();
