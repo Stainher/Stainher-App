@@ -4,7 +4,7 @@
   if(window.__STAINHER_HOME_VISIBILITY_FIX__)return;
   window.__STAINHER_HOME_VISIBILITY_FIX__=true;
 
-  const BUILD='20260911-r38-home-user-card-only';
+  const BUILD='20260911-r39-home-stable-no-personal-turn-summary';
 
   function normalize(v){
     return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
@@ -20,6 +20,17 @@
     });
   }
 
+  function removeLatePersonalTurnSummary(){
+    const page=document.getElementById('page-inicio');
+    if(!page)return;
+    page.querySelectorAll('#v1524PersonalWorkSummary,.v1524-personal-work-summary').forEach(node=>node.remove());
+  }
+
+  function cleanHomeTransientPanels(){
+    removeHomeVacationBalance();
+    removeLatePersonalTurnSummary();
+  }
+
   function homeIsVisible(){
     const page=document.getElementById('page-inicio');
     if(!page)return false;
@@ -31,7 +42,7 @@
     try{window.v1514SetGlobalHeader?.('inicio')}catch(_){ }
     const mobile=document.getElementById('v151MobileTitle');
     if(mobile&&normalize(mobile.textContent)!=='inicio'&&normalize(mobile.textContent)!=='⌂ inicio')mobile.textContent='⌂ Inicio';
-    removeHomeVacationBalance();
+    cleanHomeTransientPanels();
   }
 
   function wrapRenderInicio(){
@@ -39,7 +50,7 @@
     if(typeof base!=='function'||base.__stainherHomeVisibilityFix===BUILD)return;
     const wrapped=async function(){
       const out=await base.apply(this,arguments);
-      removeHomeVacationBalance();
+      cleanHomeTransientPanels();
       if(homeIsVisible())setHomeHeaderNow();
       return out;
     };
@@ -54,14 +65,19 @@
     raf=requestAnimationFrame(()=>{
       raf=0;
       wrapRenderInicio();
+      cleanHomeTransientPanels();
       if(homeIsVisible())setHomeHeaderNow();
-      else removeHomeVacationBalance();
     });
   }
 
   const style=document.createElement('style');
   style.id='stainher-v1524-home-visibility-fix-style';
-  style.textContent='#page-inicio #vacationBalanceHome,#page-inicio [data-vacation-balance-home]{display:none!important}';
+  style.textContent=`
+    #page-inicio #vacationBalanceHome,
+    #page-inicio [data-vacation-balance-home],
+    #page-inicio #v1524PersonalWorkSummary,
+    #page-inicio .v1524-personal-work-summary{display:none!important}
+  `;
   document.head.appendChild(style);
 
   document.addEventListener('click',event=>{
