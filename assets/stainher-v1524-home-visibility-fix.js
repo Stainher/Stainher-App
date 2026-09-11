@@ -1,4 +1,7 @@
-/* Stainher V15.24 · Inicio estable y saldo de vacaciones solo en ficha de usuario. */
+/* Stainher V15.24 · Inicio estable y saldo de vacaciones solo en ficha de usuario.
+ * Este hotfix opera únicamente sobre el DOM: no envuelve renderInicio para evitar
+ * ciclos de wrappers con las capas históricas de layout y navegación.
+ */
 (()=>{
   'use strict';
   if(window.__STAINHER_HOME_VISIBILITY_FIX__)return;
