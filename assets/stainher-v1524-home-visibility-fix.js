@@ -1,37 +1,24 @@
 /* Stainher V15.24 · Inicio estable y saldo de vacaciones solo en ficha de usuario.
- * Este hotfix opera únicamente sobre el DOM: no envuelve renderInicio para evitar
- * ciclos de wrappers con las capas históricas de layout y navegación.
+ * Opera únicamente sobre el DOM: no envuelve renderInicio y evita recursión con
+ * las capas históricas de layout/navegación.
  */
 (()=>{
   'use strict';
   if(window.__STAINHER_HOME_VISIBILITY_FIX__)return;
   window.__STAINHER_HOME_VISIBILITY_FIX__=true;
 
-  const BUILD='20260911-r40-home-dom-only-no-render-wrapper';
-
   function normalize(v){
     return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
   }
 
-  function removeHomeVacationBalance(){
+  function cleanHomeTransientPanels(){
     const page=document.getElementById('page-inicio');
     if(!page)return;
-    page.querySelectorAll('#vacationBalanceHome,[data-vacation-balance-home]').forEach(node=>node.remove());
+    page.querySelectorAll('#vacationBalanceHome,[data-vacation-balance-home],#v1524PersonalWorkSummary,.v1524-personal-work-summary').forEach(node=>node.remove());
     [...page.querySelectorAll('.panel,details')].forEach(node=>{
       const title=node.querySelector(':scope > summary,:scope > h3,:scope > .row-between h3');
       if(normalize(title?.textContent)==='saldo de vacaciones')node.remove();
     });
-  }
-
-  function removeLatePersonalTurnSummary(){
-    const page=document.getElementById('page-inicio');
-    if(!page)return;
-    page.querySelectorAll('#v1524PersonalWorkSummary,.v1524-personal-work-summary').forEach(node=>node.remove());
-  }
-
-  function cleanHomeTransientPanels(){
-    removeHomeVacationBalance();
-    removeLatePersonalTurnSummary();
   }
 
   function homeIsVisible(){
@@ -45,7 +32,6 @@
     try{window.v1514SetGlobalHeader?.('inicio')}catch(_){ }
     const mobile=document.getElementById('v151MobileTitle');
     if(mobile&&normalize(mobile.textContent)!=='inicio'&&normalize(mobile.textContent)!=='⌂ inicio')mobile.textContent='⌂ Inicio';
-    cleanHomeTransientPanels();
   }
 
   let raf=0;
