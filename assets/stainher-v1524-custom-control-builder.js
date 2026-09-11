@@ -44,6 +44,7 @@
     style.id='stainher-custom-control-builder-style';
     style.textContent=`
       .v1524-builder-intro{margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:12px;color:var(--muted)}
+      .v1524-builder-history-note{margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:11px;color:var(--muted)}
       .v1524-builder-items{display:grid;gap:10px;margin-top:10px}
       .v1524-builder-row{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel2)}
       .v1524-builder-row-head{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(180px,.8fr) auto;gap:8px;align-items:end}
@@ -60,9 +61,12 @@
       .v1524-form-section{margin:16px 0 8px;padding:8px 10px;border-left:3px solid var(--blue);background:var(--panel2);border-radius:6px}
       .v1524-form-section h4{margin:0;font-size:14px}
       .v1524-generic-checklist{display:grid;gap:2px}
+      .v1524-published-control-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
       @media(max-width:760px){
         .v1524-builder-row-head,.v1524-builder-row-extra{grid-template-columns:1fr}
         .v1524-builder-row-actions{justify-content:flex-end}
+        .v1524-published-control-actions{width:100%;justify-content:stretch}
+        .v1524-published-control-actions .btn{flex:1 1 130px}
       }
     `;
     document.head.appendChild(style);
@@ -126,46 +130,88 @@
     return fields;
   }
 
-  window.v1512OpenTemplateModal=function(){
-    if(!canManage())return window.toast?.('No tienes permiso para crear controles.','error');
+  function openTemplateBuilder(template=null){
+    if(!canManage())return window.toast?.('No tienes permiso para administrar controles.','error');
     mountStyle();
-    const root=document.getElementById('modalRoot');if(!root)return;
+    const editing=!!template?.id,root=document.getElementById('modalRoot');if(!root)return;
+    const initialFields=(Array.isArray(template?.campos)&&template.campos.length?template.campos:[{tipo:'sino',requerido:true}]).map(normalizeField);
     root.innerHTML=`<div class="modal-bg"><div class="modal modal-wide-v9">
-      <div class="row-between"><div><h3>Crear Control Stainher</h3><div class="muted">Asistente de formulario personalizado</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div>
+      <div class="row-between"><div><h3>${editing?'Editar':'Crear'} Control Stainher</h3><div class="muted">Asistente de formulario personalizado${editing?` · ${esc(template.codigo||'')}`:''}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div>
       <form id="v1524CustomBuilderForm">
         <div class="v1524-builder-intro">Define cada pregunta y selecciona el tipo de respuesta que debe completar el usuario. Puedes mezclar listas, texto libre, números, fechas y secciones dentro del mismo control.</div>
+        ${editing?'<div class="v1524-builder-history-note">Los cambios se aplicarán a las próximas ejecuciones. Los controles ya registrados conservarán sus respuestas, detalle, firma y datos históricos.</div>':''}
         <div class="form-grid">
-          <label class="full">Nombre del control<input class="field" name="nombre" required placeholder="Ej.: Fatiga y Somnolencia"></label>
-          <label class="full">Descripción<textarea class="field" name="descripcion" rows="2" placeholder="Objetivo o alcance del control"></textarea></label>
-          <label>Frecuencia<input class="field" name="frecuencia" placeholder="Ej.: Diaria, semanal, mensual"></label>
-          <label>Programación<select class="field" name="requiere_programacion"><option value="false">Ejecución libre</option><option value="true">Requiere programación para Supervisor/Técnico</option></select></label>
+          <label class="full">Nombre del control<input class="field" name="nombre" required placeholder="Ej.: Fatiga y Somnolencia" value="${esc(template?.nombre||'')}"></label>
+          <label class="full">Descripción<textarea class="field" name="descripcion" rows="2" placeholder="Objetivo o alcance del control">${esc(template?.descripcion||'')}</textarea></label>
+          <label>Frecuencia<input class="field" name="frecuencia" placeholder="Ej.: Diaria, semanal, mensual" value="${esc(template?.frecuencia||'')}"></label>
+          <label>Programación<select class="field" name="requiere_programacion"><option value="false" ${template?.requiere_programacion?'':'selected'}>Ejecución libre</option><option value="true" ${template?.requiere_programacion?'selected':''}>Requiere programación para Supervisor/Técnico</option></select></label>
         </div>
         <div class="row-between" style="margin-top:14px"><div><h4 style="margin:0">Campos del formulario</h4><div class="muted">Ordena los campos con ↑ y ↓.</div></div><button type="button" class="btn v1524-builder-add" data-builder-add>+ Agregar campo</button></div>
-        <div id="v1524BuilderItems" class="v1524-builder-items">${builderRow({tipo:'sino',requerido:true})}</div>
-        <div class="actions" style="justify-content:flex-end;margin-top:16px"><button class="btn primary">Crear control</button></div>
+        <div id="v1524BuilderItems" class="v1524-builder-items">${initialFields.map(builderRow).join('')}</div>
+        <div class="actions" style="justify-content:flex-end;margin-top:16px"><button class="btn primary">${editing?'Guardar cambios':'Crear control'}</button></div>
       </form>
     </div></div>`;
     const form=document.getElementById('v1524CustomBuilderForm'),items=document.getElementById('v1524BuilderItems');
     bindBuilder(items);
+    [...items.querySelectorAll('[data-builder-row]')].forEach(syncBuilderRow);
     form.querySelector('[data-builder-add]').addEventListener('click',()=>{items.insertAdjacentHTML('beforeend',builderRow({tipo:'sino',requerido:true}));syncBuilderRow(items.lastElementChild);items.lastElementChild.querySelector('[data-builder-label]')?.focus()});
     form.onsubmit=async event=>{
       event.preventDefault();
       try{
-        const meta=Object.fromEntries(new FormData(form)),campos=collectBuilderFields(items),payload={
-          codigo:`CUS-${Date.now()}`,
+        const meta=Object.fromEntries(new FormData(form)),campos=collectBuilderFields(items),basePayload={
           nombre:String(meta.nombre||'').trim(),
           descripcion:String(meta.descripcion||'').trim(),
           frecuencia:String(meta.frecuencia||'').trim(),
           requiere_programacion:meta.requiere_programacion==='true',
-          campos,
-          created_by:window.state?.session?.user?.id
+          campos
         };
-        if(!payload.nombre)throw new Error('Ingresa el nombre del control.');
-        const query=await window.sb.from('liderazgo_plantillas_v1512').insert(payload);if(query.error)throw query.error;
-        try{window.v1512Audit?.('liderazgo','crear_plantilla_formulario',payload.codigo,{nombre:payload.nombre,campos:campos.length})}catch(_){ }
-        window.closeModal?.();await window.renderLiderazgoV95?.();window.toast?.('Control personalizado creado.','success');
-      }catch(error){window.toast?.(error?.message||'No se pudo crear el control.','error')}
+        if(!basePayload.nombre)throw new Error('Ingresa el nombre del control.');
+        let query;
+        if(editing){
+          query=await window.sb.from('liderazgo_plantillas_v1512')
+            .update({...basePayload,updated_at:new Date().toISOString()})
+            .eq('id',template.id)
+            .select('id,codigo,nombre,descripcion,frecuencia,requiere_programacion,campos,activo,updated_at')
+            .single();
+        }else{
+          const payload={...basePayload,codigo:`CUS-${Date.now()}`,created_by:window.state?.session?.user?.id};
+          query=await window.sb.from('liderazgo_plantillas_v1512')
+            .insert(payload)
+            .select('id,codigo,nombre,descripcion,frecuencia,requiere_programacion,campos,activo,updated_at')
+            .single();
+        }
+        if(query.error)throw query.error;
+        if(!query.data)throw new Error(editing?'El control no pudo ser actualizado.':'El control no pudo ser creado.');
+        if(Array.isArray(window.state?.v1512ControlTemplates)){
+          const idx=window.state.v1512ControlTemplates.findIndex(item=>String(item.id)===String(query.data.id));
+          if(idx>=0)window.state.v1512ControlTemplates[idx]={...window.state.v1512ControlTemplates[idx],...query.data};
+          else if(query.data.activo!==false)window.state.v1512ControlTemplates.push(query.data);
+        }
+        try{window.v1512Audit?.('liderazgo',editing?'editar_plantilla_formulario':'crear_plantilla_formulario',query.data.codigo,{nombre:query.data.nombre,campos:campos.length})}catch(_){ }
+        window.closeModal?.();await window.renderLiderazgoV95?.();window.toast?.(editing?'Control actualizado correctamente.':'Control personalizado creado.','success');
+      }catch(error){window.toast?.(error?.message||(editing?'No se pudo actualizar el control.':'No se pudo crear el control.'),'error')}
     };
+  }
+
+  window.v1512OpenTemplateModal=function(){
+    openTemplateBuilder(null);
+  };
+
+  window.v1524OpenEditTemplateModal=async function(id){
+    if(!canManage())return window.toast?.('No tienes permiso para editar controles.','error');
+    try{
+      let template=(window.state?.v1512ControlTemplates||[]).find(item=>String(item.id)===String(id));
+      if(!template){
+        const query=await window.sb.from('liderazgo_plantillas_v1512')
+          .select('id,codigo,nombre,descripcion,frecuencia,requiere_programacion,campos,activo,updated_at')
+          .eq('id',id)
+          .maybeSingle();
+        if(query.error)throw query.error;
+        template=query.data;
+      }
+      if(!template)throw new Error('No se encontró el control publicado.');
+      openTemplateBuilder(template);
+    }catch(error){window.toast?.(error?.message||'No se pudo abrir el control para edición.','error')}
   };
 
   function responseControl(field,index){
@@ -192,7 +238,7 @@
     const today=typeof window.v1512DateIso==='function'?window.v1512DateIso(new Date()):new Date().toISOString().slice(0,10),fields=(Array.isArray(template.campos)?template.campos:[]).map(normalizeField);
     const root=document.getElementById('modalRoot');if(!root)return;
     root.innerHTML=`<div class="modal-bg"><div class="modal modal-wide-v9">
-      <div class="row-between"><div><h3>${esc(template.nombre)}</h3><div class="muted">${esc(template.descripcion||'')}</div></div><button class="btn" onclick="closeModal()">Cerrar</button></div>
+      <div class="row-between"><div><h3>${esc(template.nombre)}</h3><div class="muted">${esc(template.descripcion||'')}</div></div><div class="v1524-published-control-actions">${canManage()?'<button type="button" class="btn" id="v1524EditPublishedControl">Editar control</button>':''}<button class="btn" type="button" onclick="closeModal()">Cerrar</button></div></div>
       <form id="v1524GenericForm">
         <div class="section-v95"><div class="terrain-form-grid-v95"><label>Fecha<input class="field" name="fecha" type="date" value="${today}" required></label><label>Área / Equipo<input class="field" name="area"></label></div></div>
         <div class="section-v95"><h4>Formulario</h4><div class="v1524-generic-checklist">${fields.map(responseControl).join('')||'<div class="empty">Este control no tiene campos configurados.</div>'}</div></div>
@@ -201,6 +247,7 @@
         <div class="actions" style="justify-content:flex-end"><button class="btn primary">Generar PDF y registrar</button></div>
       </form>
     </div></div>`;
+    document.getElementById('v1524EditPublishedControl')?.addEventListener('click',()=>window.v1524OpenEditTemplateModal?.(template.id));
     window.v12SetupSig?.('v1524GenericSig');window.v154InstallSignatureFullscreen?.('v1524GenericSig','Firma');
     const form=document.getElementById('v1524GenericForm');
     form.onsubmit=async event=>{
@@ -225,8 +272,8 @@
     };
   };
 
-  const builderOpen=window.v1512OpenTemplateModal,genericOpen=window.v1512OpenGenericControl;
-  const reinforce=()=>{window.v1512OpenTemplateModal=builderOpen;window.v1512OpenGenericControl=genericOpen};
+  const builderOpen=window.v1512OpenTemplateModal,genericOpen=window.v1512OpenGenericControl,editOpen=window.v1524OpenEditTemplateModal;
+  const reinforce=()=>{window.v1512OpenTemplateModal=builderOpen;window.v1512OpenGenericControl=genericOpen;window.v1524OpenEditTemplateModal=editOpen};
   window.addEventListener('stainher:modules-ready',reinforce);
   setTimeout(reinforce,300);setTimeout(reinforce,1200);
   mountStyle();
