@@ -92,4 +92,13 @@
     script.addEventListener('error',()=>console.error('No se pudo cargar la administración de Controles Stainher publicados.'),{once:true});
     document.head.appendChild(script);
   }
+
+  if(!window.__STAINHER_DEFAULT_OPEN_PANELS__&&!document.getElementById('stainher-v1524-default-open-panels-live')){
+    const script=document.createElement('script');
+    script.id='stainher-v1524-default-open-panels-live';
+    script.src='stainher-v1524-default-open-panels.js?build=20260911-r34-default-open';
+    script.async=false;
+    script.addEventListener('error',()=>console.error('No se pudo cargar la apertura inicial de paneles operativos.'),{once:true});
+    document.head.appendChild(script);
+  }
 })();
