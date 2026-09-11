@@ -101,4 +101,13 @@
     script.addEventListener('error',()=>console.error('No se pudo cargar la apertura inicial de paneles operativos.'),{once:true});
     document.head.appendChild(script);
   }
+
+  if(!window.__STAINHER_ALL_CONTROL_EDITOR__&&!document.getElementById('stainher-v1524-all-control-editor-live')){
+    const script=document.createElement('script');
+    script.id='stainher-v1524-all-control-editor-live';
+    script.src='stainher-v1524-all-control-editor.js?build=20260911-r35-all-controls';
+    script.async=false;
+    script.addEventListener('error',()=>console.error('No se pudo cargar el editor completo de Controles Stainher.'),{once:true});
+    document.head.appendChild(script);
+  }
 })();
