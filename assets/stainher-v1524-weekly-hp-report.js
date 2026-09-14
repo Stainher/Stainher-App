@@ -1,15 +1,17 @@
-/* Stainher V15.24 · R70 · Reporte Semanal HP dentro de Turnos y Novedades.
+/* Stainher V15.24 · R75 · Reporte Semanal HP dentro de Turnos y Novedades.
  * - Sin clasificación mensual Operaciones/Inversiones.
  * - ADC, Gerente y Confiabilidad: horas administrativas manuales.
  * - Planificador y Experta en Prevención: horas administrativas automáticas según malla.
  * - APR y resto de la dotación: horas operativas automáticas según malla.
  * - EF, ET y DA suman 12 h operativas esporádicas; SE descuenta el turno suspendido de 12 h.
- * - Tabla en pantalla compacta: sin Número de Contrato ni RUT; Excel conserva plantilla completa.
+ * - Teletrabajo descuenta las horas correspondientes del cálculo HP en faena.
+ * - FTE Codelco = Total HH en faena / 182,7.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_WEEKLY_HP_REPORT__)return;
+  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R75')return;
   window.__STAINHER_WEEKLY_HP_REPORT__=true;
+  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R75';
 
   const PAGE_ID='reporte-hp';
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
@@ -17,6 +19,7 @@
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
   const AUTO_ADMIN_ROLES=new Set(['planificador','planificacion','programacion']);
   const CONTRACT='4600029879';
+  const FTE_DIVISOR=182.7;
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
 
   const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
@@ -53,13 +56,13 @@
   function installRenderer(){
     try{
       const current=typeof window.v1523Renderer==='function'?window.v1523Renderer:(typeof v1523Renderer==='function'?v1523Renderer:null);
-      if(typeof current!=='function'||current.__stainherHpR70)return;
+      if(typeof current!=='function'||current.__stainherHpR75)return;
       const hpRenderer=function(page){return page===PAGE_ID?render:current(page)};
-      hpRenderer.__stainherHpR70=true;
+      hpRenderer.__stainherHpR75=true;
       hpRenderer.__stainherHpBase=current;
       window.v1523Renderer=hpRenderer;
       try{v1523Renderer=hpRenderer}catch(_e){}
-    }catch(error){console.error('[Stainher HP R70] No fue posible registrar el renderer HP.',error)}
+    }catch(error){console.error('[Stainher HP R75] No fue posible registrar el renderer HP.',error)}
   }
 
   function personRole(person){return norm(state.profiles.get(String(person?.user_id))?.rol||'')}
@@ -99,6 +102,11 @@
   function novelties(uid,date){
     return state.nov.filter(n=>String(n.user_id)===String(uid)&&inRange(date,n.fecha_inicio,n.fecha_fin||n.fecha_inicio));
   }
+  function isTeleworkNovelty(n){
+    const tipo=norm(n?.tipo),cls=norm(n?.clasificacion_auto);
+    return tipo==='teletrabajo'||tipo==='permiso_teletrabajo'||cls==='teletrabajo';
+  }
+  function telework(uid,date){return novelties(uid,date).some(isTeleworkNovelty)}
   function blocked(uid,date){
     return novelties(uid,date).some(n=>ABSENCE_TYPES.some(t=>String(n.tipo||'').includes(t)));
   }
@@ -117,7 +125,9 @@
     return novelties(uid,date).filter(extraNovelty).length*12;
   }
   function turn(uid,date){return state.malla.find(r=>String(r.user_id)===String(uid)&&r.fecha===date)?.turno_base||''}
-  function manualAdmin(uid,a,b){return state.adjust.filter(x=>String(x.user_id)===String(uid)&&x.tipo==='terreno_administrativo'&&inRange(x.fecha,a,b)).reduce((s,x)=>s+Number(x.horas||0),0)}
+  function manualAdmin(uid,a,b){
+    return state.adjust.filter(x=>String(x.user_id)===String(uid)&&x.tipo==='terreno_administrativo'&&inRange(x.fecha,a,b)&&!telework(uid,x.fecha)).reduce((s,x)=>s+Number(x.horas||0),0);
+  }
   function autoAdminHours(uid,date){
     const t=turn(uid,date);if(!t||t==='L')return 0;
     const dow=new Date(date+'T12:00:00').getDay();
@@ -134,7 +144,7 @@
     }else if(isAutoAdminPerson(person)){
       for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
         spor+=extraOperationalHours(person.user_id,d);
-        if(blocked(person.user_id,d)||suspended(person.user_id,d))continue;
+        if(blocked(person.user_id,d)||suspended(person.user_id,d)||telework(person.user_id,d))continue;
         admin+=autoAdminHours(person.user_id,d);
       }
     }else{
@@ -142,9 +152,9 @@
         spor+=extraOperationalHours(person.user_id,d);
         if(blocked(person.user_id,d))continue;
         const prevDate=dplus(d,-1),td=turn(person.user_id,d),prev=turn(person.user_id,prevDate);
-        if(td==='A'&&!suspended(person.user_id,d))oper+=12;
-        if(td==='C'&&!suspended(person.user_id,d))oper+=5;
-        if(prev==='C'&&!suspended(person.user_id,prevDate)&&!blocked(person.user_id,d))oper+=7;
+        if(td==='A'&&!suspended(person.user_id,d)&&!telework(person.user_id,d))oper+=12;
+        if(td==='C'&&!suspended(person.user_id,d)&&!telework(person.user_id,d))oper+=5;
+        if(prev==='C'&&!suspended(person.user_id,prevDate)&&!telework(person.user_id,prevDate)&&!blocked(person.user_id,d))oper+=7;
       }
     }
     return {admin,oper,spor};
@@ -155,12 +165,12 @@
   }
 
   function monthlySummary(){
-    const admin=sum(state.rows,'admin'),oper=sum(state.rows,'oper'),spor=sum(state.rows,'spor'),total=admin+oper+spor,fte=state.rows.filter(r=>r.total>0).length;
+    const admin=sum(state.rows,'admin'),oper=sum(state.rows,'oper'),spor=sum(state.rows,'spor'),total=admin+oper+spor,fte=total/FTE_DIVISOR;
     return {admin,oper,spor,total,fte};
   }
   function summaryHtml(){
-    const s=monthlySummary(),fmt=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:2});
-    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>RESUMEN MENSUAL</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr><tr class="hp-summary-strong"><th>Total FTE</th><td>${s.fte}</td></tr></tbody></table></div>`;
+    const s=monthlySummary(),fmt=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:2}),fmtFte=n=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
+    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>RESUMEN MENSUAL</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr><tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
   }
 
   function renderTable(){
@@ -174,7 +184,7 @@
     return `<div class="panel"><div class="row-between"><div><h3>Rangos Codelco</h3><div class="muted">Los cortes son editables y se guardan por mes.</div></div>${canEdit()?'<button class="btn primary" id="hpSavePeriods">Guardar rangos</button>':''}</div><div class="hp-period-grid">${state.periods.map((p,i)=>`<div class="hp-period-card"><b>Período ${i+1}</b><label>Desde<input class="field hp-p-start" type="date" value="${p.fecha_inicio}" ${canEdit()?'':'disabled'}></label><label>Hasta<input class="field hp-p-end" type="date" value="${p.fecha_fin}" ${canEdit()?'':'disabled'}></label><label>Glosa<input class="field hp-p-label" value="${esc(p.etiqueta||'')}" placeholder="Opcional" ${canEdit()?'':'disabled'}></label></div>`).join('')}</div></div>`;
   }
   function rulesHtml(){
-    return `<div class="notice hp-rules"><b>Reglas de cálculo HP:</b> ADC, Gerente y Confiabilidad usan horas administrativas ingresadas manualmente. Planificador y Experta en Prevención generan horas administrativas desde su malla. APR y el resto de la dotación generan horas operativas desde la malla. EF, ET y DA agregan 12 h operativas esporádicas por día; SE descuenta las 12 h del turno suspendido.</div>`;
+    return `<div class="notice hp-rules"><b>Reglas de cálculo HP:</b> ADC, Gerente y Confiabilidad usan horas administrativas ingresadas manualmente. Planificador y Experta en Prevención generan horas administrativas desde su malla. APR y el resto de la dotación generan horas operativas desde la malla. EF, ET y DA agregan 12 h operativas esporádicas por día; SE descuenta las 12 h del turno suspendido. <b>TT (Teletrabajo)</b> descuenta de HP en faena las horas correspondientes al día/turno registrado.</div>`;
   }
   function adjustmentsHtml(){
     if(!canEdit())return'';
@@ -367,6 +377,8 @@
     X.writeFile(wb,`Reporte_FTE_Codelco_${state.year}_${String(state.month).padStart(2,'0')}.xlsx`,{bookType:'xlsx',cellStyles:true,compression:true});
   }
 
+  const oldStyle=document.getElementById('stainher-weekly-hp-style');
+  oldStyle?.remove();
   const style=document.createElement('style');
   style.id='stainher-weekly-hp-style';
   style.textContent=`#page-reporte-hp{min-width:0}.hp-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.hp-toolbar label{min-width:210px}.hp-rules{margin-bottom:14px}.hp-period-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.hp-period-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:grid;gap:8px}.hp-period-card label{display:grid;gap:4px;font-size:11px;color:var(--muted)}.hp-table-wrap,.hp-summary-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}.hp-table-wrap{overflow-x:auto}.hp-table{border-collapse:collapse;width:100%;min-width:920px;table-layout:fixed}.hp-table .hp-col-role{width:12%}.hp-table .hp-col-name{width:16%}.hp-table .hp-col-hour{width:6%}.hp-table th,.hp-table td,.hp-summary th,.hp-summary td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 4px;text-align:center}.hp-table th{background:var(--panel2);font-size:10.5px;line-height:1.15;white-space:normal}.hp-table td{font-size:11px;line-height:1.15;white-space:nowrap}.hp-table .hp-role-cell,.hp-table .hp-name-cell{text-align:left;white-space:normal;overflow-wrap:anywhere}.hp-table .hp-role-cell{font-size:10.5px}.hp-table .hp-name-cell{font-size:11px}.hp-summary th{background:var(--panel2)}.hp-summary{border-collapse:collapse;min-width:420px;width:min(100%,620px)}.hp-summary tbody th{text-align:left}.hp-summary-strong th,.hp-summary-strong td{font-weight:800}.hp-adjust-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.6fr auto;gap:10px;align-items:end;margin-top:14px}.hp-adjust-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}@media(max-width:1180px){.hp-table{min-width:860px}.hp-table th,.hp-table td{padding:5px 3px}.hp-table th{font-size:10px}.hp-table td{font-size:10.5px}}@media(max-width:1000px){.hp-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid button{width:100%}}@media(max-width:600px){.hp-period-grid,.hp-adjust-grid{grid-template-columns:1fr}.hp-toolbar label{min-width:0;width:100%}.hp-summary{min-width:380px}.hp-table{min-width:860px}}`;
