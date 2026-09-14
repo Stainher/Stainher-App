@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R55 · visibilidad, rol y navegación robusta para Reporte Semanal HP */
+/* Stainher V15.24 · R56 · visibilidad, rol y navegación integrada para Reporte Semanal HP */
 (()=>{
   'use strict';
   if(window.__STAINHER_WEEKLY_HP_ROLE_FIX__) return;
@@ -20,7 +20,7 @@
   function installWindowNavigation(){
     if(window.__STAINHER_WEEKLY_HP_WINDOW_NAV__)return;
     window.__STAINHER_WEEKLY_HP_WINDOW_NAV__=true;
-    window.addEventListener('click',event=>{
+    window.addEventListener('click',async event=>{
       const btn=event.target?.closest?.('.nav [data-page="reporte-hp"]');
       if(!btn)return;
       const r=currentRole();
@@ -29,6 +29,17 @@
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
+
+      // Primero registrar la página en el router autoritativo. Esto actualiza
+      // activePage en navigation-stability para que su MutationObserver no
+      // devuelva inmediatamente la vista a Turnos.
+      try{
+        if(typeof window.gotoPage==='function')await window.gotoPage('reporte-hp');
+        else if(typeof window.v1519Navigate==='function')await window.v1519Navigate('reporte-hp');
+      }catch(_){/* el openPage del módulo mantiene un fallback visual */}
+
+      // Luego ejecutar el openPage original del módulo HP, que además renderiza
+      // el contenido y carga datos.
       const handler=btn.onclick;
       if(typeof handler==='function')handler.call(btn,event);
     },true);
