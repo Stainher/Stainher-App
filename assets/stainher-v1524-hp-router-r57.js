@@ -1,12 +1,13 @@
-/* Stainher V15.24 · R57 · integración autoritativa Reporte Semanal HP */
+/* Stainher V15.24 · R58 · integración estable Reporte Semanal HP */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_ROUTER_R57__)return;
-  window.__STAINHER_HP_ROUTER_R57__=true;
+  if(window.__STAINHER_HP_ROUTER_R58__)return;
+  window.__STAINHER_HP_ROUTER_R58__=true;
 
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
   const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
   const role=()=>norm(window.v11Role?.()||window.state?.profile?.rol||window.state?.user?.rol||window.currentProfile?.rol||'');
+  let opening=false;
 
   function syncRole(r){
     if(!r)return;
@@ -28,26 +29,40 @@
     return visible;
   }
 
-  async function openHp(btn,event){
+  function stabilizePage(btn){
+    const page=document.getElementById('page-reporte-hp');
+    if(!page)return;
+    document.querySelectorAll('.page[id^="page-"]').forEach(node=>{
+      const selected=node===page;
+      node.classList.toggle('hidden',!selected);
+      node.hidden=!selected;
+      node.setAttribute('aria-hidden',String(!selected));
+    });
+    document.querySelectorAll('.nav button[data-page]').forEach(node=>node.classList.toggle('active',node===btn));
+    const title=document.getElementById('v151MobileTitle');
+    if(title)title.textContent='▦ Reporte Semanal HP';
+  }
+
+  function openHp(btn){
+    if(opening)return;
     const r=role();
     if(!VIEW_ROLES.has(r))return;
     syncRole(r);
     const original=typeof btn.onclick==='function'?btn.onclick:null;
+    if(!original)return;
+
+    opening=true;
     try{
-      if(typeof window.gotoPage==='function')await window.gotoPage('reporte-hp');
-    }catch(_){ }
-    if(original)original.call(btn,event);
-    requestAnimationFrame(()=>{
-      const page=document.getElementById('page-reporte-hp');
-      if(!page)return;
-      document.querySelectorAll('.page[id^="page-"]').forEach(node=>{
-        const selected=node===page;
-        node.classList.toggle('hidden',!selected);
-        node.hidden=!selected;
-        node.setAttribute('aria-hidden',String(!selected));
-      });
-      document.querySelectorAll('.nav button[data-page]').forEach(node=>node.classList.toggle('active',node===btn));
-    });
+      /* Importante: NO llamar gotoPage aquí. El onclick original del módulo
+         ya selecciona la página y ejecuta render(). Llamar ambas rutas provoca
+         reentrada del router y puede congelar la aplicación. */
+      original.call(btn);
+      stabilizePage(btn);
+    }catch(err){
+      console.error('[Stainher HP R58] Error al abrir Reporte Semanal HP',err);
+    }finally{
+      setTimeout(()=>{opening=false;},0);
+    }
   }
 
   window.addEventListener('click',event=>{
@@ -56,7 +71,7 @@
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
-    openHp(btn,event);
+    openHp(btn);
   },true);
 
   let tries=0;
