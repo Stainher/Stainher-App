@@ -1,9 +1,10 @@
-/* Stainher V15.24 · R69 · Reporte Semanal HP dentro de Turnos y Novedades.
+/* Stainher V15.24 · R70 · Reporte Semanal HP dentro de Turnos y Novedades.
  * - Sin clasificación mensual Operaciones/Inversiones.
  * - ADC, Gerente y Confiabilidad: horas administrativas manuales.
  * - Planificador y Experta en Prevención: horas administrativas automáticas según malla.
  * - APR y resto de la dotación: horas operativas automáticas según malla.
  * - EF, ET y DA suman 12 h operativas esporádicas; SE descuenta el turno suspendido de 12 h.
+ * - Tabla en pantalla compacta: sin Número de Contrato ni RUT; Excel conserva plantilla completa.
  */
 (()=>{
   'use strict';
@@ -42,17 +43,23 @@
     const mn=new Intl.DateTimeFormat('es-CL',{month:'long'}).format(new Date(p.fecha_inicio+'T12:00:00'));
     return `${String(a).padStart(2,'0')} al ${String(b).padStart(2,'0')} de ${mn}`;
   }
+  function periodScreenLabel(p){
+    const a=String(Number(p.fecha_inicio.slice(-2))).padStart(2,'0');
+    const b=String(Number(p.fecha_fin.slice(-2))).padStart(2,'0');
+    const mn=new Intl.DateTimeFormat('es-CL',{month:'short'}).format(new Date(p.fecha_inicio+'T12:00:00')).replace('.','');
+    return `${a}–${b} ${mn}`;
+  }
 
   function installRenderer(){
     try{
       const current=typeof window.v1523Renderer==='function'?window.v1523Renderer:(typeof v1523Renderer==='function'?v1523Renderer:null);
-      if(typeof current!=='function'||current.__stainherHpR69)return;
+      if(typeof current!=='function'||current.__stainherHpR70)return;
       const hpRenderer=function(page){return page===PAGE_ID?render:current(page)};
-      hpRenderer.__stainherHpR69=true;
+      hpRenderer.__stainherHpR70=true;
       hpRenderer.__stainherHpBase=current;
       window.v1523Renderer=hpRenderer;
       try{v1523Renderer=hpRenderer}catch(_e){}
-    }catch(error){console.error('[Stainher HP R69] No fue posible registrar el renderer HP.',error)}
+    }catch(error){console.error('[Stainher HP R70] No fue posible registrar el renderer HP.',error)}
   }
 
   function personRole(person){return norm(state.profiles.get(String(person?.user_id))?.rol||'')}
@@ -157,10 +164,11 @@
   }
 
   function renderTable(){
-    const head1=state.periods.map(p=>`<th colspan="3">${esc(periodLabel(p))}</th>`).join('');
-    const head2=state.periods.map(()=>'<th>Horas Administrativas</th><th>Horas Operativas</th><th>Horas Operativas Esporádicas</th>').join('');
-    const body=state.rows.map(r=>`<tr><td>${CONTRACT}</td><td>${esc((r.cargo||'').toUpperCase())}</td><td>${esc(r.rut||'')}</td><td>${esc(r.nombre)}</td>${r.periods.map(x=>`<td>${x.admin||0}</td><td>${x.oper||0}</td><td>${x.spor||0}</td>`).join('')}</tr>`).join('');
-    return `<div class="hp-table-wrap"><table class="hp-table"><thead><tr><th rowspan="2">Número Contrato</th><th rowspan="2">Gerencia Origen</th><th rowspan="2">Rut Trabajador</th><th rowspan="2">Nombre Trabajador</th>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>`;
+    const head1=state.periods.map(p=>`<th colspan="3" title="${esc(periodLabel(p))}">${esc(periodScreenLabel(p))}</th>`).join('');
+    const head2=state.periods.map(()=>'<th title="Horas Administrativas">Adm.</th><th title="Horas Operativas">Oper.</th><th title="Horas Operativas Esporádicas">Espor.</th>').join('');
+    const cols='<col class="hp-col-role"><col class="hp-col-name">'+state.periods.map(()=>'<col class="hp-col-hour"><col class="hp-col-hour"><col class="hp-col-hour">').join('');
+    const body=state.rows.map(r=>`<tr><td class="hp-role-cell">${esc((r.cargo||'').toUpperCase())}</td><td class="hp-name-cell">${esc(r.nombre)}</td>${r.periods.map(x=>`<td>${x.admin||0}</td><td>${x.oper||0}</td><td>${x.spor||0}</td>`).join('')}</tr>`).join('');
+    return `<div class="hp-table-wrap"><table class="hp-table"><colgroup>${cols}</colgroup><thead><tr><th rowspan="2">Cargo</th><th rowspan="2">Nombre Trabajador</th>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>`;
   }
   function periodEditor(){
     return `<div class="panel"><div class="row-between"><div><h3>Rangos Codelco</h3><div class="muted">Los cortes son editables y se guardan por mes.</div></div>${canEdit()?'<button class="btn primary" id="hpSavePeriods">Guardar rangos</button>':''}</div><div class="hp-period-grid">${state.periods.map((p,i)=>`<div class="hp-period-card"><b>Período ${i+1}</b><label>Desde<input class="field hp-p-start" type="date" value="${p.fecha_inicio}" ${canEdit()?'':'disabled'}></label><label>Hasta<input class="field hp-p-end" type="date" value="${p.fecha_fin}" ${canEdit()?'':'disabled'}></label><label>Glosa<input class="field hp-p-label" value="${esc(p.etiqueta||'')}" placeholder="Opcional" ${canEdit()?'':'disabled'}></label></div>`).join('')}</div></div>`;
@@ -361,7 +369,7 @@
 
   const style=document.createElement('style');
   style.id='stainher-weekly-hp-style';
-  style.textContent=`#page-reporte-hp{min-width:0}.hp-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.hp-toolbar label{min-width:210px}.hp-rules{margin-bottom:14px}.hp-period-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.hp-period-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:grid;gap:8px}.hp-period-card label{display:grid;gap:4px;font-size:11px;color:var(--muted)}.hp-table-wrap,.hp-summary-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}.hp-table{border-collapse:collapse;min-width:1450px;width:max-content}.hp-table th,.hp-table td,.hp-summary th,.hp-summary td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 10px;white-space:nowrap;text-align:center}.hp-table th,.hp-summary th{background:var(--panel2)}.hp-table td:nth-child(-n+4){text-align:left}.hp-summary{border-collapse:collapse;min-width:420px;width:min(100%,620px)}.hp-summary tbody th{text-align:left}.hp-summary-strong th,.hp-summary-strong td{font-weight:800}.hp-adjust-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.6fr auto;gap:10px;align-items:end;margin-top:14px}.hp-adjust-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}@media(max-width:1000px){.hp-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid button{width:100%}}@media(max-width:600px){.hp-period-grid,.hp-adjust-grid{grid-template-columns:1fr}.hp-toolbar label{min-width:0;width:100%}.hp-summary{min-width:380px}}`;
+  style.textContent=`#page-reporte-hp{min-width:0}.hp-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.hp-toolbar label{min-width:210px}.hp-rules{margin-bottom:14px}.hp-period-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.hp-period-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:grid;gap:8px}.hp-period-card label{display:grid;gap:4px;font-size:11px;color:var(--muted)}.hp-table-wrap,.hp-summary-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}.hp-table-wrap{overflow-x:auto}.hp-table{border-collapse:collapse;width:100%;min-width:920px;table-layout:fixed}.hp-table .hp-col-role{width:12%}.hp-table .hp-col-name{width:16%}.hp-table .hp-col-hour{width:6%}.hp-table th,.hp-table td,.hp-summary th,.hp-summary td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 4px;text-align:center}.hp-table th{background:var(--panel2);font-size:10.5px;line-height:1.15;white-space:normal}.hp-table td{font-size:11px;line-height:1.15;white-space:nowrap}.hp-table .hp-role-cell,.hp-table .hp-name-cell{text-align:left;white-space:normal;overflow-wrap:anywhere}.hp-table .hp-role-cell{font-size:10.5px}.hp-table .hp-name-cell{font-size:11px}.hp-summary th{background:var(--panel2)}.hp-summary{border-collapse:collapse;min-width:420px;width:min(100%,620px)}.hp-summary tbody th{text-align:left}.hp-summary-strong th,.hp-summary-strong td{font-weight:800}.hp-adjust-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.6fr auto;gap:10px;align-items:end;margin-top:14px}.hp-adjust-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}@media(max-width:1180px){.hp-table{min-width:860px}.hp-table th,.hp-table td{padding:5px 3px}.hp-table th{font-size:10px}.hp-table td{font-size:10.5px}}@media(max-width:1000px){.hp-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid button{width:100%}}@media(max-width:600px){.hp-period-grid,.hp-adjust-grid{grid-template-columns:1fr}.hp-toolbar label{min-width:0;width:100%}.hp-summary{min-width:380px}.hp-table{min-width:860px}}`;
   document.head.appendChild(style);
 
   window.StainherWeeklyHP={render};
