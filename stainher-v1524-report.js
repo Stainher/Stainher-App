@@ -15,3 +15,14 @@
   function install(){window.v1516TurnMonthlyRows=async()=>build();window.v1516OpenTurnMonthlyReport=open;window.v1520TurnReport=open}
   let tries=0;(function boot(){if(!window.__STAINHER_V1524_FINAL__||!window.state){if(++tries<100)return setTimeout(boot,100)}install()})();
 })();
+
+/* R51 · activar módulos desde el punto de entrada que sí carga config.js raíz. */
+(()=>{
+  'use strict';
+  function load(id,src){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;s.async=false;s.addEventListener('error',()=>console.error('No se pudo cargar',src),{once:true});document.head.appendChild(s)}
+  function boot(){
+    load('stainher-weekly-hp-r51','assets/stainher-v1524-weekly-hp-report.js?build=20260914-r51-live-entry');
+    load('stainher-leadership-orphan-r51','assets/stainher-v1524-leadership-orphan-filter.js?build=20260914-r51-live-entry');
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
