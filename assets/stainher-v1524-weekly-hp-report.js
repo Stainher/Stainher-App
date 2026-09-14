@@ -1,14 +1,18 @@
-/* Stainher V15.24 · Reporte Semanal HP Codelco */
+/* Stainher V15.24 · Reporte Semanal HP Codelco · integración router R63 */
 (()=>{
   'use strict';
   if(window.__STAINHER_WEEKLY_HP_REPORT__)return;
   window.__STAINHER_WEEKLY_HP_REPORT__=true;
 
-  const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
+  const PAGE_ID='reporte-hp';
+  const PAGE_META={label:'Reporte Semanal HP',icon:'▦',priority:5.5};
+  const ROUTER_LEVELS={administrador:'editar',gerente:'ver',confiabilidad:'ver',planificador:'editar',prevencion:'ver',recursos_humanos:'ver'};
+  const VIEW_ROLES=new Set(Object.keys(ROUTER_LEVELS));
   const EDIT_ROLES=new Set(['administrador','planificador']);
   const CONTRACT='4600029879';
   const BLOCK_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta','suspendido_encierro'];
-  const role=()=>String(window.state?.profile?.rol||'').toLowerCase();
+  const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
+  const role=()=>norm(typeof window.v11Role==='function'?window.v11Role():(window.state?.profile?.rol||window.state?.user?.rol||window.currentProfile?.rol||''));
   const canView=()=>VIEW_ROLES.has(role());
   const canEdit=()=>EDIT_ROLES.has(role());
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -23,13 +27,44 @@
   function defaultPeriods(y,m){const last=new Date(y,m,0).getDate(),mm=String(m).padStart(2,'0');const mk=(o,a,b)=>({orden:o,fecha_inicio:`${y}-${mm}-${String(a).padStart(2,'0')}`,fecha_fin:`${y}-${mm}-${String(Math.min(b,last)).padStart(2,'0')}`,etiqueta:''});return [mk(1,1,12),mk(2,13,19),mk(3,20,26),mk(4,27,last)]}
   function periodLabel(p){if(p.etiqueta)return p.etiqueta;const a=Number(p.fecha_inicio.slice(-2)),b=Number(p.fecha_fin.slice(-2)),mn=new Intl.DateTimeFormat('es-CL',{month:'long'}).format(new Date(p.fecha_inicio+'T12:00:00'));return `${String(a).padStart(2,'0')} al ${String(b).padStart(2,'0')} de ${mn}`}
 
-  function installShell(){
-    const nav=document.querySelector('.nav'),turn=nav?.querySelector('[data-page="turnos"]');
-    if(nav&&turn&&!nav.querySelector('[data-page="reporte-hp"]')){const b=document.createElement('button');b.dataset.page='reporte-hp';b.className='v15-nav';b.innerHTML='▦ Reporte Semanal HP';turn.insertAdjacentElement('afterend',b)}
-    const app=document.getElementById('appView');if(app&&!document.getElementById('page-reporte-hp')){const p=document.createElement('section');p.id='page-reporte-hp';p.className='page hidden';app.appendChild(p)}
-    const btn=document.querySelector('.nav [data-page="reporte-hp"]');if(btn){btn.classList.toggle('v11-hidden',!canView());btn.onclick=openPage}
+  function installRouterIntegration(){
+    try{if(typeof V1518_MODULES==='object'&&V1518_MODULES)V1518_MODULES[PAGE_ID]={...PAGE_META}}catch(_e){}
+    try{
+      if(typeof V1523_DEFAULTS==='object'&&V1523_DEFAULTS)Object.entries(ROUTER_LEVELS).forEach(([r,l])=>{if(V1523_DEFAULTS[r])V1523_DEFAULTS[r][PAGE_ID]=l});
+      if(typeof V11_DEFAULTS==='object'&&V11_DEFAULTS)Object.entries(ROUTER_LEVELS).forEach(([r,l])=>{if(V11_DEFAULTS[r])V11_DEFAULTS[r][PAGE_ID]=l});
+    }catch(_e){}
+    try{if(typeof V1523_DIRECT_RENDERERS!=='undefined'&&V1523_DIRECT_RENDERERS?.add)V1523_DIRECT_RENDERERS.add(PAGE_ID)}catch(_e){}
+    try{
+      if(typeof v1523Renderer==='function'&&!v1523Renderer.__stainherHpRouterR63){
+        const baseRenderer=v1523Renderer;
+        const hpRenderer=function(page){return page===PAGE_ID?render:baseRenderer(page)};
+        hpRenderer.__stainherHpRouterR63=true;
+        hpRenderer.__stainherHpBase=baseRenderer;
+        v1523Renderer=hpRenderer;
+      }
+    }catch(error){console.error('[Stainher HP R63] No fue posible registrar el renderizador HP.',error)}
   }
-  function openPage(){if(!canView())return;document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelector('.nav [data-page="reporte-hp"]')?.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));document.getElementById('page-reporte-hp')?.classList.remove('hidden');const title=document.getElementById('v151MobileTitle');if(title)title.textContent='▦ Reporte Semanal HP';render()}
+
+  function navigate(){
+    if(!canView())return false;
+    try{
+      const fn=typeof window.v1519Navigate==='function'?window.v1519Navigate:(typeof window.gotoPage==='function'?window.gotoPage:null);
+      if(typeof fn!=='function')return false;
+      const pending=fn(PAGE_ID);
+      if(pending&&typeof pending.catch==='function')pending.catch(error=>console.error('[Stainher HP R63] Navegación HP.',error));
+      return pending;
+    }catch(error){console.error('[Stainher HP R63] Navegación HP.',error);return false}
+  }
+
+  function installShell(){
+    installRouterIntegration();
+    const nav=document.querySelector('.nav'),turn=nav?.querySelector('[data-page="turnos"]');
+    if(nav&&turn&&!nav.querySelector(`[data-page="${PAGE_ID}"]`)){const b=document.createElement('button');b.type='button';b.dataset.page=PAGE_ID;b.className='v15-nav';b.innerHTML='▦ Reporte Semanal HP';turn.insertAdjacentElement('afterend',b)}
+    const app=document.getElementById('appView');if(app&&!document.getElementById(`page-${PAGE_ID}`)){const p=document.createElement('section');p.id=`page-${PAGE_ID}`;p.className='page hidden';app.appendChild(p)}
+    const btn=document.querySelector(`.nav [data-page="${PAGE_ID}"]`);if(btn){const visible=canView();btn.hidden=!visible;btn.classList.toggle('v11-hidden',!visible);btn.style.display=visible?'':'none';btn.disabled=!visible;btn.onclick=visible?navigate:null}
+    try{if(typeof v1519DecorateSidebar==='function')v1519DecorateSidebar()}catch(_e){}
+    try{if(typeof v1519BuildMobileNav==='function')v1519BuildMobileNav()}catch(_e){}
+  }
 
   async function load(){
     const y=state.year,m=state.month;
@@ -75,7 +110,7 @@
   function classificationHtml(){if(!canEdit())return'';return `<div class="panel"><div><h3>Clasificación mensual</h3><div class="muted">Operaciones es el valor por defecto. Cambia a Inversiones cuando corresponda para este mes.</div></div><div class="hp-class-grid">${state.rows.map(r=>`<label><span>${esc(r.nombre)}</span><select class="field hp-class" data-user="${r.user_id}"><option value="operaciones" ${r.clasificacion==='operaciones'?'selected':''}>Operaciones</option><option value="inversiones" ${r.clasificacion==='inversiones'?'selected':''}>Inversiones</option></select></label>`).join('')}</div></div>`}
   function adjustmentsHtml(){if(!canEdit())return'';return `<div class="panel"><div><h3>Ajustes HP</h3><div class="muted">Registra días en terreno administrativos u horas operativas esporádicas.</div></div><form id="hpAdjForm" class="hp-adjust-grid"><label>Persona<select class="field" name="user_id" required><option value="">Seleccionar</option>${state.people.map(p=>`<option value="${p.user_id}">${esc(p.nombre)}</option>`).join('')}</select></label><label>Tipo<select class="field" name="tipo"><option value="terreno_administrativo">Día administrativo en terreno</option><option value="operativa_esporadica">Horas operativas esporádicas</option></select></label><label>Fecha<input class="field" name="fecha" type="date" required></label><label>Horas<input class="field" name="horas" type="number" min="0" step="0.5" value="12" required></label><label class="hp-adj-ob">Observación<input class="field" name="observacion"></label><button class="btn primary" type="submit">Guardar ajuste</button></form></div>`}
 
-  async function render(){const page=document.getElementById('page-reporte-hp');if(!page)return;page.innerHTML='<div class="empty">Cargando Reporte Semanal HP…</div>';try{await load();page.innerHTML=`<div class="topbar"><div><h2>Reporte Semanal HP</h2><p>Horas administrativas y operativas según cortes semanales informados por Codelco.</p></div><div class="actions"><button class="btn" id="hpExport">Exportar Excel</button></div></div><div class="hp-toolbar"><label>Mes<input id="hpMonth" class="field" type="month" value="${state.year}-${String(state.month).padStart(2,'0')}"></label><span class="status ok">División Andina · ${esc(monthName(state.year,state.month))}</span></div>${periodEditor()}${classificationHtml()}${adjustmentsHtml()}<div class="panel"><h3>HP Trabajador</h3>${renderTable()}</div><div class="panel"><h3>Resumen Mensual</h3>${summaryHtml()}</div>`;bind()}catch(e){page.innerHTML=`<div class="notice error">No fue posible cargar Reporte Semanal HP: ${esc(e.message||e)}</div>`}}
+  async function render(){const page=document.getElementById(`page-${PAGE_ID}`);if(!page)return;page.innerHTML='<div class="empty">Cargando Reporte Semanal HP…</div>';try{await load();page.innerHTML=`<div class="topbar"><div><h2>Reporte Semanal HP</h2><p>Horas administrativas y operativas según cortes semanales informados por Codelco.</p></div><div class="actions"><button class="btn" id="hpExport">Exportar Excel</button></div></div><div class="hp-toolbar"><label>Mes<input id="hpMonth" class="field" type="month" value="${state.year}-${String(state.month).padStart(2,'0')}"></label><span class="status ok">División Andina · ${esc(monthName(state.year,state.month))}</span></div>${periodEditor()}${classificationHtml()}${adjustmentsHtml()}<div class="panel"><h3>HP Trabajador</h3>${renderTable()}</div><div class="panel"><h3>Resumen Mensual</h3>${summaryHtml()}</div>`;bind()}catch(e){page.innerHTML=`<div class="notice error">No fue posible cargar Reporte Semanal HP: ${esc(e.message||e)}</div>`}}
   function bind(){document.getElementById('hpMonth')?.addEventListener('change',e=>{const [y,m]=e.target.value.split('-').map(Number);state.year=y;state.month=m;render()});document.getElementById('hpSavePeriods')?.addEventListener('click',savePeriods);document.getElementById('hpAdjForm')?.addEventListener('submit',saveAdjustment);document.getElementById('hpExport')?.addEventListener('click',exportExcel);document.querySelectorAll('.hp-class').forEach(el=>el.addEventListener('change',saveClassification))}
   async function savePeriods(){const cards=[...document.querySelectorAll('.hp-period-card')],rows=cards.map((c,i)=>({anio:state.year,mes:state.month,orden:i+1,fecha_inicio:c.querySelector('.hp-p-start').value,fecha_fin:c.querySelector('.hp-p-end').value,etiqueta:c.querySelector('.hp-p-label').value||null,created_by:window.state.session.user.id,updated_at:new Date().toISOString()}));if(rows.some(x=>!x.fecha_inicio||!x.fecha_fin||x.fecha_fin<x.fecha_inicio))return window.toast?.('Revisa los rangos ingresados.','error');const {error}=await window.sb.from('hp_periodos_codelco').upsert(rows,{onConflict:'anio,mes,orden'});if(error)return window.toast?.(error.message,'error');window.toast?.('Rangos Codelco actualizados.','success');await render()}
   async function saveAdjustment(e){e.preventDefault();const o=Object.fromEntries(new FormData(e.target));o.horas=Number(o.horas)||0;o.observacion=o.observacion||null;o.created_by=window.state.session.user.id;o.updated_at=new Date().toISOString();const {error}=await window.sb.from('hp_ajustes_manuales').upsert(o,{onConflict:'user_id,fecha,tipo'});if(error)return window.toast?.(error.message,'error');window.toast?.('Ajuste HP guardado.','success');await render()}
@@ -84,6 +119,7 @@
 
   const style=document.createElement('style');style.id='stainher-weekly-hp-style';style.textContent=`#page-reporte-hp{min-width:0}.hp-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.hp-toolbar label{min-width:210px}.hp-period-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.hp-period-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:grid;gap:8px}.hp-period-card label{display:grid;gap:4px;font-size:11px;color:var(--muted)}.hp-class-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:14px}.hp-class-grid label{display:grid;gap:6px}.hp-table-wrap,.hp-summary-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}.hp-table{border-collapse:collapse;min-width:1450px;width:max-content}.hp-table th,.hp-table td,.hp-summary th,.hp-summary td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 10px;white-space:nowrap;text-align:center}.hp-table th,.hp-summary th{background:var(--panel2)}.hp-table td:nth-child(-n+4){text-align:left}.hp-summary{border-collapse:collapse;min-width:520px;width:min(100%,760px)}.hp-summary thead tr:first-child th{text-align:center;font-size:15px}.hp-summary tbody th{text-align:left}.hp-summary-strong th,.hp-summary-strong td{font-weight:800}.hp-adjust-grid{display:grid;grid-template-columns:1.2fr 1.2fr 1fr .7fr 1.5fr auto;gap:10px;align-items:end;margin-top:14px}.hp-adjust-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}@media(max-width:1000px){.hp-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid button{width:100%}}@media(max-width:600px){.hp-period-grid,.hp-adjust-grid{grid-template-columns:1fr}.hp-toolbar label{min-width:0;width:100%}.hp-summary{min-width:480px}}`;
   document.head.appendChild(style);
-  function boot(){installShell();const root=document.querySelector('.nav')||document.body;new MutationObserver(installShell).observe(root,{childList:true,subtree:true});window.addEventListener('stainher:modules-ready',installShell)}
+  function refreshIntegration(){installShell()}
+  function boot(){refreshIntegration();window.addEventListener('stainher:modules-ready',refreshIntegration);window.addEventListener('stainher:profile-ready',refreshIntegration)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
