@@ -8,7 +8,9 @@
   const EDIT_ROLES=new Set(['administrador','planificador']);
   const CONTRACT='4600029879';
   const BLOCK_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta','suspendido_encierro'];
-  const role=()=>String(window.state?.profile?.rol||'').toLowerCase();
+  const normRole=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  const aliasRole=v=>{const r=normRole(v);if(r==='admin'||r.startsWith('administrador'))return'administrador';if(r.startsWith('gerente'))return'gerente';if(r.startsWith('confiabilidad'))return'confiabilidad';if(r.startsWith('planificador')||r.startsWith('planificacion')||r.startsWith('programacion'))return'planificador';if(r==='rrhh'||r.includes('recursos_humanos'))return'recursos_humanos';if(r.startsWith('prevencion')||r.includes('experto_prevencion')||r.includes('experta_prevencion')||r==='apr')return'prevencion';return r};
+  const role=()=>{const values=[];try{values.push(window.v11Role?.())}catch(_){}values.push(window.state?.profile?.rol,window.state?.user?.rol,window.currentProfile?.rol);return values.map(aliasRole).find(r=>VIEW_ROLES.has(r))||''};
   const canView=()=>VIEW_ROLES.has(role());
   const canEdit=()=>EDIT_ROLES.has(role());
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -40,7 +42,7 @@
       window.sb.from('dotacion_contrato').select('id,user_id,nombre,cargo,rut,estado,aplica_turnos,orden').eq('estado','activo').order('orden',{ascending:true}),
       window.sb.from('perfiles').select('id,nombre,rol,activo').eq('activo',true),
       window.sb.from('turnos_malla_v1512').select('user_id,fecha,turno_base,estado_publicacion').gte('fecha',dplus(min,-1)).lte('fecha',max).eq('estado_publicacion','publicado'),
-      window.sb.from('turnos_novedades_v15').select('user_id,tipo,fecha_inicio,fecha_fin').lte('fecha_inicio',max).gte('fecha_fin',min),
+      window.sb.from('turnos_novedades_v15').select('user_id,tipo,fecha_inicio,fecha_fin').lte('fecha_inicio',max).or(`fecha_fin.gte.${min},fecha_fin.is.null`),
       window.sb.from('hp_ajustes_manuales').select('*').gte('fecha',min).lte('fecha',max),
       window.sb.from('hp_clasificacion_personal').select('user_id,clasificacion').eq('anio',y).eq('mes',m)
     ]);
