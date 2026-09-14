@@ -186,16 +186,127 @@
     window.toast?.('Horas administrativas guardadas.','success');await render();
   }
   function exportExcel(){
-    if(!window.XLSX)return window.toast?.('No está disponible el exportador Excel.','error');
-    const detail=state.rows.map(r=>{
-      const o={'Número Contrato':CONTRACT,'Gerencia Origen':(r.cargo||'').toUpperCase(),'Rut Trabajador':r.rut||'','Nombre Trabajador':r.nombre};
-      state.periods.forEach((p,i)=>{const l=periodLabel(p),x=r.periods[i];o[`${l} · Horas Administrativas`]=x.admin;o[`${l} · Horas Operativas`]=x.oper;o[`${l} · Horas Operativas Esporádicas`]=x.spor});
-      return o;
+    const X=window.XLSX;
+    if(!X)return window.toast?.('No está disponible el exportador Excel.','error');
+
+    const monthTokens=['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'];
+    const periodCode=`${monthTokens[state.month-1]||String(state.month).padStart(2,'0')}-${String(state.year).slice(-2)}`;
+    const monthUpper=new Intl.DateTimeFormat('es-CL',{month:'long'}).format(new Date(state.year,state.month-1,1)).toUpperCase();
+    const periodCount=state.periods.length;
+    const identityCols=5;
+    const hpStart=identityCols;
+    const totalStart=hpStart+periodCount*3;
+    const lastCol=totalStart+2;
+    const topHeaderRow=6;
+    const periodHeaderRow=7;
+    const detailHeaderRow=8;
+    const firstDataRow=9;
+    const colName=i=>X.utils.encode_col(i);
+    const daysCount=p=>Math.max(0,Math.round((new Date(`${p.fecha_fin}T12:00:00`)-new Date(`${p.fecha_inicio}T12:00:00`))/86400000)+1);
+
+    const aoa=Array.from({length:firstDataRow},()=>Array(lastCol+1).fill(''));
+    aoa[0][0]='REPORTE FTE CODELCO';
+    aoa[1][0]='Reporte FTE Trabajadores';
+    state.periods.slice(0,4).forEach((p,i)=>{aoa[i][hpStart]=`${periodLabel(p)} (${daysCount(p)} días)`});
+    aoa[4][0]='Centro de trabajo';
+    aoa[4][1]='División Andina';
+    aoa[5][0]='Periodo';
+    aoa[5][1]=periodCode;
+    aoa[topHeaderRow][hpStart]='HP Trabajador';
+    aoa[topHeaderRow][totalStart]=`Total HP ${monthUpper}`;
+
+    ['Nombre Empresa','Número Contrato','Gerencia Origen','Rut Trabajador','Nombre Trabajador'].forEach((label,i)=>{aoa[periodHeaderRow][i]=label});
+    state.periods.forEach((p,i)=>{aoa[periodHeaderRow][hpStart+i*3]=periodLabel(p)});
+    const subHeaders=['Horas Administrativas','Horas Operativas','Horas Operativas Esporádicas'];
+    for(let i=0;i<periodCount;i++)subHeaders.forEach((label,j)=>{aoa[detailHeaderRow][hpStart+i*3+j]=label});
+    subHeaders.forEach((label,j)=>{aoa[detailHeaderRow][totalStart+j]=label});
+
+    state.rows.forEach(r=>{
+      const row=Array(lastCol+1).fill('');
+      row[0]='STAINHER';
+      row[1]=CONTRACT;
+      row[2]=(r.cargo||'').toUpperCase();
+      row[3]=r.rut||'';
+      row[4]=r.nombre||'';
+      r.periods.forEach((x,i)=>{
+        row[hpStart+i*3]=Number(x.admin||0);
+        row[hpStart+i*3+1]=Number(x.oper||0);
+        row[hpStart+i*3+2]=Number(x.spor||0);
+      });
+      row[totalStart]=Number(r.admin||0);
+      row[totalStart+1]=Number(r.oper||0);
+      row[totalStart+2]=Number(r.spor||0);
+      aoa.push(row);
     });
-    const s=monthlySummary(),summary=[['RESUMEN MENSUAL','Total'],['TOTAL HH Administrativas',s.admin],['TOTAL HH Operativas',s.oper],['TOTAL HH Esporádicas',s.spor],['TOTAL HH EN FAENA',s.total],['Total FTE',s.fte]];
-    const wb=XLSX.utils.book_new(),ws1=XLSX.utils.json_to_sheet(detail),ws2=XLSX.utils.aoa_to_sheet(summary);
-    XLSX.utils.book_append_sheet(wb,ws1,'HP Trabajador');XLSX.utils.book_append_sheet(wb,ws2,'Resumen Mensual');
-    XLSX.writeFile(wb,`Reporte_Semanal_HP_${state.year}_${String(state.month).padStart(2,'0')}.xlsx`);
+
+    const ws=X.utils.aoa_to_sheet(aoa);
+    const merges=[];
+    for(let i=0;i<Math.min(4,state.periods.length);i++)merges.push({s:{r:i,c:hpStart},e:{r:i,c:lastCol}});
+    if(totalStart>hpStart)merges.push({s:{r:topHeaderRow,c:hpStart},e:{r:topHeaderRow,c:totalStart-1}});
+    merges.push({s:{r:topHeaderRow,c:totalStart},e:{r:periodHeaderRow,c:lastCol}});
+    for(let c=0;c<identityCols;c++)merges.push({s:{r:periodHeaderRow,c},e:{r:detailHeaderRow,c}});
+    state.periods.forEach((p,i)=>merges.push({s:{r:periodHeaderRow,c:hpStart+i*3},e:{r:periodHeaderRow,c:hpStart+i*3+2}}));
+    ws['!merges']=merges;
+
+    ws['!cols']=[
+      {wch:19},{wch:15},{wch:20},{wch:16},{wch:28},
+      ...Array.from({length:periodCount*3+3},(_,i)=>({wch:i%3===2?17:14}))
+    ];
+    ws['!rows']=Array.from({length:firstDataRow+state.rows.length},(_,i)=>({hpt:i===detailHeaderRow?38:(i===periodHeaderRow?28:18)}));
+
+    const thin={style:'thin',color:{rgb:'000000'}};
+    const border={top:thin,bottom:thin,left:thin,right:thin};
+    const headerStyle={font:{bold:true,color:{rgb:'000000'}},fill:{patternType:'solid',fgColor:{rgb:'D9D9D9'}},alignment:{horizontal:'center',vertical:'center',wrapText:true},border};
+    const identityStyle={font:{bold:true,color:{rgb:'000000'}},fill:{patternType:'solid',fgColor:{rgb:'D9D9D9'}},alignment:{horizontal:'center',vertical:'center',wrapText:true},border};
+    const dataTextStyle={alignment:{horizontal:'left',vertical:'center',wrapText:true},border};
+    const dataNumberStyle={alignment:{horizontal:'right',vertical:'center'},border,numFmt:'0.##'};
+    const titleStyle={font:{bold:true,color:{rgb:'000000'}},alignment:{horizontal:'left',vertical:'center'}};
+    const noteStyle={font:{color:{rgb:'B7B7B7'}},alignment:{horizontal:'left',vertical:'center'}};
+
+    const applyStyle=(r1,c1,r2,c2,style)=>{
+      for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++){
+        const addr=X.utils.encode_cell({r,c});
+        if(!ws[addr])ws[addr]={t:'s',v:''};
+        ws[addr].s=style;
+      }
+    };
+
+    applyStyle(0,0,1,0,titleStyle);
+    for(let i=0;i<Math.min(4,state.periods.length);i++)applyStyle(i,hpStart,i,lastCol,noteStyle);
+    applyStyle(topHeaderRow,hpStart,topHeaderRow,lastCol,headerStyle);
+    applyStyle(periodHeaderRow,0,detailHeaderRow,lastCol,headerStyle);
+    applyStyle(periodHeaderRow,0,detailHeaderRow,identityCols-1,identityStyle);
+    for(let r=firstDataRow;r<firstDataRow+state.rows.length;r++){
+      applyStyle(r,0,r,identityCols-1,dataTextStyle);
+      applyStyle(r,hpStart,r,lastCol,dataNumberStyle);
+    }
+
+    const labelStyle={font:{bold:true,color:{rgb:'000000'}},alignment:{horizontal:'left',vertical:'center'},border};
+    const valueStyle={alignment:{horizontal:'left',vertical:'center'},border};
+    applyStyle(4,0,5,0,labelStyle);
+    applyStyle(4,1,5,1,valueStyle);
+
+    state.rows.forEach((r,idx)=>{
+      const excelRow=firstDataRow+idx+1;
+      const adminRefs=state.periods.map((_,i)=>`${colName(hpStart+i*3)}${excelRow}`);
+      const operRefs=state.periods.map((_,i)=>`${colName(hpStart+i*3+1)}${excelRow}`);
+      const sporRefs=state.periods.map((_,i)=>`${colName(hpStart+i*3+2)}${excelRow}`);
+      const totalCells=[
+        [totalStart,adminRefs,Number(r.admin||0)],
+        [totalStart+1,operRefs,Number(r.oper||0)],
+        [totalStart+2,sporRefs,Number(r.spor||0)]
+      ];
+      totalCells.forEach(([c,refs,v])=>{
+        const addr=`${colName(c)}${excelRow}`;
+        ws[addr]={t:'n',v,f:`SUM(${refs.join(',')})`,z:'0.##',s:dataNumberStyle};
+      });
+    });
+
+    const wb=X.utils.book_new();
+    wb.Workbook=wb.Workbook||{};
+    wb.Workbook.CalcPr={calcMode:'auto',fullCalcOnLoad:'1',forceFullCalc:'1'};
+    X.utils.book_append_sheet(wb,ws,'Reporte FTE Trabajadores');
+    X.writeFile(wb,`Reporte_FTE_Codelco_${state.year}_${String(state.month).padStart(2,'0')}.xlsx`,{bookType:'xlsx',cellStyles:true,compression:true});
   }
 
   const style=document.createElement('style');
