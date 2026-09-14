@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R52 · visibilidad robusta Reporte Semanal HP */
+/* Stainher V15.24 · R53 · visibilidad y rol robustos para Reporte Semanal HP */
 (()=>{
   'use strict';
   if(window.__STAINHER_WEEKLY_HP_ROLE_FIX__) return;
@@ -10,11 +10,19 @@
     .replace(/\s+/g,'_');
   const currentRole=()=>norm(window.v11Role?.() || window.state?.profile?.rol || window.state?.user?.rol || window.currentProfile?.rol || '');
 
+  function syncResolvedRole(r){
+    if(!r||!window.state)return;
+    const current=norm(window.state?.profile?.rol||'');
+    if(current)return;
+    window.state.profile={...(window.state.profile||{}),rol:r};
+  }
+
   function apply(){
     const btn=document.querySelector('.nav [data-page="reporte-hp"]');
     if(!btn) return false;
     const r=currentRole();
     if(!r) return false;
+    syncResolvedRole(r);
     const visible=VIEW_ROLES.has(r);
     btn.classList.toggle('v11-hidden',!visible);
     btn.hidden=!visible;
