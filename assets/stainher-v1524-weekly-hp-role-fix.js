@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R54 · visibilidad, rol y navegación robusta para Reporte Semanal HP */
+/* Stainher V15.24 · R55 · visibilidad, rol y navegación robusta para Reporte Semanal HP */
 (()=>{
   'use strict';
   if(window.__STAINHER_WEEKLY_HP_ROLE_FIX__) return;
@@ -17,11 +17,17 @@
     window.state.profile={...(window.state.profile||{}),rol:r};
   }
 
-  function bindNavigation(btn){
-    if(!btn||btn.dataset.hpNavFix==='1')return;
-    btn.dataset.hpNavFix='1';
-    btn.addEventListener('click',event=>{
+  function installWindowNavigation(){
+    if(window.__STAINHER_WEEKLY_HP_WINDOW_NAV__)return;
+    window.__STAINHER_WEEKLY_HP_WINDOW_NAV__=true;
+    window.addEventListener('click',event=>{
+      const btn=event.target?.closest?.('.nav [data-page="reporte-hp"]');
+      if(!btn)return;
+      const r=currentRole();
+      if(!VIEW_ROLES.has(r))return;
+      syncResolvedRole(r);
       event.preventDefault();
+      event.stopPropagation();
       event.stopImmediatePropagation();
       const handler=btn.onclick;
       if(typeof handler==='function')handler.call(btn,event);
@@ -38,7 +44,7 @@
     btn.classList.toggle('v11-hidden',!visible);
     btn.hidden=!visible;
     btn.style.display=visible?'':'none';
-    if(visible)bindNavigation(btn);
+    installWindowNavigation();
     return visible;
   }
 
