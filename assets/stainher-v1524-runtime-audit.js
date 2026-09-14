@@ -1,16 +1,16 @@
-/* Stainher V15.24 · Runtime Audit R69 · no ejecutar parches de app antes de autenticación. */
+/* Stainher V15.24 · Runtime Audit R70 · no ejecutar parches de app antes de autenticación. */
 (()=>{
   'use strict';
-  if(window.__STAINHER_RUNTIME_AUDIT_R69__)return;
-  window.__STAINHER_RUNTIME_AUDIT_R69__=true;
+  if(window.__STAINHER_RUNTIME_AUDIT_R70__)return;
+  window.__STAINHER_RUNTIME_AUDIT_R70__=true;
 
-  const BUILD='20260914-r69-hp-encierros';
+  const BUILD='20260914-r70-hp-screen-compact';
   const load=(id,src,onload)=>{
     if(document.getElementById(id)){onload?.();return;}
     const s=document.createElement('script');
     s.id=id;s.src=src;s.async=false;
     if(onload)s.addEventListener('load',onload,{once:true});
-    s.addEventListener('error',()=>console.error('[Stainher R69] '+src),{once:true});
+    s.addEventListener('error',()=>console.error('[Stainher R70] '+src),{once:true});
     document.head.appendChild(s);
   };
 
@@ -20,10 +20,10 @@
     if(started||!hasSession())return false;
     started=true;
     if(timer){clearInterval(timer);timer=null;}
-    load('stainher-runtime-audit-legacy-r69',`stainher-v1524-runtime-audit-legacy-r49.js?build=${BUILD}`);
-    load('stainher-home-no-vacation-r69',`stainher-v1524-home-no-vacation-r57.js?build=${BUILD}`);
-    load('stainher-weekly-hp-runtime-r69',`stainher-v1524-weekly-hp-report.js?build=${BUILD}`,()=>load('stainher-weekly-hp-router-r69',`stainher-v1524-hp-router-r57.js?build=${BUILD}`));
-    load('stainher-leadership-orphan-runtime-r69',`stainher-v1524-leadership-orphan-filter.js?build=${BUILD}`);
+    load('stainher-runtime-audit-legacy-r70',`stainher-v1524-runtime-audit-legacy-r49.js?build=${BUILD}`);
+    load('stainher-home-no-vacation-r70',`stainher-v1524-home-no-vacation-r57.js?build=${BUILD}`);
+    load('stainher-weekly-hp-runtime-r70',`stainher-v1524-weekly-hp-report.js?build=${BUILD}`,()=>load('stainher-weekly-hp-router-r70',`stainher-v1524-hp-router-r57.js?build=${BUILD}`));
+    load('stainher-leadership-orphan-runtime-r70',`stainher-v1524-leadership-orphan-filter.js?build=${BUILD}`);
     return true;
   }
 
