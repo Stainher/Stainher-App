@@ -129,23 +129,15 @@
     }
   };
 
-  function cardButtons(){
+  function removeCardEditButtons(){
     const grid=document.querySelector('#v1512Lead_controles .control-grid-v95');
     if(!grid)return;
-    [...grid.querySelectorAll('.control-card-v95')].forEach(card=>{
-      const n=Number(card.querySelector('.control-number-v95')?.textContent||0);
-      if(!(n>=4&&n<=9))return;
-      const old=card.querySelector('[data-v1524-builtin-edit]');
-      if(!canManage()){old?.remove();return}
-      if(old)return;
-      const target=card.querySelector('div:last-child')||card;
-      const b=document.createElement('button');
-      b.type='button';
-      b.className='btn';
-      b.dataset.v1524BuiltinEdit=String(n);
-      b.textContent='Editar control';
-      b.onclick=()=>window.v1524OpenBuiltinControlEditor(n);
-      target.appendChild(b);
+    grid.querySelectorAll('.control-card-v95').forEach(card=>{
+      card.querySelectorAll('button').forEach(btn=>{
+        const text=String(btn.textContent||'').trim().toLowerCase();
+        const action=String(btn.getAttribute('onclick')||'');
+        if(text==='editar control'||btn.hasAttribute('data-v1524-builtin-edit')||/v1524OpenBuiltinControlEditor|v1524OpenEditTemplateModal/.test(action))btn.remove();
+      });
     });
   }
 
@@ -155,7 +147,7 @@
     const wrapped=async function(){
       try{await loadBase()}catch(e){console.warn('[Stainher] controles base',e)}
       const out=await base.apply(this,arguments);
-      cardButtons();
+      removeCardEditButtons();
       return out;
     };
     wrapped.__stainherAllControlEditor=true;
@@ -192,7 +184,7 @@
     if(c.desc)setTextIfChanged(sub,c.desc);
   }
 
-  function install(){style();wrapRender();cardButtons();patchModal()}
+  function install(){style();wrapRender();removeCardEditButtons();patchModal()}
 
   let observerQueued=false;
   const observer=new MutationObserver(records=>{
@@ -201,7 +193,7 @@
     observerQueued=true;
     requestAnimationFrame(()=>{
       observerQueued=false;
-      cardButtons();
+      removeCardEditButtons();
       patchModal();
     });
   });
