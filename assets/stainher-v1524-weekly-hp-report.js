@@ -21,7 +21,7 @@
   const role=()=>norm(typeof window.v11Role==='function'?window.v11Role():(window.state?.profile?.rol||window.state?.user?.rol||window.currentProfile?.rol||''));
   const canView=()=>VIEW_ROLES.has(role());
   const canEdit=()=>EDIT_ROLES.has(role());
-  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const iso=d=>{const x=new Date(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
   const dplus=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
   const inRange=(d,a,b)=>d>=a&&d<=b;
@@ -193,7 +193,7 @@
       return o;
     });
     const s=monthlySummary(),summary=[['RESUMEN MENSUAL','Total'],['TOTAL HH Administrativas',s.admin],['TOTAL HH Operativas',s.oper],['TOTAL HH Esporádicas',s.spor],['TOTAL HH EN FAENA',s.total],['Total FTE',s.fte]];
-    const wb=XLSX.utils.book_new(),ws1=XLSX.utils.json_to_sheet(detail),ws2=XLSX.utils.ao_to_sheet(summary);
+    const wb=XLSX.utils.book_new(),ws1=XLSX.utils.json_to_sheet(detail),ws2=XLSX.utils.aoa_to_sheet(summary);
     XLSX.utils.book_append_sheet(wb,ws1,'HP Trabajador');XLSX.utils.book_append_sheet(wb,ws2,'Resumen Mensual');
     XLSX.writeFile(wb,`Reporte_Semanal_HP_${state.year}_${String(state.month).padStart(2,'0')}.xlsx`);
   }
