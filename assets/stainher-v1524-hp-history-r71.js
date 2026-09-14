@@ -1,20 +1,23 @@
-/* Stainher V15.24 · R71 · comparación histórica Reporte Semanal HP.
+/* Stainher V15.24 · R73 · comparación histórica Reporte Semanal HP.
  * Compara los tres meses cerrados anteriores al mes seleccionado.
  * Junio–agosto 2026 usan la línea base histórica entregada por administración;
  * meses posteriores se calculan desde malla, novedades y ajustes HP.
+ * FTE Codelco = Total HH en faena / 182,7.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_HISTORY_R71__)return;
-  window.__STAINHER_HP_HISTORY_R71__=true;
+  if(window.__STAINHER_HP_HISTORY_R73__)return;
+  window.__STAINHER_HP_HISTORY_R73__=true;
 
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
   const AUTO_ADMIN_ROLES=new Set(['planificador','planificacion','programacion']);
+  const FTE_DIVISOR=182.7;
+  const fteFromHours=hours=>Number(hours||0)/FTE_DIVISOR;
   const BASELINE={
-    '2026-06':{admin:310,oper:2124,spor:0,total:2434,fte:13,source:'historico'},
-    '2026-07':{admin:316,oper:1888,spor:0,total:2204,fte:12,source:'historico'},
-    '2026-08':{admin:460,oper:2104,spor:0,total:2564,fte:14,source:'historico'}
+    '2026-06':{admin:310,oper:2124,spor:0,total:2434,fte:fteFromHours(2434),source:'historico'},
+    '2026-07':{admin:316,oper:1888,spor:0,total:2204,fte:fteFromHours(2204),source:'historico'},
+    '2026-08':{admin:460,oper:2104,spor:0,total:2564,fte:fteFromHours(2564),source:'historico'}
   };
   const cache=new Map();
   const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
@@ -23,7 +26,9 @@
   const inRange=(d,a,b)=>d>=a&&d<=b;
   const sum=(arr,key)=>arr.reduce((a,x)=>a+Number(x[key]||0),0);
   const fmt=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:1});
+  const fmtFte=n=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
   const signed=n=>`${n>0?'+':''}${fmt(n)}`;
+  const signedFte=n=>`${n>0?'+':''}${fmtFte(n)}`;
   const monthKey=(y,m)=>`${y}-${String(m).padStart(2,'0')}`;
   const monthTitle=(y,m)=>{
     const s=new Intl.DateTimeFormat('es-CL',{month:'long'}).format(new Date(y,m-1,1));
@@ -101,8 +106,9 @@
       }
       return {admin,oper,spor,total:admin+oper+spor};
     });
-    const result={year,month,key,admin:sum(rows,'admin'),oper:sum(rows,'oper'),spor:sum(rows,'spor'),fte:rows.filter(r=>r.total>0).length,source:'app'};
+    const result={year,month,key,admin:sum(rows,'admin'),oper:sum(rows,'oper'),spor:sum(rows,'spor'),fte:0,source:'app'};
     result.total=result.admin+result.oper+result.spor;
+    result.fte=fteFromHours(result.total);
     cache.set(key,result);
     return result;
   }
@@ -119,19 +125,48 @@
       const direction=c.delta>=0?'aumentó':'disminuyó';
       const driver=c.components[0];
       const second=c.components[1];
-      const fteText=c.fteDelta?` La dotación equivalente cambió ${signed(c.fteDelta)} FTE.`:'';
+      const fteText=Math.abs(c.fteDelta)>=0.05?` El FTE equivalente cambió ${signedFte(c.fteDelta)}.`:'';
       const secondText=Math.abs(second.delta)>=12?` El segundo aporte relevante fue ${labels[second.key]} (${signed(second.delta)} HH).`:'';
       return `<li${index===0?' class="hp-history-main"':''}><b>${monthTitle(c.prev.year,c.prev.month)} → ${monthTitle(c.cur.year,c.cur.month)}:</b> el total ${direction} <b>${fmt(Math.abs(c.delta))} HH (${c.pct>=0?'+':''}${fmt(c.pct)}%)</b>. La principal diferencia proviene de ${labels[driver.key]} (${signed(driver.delta)} HH).${secondText}${fteText}</li>`;
     }).join('');
   }
 
   function tableHtml(months){
-    const row=(label,key)=>`<tr><th>${label}</th>${months.map(m=>`<td>${fmt(m[key])}</td>`).join('')}</tr>`;
-    return `<div class="hp-history-wrap"><table class="hp-history-table"><thead><tr><th>STAINHER</th>${months.map(m=>`<th>${monthTitle(m.year,m.month)}</th>`).join('')}</tr><tr><th></th>${months.map(()=>'<th>REAL</th>').join('')}</tr></thead><tbody>${row('Total HH Administrativas','admin')}${row('Total HH Operativas','oper')}${row('Total HH Esporádicas','spor')}${row('Total HH en faena','total')}${row('Total HH','total')}${row('Total FTE','fte')}</tbody></table></div>`;
+    const row=(label,key,formatter=fmt)=>`<tr><th>${label}</th>${months.map(m=>`<td>${formatter(m[key])}</td>`).join('')}</tr>`;
+    return `<div class="hp-history-wrap"><table class="hp-history-table"><thead><tr><th>STAINHER</th>${months.map(m=>`<th>${monthTitle(m.year,m.month)}</th>`).join('')}</tr><tr><th></th>${months.map(()=>'<th>REAL</th>').join('')}</tr></thead><tbody>${row('Total HH Administrativas','admin')}${row('Total HH Operativas','oper')}${row('Total HH Esporádicas','spor')}${row('Total HH en faena','total')}${row('Total HH','total')}${row('Total FTE','fte',fmtFte)}</tbody></table></div>`;
+  }
+
+  function parseHours(text){
+    const normalized=String(text||'0').trim().replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,'');
+    const value=Number(normalized);
+    return Number.isFinite(value)?value:0;
+  }
+
+  function patchMonthlyFte(page){
+    if(!page)return;
+    const rows=[...page.querySelectorAll('.hp-summary tbody tr')];
+    const totalRow=rows.find(row=>/TOTAL HH EN FAENA/i.test(row.querySelector('th')?.textContent||''));
+    const fteRow=rows.find(row=>/Total FTE/i.test(row.querySelector('th')?.textContent||''));
+    if(totalRow&&fteRow){
+      const total=parseHours(totalRow.querySelector('td')?.textContent||'0');
+      const fte=fteFromHours(total);
+      const label=fteRow.querySelector('th');
+      const value=fteRow.querySelector('td');
+      if(label)label.textContent='Total FTE (HH / 182,7)';
+      if(value)value.textContent=fmtFte(fte);
+    }
+    const rules=page.querySelector('.hp-rules');
+    if(rules&&!rules.querySelector('.hp-fte-rule-r73')){
+      const note=document.createElement('span');
+      note.className='hp-fte-rule-r73';
+      note.textContent=' FTE Codelco = Total HH en Faena / 182,7.';
+      rules.appendChild(note);
+    }
   }
 
   async function render(page){
     if(!page)return;
+    patchMonthlyFte(page);
     let host=page.querySelector('#hpHistoryR71');
     if(!host){
       host=document.createElement('div');host.id='hpHistoryR71';host.className='panel hp-history-panel';
@@ -144,7 +179,7 @@
     host.innerHTML='<h3>Comparación últimos 3 meses cerrados</h3><div class="muted">Calculando tendencia histórica…</div>';
     try{
       const months=await Promise.all(targets.map(x=>calculateMonth(x.year,x.month)));
-      host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="muted hp-history-sub">Referencia previa al período seleccionado. Los meses con información histórica inicial se conservan hasta que la plataforma disponga de malla completa.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
+      host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="muted hp-history-sub">Referencia previa al período seleccionado. FTE Codelco calculado como Total HH en Faena / 182,7.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
     }catch(error){
       host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="notice warn">No fue posible calcular la comparación histórica: ${String(error?.message||error||'Error desconocido')}</div>`;
     }
@@ -153,14 +188,19 @@
   function renderWhenReady(page,expected,attempt=0){
     if(!page||!page.isConnected)return;
     const input=page.querySelector('#hpMonth');
-    if(input?.value===expected&&page.querySelector('.hp-summary')){render(page);return}
+    if(input?.value===expected&&page.querySelector('.hp-summary')){
+      patchMonthlyFte(page);
+      render(page);
+      return;
+    }
     if(attempt<100)setTimeout(()=>renderWhenReady(page,expected,attempt+1),60);
   }
 
   function mount(page){
     if(!page)return;
-    if(page.dataset.hpHistoryR71Bound!=='1'){
-      page.dataset.hpHistoryR71Bound='1';
+    patchMonthlyFte(page);
+    if(page.dataset.hpHistoryR73Bound!=='1'){
+      page.dataset.hpHistoryR73Bound='1';
       page.addEventListener('change',event=>{
         if(event.target?.id!=='hpMonth')return;
         const expected=event.target.value;
@@ -171,7 +211,7 @@
   }
 
   const style=document.createElement('style');
-  style.id='stainher-hp-history-r71-style';
+  style.id='stainher-hp-history-r73-style';
   style.textContent=`.hp-history-panel{margin-top:14px}.hp-history-sub{margin-bottom:10px}.hp-history-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.hp-history-table{border-collapse:collapse;width:100%;min-width:620px;table-layout:fixed}.hp-history-table th,.hp-history-table td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 10px;text-align:center}.hp-history-table thead th{background:var(--panel2)}.hp-history-table tbody th{text-align:left;background:var(--panel2);width:34%}.hp-history-analysis{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}.hp-history-analysis ul{margin:8px 0 0;padding-left:20px;display:grid;gap:8px}.hp-history-main{font-weight:500}@media(max-width:700px){.hp-history-table th,.hp-history-table td{padding:7px 6px;font-size:11px}}`;
   document.head.appendChild(style);
 
