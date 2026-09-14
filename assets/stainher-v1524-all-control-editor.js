@@ -4,7 +4,7 @@
   if(window.__STAINHER_ALL_CONTROL_EDITOR__)return;
   window.__STAINHER_ALL_CONTROL_EDITOR__=true;
 
-  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const role=()=>String(window.v11Role?.()||window.state?.profile?.rol||'').trim().toLowerCase();
   const canManage=()=>['administrador','prevencion'].includes(role())&&!!window.canEditV11?.('liderazgo');
   const controls=()=>{try{return Array.isArray(V12_CONTROLS)?V12_CONTROLS:[]}catch(_){return []}};
