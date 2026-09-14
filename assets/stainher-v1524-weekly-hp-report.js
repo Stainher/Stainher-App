@@ -185,8 +185,33 @@
     if(error)return window.toast?.(error.message,'error');
     window.toast?.('Horas administrativas guardadas.','success');await render();
   }
-  function exportExcel(){
-    const X=window.XLSX;
+
+  async function styledExcelWriter(){
+    const base=window.XLSX;
+    if(!base)return null;
+    if(base.style_version)return base;
+    if(window.__STAINHER_XLSX_STYLE__)return window.__STAINHER_XLSX_STYLE__;
+    if(window.__STAINHER_XLSX_STYLE_PROMISE__)return window.__STAINHER_XLSX_STYLE_PROMISE__;
+
+    window.__STAINHER_XLSX_STYLE_PROMISE__=new Promise(resolve=>{
+      const finish=writer=>{
+        window.XLSX=base;
+        window.__STAINHER_XLSX_STYLE__=writer||base;
+        resolve(window.__STAINHER_XLSX_STYLE__);
+      };
+      const script=document.createElement('script');
+      script.id='stainher-xlsx-style-runtime';
+      script.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js';
+      script.async=true;
+      script.onload=()=>finish(window.XLSX&&window.XLSX.style_version?window.XLSX:base);
+      script.onerror=()=>finish(base);
+      document.head.appendChild(script);
+    });
+    return window.__STAINHER_XLSX_STYLE_PROMISE__;
+  }
+
+  async function exportExcel(){
+    const X=await styledExcelWriter();
     if(!X)return window.toast?.('No está disponible el exportador Excel.','error');
 
     const monthTokens=['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'];
