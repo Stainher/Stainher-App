@@ -150,13 +150,21 @@
     }
   }
 
+  function renderWhenReady(page,expected,attempt=0){
+    if(!page||!page.isConnected)return;
+    const input=page.querySelector('#hpMonth');
+    if(input?.value===expected&&page.querySelector('.hp-summary')){render(page);return}
+    if(attempt<100)setTimeout(()=>renderWhenReady(page,expected,attempt+1),60);
+  }
+
   function mount(page){
     if(!page)return;
     if(page.dataset.hpHistoryR71Bound!=='1'){
       page.dataset.hpHistoryR71Bound='1';
       page.addEventListener('change',event=>{
         if(event.target?.id!=='hpMonth')return;
-        setTimeout(()=>render(page),60);
+        const expected=event.target.value;
+        setTimeout(()=>renderWhenReady(page,expected),0);
       });
     }
     render(page);
