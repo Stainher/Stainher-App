@@ -51,14 +51,67 @@
     return set;
   }
 
+  function goalCode(row){
+    return String(row?.control_codigo||row?.control_code||row?.codigo_control||row?.codigo||row?.control||'').trim();
+  }
+
+  function currentActiveCodes(){
+    const cached=window.state?.v1524ActiveLeadershipCodes;
+    if(cached instanceof Set)return cached;
+    return activeControlCodes(window.state?.v1512ControlTemplates||window.state?.v1524ManagerTemplates||[]);
+  }
+
+  function filterProgrammingResponse(response){
+    if(!response||response.error||!Array.isArray(response.data)||window.state?.v1524ActiveLeadershipCodesReady!==true)return response;
+    const active=currentActiveCodes();
+    return {...response,data:response.data.filter(row=>{
+      const code=goalCode(row);
+      return !code||active.has(code);
+    })};
+  }
+
+  function proxyProgrammingBuilder(builder){
+    if(!builder||typeof builder!=='object')return builder;
+    let proxy;
+    proxy=new Proxy(builder,{
+      get(target,prop){
+        if(prop==='then')return (ok,fail)=>target.then(result=>{
+          const filtered=filterProgrammingResponse(result);
+          return typeof ok==='function'?ok(filtered):filtered;
+        },fail);
+        const value=Reflect.get(target,prop,target);
+        if(typeof value!=='function')return value;
+        return (...args)=>{
+          const out=value.apply(target,args);
+          if(out&&typeof out==='object'&&typeof out.then==='function')return proxyProgrammingBuilder(out);
+          return out;
+        };
+      }
+    });
+    return proxy;
+  }
+
+  function installLeadershipProgrammingFilter(){
+    const sb=window.sb;
+    if(!sb||typeof sb.from!=='function'||sb.from.__stainherProgrammingFilter)return;
+    const original=sb.from.bind(sb);
+    const wrapped=function(table){
+      const builder=original(table);
+      return String(table)==='liderazgo_programacion'?proxyProgrammingBuilder(builder):builder;
+    };
+    wrapped.__stainherProgrammingFilter=true;
+    wrapped.__base=original;
+    sb.from=wrapped;
+  }
+
   function wrapLeadershipData(){
     const base=window.v1512LoadLeadershipData;
     if(typeof base!=='function'||base.__stainherActiveControlsOnly)return;
     const wrapped=async function(){
       const data=await base.apply(this,arguments);
       if(!data||data.error)return data;
-      const active=activeControlCodes(data.templates||[]);
-      const goals=(data.goals||[]).filter(g=>active.has(String(g.control_codigo||'')));
+      const active=currentActiveCodes();
+      const goals=(data.goals||[]).filter(g=>{const code=goalCode(g);return !code||active.has(code)});
       if(window.state)window.state.v1512LeadGoals=goals;
       return {...data,goals};
     };
@@ -150,6 +203,8 @@
       const [b,t]=await Promise.all([loadBase(),loadCustom()]);
       window.state=window.state||{};
       window.state.v1524ManagerTemplates=t;
+      window.state.v1524ActiveLeadershipCodes=activeControlCodes(t);
+      window.state.v1524ActiveLeadershipCodesReady=true;
       const m=root.querySelector('.modal');
       m.innerHTML=`<div class="row-between"><div><h3>Editar Controles Stainher</h3><div class="muted">Administrador y Prevención pueden administrar todos los controles.</div></div><button class="btn" type="button" onclick="closeModal()">Cerrar</button></div><div class="actions" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" type="button" onclick="v1512OpenTemplateModal()">+ Crear control</button></div><section class="v1524-all-section"><h4>Controles estándar</h4>${stdCards(b)||'<div class="empty">Sin controles estándar.</div>'}</section><section class="v1524-all-section"><h4>Controles personalizados</h4>${customCards(t)||'<div class="empty">Sin controles personalizados.</div>'}</section>`;
     }catch(err){
@@ -173,7 +228,16 @@
     const base=window.renderLiderazgoV95;
     if(typeof base!=='function'||base.__stainherAllControlEditor)return;
     const wrapped=async function(){
-      try{await loadBase()}catch(e){console.warn('[Stainher] controles base',e)}
+      try{
+        const [,templates]=await Promise.all([loadBase(),loadCustom()]);
+        window.state=window.state||{};
+        window.state.v1524ActiveLeadershipCodes=activeControlCodes(templates);
+        window.state.v1524ActiveLeadershipCodesReady=true;
+        installLeadershipProgrammingFilter();
+      }catch(e){
+        console.warn('[Stainher] catálogo activo de controles',e);
+        if(window.state)window.state.v1524ActiveLeadershipCodesReady=false;
+      }
       const out=await base.apply(this,arguments);
       removeCardEditButtons();
       return out;
@@ -212,7 +276,7 @@
     if(c.desc)setTextIfChanged(sub,c.desc);
   }
 
-  function install(){style();wrapLeadershipData();wrapRender();removeCardEditButtons();patchModal()}
+  function install(){style();installLeadershipProgrammingFilter();wrapLeadershipData();wrapRender();removeCardEditButtons();patchModal()}
 
   let observerQueued=false;
   const observer=new MutationObserver(records=>{
