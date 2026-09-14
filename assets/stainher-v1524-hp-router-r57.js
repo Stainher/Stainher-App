@@ -60,7 +60,7 @@
     if(!content||hpRendering)return;
     hpRendering=true;
     try{
-      content.innerHTML=`<section id="page-${PAGE_ID}" class="page"><div class="empty">Cargando Reporte Semanal HP…</div></section>`;
+      content.innerHTML=`<section id="page-${PAGE_ID}"><div class="empty">Cargando Reporte Semanal HP…</div></section>`;
       const renderer=resolveHpRenderer();
       if(!renderer){
         content.innerHTML='<div class="notice error">Reporte Semanal HP no está disponible. Recarga la aplicación e inténtalo nuevamente.</div>';
