@@ -39,6 +39,34 @@
     return q.data||[];
   }
 
+  function activeControlCodes(templates=[]){
+    const set=new Set(
+      controls()
+        .filter(c=>c&&c.active!==false&&c.code)
+        .map(c=>String(c.code))
+    );
+    (templates||[]).forEach(t=>{
+      if(t?.activo!==false&&t?.codigo)set.add(String(t.codigo));
+    });
+    return set;
+  }
+
+  function wrapLeadershipData(){
+    const base=window.v1512LoadLeadershipData;
+    if(typeof base!=='function'||base.__stainherActiveControlsOnly)return;
+    const wrapped=async function(){
+      const data=await base.apply(this,arguments);
+      if(!data||data.error)return data;
+      const active=activeControlCodes(data.templates||[]);
+      const goals=(data.goals||[]).filter(g=>active.has(String(g.control_codigo||'')));
+      if(window.state)window.state.v1512LeadGoals=goals;
+      return {...data,goals};
+    };
+    wrapped.__stainherActiveControlsOnly=true;
+    wrapped.__stainherBase=base;
+    window.v1512LoadLeadershipData=wrapped;
+  }
+
   function style(){
     if(document.getElementById('stainher-all-control-editor-style'))return;
     const s=document.createElement('style');
@@ -184,7 +212,7 @@
     if(c.desc)setTextIfChanged(sub,c.desc);
   }
 
-  function install(){style();wrapRender();removeCardEditButtons();patchModal()}
+  function install(){style();wrapLeadershipData();wrapRender();removeCardEditButtons();patchModal()}
 
   let observerQueued=false;
   const observer=new MutationObserver(records=>{
