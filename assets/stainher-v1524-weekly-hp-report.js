@@ -1,8 +1,8 @@
-/* Stainher V15.24 · R66 · Reporte Semanal HP simplificado dentro de Turnos y Novedades.
+/* Stainher V15.24 · R68 · Reporte Semanal HP dentro de Turnos y Novedades.
  * - Sin clasificación mensual Operaciones/Inversiones.
  * - ADC, Gerente y Confiabilidad: horas administrativas manuales.
  * - Planificador y Experta en Prevención: horas administrativas automáticas según malla.
- * - Resto de la dotación: horas operativas automáticas según malla.
+ * - APR y resto de la dotación: horas operativas automáticas según malla.
  */
 (()=>{
   'use strict';
@@ -13,7 +13,7 @@
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
   const EDIT_ROLES=new Set(['administrador','planificador']);
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
-  const AUTO_ADMIN_ROLES=new Set(['planificador','planificacion','programacion','prevencion','experto_prevencion','experta_prevencion']);
+  const AUTO_ADMIN_ROLES=new Set(['planificador','planificacion','programacion']);
   const CONTRACT='4600029879';
   const BLOCK_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta','suspendido_encierro'];
 
@@ -45,13 +45,13 @@
   function installRenderer(){
     try{
       const current=typeof window.v1523Renderer==='function'?window.v1523Renderer:(typeof v1523Renderer==='function'?v1523Renderer:null);
-      if(typeof current!=='function'||current.__stainherHpR66)return;
+      if(typeof current!=='function'||current.__stainherHpR68)return;
       const hpRenderer=function(page){return page===PAGE_ID?render:current(page)};
-      hpRenderer.__stainherHpR66=true;
+      hpRenderer.__stainherHpR68=true;
       hpRenderer.__stainherHpBase=current;
       window.v1523Renderer=hpRenderer;
       try{v1523Renderer=hpRenderer}catch(_e){}
-    }catch(error){console.error('[Stainher HP R66] No fue posible registrar el renderer HP.',error)}
+    }catch(error){console.error('[Stainher HP R68] No fue posible registrar el renderer HP.',error)}
   }
 
   function personRole(person){return norm(state.profiles.get(String(person?.user_id))?.rol||'')}
@@ -61,7 +61,9 @@
   }
   function isAutoAdminPerson(person){
     const r=personRole(person),cargo=norm(person?.cargo||'');
-    return AUTO_ADMIN_ROLES.has(r)||cargo.includes('planific')||cargo.includes('programa')||cargo.includes('experta_en_prevencion')||cargo.includes('experto_en_prevencion');
+    const isPlanning=AUTO_ADMIN_ROLES.has(r)||cargo.includes('planific')||cargo.includes('programa');
+    const isPreventionExpert=cargo.includes('experta_en_prevencion')||cargo.includes('experto_en_prevencion');
+    return isPlanning||isPreventionExpert;
   }
   function manualAdminPeople(){return state.people.filter(isManualAdminPerson)}
 
@@ -141,7 +143,7 @@
     return `<div class="panel"><div class="row-between"><div><h3>Rangos Codelco</h3><div class="muted">Los cortes son editables y se guardan por mes.</div></div>${canEdit()?'<button class="btn primary" id="hpSavePeriods">Guardar rangos</button>':''}</div><div class="hp-period-grid">${state.periods.map((p,i)=>`<div class="hp-period-card"><b>Período ${i+1}</b><label>Desde<input class="field hp-p-start" type="date" value="${p.fecha_inicio}" ${canEdit()?'':'disabled'}></label><label>Hasta<input class="field hp-p-end" type="date" value="${p.fecha_fin}" ${canEdit()?'':'disabled'}></label><label>Glosa<input class="field hp-p-label" value="${esc(p.etiqueta||'')}" placeholder="Opcional" ${canEdit()?'':'disabled'}></label></div>`).join('')}</div></div>`;
   }
   function rulesHtml(){
-    return `<div class="notice hp-rules"><b>Reglas de cálculo HP:</b> Administrador de Contrato (ADC), Gerente y Confiabilidad usan horas administrativas ingresadas manualmente. Planificador y Experta en Prevención generan siempre horas administrativas desde su malla de turnos. El resto de la dotación genera horas operativas desde la malla.</div>`;
+    return `<div class="notice hp-rules"><b>Reglas de cálculo HP:</b> Administrador de Contrato (ADC), Gerente y Confiabilidad usan horas administrativas ingresadas manualmente. Planificador y Experta en Prevención generan horas administrativas desde su malla. APR y el resto de la dotación generan horas operativas desde la malla.</div>`;
   }
   function adjustmentsHtml(){
     if(!canEdit())return'';
