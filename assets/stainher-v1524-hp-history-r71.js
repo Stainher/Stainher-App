@@ -1,13 +1,15 @@
-/* Stainher V15.24 · R73 · comparación histórica Reporte Semanal HP.
+/* Stainher V15.24 · R75 · comparación histórica Reporte Semanal HP.
  * Compara los tres meses cerrados anteriores al mes seleccionado.
  * Junio–agosto 2026 usan la línea base histórica entregada por administración;
  * meses posteriores se calculan desde malla, novedades y ajustes HP.
+ * Teletrabajo descuenta horas de HP en faena.
  * FTE Codelco = Total HH en faena / 182,7.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_HISTORY_R73__)return;
+  if(window.__STAINHER_HP_HISTORY_VERSION__==='R75')return;
   window.__STAINHER_HP_HISTORY_R73__=true;
+  window.__STAINHER_HP_HISTORY_VERSION__='R75';
 
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
@@ -52,6 +54,10 @@
     const r=norm(profiles.get(String(person.user_id))?.rol||''),cargo=norm(person.cargo||'');
     return AUTO_ADMIN_ROLES.has(r)||cargo.includes('planific')||cargo.includes('programa')||cargo.includes('experta_en_prevencion')||cargo.includes('experto_en_prevencion');
   }
+  function isTeleworkNovelty(n){
+    const tipo=norm(n?.tipo),cls=norm(n?.clasificacion_auto);
+    return tipo==='teletrabajo'||tipo==='permiso_teletrabajo'||cls==='teletrabajo';
+  }
 
   async function calculateMonth(year,month){
     const key=monthKey(year,month);
@@ -72,6 +78,7 @@
     const profiles=new Map((prof.data||[]).map(p=>[String(p.id),p]));
     const malla=mal.data||[],novedades=nov.data||[],adjust=adj.error?[]:(adj.data||[]);
     const novs=(uid,date)=>novedades.filter(n=>String(n.user_id)===String(uid)&&inRange(date,n.fecha_inicio,n.fecha_fin||n.fecha_inicio));
+    const telework=(uid,date)=>novs(uid,date).some(isTeleworkNovelty);
     const blocked=(uid,date)=>novs(uid,date).some(n=>ABSENCE_TYPES.some(t=>String(n.tipo||'').includes(t)));
     const suspended=(uid,date)=>novs(uid,date).some(n=>norm(n.tipo)==='suspendido_encierro'||norm(n.clasificacion_auto)==='suspendido_por_encierro');
     const extra=(uid,date)=>novs(uid,date).filter(n=>{
@@ -79,7 +86,7 @@
       return tipo==='dia_adicional'||cls==='encierro_fuera_de_turno'||cls==='encierro_dentro_de_turno'||(tipo==='encierro_planificado'&&(tb==='a'||tb==='c'))||(tipo==='encierro_no_planificado'&&tb==='l');
     }).length*12;
     const turn=(uid,date)=>malla.find(r=>String(r.user_id)===String(uid)&&r.fecha===date)?.turno_base||'';
-    const manualAdmin=uid=>adjust.filter(x=>String(x.user_id)===String(uid)).reduce((s,x)=>s+Number(x.horas||0),0);
+    const manualAdmin=uid=>adjust.filter(x=>String(x.user_id)===String(uid)&&!telework(uid,x.fecha)).reduce((s,x)=>s+Number(x.horas||0),0);
 
     const rows=people.map(person=>{
       let admin=0,oper=0,spor=0;
@@ -89,7 +96,7 @@
       }else if(isAutoAdmin(person,profiles)){
         for(let d=start;d<=end;d=plusDays(d,1)){
           spor+=extra(person.user_id,d);
-          if(blocked(person.user_id,d)||suspended(person.user_id,d))continue;
+          if(blocked(person.user_id,d)||suspended(person.user_id,d)||telework(person.user_id,d))continue;
           const t=turn(person.user_id,d);if(!t||t==='L')continue;
           const dow=new Date(`${d}T12:00:00`).getDay();
           if(dow>=1&&dow<=3)admin+=12;else if(dow===4)admin+=6;
@@ -99,9 +106,9 @@
           spor+=extra(person.user_id,d);
           if(blocked(person.user_id,d))continue;
           const prevDate=plusDays(d,-1),td=turn(person.user_id,d),prev=turn(person.user_id,prevDate);
-          if(td==='A'&&!suspended(person.user_id,d))oper+=12;
-          if(td==='C'&&!suspended(person.user_id,d))oper+=5;
-          if(prev==='C'&&!suspended(person.user_id,prevDate)&&!blocked(person.user_id,d))oper+=7;
+          if(td==='A'&&!suspended(person.user_id,d)&&!telework(person.user_id,d))oper+=12;
+          if(td==='C'&&!suspended(person.user_id,d)&&!telework(person.user_id,d))oper+=5;
+          if(prev==='C'&&!suspended(person.user_id,prevDate)&&!telework(person.user_id,prevDate)&&!blocked(person.user_id,d))oper+=7;
         }
       }
       return {admin,oper,spor,total:admin+oper+spor};
@@ -156,9 +163,9 @@
       if(value)value.textContent=fmtFte(fte);
     }
     const rules=page.querySelector('.hp-rules');
-    if(rules&&!rules.querySelector('.hp-fte-rule-r73')){
+    if(rules&&!rules.querySelector('.hp-fte-rule-r75')){
       const note=document.createElement('span');
-      note.className='hp-fte-rule-r73';
+      note.className='hp-fte-rule-r75';
       note.textContent=' FTE Codelco = Total HH en Faena / 182,7.';
       rules.appendChild(note);
     }
@@ -179,7 +186,7 @@
     host.innerHTML='<h3>Comparación últimos 3 meses cerrados</h3><div class="muted">Calculando tendencia histórica…</div>';
     try{
       const months=await Promise.all(targets.map(x=>calculateMonth(x.year,x.month)));
-      host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="muted hp-history-sub">Referencia previa al período seleccionado. FTE Codelco calculado como Total HH en Faena / 182,7.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
+      host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="muted hp-history-sub">Referencia previa al período seleccionado. Teletrabajo se descuenta de las HH en faena. FTE Codelco = Total HH en Faena / 182,7.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
     }catch(error){
       host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="notice warn">No fue posible calcular la comparación histórica: ${String(error?.message||error||'Error desconocido')}</div>`;
     }
@@ -199,8 +206,8 @@
   function mount(page){
     if(!page)return;
     patchMonthlyFte(page);
-    if(page.dataset.hpHistoryR73Bound!=='1'){
-      page.dataset.hpHistoryR73Bound='1';
+    if(page.dataset.hpHistoryR75Bound!=='1'){
+      page.dataset.hpHistoryR75Bound='1';
       page.addEventListener('change',event=>{
         if(event.target?.id!=='hpMonth')return;
         const expected=event.target.value;
@@ -210,8 +217,10 @@
     render(page);
   }
 
+  document.getElementById('stainher-hp-history-r73-style')?.remove();
+  document.getElementById('stainher-hp-history-r75-style')?.remove();
   const style=document.createElement('style');
-  style.id='stainher-hp-history-r73-style';
+  style.id='stainher-hp-history-r75-style';
   style.textContent=`.hp-history-panel{margin-top:14px}.hp-history-sub{margin-bottom:10px}.hp-history-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.hp-history-table{border-collapse:collapse;width:100%;min-width:620px;table-layout:fixed}.hp-history-table th,.hp-history-table td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 10px;text-align:center}.hp-history-table thead th{background:var(--panel2)}.hp-history-table tbody th{text-align:left;background:var(--panel2);width:34%}.hp-history-analysis{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}.hp-history-analysis ul{margin:8px 0 0;padding-left:20px;display:grid;gap:8px}.hp-history-main{font-weight:500}@media(max-width:700px){.hp-history-table th,.hp-history-table td{padding:7px 6px;font-size:11px}}`;
   document.head.appendChild(style);
 
