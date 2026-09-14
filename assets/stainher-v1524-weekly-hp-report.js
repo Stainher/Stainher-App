@@ -1,8 +1,9 @@
-/* Stainher V15.24 · R68 · Reporte Semanal HP dentro de Turnos y Novedades.
+/* Stainher V15.24 · R69 · Reporte Semanal HP dentro de Turnos y Novedades.
  * - Sin clasificación mensual Operaciones/Inversiones.
  * - ADC, Gerente y Confiabilidad: horas administrativas manuales.
  * - Planificador y Experta en Prevención: horas administrativas automáticas según malla.
  * - APR y resto de la dotación: horas operativas automáticas según malla.
+ * - EF, ET y DA suman 12 h operativas esporádicas; SE descuenta el turno suspendido de 12 h.
  */
 (()=>{
   'use strict';
@@ -15,7 +16,7 @@
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
   const AUTO_ADMIN_ROLES=new Set(['planificador','planificacion','programacion']);
   const CONTRACT='4600029879';
-  const BLOCK_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta','suspendido_encierro'];
+  const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
 
   const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
   const role=()=>norm(typeof window.v11Role==='function'?window.v11Role():(window.state?.profile?.rol||window.state?.user?.rol||window.currentProfile?.rol||''));
@@ -45,13 +46,13 @@
   function installRenderer(){
     try{
       const current=typeof window.v1523Renderer==='function'?window.v1523Renderer:(typeof v1523Renderer==='function'?v1523Renderer:null);
-      if(typeof current!=='function'||current.__stainherHpR68)return;
+      if(typeof current!=='function'||current.__stainherHpR69)return;
       const hpRenderer=function(page){return page===PAGE_ID?render:current(page)};
-      hpRenderer.__stainherHpR68=true;
+      hpRenderer.__stainherHpR69=true;
       hpRenderer.__stainherHpBase=current;
       window.v1523Renderer=hpRenderer;
       try{v1523Renderer=hpRenderer}catch(_e){}
-    }catch(error){console.error('[Stainher HP R68] No fue posible registrar el renderer HP.',error)}
+    }catch(error){console.error('[Stainher HP R69] No fue posible registrar el renderer HP.',error)}
   }
 
   function personRole(person){return norm(state.profiles.get(String(person?.user_id))?.rol||'')}
@@ -76,7 +77,7 @@
       window.sb.from('dotacion_contrato').select('id,user_id,nombre,cargo,rut,estado,aplica_turnos,orden').eq('estado','activo').order('orden',{ascending:true}),
       window.sb.from('perfiles').select('id,nombre,rol,activo').eq('activo',true),
       window.sb.from('turnos_malla_v1512').select('user_id,fecha,turno_base,estado_publicacion').gte('fecha',dplus(min,-1)).lte('fecha',max).eq('estado_publicacion','publicado'),
-      window.sb.from('turnos_novedades_v15').select('user_id,tipo,fecha_inicio,fecha_fin').lte('fecha_inicio',max).gte('fecha_fin',min),
+      window.sb.from('turnos_novedades_v15').select('user_id,tipo,fecha_inicio,fecha_fin,turno_base,clasificacion_auto,cantidad,unidad').lte('fecha_inicio',max).gte('fecha_fin',min),
       window.sb.from('hp_ajustes_manuales').select('*').eq('tipo','terreno_administrativo').gte('fecha',min).lte('fecha',max)
     ]);
     if(dot.error)throw dot.error;if(prof.error)throw prof.error;if(mal.error)throw mal.error;if(nov.error)throw nov.error;
@@ -88,7 +89,26 @@
     state.rows=state.people.map(calcPerson);
   }
 
-  function blocked(uid,date){return state.nov.some(n=>String(n.user_id)===String(uid)&&BLOCK_TYPES.some(t=>String(n.tipo||'').includes(t))&&inRange(date,n.fecha_inicio,n.fecha_fin||n.fecha_inicio))}
+  function novelties(uid,date){
+    return state.nov.filter(n=>String(n.user_id)===String(uid)&&inRange(date,n.fecha_inicio,n.fecha_fin||n.fecha_inicio));
+  }
+  function blocked(uid,date){
+    return novelties(uid,date).some(n=>ABSENCE_TYPES.some(t=>String(n.tipo||'').includes(t)));
+  }
+  function suspended(uid,date){
+    return novelties(uid,date).some(n=>norm(n.tipo)==='suspendido_encierro'||norm(n.clasificacion_auto)==='suspendido_por_encierro');
+  }
+  function extraNovelty(n){
+    const tipo=norm(n.tipo),cls=norm(n.clasificacion_auto),tb=norm(n.turno_base);
+    if(tipo==='dia_adicional')return true;
+    if(cls==='encierro_fuera_de_turno'||cls==='encierro_dentro_de_turno')return true;
+    if(tipo==='encierro_planificado'&&(tb==='a'||tb==='c'))return true;
+    if(tipo==='encierro_no_planificado'&&tb==='l')return true;
+    return false;
+  }
+  function extraOperationalHours(uid,date){
+    return novelties(uid,date).filter(extraNovelty).length*12;
+  }
   function turn(uid,date){return state.malla.find(r=>String(r.user_id)===String(uid)&&r.fecha===date)?.turno_base||''}
   function manualAdmin(uid,a,b){return state.adjust.filter(x=>String(x.user_id)===String(uid)&&x.tipo==='terreno_administrativo'&&inRange(x.fecha,a,b)).reduce((s,x)=>s+Number(x.horas||0),0)}
   function autoAdminHours(uid,date){
@@ -100,32 +120,35 @@
   }
 
   function calcPeriod(person,p){
-    let admin=0,oper=0;
+    let admin=0,oper=0,spor=0;
     if(isManualAdminPerson(person)){
       admin=manualAdmin(person.user_id,p.fecha_inicio,p.fecha_fin);
+      for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1))spor+=extraOperationalHours(person.user_id,d);
     }else if(isAutoAdminPerson(person)){
       for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
-        if(blocked(person.user_id,d))continue;
+        spor+=extraOperationalHours(person.user_id,d);
+        if(blocked(person.user_id,d)||suspended(person.user_id,d))continue;
         admin+=autoAdminHours(person.user_id,d);
       }
     }else{
       for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
+        spor+=extraOperationalHours(person.user_id,d);
         if(blocked(person.user_id,d))continue;
-        const td=turn(person.user_id,d),prev=turn(person.user_id,dplus(d,-1));
-        if(td==='A')oper+=12;
-        if(td==='C')oper+=5;
-        if(prev==='C'&&!blocked(person.user_id,d))oper+=7;
+        const prevDate=dplus(d,-1),td=turn(person.user_id,d),prev=turn(person.user_id,prevDate);
+        if(td==='A'&&!suspended(person.user_id,d))oper+=12;
+        if(td==='C'&&!suspended(person.user_id,d))oper+=5;
+        if(prev==='C'&&!suspended(person.user_id,prevDate)&&!blocked(person.user_id,d))oper+=7;
       }
     }
-    return {admin,oper,spor:0};
+    return {admin,oper,spor};
   }
   function calcPerson(person){
-    const periods=state.periods.map(p=>calcPeriod(person,p)),admin=sum(periods,'admin'),oper=sum(periods,'oper'),spor=0;
-    return {...person,periods,admin,oper,spor,total:admin+oper};
+    const periods=state.periods.map(p=>calcPeriod(person,p)),admin=sum(periods,'admin'),oper=sum(periods,'oper'),spor=sum(periods,'spor');
+    return {...person,periods,admin,oper,spor,total:admin+oper+spor};
   }
 
   function monthlySummary(){
-    const admin=sum(state.rows,'admin'),oper=sum(state.rows,'oper'),spor=0,total=admin+oper,fte=state.rows.filter(r=>r.total>0).length;
+    const admin=sum(state.rows,'admin'),oper=sum(state.rows,'oper'),spor=sum(state.rows,'spor'),total=admin+oper+spor,fte=state.rows.filter(r=>r.total>0).length;
     return {admin,oper,spor,total,fte};
   }
   function summaryHtml(){
@@ -143,7 +166,7 @@
     return `<div class="panel"><div class="row-between"><div><h3>Rangos Codelco</h3><div class="muted">Los cortes son editables y se guardan por mes.</div></div>${canEdit()?'<button class="btn primary" id="hpSavePeriods">Guardar rangos</button>':''}</div><div class="hp-period-grid">${state.periods.map((p,i)=>`<div class="hp-period-card"><b>Período ${i+1}</b><label>Desde<input class="field hp-p-start" type="date" value="${p.fecha_inicio}" ${canEdit()?'':'disabled'}></label><label>Hasta<input class="field hp-p-end" type="date" value="${p.fecha_fin}" ${canEdit()?'':'disabled'}></label><label>Glosa<input class="field hp-p-label" value="${esc(p.etiqueta||'')}" placeholder="Opcional" ${canEdit()?'':'disabled'}></label></div>`).join('')}</div></div>`;
   }
   function rulesHtml(){
-    return `<div class="notice hp-rules"><b>Reglas de cálculo HP:</b> Administrador de Contrato (ADC), Gerente y Confiabilidad usan horas administrativas ingresadas manualmente. Planificador y Experta en Prevención generan horas administrativas desde su malla. APR y el resto de la dotación generan horas operativas desde la malla.</div>`;
+    return `<div class="notice hp-rules"><b>Reglas de cálculo HP:</b> ADC, Gerente y Confiabilidad usan horas administrativas ingresadas manualmente. Planificador y Experta en Prevención generan horas administrativas desde su malla. APR y el resto de la dotación generan horas operativas desde la malla. EF, ET y DA agregan 12 h operativas esporádicas por día; SE descuenta las 12 h del turno suspendido.</div>`;
   }
   function adjustmentsHtml(){
     if(!canEdit())return'';
