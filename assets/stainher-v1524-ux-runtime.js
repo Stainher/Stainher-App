@@ -87,7 +87,7 @@
     if(window.__STAINHER_WEEKLY_HP_REPORT__||document.getElementById('stainher-v1524-weekly-hp-live'))return;
     const script=document.createElement('script');
     script.id='stainher-v1524-weekly-hp-live';
-    script.src='stainher-v1524-weekly-hp-report.js?build=20260914-r46-weekly-hp';
+    script.src='assets/stainher-v1524-weekly-hp-report.js?build=20260914-r48-weekly-hp-loader-fix';
     script.async=false;
     script.addEventListener('error',()=>console.error('No se pudo cargar Reporte Semanal HP.'),{once:true});
     document.head.appendChild(script);
