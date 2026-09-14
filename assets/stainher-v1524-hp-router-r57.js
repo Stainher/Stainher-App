@@ -1,12 +1,13 @@
-/* Stainher V15.24 · R65 · Reporte Semanal HP dentro de Turnos y Novedades.
+/* Stainher V15.24 · R71 · Reporte Semanal HP dentro de Turnos y Novedades.
  * El reporte deja de ser una ruta visible independiente y se presenta como
  * tercera pestaña del renderer autoritativo de Turnos (r18).
+ * R71 monta la comparación histórica local bajo el resumen mensual.
  * No modifica login/sesión ni instala interceptores globales.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_INSIDE_TURNOS_R65__)return;
-  window.__STAINHER_HP_INSIDE_TURNOS_R65__=true;
+  if(window.__STAINHER_HP_INSIDE_TURNOS_R71__)return;
+  window.__STAINHER_HP_INSIDE_TURNOS_R71__=true;
 
   const PAGE_ID='reporte-hp';
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
@@ -19,9 +20,9 @@
   const canView=()=>VIEW_ROLES.has(role());
 
   function mountStyle(){
-    if(document.getElementById('stainher-hp-inside-turnos-r65-style'))return;
+    if(document.getElementById('stainher-hp-inside-turnos-r71-style'))return;
     const style=document.createElement('style');
-    style.id='stainher-hp-inside-turnos-r65-style';
+    style.id='stainher-hp-inside-turnos-r71-style';
     style.textContent=`
       #page-turnos .r18-turn-tabs [data-r18-tab="hp"]{white-space:nowrap}
       #page-turnos.r65-hp-active .r18-turn-meta,
@@ -51,7 +52,7 @@
       const renderer=typeof window.v1523Renderer==='function'?window.v1523Renderer(PAGE_ID):null;
       return typeof renderer==='function'?renderer:null;
     }catch(error){
-      console.error('[Stainher HP R65] No fue posible resolver el renderer HP.',error);
+      console.error('[Stainher HP R71] No fue posible resolver el renderer HP.',error);
       return null;
     }
   }
@@ -67,8 +68,10 @@
         return;
       }
       await renderer();
+      const page=content.querySelector(`#page-${PAGE_ID}`);
+      try{window.StainherHPHistory?.mount?.(page)}catch(error){console.error('[Stainher HP R71] Comparación histórica.',error)}
     }catch(error){
-      console.error('[Stainher HP R65] Render dentro de Turnos.',error);
+      console.error('[Stainher HP R71] Render dentro de Turnos.',error);
       content.innerHTML=`<div class="notice error">No fue posible cargar Reporte Semanal HP: ${String(error?.message||error||'Error desconocido')}</div>`;
     }finally{
       hpRendering=false;
@@ -76,8 +79,8 @@
   }
 
   function bindHpTab(page,tabs,button,content){
-    if(button.dataset.r65Bound==='1')return;
-    button.dataset.r65Bound='1';
+    if(button.dataset.r71Bound==='1')return;
+    button.dataset.r71Bound='1';
     button.addEventListener('click',event=>{
       event.preventDefault();
       if(!canView())return;
@@ -121,20 +124,19 @@
     page.classList.toggle('r65-hp-active',active);
     if(active){
       tabs.querySelectorAll('[data-r18-tab]').forEach(tab=>tab.classList.toggle('active',tab===hp));
-      if(!content.querySelector(`#page-${PAGE_ID}`))renderHpInto(content);
+      const hpPage=content.querySelector(`#page-${PAGE_ID}`);
+      if(!hpPage)renderHpInto(content);else window.StainherHPHistory?.mount?.(hpPage);
     }
   }
 
   function installTurnosObserver(page){
-    if(page.__stainherHpR65Observer)return;
+    if(page.__stainherHpR71Observer)return;
     const observer=new MutationObserver(()=>{
       if(hpRendering)return;
       queueMicrotask(enhanceTurnos);
     });
-    // Solo observa reemplazos directos del contenido de page-turnos. No vigila
-    // document/body ni los cambios internos del propio reporte HP.
     observer.observe(page,{childList:true,subtree:false});
-    page.__stainherHpR65Observer=observer;
+    page.__stainherHpR71Observer=observer;
   }
 
   function boot(){
