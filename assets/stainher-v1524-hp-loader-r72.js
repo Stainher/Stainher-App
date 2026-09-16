@@ -1,6 +1,6 @@
 /* Stainher V15.24 · R86 · puente anti-cache HP + Presupuestos + Liderazgo.
- * Mantiene HP R78 y Presupuestos R85, y fuerza carga fresca del correo y
- * acciones PDF de Liderazgo R86 después de autenticación.
+ * Mantiene HP R78 y Presupuestos R85, y fuerza carga fresca del correo,
+ * acciones PDF y eliminación de programación de Liderazgo R86 después de autenticación.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
@@ -9,7 +9,7 @@
   window.__STAINHER_HP_LOADER_R72__=true;
   window.__STAINHER_HP_LOADER_VERSION__='R86';
 
-  const BUILD='20260916-r86-leadership-pdf-mail';
+  const BUILD='20260916-r86-leadership-pdf-mail-delete';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -38,8 +38,10 @@
     try{
       await load('stainher-leadership-mail-runtime-r86','stainher-v1524-leadership-mail.js');
       await load('stainher-leadership-record-pdf-runtime-r86','stainher-v1524-leadership-record-pdf-r86.js');
+      await load('stainher-leadership-program-delete-runtime-r86','stainher-v1524-leadership-program-delete-r86.js');
       window.StainherLeadershipMail?.install?.();
       window.StainherLeadershipR86?.install?.();
+      window.StainherLeadershipProgramDeleteR86?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:leadership-r86-ready'));
     }catch(error){
       console.error('[Stainher Liderazgo R86]',error);
