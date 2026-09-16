@@ -1,15 +1,15 @@
-/* Stainher V15.24 · R84 · puente anti-cache HP + Presupuestos.
+/* Stainher V15.24 · R85 · puente anti-cache HP + Presupuestos.
  * Mantiene el cargador HP estable R78 y carga Presupuestos R80, el fix de
- * pie PDF R84 y su integración contractual R82 contra el renderer v1520.
+ * pie PDF R84, la cuadrícula R85 y su integración contractual R82.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R84')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R85')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R84';
+  window.__STAINHER_HP_LOADER_VERSION__='R85';
 
-  const BUILD='20260916-r84-presupuestos-pdf-footer-instance';
+  const BUILD='20260916-r85-presupuestos-grid';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -24,12 +24,13 @@
 
   async function refreshBudgets(){
     try{
-      await load('stainher-presupuestos-runtime-r84','stainher-presupuestos-r80.js');
-      await load('stainher-presupuestos-pdf-footer-runtime-r84','stainher-presupuestos-pdf-footer-r84.js');
-      await load('stainher-presupuestos-router-runtime-r84','stainher-presupuestos-router-r82.js');
-      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r84-ready'));
+      await load('stainher-presupuestos-runtime-r85','stainher-presupuestos-r80.js');
+      await load('stainher-presupuestos-pdf-footer-runtime-r85','stainher-presupuestos-pdf-footer-r84.js');
+      await load('stainher-presupuestos-grid-runtime-r85','stainher-presupuestos-grid-r85.js');
+      await load('stainher-presupuestos-router-runtime-r85','stainher-presupuestos-router-r82.js');
+      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r85-ready'));
     }catch(error){
-      console.error('[Stainher Presupuestos R84]',error);
+      console.error('[Stainher Presupuestos R85]',error);
     }
   }
 
@@ -54,6 +55,7 @@
   window.StainherHPR82={refresh,refreshBudgets};
   window.StainherHPR83={refresh,refreshBudgets};
   window.StainherHPR84={refresh,refreshBudgets};
+  window.StainherHPR85={refresh,refreshBudgets};
   refreshBudgets();
   refresh();
 })();
