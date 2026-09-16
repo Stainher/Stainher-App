@@ -1,16 +1,16 @@
-/* Stainher V15.24 · R89 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema.
+/* Stainher V15.24 · R90 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
- * PDF, eliminación de programación, acciones DOM, correo post-guardado R88
- * y limpieza visual de paneles técnicos de Sistema R89.
+ * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
+ * limpieza visual de Sistema R89 y firma personal ampliada/dibujable R90.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R89')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R90')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R89';
+  window.__STAINHER_HP_LOADER_VERSION__='R90';
 
-  const BUILD='20260916-r89-system-cleanup';
+  const BUILD='20260916-r90-signature-profile';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -25,10 +25,10 @@
 
   async function refreshBudgets(){
     try{
-      await load('stainher-presupuestos-runtime-r89','stainher-presupuestos-r80.js');
-      await load('stainher-presupuestos-pdf-footer-runtime-r89','stainher-presupuestos-pdf-footer-r84.js');
-      await load('stainher-presupuestos-grid-runtime-r89','stainher-presupuestos-grid-r85.js');
-      await load('stainher-presupuestos-router-runtime-r89','stainher-presupuestos-router-r82.js');
+      await load('stainher-presupuestos-runtime-r90','stainher-presupuestos-r80.js');
+      await load('stainher-presupuestos-pdf-footer-runtime-r90','stainher-presupuestos-pdf-footer-r84.js');
+      await load('stainher-presupuestos-grid-runtime-r90','stainher-presupuestos-grid-r85.js');
+      await load('stainher-presupuestos-router-runtime-r90','stainher-presupuestos-router-r82.js');
       window.dispatchEvent(new CustomEvent('stainher:presupuestos-r85-ready'));
     }catch(error){
       console.error('[Stainher Presupuestos R85]',error);
@@ -37,11 +37,11 @@
 
   async function refreshLeadership(){
     try{
-      await load('stainher-leadership-mail-runtime-r89','stainher-v1524-leadership-mail.js');
-      await load('stainher-leadership-record-pdf-runtime-r89','stainher-v1524-leadership-record-pdf-r86.js');
-      await load('stainher-leadership-program-delete-runtime-r89','stainher-v1524-leadership-program-delete-r86.js');
-      await load('stainher-leadership-dom-actions-runtime-r89','stainher-v1524-leadership-dom-actions-r87.js');
-      await load('stainher-leadership-mail-after-save-runtime-r89','stainher-v1524-leadership-mail-after-save-r88.js');
+      await load('stainher-leadership-mail-runtime-r90','stainher-v1524-leadership-mail.js');
+      await load('stainher-leadership-record-pdf-runtime-r90','stainher-v1524-leadership-record-pdf-r86.js');
+      await load('stainher-leadership-program-delete-runtime-r90','stainher-v1524-leadership-program-delete-r86.js');
+      await load('stainher-leadership-dom-actions-runtime-r90','stainher-v1524-leadership-dom-actions-r87.js');
+      await load('stainher-leadership-mail-after-save-runtime-r90','stainher-v1524-leadership-mail-after-save-r88.js');
       window.StainherLeadershipMail?.install?.();
       window.StainherLeadershipR86?.install?.();
       window.StainherLeadershipProgramDeleteR86?.install?.();
@@ -55,12 +55,22 @@
 
   async function refreshSystem(){
     try{
-      await load('stainher-system-cleanup-runtime-r89','stainher-v1524-system-cleanup-r89.js');
+      await load('stainher-system-cleanup-runtime-r90','stainher-v1524-system-cleanup-r89.js');
       window.StainherSystemCleanupR89?.install?.();
       window.StainherSystemCleanupR89?.cleanup?.();
       window.dispatchEvent(new CustomEvent('stainher:system-r89-ready'));
     }catch(error){
       console.error('[Stainher Sistema R89]',error);
+    }
+  }
+
+  async function refreshSignature(){
+    try{
+      await load('stainher-signature-profile-runtime-r90','stainher-v1524-signature-profile-r90.js');
+      window.StainherSignatureR90?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:signature-r90-ready'));
+    }catch(error){
+      console.error('[Stainher Firma R90]',error);
     }
   }
 
@@ -90,8 +100,10 @@
   window.StainherHPR87={refresh,refreshBudgets,refreshLeadership};
   window.StainherHPR88={refresh,refreshBudgets,refreshLeadership};
   window.StainherHPR89={refresh,refreshBudgets,refreshLeadership,refreshSystem};
+  window.StainherHPR90={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature};
   refreshBudgets();
   refreshLeadership();
   refreshSystem();
+  refreshSignature();
   refresh();
 })();
