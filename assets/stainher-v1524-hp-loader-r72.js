@@ -1,6 +1,6 @@
 /* Stainher V15.24 · R78 · cargador HP anti-cache estable.
- * Hotfix: retira el postprocesador visual R77 del arranque para evitar
- * competencia con el renderer autoritativo de Turnos y Novedades.
+ * Hotfix: reemplaza el postprocesador visual R77 por un layout estable
+ * con un único control de despliegue.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
@@ -9,7 +9,7 @@
   window.__STAINHER_HP_LOADER_R72__=true;
   window.__STAINHER_HP_LOADER_VERSION__='R78';
 
-  const BUILD='20260916-r78-hp-stability';
+  const BUILD='20260916-r78-hp-stable-toggle';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -27,6 +27,7 @@
       await load('stainher-weekly-hp-runtime-r78','stainher-v1524-weekly-hp-report.js');
       await load('stainher-hp-history-runtime-r78','stainher-v1524-hp-history-r71.js');
       await load('stainher-hp-admin-detail-runtime-r78','stainher-v1524-hp-admin-detail-r74.js');
+      await load('stainher-hp-layout-runtime-r78','stainher-v1524-hp-layout-r78.js');
       await load('stainher-weekly-hp-router-r78','stainher-v1524-hp-router-r57.js');
       window.dispatchEvent(new CustomEvent('stainher:hp-r78-ready'));
     }catch(error){
