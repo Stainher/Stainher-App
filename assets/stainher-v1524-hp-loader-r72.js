@@ -1,15 +1,15 @@
-/* Stainher V15.24 · R83 · puente anti-cache HP + Presupuestos.
+/* Stainher V15.24 · R84 · puente anti-cache HP + Presupuestos.
  * Mantiene el cargador HP estable R78 y carga Presupuestos R80, el fix de
- * pie PDF R83 y su integración contractual R82 contra el renderer v1520.
+ * pie PDF R84 y su integración contractual R82 contra el renderer v1520.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R83')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R84')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R83';
+  window.__STAINHER_HP_LOADER_VERSION__='R84';
 
-  const BUILD='20260916-r83-presupuestos-pdf-footer';
+  const BUILD='20260916-r84-presupuestos-pdf-footer-instance';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -24,12 +24,12 @@
 
   async function refreshBudgets(){
     try{
-      await load('stainher-presupuestos-runtime-r83','stainher-presupuestos-r80.js');
-      await load('stainher-presupuestos-pdf-footer-runtime-r83','stainher-presupuestos-pdf-footer-r83.js');
-      await load('stainher-presupuestos-router-runtime-r83','stainher-presupuestos-router-r82.js');
-      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r83-ready'));
+      await load('stainher-presupuestos-runtime-r84','stainher-presupuestos-r80.js');
+      await load('stainher-presupuestos-pdf-footer-runtime-r84','stainher-presupuestos-pdf-footer-r84.js');
+      await load('stainher-presupuestos-router-runtime-r84','stainher-presupuestos-router-r82.js');
+      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r84-ready'));
     }catch(error){
-      console.error('[Stainher Presupuestos R83]',error);
+      console.error('[Stainher Presupuestos R84]',error);
     }
   }
 
@@ -53,6 +53,7 @@
   window.StainherHPR81={refresh,refreshBudgets};
   window.StainherHPR82={refresh,refreshBudgets};
   window.StainherHPR83={refresh,refreshBudgets};
+  window.StainherHPR84={refresh,refreshBudgets};
   refreshBudgets();
   refresh();
 })();
