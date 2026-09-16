@@ -1,15 +1,15 @@
-/* Stainher V15.24 · R78 · cargador HP anti-cache estable.
- * Hotfix: reemplaza el postprocesador visual R77 por un layout estable
- * con un único control de despliegue.
+/* Stainher V15.24 · R81 · puente anti-cache HP + Presupuestos.
+ * Mantiene el cargador HP estable R78 y aprovecha su URL fresca por sesión
+ * para asegurar que el módulo de Presupuestos R80 también se solicite sin caché.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R78')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R81')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R78';
+  window.__STAINHER_HP_LOADER_VERSION__='R81';
 
-  const BUILD='20260916-r78-hp-stable-toggle';
+  const BUILD='20260916-r81-presupuestos-cache-bridge';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -21,6 +21,15 @@
     s.addEventListener('error',()=>reject(new Error(`No fue posible cargar ${src}`)),{once:true});
     document.head.appendChild(s);
   });
+
+  async function refreshBudgets(){
+    try{
+      await load('stainher-presupuestos-runtime-r81','stainher-presupuestos-r80.js');
+      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r81-ready'));
+    }catch(error){
+      console.error('[Stainher Presupuestos R81]',error);
+    }
+  }
 
   async function refresh(){
     try{
@@ -39,5 +48,7 @@
   window.StainherHPR75={refresh};
   window.StainherHPR77={refresh};
   window.StainherHPR78={refresh};
+  window.StainherHPR81={refresh,refreshBudgets};
+  refreshBudgets();
   refresh();
 })();
