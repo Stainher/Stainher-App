@@ -1,16 +1,16 @@
-/* Stainher V15.24 · Runtime Audit R80 · no ejecutar parches de app antes de autenticación. */
+/* Stainher V15.24 · Runtime Audit R86 · no ejecutar parches de app antes de autenticación. */
 (()=>{
   'use strict';
-  if(window.__STAINHER_RUNTIME_AUDIT_R80__)return;
-  window.__STAINHER_RUNTIME_AUDIT_R80__=true;
+  if(window.__STAINHER_RUNTIME_AUDIT_R86__)return;
+  window.__STAINHER_RUNTIME_AUDIT_R86__=true;
 
-  const BUILD='20260916-r80-presupuestos';
+  const BUILD='20260916-r86-leadership-pdf-mail';
   const load=(id,src,onload)=>{
     if(document.getElementById(id)){onload?.();return;}
     const s=document.createElement('script');
     s.id=id;s.src=src;s.async=false;
     if(onload)s.addEventListener('load',onload,{once:true});
-    s.addEventListener('error',()=>console.error('[Stainher R80] '+src),{once:true});
+    s.addEventListener('error',()=>console.error('[Stainher R86] '+src),{once:true});
     document.head.appendChild(s);
   };
 
@@ -20,13 +20,16 @@
     if(started||!hasSession())return false;
     started=true;
     if(timer){clearInterval(timer);timer=null;}
-    load('stainher-runtime-audit-legacy-r80',`stainher-v1524-runtime-audit-legacy-r49.js?build=${BUILD}`);
-    load('stainher-home-no-vacation-r80',`stainher-v1524-home-no-vacation-r57.js?build=${BUILD}`);
-    load('stainher-turnos-teletrabajo-r80',`stainher-turnos-teletrabajo-r75.js?build=${BUILD}-${Date.now()}`);
-    load('stainher-turnos-event-grid-r80',`stainher-turnos-event-grid-r79.js?build=${BUILD}-${Date.now()}`);
-    load('stainher-presupuestos-r80',`stainher-presupuestos-r80.js?build=${BUILD}-${Date.now()}`);
-    load('stainher-hp-loader-r80',`stainher-v1524-hp-loader-r72.js?build=${BUILD}-${Date.now()}`);
-    load('stainher-leadership-orphan-runtime-r80',`stainher-v1524-leadership-orphan-filter.js?build=${BUILD}`);
+    load('stainher-runtime-audit-legacy-r86',`stainher-v1524-runtime-audit-legacy-r49.js?build=${BUILD}`);
+    load('stainher-home-no-vacation-r86',`stainher-v1524-home-no-vacation-r57.js?build=${BUILD}`);
+    load('stainher-turnos-teletrabajo-r86',`stainher-turnos-teletrabajo-r75.js?build=${BUILD}-${Date.now()}`);
+    load('stainher-turnos-event-grid-r86',`stainher-turnos-event-grid-r79.js?build=${BUILD}-${Date.now()}`);
+    load('stainher-presupuestos-r86',`stainher-presupuestos-r80.js?build=${BUILD}-${Date.now()}`);
+    load('stainher-hp-loader-r86',`stainher-v1524-hp-loader-r72.js?build=${BUILD}-${Date.now()}`);
+    load('stainher-leadership-mail-r86',`stainher-v1524-leadership-mail.js?build=${BUILD}-${Date.now()}`,()=>{
+      load('stainher-leadership-record-pdf-r86',`stainher-v1524-leadership-record-pdf-r86.js?build=${BUILD}-${Date.now()}`);
+    });
+    load('stainher-leadership-orphan-runtime-r86',`stainher-v1524-leadership-orphan-filter.js?build=${BUILD}`);
     return true;
   }
 
