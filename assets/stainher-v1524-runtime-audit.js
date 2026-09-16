@@ -4,7 +4,7 @@
   if(window.__STAINHER_RUNTIME_AUDIT_R78__)return;
   window.__STAINHER_RUNTIME_AUDIT_R78__=true;
 
-  const BUILD='20260916-r78-hp-stability';
+  const BUILD='20260916-r78-hp-stable-toggle';
   const load=(id,src,onload)=>{
     if(document.getElementById(id)){onload?.();return;}
     const s=document.createElement('script');
