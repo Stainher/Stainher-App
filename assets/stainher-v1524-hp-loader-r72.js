@@ -1,15 +1,15 @@
-/* Stainher V15.24 · R81 · puente anti-cache HP + Presupuestos.
- * Mantiene el cargador HP estable R78 y aprovecha su URL fresca por sesión
- * para asegurar que el módulo de Presupuestos R80 también se solicite sin caché.
+/* Stainher V15.24 · R82 · puente anti-cache HP + Presupuestos.
+ * Mantiene el cargador HP estable R78 y carga Presupuestos R80 junto con
+ * su integración contractual R82 contra el renderer productivo v1520.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R81')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R82')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R81';
+  window.__STAINHER_HP_LOADER_VERSION__='R82';
 
-  const BUILD='20260916-r81-presupuestos-cache-bridge';
+  const BUILD='20260916-r82-presupuestos-v1520-router';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -24,10 +24,11 @@
 
   async function refreshBudgets(){
     try{
-      await load('stainher-presupuestos-runtime-r81','stainher-presupuestos-r80.js');
-      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r81-ready'));
+      await load('stainher-presupuestos-runtime-r82','stainher-presupuestos-r80.js');
+      await load('stainher-presupuestos-router-runtime-r82','stainher-presupuestos-router-r82.js');
+      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r82-ready'));
     }catch(error){
-      console.error('[Stainher Presupuestos R81]',error);
+      console.error('[Stainher Presupuestos R82]',error);
     }
   }
 
@@ -49,6 +50,7 @@
   window.StainherHPR77={refresh};
   window.StainherHPR78={refresh};
   window.StainherHPR81={refresh,refreshBudgets};
+  window.StainherHPR82={refresh,refreshBudgets};
   refreshBudgets();
   refresh();
 })();
