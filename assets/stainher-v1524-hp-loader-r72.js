@@ -1,14 +1,15 @@
-/* Stainher V15.24 · R77 · cargador HP anti-cache.
- * No contiene lógica de login/sesión. Solo renueva los módulos HP cuando
- * el runtime autenticado lo invoca, evitando reutilizar versiones anteriores.
+/* Stainher V15.24 · R78 · cargador HP anti-cache estable.
+ * Hotfix: retira el postprocesador visual R77 del arranque para evitar
+ * competencia con el renderer autoritativo de Turnos y Novedades.
+ * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R77')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R78')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R77';
+  window.__STAINHER_HP_LOADER_VERSION__='R78';
 
-  const BUILD='20260916-r77-hp-layout';
+  const BUILD='20260916-r78-hp-stability';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -23,19 +24,19 @@
 
   async function refresh(){
     try{
-      await load('stainher-weekly-hp-runtime-r77','stainher-v1524-weekly-hp-report.js');
-      await load('stainher-hp-history-runtime-r77','stainher-v1524-hp-history-r71.js');
-      await load('stainher-hp-admin-detail-runtime-r77','stainher-v1524-hp-admin-detail-r74.js');
-      await load('stainher-hp-layout-runtime-r77','stainher-v1524-hp-layout-r77.js');
-      await load('stainher-weekly-hp-router-r77','stainher-v1524-hp-router-r57.js');
-      window.dispatchEvent(new CustomEvent('stainher:hp-r77-ready'));
+      await load('stainher-weekly-hp-runtime-r78','stainher-v1524-weekly-hp-report.js');
+      await load('stainher-hp-history-runtime-r78','stainher-v1524-hp-history-r71.js');
+      await load('stainher-hp-admin-detail-runtime-r78','stainher-v1524-hp-admin-detail-r74.js');
+      await load('stainher-weekly-hp-router-r78','stainher-v1524-hp-router-r57.js');
+      window.dispatchEvent(new CustomEvent('stainher:hp-r78-ready'));
     }catch(error){
-      console.error('[Stainher HP R77]',error);
+      console.error('[Stainher HP R78]',error);
     }
   }
 
   window.StainherHPR72={refresh};
   window.StainherHPR75={refresh};
   window.StainherHPR77={refresh};
+  window.StainherHPR78={refresh};
   refresh();
 })();
