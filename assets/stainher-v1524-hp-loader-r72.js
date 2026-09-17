@@ -1,17 +1,17 @@
-/* Stainher V15.24 · R93 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas + Informes.
+/* Stainher V15.24 · R94 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas + Informes + Forecast.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
- * Comunicados / Informes libres R92 y acceso contractual R93.
+ * Comunicados / Informes libres R92, acceso contractual R93 y Forecast R94.
  * No contiene lógica de login/sesión ni modifica cálculos HP.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R93')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R94')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R93';
+  window.__STAINHER_HP_LOADER_VERSION__='R94';
 
-  const BUILD='20260916-r93-free-report-contract';
+  const BUILD='20260917-r94-forecast-edp-colors';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -26,10 +26,10 @@
 
   async function refreshBudgets(){
     try{
-      await load('stainher-presupuestos-runtime-r93','stainher-presupuestos-r80.js');
-      await load('stainher-presupuestos-pdf-footer-runtime-r93','stainher-presupuestos-pdf-footer-r84.js');
-      await load('stainher-presupuestos-grid-runtime-r93','stainher-presupuestos-grid-r85.js');
-      await load('stainher-presupuestos-router-runtime-r93','stainher-presupuestos-router-r82.js');
+      await load('stainher-presupuestos-runtime-r94','stainher-presupuestos-r80.js');
+      await load('stainher-presupuestos-pdf-footer-runtime-r94','stainher-presupuestos-pdf-footer-r84.js');
+      await load('stainher-presupuestos-grid-runtime-r94','stainher-presupuestos-grid-r85.js');
+      await load('stainher-presupuestos-router-runtime-r94','stainher-presupuestos-router-r82.js');
       window.dispatchEvent(new CustomEvent('stainher:presupuestos-r85-ready'));
     }catch(error){
       console.error('[Stainher Presupuestos R85]',error);
@@ -38,11 +38,11 @@
 
   async function refreshLeadership(){
     try{
-      await load('stainher-leadership-mail-runtime-r93','stainher-v1524-leadership-mail.js');
-      await load('stainher-leadership-record-pdf-runtime-r93','stainher-v1524-leadership-record-pdf-r86.js');
-      await load('stainher-leadership-program-delete-runtime-r93','stainher-v1524-leadership-program-delete-r86.js');
-      await load('stainher-leadership-dom-actions-runtime-r93','stainher-v1524-leadership-dom-actions-r87.js');
-      await load('stainher-leadership-mail-after-save-runtime-r93','stainher-v1524-leadership-mail-after-save-r88.js');
+      await load('stainher-leadership-mail-runtime-r94','stainher-v1524-leadership-mail.js');
+      await load('stainher-leadership-record-pdf-runtime-r94','stainher-v1524-leadership-record-pdf-r86.js');
+      await load('stainher-leadership-program-delete-runtime-r94','stainher-v1524-leadership-program-delete-r86.js');
+      await load('stainher-leadership-dom-actions-runtime-r94','stainher-v1524-leadership-dom-actions-r87.js');
+      await load('stainher-leadership-mail-after-save-runtime-r94','stainher-v1524-leadership-mail-after-save-r88.js');
       window.StainherLeadershipMail?.install?.();
       window.StainherLeadershipR86?.install?.();
       window.StainherLeadershipProgramDeleteR86?.install?.();
@@ -56,7 +56,7 @@
 
   async function refreshSystem(){
     try{
-      await load('stainher-system-cleanup-runtime-r93','stainher-v1524-system-cleanup-r89.js');
+      await load('stainher-system-cleanup-runtime-r94','stainher-v1524-system-cleanup-r89.js');
       window.StainherSystemCleanupR89?.install?.();
       window.StainherSystemCleanupR89?.cleanup?.();
       window.dispatchEvent(new CustomEvent('stainher:system-r89-ready'));
@@ -67,8 +67,8 @@
 
   async function refreshSignature(){
     try{
-      await load('stainher-signature-profile-runtime-r93','stainher-v1524-signature-profile-r90.js');
-      await load('stainher-signature-mobile-runtime-r93','stainher-v1524-signature-mobile-r91.js');
+      await load('stainher-signature-profile-runtime-r94','stainher-v1524-signature-profile-r90.js');
+      await load('stainher-signature-mobile-runtime-r94','stainher-v1524-signature-mobile-r91.js');
       window.StainherSignatureR90?.install?.();
       window.StainherSignatureR91?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:signature-r91-ready'));
@@ -79,13 +79,23 @@
 
   async function refreshFreeReport(){
     try{
-      await load('stainher-free-report-runtime-r93','stainher-v1524-free-report-r92.js');
-      await load('stainher-free-report-contract-runtime-r93','stainher-v1524-free-report-contract-r93.js');
+      await load('stainher-free-report-runtime-r94','stainher-v1524-free-report-r92.js');
+      await load('stainher-free-report-contract-runtime-r94','stainher-v1524-free-report-contract-r93.js');
       window.StainherFreeReportR92?.install?.();
       window.StainherFreeReportContractR93?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:free-report-r93-ready'));
     }catch(error){
       console.error('[Stainher Comunicados/Informes R93]',error);
+    }
+  }
+
+  async function refreshContractForecast(){
+    try{
+      await load('stainher-contract-forecast-runtime-r94','stainher-v1524-contract-forecast-r94.js');
+      window.StainherContractForecastR94?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r94-ready'));
+    }catch(error){
+      console.error('[Stainher Forecast R94]',error);
     }
   }
 
@@ -119,10 +129,12 @@
   window.StainherHPR91={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature};
   window.StainherHPR92={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport};
   window.StainherHPR93={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport};
+  window.StainherHPR94={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast};
   refreshBudgets();
   refreshLeadership();
   refreshSystem();
   refreshSignature();
   refreshFreeReport();
+  refreshContractForecast();
   refresh();
 })();
