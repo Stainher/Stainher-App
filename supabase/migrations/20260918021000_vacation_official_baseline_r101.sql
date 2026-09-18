@@ -1,5 +1,5 @@
 -- R101 · Levantamiento oficial de vacaciones al 09-09-2026.
--- Fuente: informe_centros.pdf "LISTADO DE FERIADO LEGALES".
+-- Fuente base: informe_centros.pdf "LISTADO DE FERIADO LEGALES". Corrección manual validada por Ismael: Cristian Flores inicia contrato en junio 2025.
 -- No modifica saldos productivos todavía: deja baseline y vista de conciliación para revisión.
 create schema if not exists stainher_private;
 
@@ -22,7 +22,7 @@ insert into stainher_private.vacation_official_baseline
 values
 ('2026-09-09','informe_centros.pdf','19.664.389-3','2026-04-23',0,0,0,false,null),
 ('2026-09-09','informe_centros.pdf','18.384.874-7','2024-08-08',10,31,21,false,null),
-('2026-09-09','informe_centros.pdf','13.688.791-2','2025-05-01',6,14,8,false,null),
+('2026-09-09','informe_centros.pdf','13.688.791-2','2025-06-01',6,14,8,false,null),
 ('2026-09-09','informe_centros.pdf','19.664.218-8','2026-02-26',0,0,0,false,null),
 ('2026-09-09','informe_centros.pdf','18.792.245-3','2025-06-01',5,10,5,false,null),
 ('2026-09-09','informe_centros.pdf','15.370.661-1','2025-06-01',5,17,12,false,null),
