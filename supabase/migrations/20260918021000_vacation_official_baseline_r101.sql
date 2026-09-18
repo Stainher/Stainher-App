@@ -72,21 +72,19 @@ select m.nombre,m.rut,m.user_id,m.excluded,m.exclusion_reason,
        m.contract_start as official_contract_start,
        m.app_contract_start,
        m.dias_tomados,m.dias_ganados,m.dias_pendientes as official_pending_20260909,
-       case when m.user_id is null or m.excluded then null
-            else round(stainher_private.vacation_earned(
-              m.contract_start,(now() at time zone 'America/Santiago')::date)
-              - stainher_private.vacation_earned(m.contract_start,date '2026-09-09'),2)
-       end as accrued_since_source,
+       null::numeric as accrued_since_source,
        coalesce(v.dias,0) as app_vacation_days_after_source,
        case when m.user_id is null or m.excluded then null
-            else round(m.dias_pendientes
-              + stainher_private.vacation_earned(m.contract_start,(now() at time zone 'America/Santiago')::date)
-              - stainher_private.vacation_earned(m.contract_start,date '2026-09-09')
-              - coalesce(v.dias,0),2)
+            else round(m.dias_pendientes - coalesce(v.dias,0),2)
        end as proposed_balance,
        m.saldo_vacaciones as current_app_balance
 from matched m
 left join mov v on v.user_id=m.user_id;
 
 comment on table stainher_private.vacation_official_baseline is
-'Baseline oficial de feriado legal importado desde informe_centros.pdf del 09-09-2026. No es el saldo operativo hasta conciliación/aprobación.';
+'Baseline oficial de feriado legal importado desde informe_centros.pdf del 09-09-2026. El saldo oficial prima sobre devengos inferidos por fecha de contrato; la fecha de contrato queda como dato de control. No es saldo operativo hasta conciliación/aprobación.';
+
+-- La evidencia del informe no permite reconstruir el saldo histórico solo con 1,25 días/mes:
+-- existen usuarios con fecha de contrato anterior al corte y 0 días ganados, mientras otros sí
+-- muestran devengo. Por eso la conciliación usa saldo pendiente oficial menos movimientos
+-- aprobados por la App posteriores al corte. Un nuevo informe oficial reemplazará el baseline.
