@@ -14,13 +14,13 @@ create table if not exists stainher_private.vacation_reconciliation_exceptions (
   primary key (source_date,rut)
 );
 
--- Fecha de contrato donde el informe oficial difiere de la App.
+-- Fechas contractuales:
 -- Cristian Flores se mantiene en 01-06-2025 por validación manual de Ismael.
-update public.dotacion_contrato
-set fecha_inicio_contrato=date '2026-01-29'
-where regexp_replace(upper(rut),'[^0-9K]','','g')='261838508';
+-- Ronald Garcia permanece temporalmente en 26-01-2026: el informe indica 29-01-2026,
+-- pero no existe una segunda fuente interna concluyente. Se registra como discrepancia,
+-- sin modificar producción hasta validación humana.
 
--- Registrar excepción Pablo Lillo antes de cualquier actualización masiva.
+-- Registrar excepciones/discrepancias antes de cualquier actualización masiva.
 insert into stainher_private.vacation_reconciliation_exceptions(source_date,user_id,rut,reason)
 select b.source_date,d.user_id,b.rut,
        'Baseline oficial 09-09-2026 = 0 días; existe 1 día de vacaciones aprobado por la App el 11-09-2026. Requiere validación RRHH.'
@@ -37,7 +37,23 @@ on conflict (source_date,rut) do update set
   resolved_at=null,
   resolution=null;
 
--- Reconciliar todos los incluidos salvo excepciones con resultado negativo.
+insert into stainher_private.vacation_reconciliation_exceptions(source_date,user_id,rut,reason)
+select b.source_date,d.user_id,b.rut,
+       'Discrepancia fecha de contrato: App 26-01-2026 / informe RRHH 29-01-2026. No modificar hasta validación.'
+from stainher_private.vacation_official_baseline b
+join public.dotacion_contrato d
+  on regexp_replace(upper(d.rut),'[^0-9K]','','g')=
+     regexp_replace(upper(b.rut),'[^0-9K]','','g')
+where b.source_date=date '2026-09-09'
+  and regexp_replace(upper(b.rut),'[^0-9K]','','g')='261838508'
+on conflict (source_date,rut) do update set
+  user_id=excluded.user_id,
+  reason=excluded.reason,
+  detected_at=now(),
+  resolved_at=null,
+  resolution=null;
+
+-- Reconciliar todos los incluidos salvo excepciones abiertas.
 with base as (
   select b.*,d.user_id
   from stainher_private.vacation_official_baseline b
