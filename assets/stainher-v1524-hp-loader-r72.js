@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R104 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas + Informes + Forecast.
+/* Stainher V15.24 · R105 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas + Informes + Forecast.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R104')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R105')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R104';
+  window.__STAINHER_HP_LOADER_VERSION__='R105';
 
-  const BUILD='20260918-r104-monthly-bars-final-geometry';
+  const BUILD='20260918-r105-monthly-bars-scale-render';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -97,13 +97,15 @@
       await load('stainher-contract-forecast-runtime-r100','stainher-v1524-contract-forecast-r100.js');
       await load('stainher-contract-forecast-runtime-r103','stainher-v1524-contract-forecast-r103.js');
       await load('stainher-contract-forecast-runtime-r104','stainher-v1524-contract-forecast-r104.js');
+      await load('stainher-contract-forecast-runtime-r105','stainher-v1524-contract-forecast-r105.js');
       window.StainherContractForecastR95?.install?.();
       window.StainherContractForecastR96?.install?.();
       window.StainherContractForecastR98?.install?.();
       window.StainherContractForecastR100?.install?.();
       window.StainherContractForecastR103?.install?.();
       window.StainherContractForecastR104?.install?.();
-      window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r104-ready'));
+      window.StainherContractForecastR105?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r105-ready'));
     }catch(error){
       console.error('[Stainher Forecast R95]',error);
     }
@@ -146,6 +148,7 @@
   window.StainherHPR102={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast};
   window.StainherHPR103={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast};
   window.StainherHPR104={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast};
+  window.StainherHPR105={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast};
   refreshBudgets();
   refreshLeadership();
   refreshSystem();
