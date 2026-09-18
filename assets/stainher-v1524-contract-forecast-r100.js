@@ -4,7 +4,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20260917-r100-forecast-first-frame';
+  const BUILD='20260917-r102-forecast-first-frame';
   if(window.__STAINHER_CONTRACT_FORECAST_R100__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R100__=BUILD;
 
@@ -73,7 +73,7 @@
       if(a&&b&&tries>8)clearInterval(timer);
       if(tries>=120)clearInterval(timer);
     },125);
-    ['stainher:modules-ready','stainher:contract-forecast-r99-ready'].forEach(ev=>window.addEventListener(ev,install));
+    ['stainher:modules-ready','stainher:contract-forecast-r98-ready'].forEach(ev=>window.addEventListener(ev,install));
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
