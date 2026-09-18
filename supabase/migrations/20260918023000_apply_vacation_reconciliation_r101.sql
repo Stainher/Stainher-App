@@ -14,11 +14,8 @@ create table if not exists stainher_private.vacation_reconciliation_exceptions (
   primary key (source_date,rut)
 );
 
--- Fechas de contrato donde el informe oficial difiere de la App.
-update public.dotacion_contrato
-set fecha_inicio_contrato=date '2025-05-01'
-where regexp_replace(upper(rut),'[^0-9K]','','g')='136887912';
-
+-- Fecha de contrato donde el informe oficial difiere de la App.
+-- Cristian Flores se mantiene en 01-06-2025 por validación manual de Ismael.
 update public.dotacion_contrato
 set fecha_inicio_contrato=date '2026-01-29'
 where regexp_replace(upper(rut),'[^0-9K]','','g')='261838508';
