@@ -19,8 +19,7 @@ revoke execute on function public.permisos_base_rol(text) from public, authentic
 -- Solicitudes, Dotación, Vehículos y Liderazgo.
 
 
--- Blindaje explícito del esquema privado de vacaciones.
-revoke all on schema stainher_private from public, anon, authenticated;
+-- Blindaje explícito de las tablas privadas de vacaciones. Se conserva USAGE del esquema para wrappers controlados.
 revoke all on table stainher_private.vacation_accrual from public, anon, authenticated;
 revoke all on table stainher_private.vacation_official_baseline from public, anon, authenticated;
 -- vacation_accrual tiene RLS sin policies de forma intencional: deny-by-default.
