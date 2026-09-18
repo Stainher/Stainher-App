@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R95 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas + Informes + Forecast.
+/* Stainher V15.24 · R96 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas + Informes + Forecast.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R95')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R96')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R95';
+  window.__STAINHER_HP_LOADER_VERSION__='R96';
 
-  const BUILD='20260917-r95-forecast-edp-colors';
+  const BUILD='20260917-r96-forecast-install';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -92,8 +92,10 @@
   async function refreshContractForecast(){
     try{
       await load('stainher-contract-forecast-runtime-r95','stainher-v1524-contract-forecast-r95.js');
+      await load('stainher-contract-forecast-runtime-r96','stainher-v1524-contract-forecast-r96.js');
       window.StainherContractForecastR95?.install?.();
-      window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r95-ready'));
+      window.StainherContractForecastR96?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r96-ready'));
     }catch(error){
       console.error('[Stainher Forecast R95]',error);
     }
@@ -130,6 +132,7 @@
   window.StainherHPR92={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport};
   window.StainherHPR93={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport};
   window.StainherHPR95={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast};
+  window.StainherHPR96={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast};
   refreshBudgets();
   refreshLeadership();
   refreshSystem();
