@@ -1,15 +1,17 @@
-/* Stainher V15.24 · R94 · Alertas accionables del contrato DAND.
+/* Stainher V15.24 · R107 · Alertas accionables del contrato DAND.
  * Integración nativa en Inicio: sin interceptores globales ni MutationObserver.
  * Fuente persistente: Supabase public.alertas_contrato_v1524.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_CONTRACT_ALERTS_R94__)return;
-  window.__STAINHER_CONTRACT_ALERTS_R94__=true;
+  if(window.__STAINHER_CONTRACT_ALERTS_VERSION__==='R107')return;
+  window.__STAINHER_CONTRACT_ALERTS_VERSION__='R107';
   const PANEL='stainherContractAlertsR94';
-  const ROLES_MANAGE=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','prevención','rrhh']);
+  const ROLES_VIEW=new Set(['administrador','administrativo','gerente','confiabilidad','planificador','recursos_humanos','rrhh','prevencion','prevención','apr']);
+  const ROLES_MANAGE=new Set(['administrador','gerente','confiabilidad','planificador','recursos_humanos','rrhh','prevencion','prevención','apr']);
   const esc=v=>typeof window.esc==='function'?window.esc(String(v??'')):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const role=()=>String(window.state?.profile?.rol||'').trim().toLowerCase();
+  const canView=()=>ROLES_VIEW.has(role())&&!window.state?.v15PreviewRole;
   const canManage=()=>ROLES_MANAGE.has(role())&&!window.state?.v15PreviewRole;
   const fmt=v=>{try{return new Intl.DateTimeFormat('es-CL',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Santiago'}).format(new Date(v))}catch(_){return String(v||'')}};
   function style(){
@@ -29,7 +31,7 @@
     `;document.head.appendChild(s);
   }
   async function load(){
-    if(!window.sb)return [];
+    if(!canView()||!window.sb)return [];
     const q=await window.sb.from('alertas_contrato_v1524').select('*').neq('estado','cerrada').order('detectada_at',{ascending:false}).limit(30);
     if(q.error){console.warn('[R94 alertas contrato]',q.error.message);return []}
     return q.data||[];
@@ -55,6 +57,7 @@
   }
   async function mount(force=false){
     const page=document.getElementById('page-inicio');if(!page)return;
+    if(!canView()){document.getElementById(PANEL)?.remove();return}
     style();
     let panel=document.getElementById(PANEL);
     if(!panel){panel=document.createElement('section');panel.id=PANEL;panel.className='panel stainher-contract-alerts-r94';page.appendChild(panel)}
@@ -67,9 +70,9 @@
   }
   function wrapHome(){
     const base=window.renderInicio;if(typeof base!=='function')return false;
-    if(base.__contractAlertsR94)return true;
+    if(base.__contractAlertsR107)return true;
     const wrapped=async function(){const out=await base.apply(this,arguments);await mount(true);return out};
-    wrapped.__contractAlertsR94=true;wrapped.__base=base;window.renderInicio=wrapped;try{renderInicio=wrapped}catch(_){}
+    wrapped.__contractAlertsR107=true;wrapped.__base=base;window.renderInicio=wrapped;try{renderInicio=wrapped}catch(_){}
     return true;
   }
   function boot(){
