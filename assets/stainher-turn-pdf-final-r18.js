@@ -1,13 +1,15 @@
-/* Stainher App V15.24 r18 · PDF Turnos final d16
+/* Stainher App V15.24 R106 · PDF Turnos · distribución del informe personal
  * Reemplazo determinista del exportador PDF de Turnos.
  * - Corrige encabezado completo Lunes–Domingo en calendario individual.
  * - Aumenta de forma real la legibilidad de fecha, A/C/L y códigos de novedades.
+ * - Une resumen y detalle de eventos en la primera página del informe personal.
+ * - Deja el calendario como última página del informe.
  * - Mantiene calendario general en una hoja A3 y personal en una hoja A4 horizontal.
  */
-(function installTurnPdfFinalR18(){
+(function installTurnPdfFinalR106(){
   'use strict';
-  if(window.__STAINHER_TURN_PDF_FINAL_R18__)return;
-  window.__STAINHER_TURN_PDF_FINAL_R18__=true;
+  if(window.__STAINHER_TURN_PDF_FINAL_R106__)return;
+  window.__STAINHER_TURN_PDF_FINAL_R106__=true;
 
   const LABELS={
     encierro_planificado:'Encierro dentro de turno',encierro_no_planificado:'Encierro fuera de turno',
@@ -152,23 +154,39 @@
     doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
     doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,Number(x.he||0).toFixed(1),Number(x.hf||0).toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
 
-    if(selected.length===1)drawPersonalCalendar(doc,r,selected[0],monthName);else drawConsolidatedCalendar(doc,r,selected,monthName);
+    const detailBody=g=>{
+      const events=(g.eventos||[]).map(ev=>[dateRangeLabel(ev),ev.turno_base||'—',labelFor(ev.tipo),qtyLabel(ev),hoursLabel(ev),ev.motivo||ev.observacion||'Sin detalle']);
+      return events.length?events:[['—','—','Sin eventos registrados','—','—','Sin detalle']];
+    };
+    const drawDetailGroup=(g,startY)=>{
+      doc.setFontSize(9);doc.setFont(undefined,'bold');doc.text(`Detalle de eventos · ${g.nombre}`,14,startY);doc.setFont(undefined,'normal');
+      doc.autoTable({startY:startY+3,head:[['Fecha','Turno','Evento','Cantidad','Horario','Detalle / motivo']],body:detailBody(g),margin:{left:14,right:14,bottom:20},rowPageBreak:'avoid',styles:{fontSize:7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]},columnStyles:{5:{cellWidth:96}}});
+      return (doc.lastAutoTable?.finalY||startY+12)+7;
+    };
 
-    doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
-    let y=44;
-    selected.forEach(g=>{
-      if(y>175){doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);y=44;}
-      doc.setFontSize(9);doc.setFont(undefined,'bold');doc.text(g.nombre,14,y);doc.setFont(undefined,'normal');
-      doc.autoTable({startY:y+3,head:[['Fecha','Turno','Evento','Cantidad','Horario','Detalle / motivo']],body:(g.eventos||[]).map(ev=>[dateRangeLabel(ev),ev.turno_base||'—',labelFor(ev.tipo),qtyLabel(ev),hoursLabel(ev),ev.motivo||ev.observacion||'Sin detalle']),styles:{fontSize:7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]},columnStyles:{5:{cellWidth:96}}});
-      y=(doc.lastAutoTable?.finalY||y+12)+7;
-    });
+    if(selected.length===1){
+      // Informe personal: el resumen y el detalle comparten la primera hoja.
+      // El calendario se agrega después y siempre queda como última página.
+      drawDetailGroup(selected[0],(doc.lastAutoTable?.finalY||47)+8);
+      drawPersonalCalendar(doc,r,selected[0],monthName);
+    }else{
+      // Informe general: el detalle puede ocupar varias hojas; el consolidado
+      // se dibuja al final para mantener el calendario como última página.
+      doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);
+      let y=44;
+      selected.forEach(g=>{
+        if(y>175){doc.addPage('a4','landscape');window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${monthName} ${r.y}`);y=44;}
+        y=drawDetailGroup(g,y);
+      });
+      drawConsolidatedCalendar(doc,r,selected,monthName);
+    }
     const suffix=selected.length===1?'_'+selected[0].nombre.replace(/[^a-z0-9]+/gi,'_'):'';
     doc.save(`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}${suffix}.pdf`);
   }
 
   function install(){
     if(typeof window.v1516ExportTurnReportPdf!=='function'||!window.ensurePdf)return false;
-    exportPdfFinalR18.__r18TurnPdfFinal=true;
+    exportPdfFinalR18.__r106TurnPdfLayout=true;
     window.v1516ExportTurnReportPdf=exportPdfFinalR18;
     return true;
   }
