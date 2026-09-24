@@ -15,7 +15,7 @@ assert.match(feature,/v1520CanEdit\?\.\('vehiculos'\)/);
 assert.match(feature,/\['control_gases_vence','Control de gases','💨'\]/);
 assert.match(feature,/StainherVehicleExpiryR109/);
 
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R110'/);
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R112'/);
 assert.match(loader,/function refreshVehicleExpiryR109\(\)/);
 assert.match(loader,/__STAINHER_VEHICLE_EXPIRY_VERSION__!=='R109'/);
 assert.match(loader,/stainher-vehicle-expiry-alerts-r18\.js/);

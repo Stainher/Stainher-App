@@ -1,4 +1,4 @@
-/* Stainher App V15.24 R106 · PDF Turnos · distribución del informe personal
+/* Stainher App V15.24 R111 · PDF Turnos · activación estable de R106
  * Reemplazo determinista del exportador PDF de Turnos.
  * - Corrige encabezado completo Lunes–Domingo en calendario individual.
  * - Aumenta de forma real la legibilidad de fecha, A/C/L y códigos de novedades.
@@ -6,10 +6,13 @@
  * - Deja el calendario como última página del informe.
  * - Mantiene calendario general en una hoja A3 y personal en una hoja A4 horizontal.
  */
-(function installTurnPdfFinalR106(){
+(function installTurnPdfFinalR111(){
   'use strict';
-  if(window.__STAINHER_TURN_PDF_FINAL_R106__)return;
-  window.__STAINHER_TURN_PDF_FINAL_R106__=true;
+  if(window.__STAINHER_TURN_PDF_FINAL_R111__){
+    window.StainherTurnPdfR111?.install?.();
+    return;
+  }
+  window.__STAINHER_TURN_PDF_FINAL_R111__=true;
 
   const LABELS={
     encierro_planificado:'Encierro dentro de turno',encierro_no_planificado:'Encierro fuera de turno',
@@ -187,9 +190,11 @@
   function install(){
     if(typeof window.v1516ExportTurnReportPdf!=='function'||!window.ensurePdf)return false;
     exportPdfFinalR18.__r106TurnPdfLayout=true;
+    exportPdfFinalR18.__r111RuntimeStable=true;
     window.v1516ExportTurnReportPdf=exportPdfFinalR18;
     return true;
   }
+  window.StainherTurnPdfR111={install};
   let attempts=0;const timer=setInterval(()=>{if(install()||++attempts>=300)clearInterval(timer);},100);install();
-  window.addEventListener('stainher:modules-ready',()=>setTimeout(install,30));
+  window.addEventListener('stainher:modules-ready',()=>setTimeout(()=>window.StainherTurnPdfR111?.install?.(),30));
 })();
