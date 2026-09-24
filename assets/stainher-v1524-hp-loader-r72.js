@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R110 · puente anti-cache HP + Presupuestos + Liderazgo + Sistema + Firmas + Informes + Forecast + Turnos + Accesos + Vehículos.
+/* Stainher V15.24 · R112 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R110')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R112')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R110';
+  window.__STAINHER_HP_LOADER_VERSION__='R112';
 
-  const BUILD='20260924-r110-reliability-budgets';
+  const BUILD='20260924-r112-loader-consolidation';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -113,10 +113,11 @@
 
   async function refreshTurnReport(){
     try{
-      await load('stainher-turn-pdf-final-runtime-r106','stainher-turn-pdf-final-r18.js');
-      window.dispatchEvent(new CustomEvent('stainher:turn-report-r106-ready'));
+      await load('stainher-turn-pdf-final-runtime-r111','stainher-turn-pdf-final-r18.js');
+      window.StainherTurnPdfR111?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:turn-report-r111-ready'));
     }catch(error){
-      console.error('[Stainher Turnos R106]',error);
+      console.error('[Stainher Turnos R111]',error);
     }
   }
 
@@ -188,14 +189,23 @@
   window.StainherHPR108={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107};
   window.StainherHPR109={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
   window.StainherHPR110={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
-  refreshBudgets();
-  refreshLeadership();
-  refreshSystem();
-  refreshSignature();
-  refreshFreeReport();
-  refreshContractForecast();
-  refreshTurnReport();
-  refreshAccessR107();
-  refreshVehicleExpiryR109();
-  refresh();
+  const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
+  window.StainherHPR111=api;
+  window.StainherHPR112=api;
+
+  async function bootstrapR112(){
+    await refreshAccessR107();
+    await refreshBudgets();
+    await refreshContractForecast();
+    await refreshTurnReport();
+    await refreshVehicleExpiryR109();
+    await refreshLeadership();
+    await refreshSystem();
+    await refreshSignature();
+    await refreshFreeReport();
+    await refresh();
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r112-ready'));
+  }
+  api.bootstrapR112=bootstrapR112;
+  bootstrapR112().catch(error=>console.error('[Stainher Runtime R112]',error));
 })();
