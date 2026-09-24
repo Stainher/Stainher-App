@@ -1,11 +1,13 @@
-/* Stainher App V15.24 r18 · vencimientos vehiculares.
+/* Stainher App V15.24 R109 · vencimientos vehiculares.
  * - Agrega Control de Gases a la ficha de Vehículos.
+ * - Lo incorpora al formulario vigente de alta/edición.
  * - Incorpora Seguro, Revisión técnica, Extintor y Control de Gases a Alertas.
  * - No crea recordatorios duplicados: las alertas se calculan directamente desde vehiculos_contrato.
  */
-(function installVehicleExpiryAlertsR18(){
+(function installVehicleExpiryAlertsR109(){
   'use strict';
-  if(window.__STAINHER_VEHICLE_EXPIRY_ALERTS_R18__)return;
+  if(window.__STAINHER_VEHICLE_EXPIRY_VERSION__==='R109')return;
+  window.__STAINHER_VEHICLE_EXPIRY_VERSION__='R109';
   window.__STAINHER_VEHICLE_EXPIRY_ALERTS_R18__=true;
 
   const EXPIRIES=[
@@ -18,6 +20,7 @@
 
   const esc=value=>String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const isAdmin=()=>{try{return !!window.isAdmin?.()}catch(_){return false}};
+  const canEditVehicles=()=>{try{return !window.state?.v15PreviewRole&&(!!window.v1520CanEdit?.('vehiculos')||isAdmin())}catch(_){return false}};
   const fmtDate=value=>{try{return window.fmtDateCL?.(value)||String(value||'')}catch(_){return String(value||'')}};
   const daysUntil=value=>{
     if(!value)return null;
@@ -44,7 +47,7 @@
   }
 
   async function saveGasExpiry(vehicleId,value){
-    if(!isAdmin()||!window.sb)return;
+    if(!canEditVehicles()||!window.sb)return;
     const next=value||null;
     const {error}=await window.sb.from('vehiculos_contrato').update({control_gases_vence:next,updated_at:new Date().toISOString()}).eq('id',vehicleId);
     if(error)return window.toast?.(error.message||String(error),'error');
@@ -55,16 +58,17 @@
 
   function decorateVehicleCards(root=document){
     const vehicles=window.state?.contractData?.vehiculos||[];
+    const byPlate=new Map(vehicles.map(vehicle=>[String(vehicle.patente||'').trim(),vehicle]));
     root.querySelectorAll?.('.vehicle-card').forEach(card=>{
       const patente=String(card.querySelector('.tag')?.textContent||'').trim();
-      const vehicle=vehicles.find(v=>String(v.patente||'').trim()===patente);
+      const vehicle=byPlate.get(patente);
       const fields=card.querySelector('.vehicle-fields');
       if(!vehicle||!fields||fields.querySelector('[data-r18-control-gases]'))return;
       const label=document.createElement('label');
       label.dataset.r18ControlGases='1';
       label.innerHTML=`Control de gases vence<input class="inline-input" type="date" value="${esc(vehicle.control_gases_vence||'')}">`;
       const input=label.querySelector('input');
-      if(!isAdmin()){
+      if(!canEditVehicles()){
         input.disabled=true;
         input.setAttribute('aria-readonly','true');
       }else{
@@ -86,6 +90,43 @@
     wrapped.__base=current;
     window.renderContractVehiculos=wrapped;
     try{renderContractVehiculos=wrapped}catch(_){ }
+    return true;
+  }
+
+  function wrapStandaloneVehicleRenderer(){
+    const current=window.renderStandaloneVehiculos;
+    if(typeof current!=='function'||current.__r109VehicleExpiry)return false;
+    const wrapped=async function(){
+      const out=await current.apply(this,arguments);
+      decorateVehicleCards(document);
+      return out;
+    };
+    wrapped.__r109VehicleExpiry=true;
+    wrapped.__base=current;
+    window.renderStandaloneVehiculos=wrapped;
+    try{renderStandaloneVehiculos=wrapped}catch(_){ }
+    return true;
+  }
+
+  function wrapVehicleModal(){
+    const current=window.v1518VehicleModal;
+    if(typeof current!=='function'||current.__r109VehicleExpiry)return false;
+    const wrapped=function(id=''){
+      const out=current.apply(this,arguments);
+      const form=document.getElementById('v1518VehicleForm');
+      if(!form||form.elements?.control_gases_vence)return out;
+      const vehicle=(window.state?.contractData?.vehiculos||[]).find(x=>String(x.id)===String(id))||{};
+      const label=document.createElement('label');
+      label.dataset.r109ControlGases='1';
+      label.innerHTML=`Control de gases vence<input class="field" type="date" name="control_gases_vence" value="${esc(vehicle.control_gases_vence||'')}">`;
+      const status=[...form.querySelectorAll('label')].find(node=>node.querySelector('[name="estado"]'));
+      if(status)form.insertBefore(label,status);else form.appendChild(label);
+      return out;
+    };
+    wrapped.__r109VehicleExpiry=true;
+    wrapped.__base=current;
+    window.v1518VehicleModal=wrapped;
+    try{v1518VehicleModal=wrapped}catch(_){ }
     return true;
   }
 
@@ -167,6 +208,8 @@
   function install(){
     mountStyle();
     wrapVehicleRenderer();
+    wrapStandaloneVehicleRenderer();
+    wrapVehicleModal();
     wrapHomeAlerts();
     decorateVehicleCards(document);
   }
@@ -185,6 +228,8 @@
       if(page==='inicio')setTimeout(()=>renderVehicleAlerts(),220);
     },true);
   }
+
+  window.StainherVehicleExpiryR109=Object.freeze({install,decorateVehicleCards,renderVehicleAlerts});
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
