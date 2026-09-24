@@ -1,14 +1,16 @@
-/* Stainher V15.24 · R82 · Integración nativa de Presupuestos en Administración del Contrato.
+/* Stainher V15.24 · R110 · Integración nativa de Presupuestos en Administración del Contrato.
  * Adapta R80 al renderer contractual productivo v1520 (.v1520-tabs / setContractTab).
  * Sin MutationObserver, sin interceptores globales y sin cambios de login/sesión.
  */
 (()=>{
   'use strict';
-  const BUILD='20260916-r82-presupuestos-v1520-router';
+  const BUILD='20260924-r110-presupuestos-confiabilidad-router';
   if(window.__STAINHER_PRESUPUESTOS_ROUTER_R82__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_ROUTER_R82__=BUILD;
 
   const TAB='presupuestos';
+  const role=()=>String(window.v11Role?.()||window.state?.profile?.rol||'').trim().toLowerCase();
+  const canUse=()=>!window.state?.v15PreviewRole&&['administrador','confiabilidad'].includes(role());
 
   function tabRoot(){
     return document.querySelector('#page-contrato .v1520-tabs')
@@ -18,7 +20,7 @@
   }
 
   function renderBudget(){
-    if(!window.state)return;
+    if(!window.state||!canUse())return;
     window.state.contractTab=TAB;
     const fn=window.renderContractTab;
     if(typeof fn==='function')return fn();
@@ -28,6 +30,7 @@
     const tabs=tabRoot();
     if(!tabs)return false;
     let btn=tabs.querySelector('[data-r82-presupuestos]');
+    if(!canUse()){btn?.remove();return false}
     if(!btn){
       btn=document.createElement('button');
       btn.type='button';
@@ -52,7 +55,7 @@
 
   function wrapSetContractTab(){
     const current=window.setContractTab;
-    if(typeof current!=='function'||current.__presupuestosR82)return;
+    if(typeof current!=='function'||current.__presupuestosR110)return;
     const wrapped=async function(tab){
       if(tab===TAB){
         if(window.state)window.state.contractTab=TAB;
@@ -63,21 +66,21 @@
       mountTab();
       return out;
     };
-    wrapped.__presupuestosR82=true;
+    wrapped.__presupuestosR110=true;
     wrapped.__base=current;
     window.setContractTab=wrapped;
   }
 
   function wrapRenderContrato(){
     const current=window.renderContrato;
-    if(typeof current!=='function'||current.__presupuestosR82)return;
+    if(typeof current!=='function'||current.__presupuestosR110)return;
     const wrapped=async function(){
       const out=await current.apply(this,arguments);
       mountTab();
       if(window.state?.contractTab===TAB)renderBudget();
       return out;
     };
-    wrapped.__presupuestosR82=true;
+    wrapped.__presupuestosR110=true;
     wrapped.__base=current;
     window.renderContrato=wrapped;
   }
