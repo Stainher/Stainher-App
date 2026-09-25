@@ -280,7 +280,8 @@
   }
   function summaryHtml(){
     const s=monthlySummary(),fmt=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:2}),fmtFte=n=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
-    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>RESUMEN MENSUAL</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr><tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
+    const officialExtra=state.official?`<tr><th>HH Administrativas fuera de faena</th><td>${fmt(state.official.outside)}</td></tr><tr><th>TOTAL HH registradas</th><td>${fmt(state.official.registered)}</td></tr>`:'';
+    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>RESUMEN MENSUAL</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas en faena</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr>${officialExtra}<tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
   }
 
   function renderTable(){
