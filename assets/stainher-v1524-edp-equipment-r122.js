@@ -12,6 +12,7 @@
 
   const TABLE='edp_mantenimiento_equipos_v1524';
   const OP_REFERENCE=45364683;
+  const MONTHS_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const GROUPS=[
     ['3700','Nodo 3700'],
     ['asea','HUINCHE ASEA (Concentradora)'],
@@ -95,7 +96,7 @@
   }
 
   function setKpi(container,label,value){
-    const node=[...container.querySelectorAll('span')].find(x=>clean(x.textContent).toLowerCase()===label.toLowerCase());
+    const node=[...container.querySelectorAll('span')].find(x=>clean(x.textContent).toLowerCase().startsWith(label.toLowerCase()));
     const strong=node?.querySelector('b')||node?.parentElement?.querySelector('b');
     if(strong)strong.textContent=money(value);
   }
@@ -212,7 +213,7 @@
     const ep=edps().find(x=>String(x.id)===String(epId));if(!ep)return;
     const current=detailsFor(ep.id);
     const root=modalRoot();if(!root)return;
-    const month=(window.MONTHS_ES||[])[Number(ep.mes_edp)-1]||String(ep.mes_edp);
+    const month=MONTHS_ES[Number(ep.mes_edp)-1]||String(ep.mes_edp);
     root.innerHTML=`<div class="modal-bg"><div class="modal" style="width:min(760px,100%)">
       <div class="row-between"><div><h3>Detalle mantenimiento por equipo</h3><div class="muted">EP${ep.ep_num} · ${month} ${ep.anio_edp}</div></div><button class="btn" type="button" onclick="closeModal()">Cerrar</button></div>
       <div class="notice">Ingresa el monto neto real por grupo de equipo. El total de equipos se utiliza en el Resumen Mensual Histórico y el Gasto Operativo se calcula por diferencia contra el Total Neto menos GGRR.</div>
