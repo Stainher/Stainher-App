@@ -1,19 +1,19 @@
-/* Stainher V15.24 · R115 · Reporte Semanal HP dentro de Turnos y Novedades.
+/* Stainher V15.24 · R116 · Reporte Semanal HP dentro de Turnos y Novedades.
  * - Consolida la metodología histórica de reportabilidad HP.
  * - Turno A: 12 h. Turno C: 4 h al inicio + 8 h al día siguiente.
  * - Encierro dentro de turno no agrega horas esporádicas.
- * - Día adicional / encierro fuera de turno primero compensan una suspensión por encierro.
- * - Suspensión por encierro no reduce la cobertura contractual; si hay reemplazo identificado,
- *   las horas se transfieren al reemplazante.
+ * - Día adicional / encierro fuera de turno siempre conservan su naturaleza esporádica (12 h).
+ * - Si una cobertura esporádica compensa una suspensión por encierro, la suspensión descuenta
+ *   las horas base del trabajador suspendido y la cobertura permanece en Esporádicas.
  * - Horas extra quedan fuera del cálculo HP.
  * - Teletrabajo descuenta las horas correspondientes del cálculo HP en faena.
  * - FTE Codelco = Total HH en faena / 182,7.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R115')return;
+  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R116')return;
   window.__STAINHER_WEEKLY_HP_REPORT__=true;
-  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R115';
+  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R116';
 
   const PAGE_ID='reporte-hp';
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
@@ -58,10 +58,10 @@
   function installRenderer(){
     try{
       const current=typeof window.v1523Renderer==='function'?window.v1523Renderer:(typeof v1523Renderer==='function'?v1523Renderer:null);
-      if(typeof current!=='function'||current.__stainherHpR115)return;
+      if(typeof current!=='function'||current.__stainherHpR116)return;
       const base=current.__stainherHpBase||current;
       const hpRenderer=function(page){return page===PAGE_ID?render:base(page)};
-      hpRenderer.__stainherHpR115=true;
+      hpRenderer.__stainherHpR116=true;
       hpRenderer.__stainherHpBase=base;
       window.v1523Renderer=hpRenderer;
       try{v1523Renderer=hpRenderer}catch(_e){}
@@ -130,9 +130,8 @@
     const base=norm(turn(uid,date)||n?.turno_base);
     return !base||base==='l';
   }
-  function noveltyToken(n,date){return `${n?.id||n?.__hpIndex||'event'}|${date}`}
   function buildCoverageAllocation(min,max){
-    const out={transferred:new Set(),assignments:new Map(),usedExtras:new Set(),matchedSuspensions:0,unmatchedSuspensions:0};
+    const out={transferred:new Set(),matchedSuspensions:0,unmatchedSuspensions:0};
     for(let d=min;d<=max;d=dplus(d,1)){
       const suspensions=[],seenSuspensions=new Set();
       for(const n of state.nov){
@@ -148,7 +147,7 @@
         const uid=String(n.user_id||''),person=state.people.find(p=>String(p.user_id)===uid);
         if(!uid||!isOperationalPerson(person)||!inRange(d,n.fecha_inicio,n.fecha_fin||n.fecha_inicio)||!coverageExtraNovelty(n,uid,d))continue;
         if(seenExtras.has(uid))continue;
-        seenExtras.add(uid);extras.push({uid,event:n,token:noveltyToken(n,d)});
+        seenExtras.add(uid);extras.push({uid,event:n});
       }
       suspensions.sort((a,b)=>a.shift.localeCompare(b.shift)||a.uid.localeCompare(b.uid));
       extras.sort((a,b)=>{
@@ -158,11 +157,8 @@
       });
       const pairs=Math.min(suspensions.length,extras.length);
       for(let i=0;i<pairs;i++){
-        const s=suspensions[i],e=extras[i];
+        const s=suspensions[i];
         out.transferred.add(`${s.uid}|${d}`);
-        out.usedExtras.add(e.token);
-        const key=`${e.uid}|${d}`,arr=out.assignments.get(key)||[];
-        arr.push(s.shift);out.assignments.set(key,arr);
         out.matchedSuspensions++;
       }
       out.unmatchedSuspensions+=Math.max(0,suspensions.length-pairs);
@@ -170,19 +166,10 @@
     return out;
   }
   function suspensionTransferred(uid,date){return !!state.coverage?.transferred?.has(`${uid}|${date}`)}
-  function replacementOperationalHours(uid,date){
-    if(!state.coverage)return 0;
-    const today=state.coverage.assignments.get(`${uid}|${date}`)||[];
-    const previous=state.coverage.assignments.get(`${uid}|${dplus(date,-1)}`)||[];
-    return today.reduce((s,shift)=>s+(shift==='C'?4:12),0)+previous.filter(shift=>shift==='C').length*8;
-  }
   function sporadicOperationalHours(uid,date){
     const person=state.people.find(p=>String(p.user_id)===String(uid));
     if(!isOperationalPerson(person))return 0;
-    const extras=novelties(uid,date).filter(n=>coverageExtraNovelty(n,uid,date));
-    if(!extras.length)return 0;
-    if(extras.some(n=>state.coverage?.usedExtras?.has(noveltyToken(n,date))))return 0;
-    return 12;
+    return novelties(uid,date).some(n=>coverageExtraNovelty(n,uid,date))?12:0;
   }
   function manualAdmin(uid,a,b){
     return state.adjust.filter(x=>String(x.user_id)===String(uid)&&x.tipo==='terreno_administrativo'&&inRange(x.fecha,a,b)&&!telework(uid,x.fecha)).reduce((s,x)=>s+Number(x.horas||0),0);
@@ -207,7 +194,6 @@
     }else{
       for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
         const uid=person.user_id,prevDate=dplus(d,-1),td=turn(uid,d),prev=turn(uid,prevDate);
-        oper+=replacementOperationalHours(uid,d);
         spor+=sporadicOperationalHours(uid,d);
 
         if(!blocked(uid,d)){
@@ -250,7 +236,7 @@
   }
   function rulesHtml(){
     const matched=Number(state.coverage?.matchedSuspensions||0),pending=Number(state.coverage?.unmatchedSuspensions||0);
-    return `<div class="notice hp-rules"><b>Reglas de cálculo HP R115:</b> Turno A = 12 h. Turno C = 4 h al inicio + 8 h al día siguiente. Encierro dentro de turno no agrega horas. Día adicional y encierro fuera de turno compensan primero una suspensión por encierro; solo una cobertura adicional no utilizada como reemplazo se clasifica como esporádica. Las horas extra no participan del HP. <b>SE</b> no reduce la cobertura contractual: cuando existe reemplazante identificado, las horas se transfieren a ese trabajador. <b>TT</b> descuenta HP en faena. <span class="muted">Coberturas SE conciliadas: ${matched}${pending?` · sin reemplazante identificado en la novedad: ${pending}`:''}.</span></div>`;
+    return `<div class="notice hp-rules"><b>Reglas de cálculo HP R116:</b> Turno A = 12 h. Turno C = 4 h al inicio + 8 h al día siguiente. Encierro dentro de turno no agrega horas. Día adicional y encierro fuera de turno siempre registran 12 h esporádicas. Cuando una de estas coberturas compensa un <b>SE</b>, las horas base se descuentan al trabajador suspendido y se mantienen como esporádicas en quien cubre, conservando la cobertura contractual sin alterar la naturaleza del evento. Las horas extra no participan del HP. <b>TT</b> descuenta HP en faena. <span class="muted">Coberturas SE conciliadas: ${matched}${pending?` · SE sin cobertura identificada: ${pending}`:''}.</span></div>`;
   }
   function adjustmentsHtml(){
     if(!canEdit())return'';
@@ -450,7 +436,7 @@
   style.textContent=`#page-reporte-hp{min-width:0}.hp-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.hp-toolbar label{min-width:210px}.hp-rules{margin-bottom:14px}.hp-period-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.hp-period-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:grid;gap:8px}.hp-period-card label{display:grid;gap:4px;font-size:11px;color:var(--muted)}.hp-table-wrap,.hp-summary-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}.hp-table-wrap{overflow-x:auto}.hp-table{border-collapse:collapse;width:100%;min-width:920px;table-layout:fixed}.hp-table .hp-col-role{width:12%}.hp-table .hp-col-name{width:16%}.hp-table .hp-col-hour{width:6%}.hp-table th,.hp-table td,.hp-summary th,.hp-summary td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 4px;text-align:center}.hp-table th{background:var(--panel2);font-size:10.5px;line-height:1.15;white-space:normal}.hp-table td{font-size:11px;line-height:1.15;white-space:nowrap}.hp-table .hp-role-cell,.hp-table .hp-name-cell{text-align:left;white-space:normal;overflow-wrap:anywhere}.hp-table .hp-role-cell{font-size:10.5px}.hp-table .hp-name-cell{font-size:11px}.hp-summary th{background:var(--panel2)}.hp-summary{border-collapse:collapse;min-width:420px;width:min(100%,620px)}.hp-summary tbody th{text-align:left}.hp-summary-strong th,.hp-summary-strong td{font-weight:800}.hp-adjust-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.6fr auto;gap:10px;align-items:end;margin-top:14px}.hp-adjust-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}@media(max-width:1180px){.hp-table{min-width:860px}.hp-table th,.hp-table td{padding:5px 3px}.hp-table th{font-size:10px}.hp-table td{font-size:10.5px}}@media(max-width:1000px){.hp-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid button{width:100%}}@media(max-width:600px){.hp-period-grid,.hp-adjust-grid{grid-template-columns:1fr}.hp-toolbar label{min-width:0;width:100%}.hp-summary{min-width:380px}.hp-table{min-width:860px}}`;
   document.head.appendChild(style);
 
-  window.StainherWeeklyHP={render,version:'R115'};
+  window.StainherWeeklyHP={render,version:'R116'};
   function boot(){installRenderer();window.addEventListener('stainher:modules-ready',installRenderer);window.addEventListener('stainher:profile-ready',installRenderer)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
