@@ -1,9 +1,11 @@
-/* Stainher App V15.24 · Confiabilidad: descarga directa
+/* Stainher App V15.24 · R119 · Confiabilidad: descarga directa
  * - Aprobar y generar informe descarga el PDF localmente.
  * - El flujo de correo queda eliminado de Confiabilidad.
  * - La barra de acciones se mantiene dentro del flujo y no tapa contenido móvil.
  */
 (function bootstrapStainherReliabilityActions(){
+  const VERSION='R119';
+  const hadLegacy=window.__STAINHER_RELIABILITY_ACTIONS__===true&&!window.__STAINHER_RELIABILITY_ACTIONS_VERSION__;
   const EMERGENCY_STYLE_ID = 'stainher-reliability-actions-flow-guard';
   if (!document.getElementById(EMERGENCY_STYLE_ID)) {
     const guard = document.createElement('style');
@@ -11,7 +13,7 @@
     guard.textContent = '#modalRoot .v158-review-modal{display:block!important;overflow-x:hidden!important;overflow-y:auto!important}#modalRoot .v158-review-modal>.v158-review-grid{overflow:visible!important;flex:none!important;min-height:auto!important;max-height:none!important}#modalRoot .v158-review-modal>.v158-review-actions{position:static!important;inset:auto!important;z-index:auto!important;width:100%!important;box-sizing:border-box!important;margin-top:14px!important;padding:14px 0 0!important;background:transparent!important}';
     document.head.appendChild(guard);
   }
-  if (window.__STAINHER_RELIABILITY_ACTIONS__) return;
+  if (window.__STAINHER_RELIABILITY_ACTIONS_VERSION__===VERSION) return;
   const ready = typeof window.renderCorrectivoShell === 'function'
     && typeof window.loadCorrectivo === 'function';
   if (!ready) {
@@ -19,6 +21,7 @@
     return;
   }
   window.__STAINHER_RELIABILITY_ACTIONS__ = true;
+  window.__STAINHER_RELIABILITY_ACTIONS_VERSION__ = VERSION;
 
   const STYLE_ID = 'stainher-reliability-actions-style';
 
@@ -273,6 +276,29 @@
     }
   }
 
+  function reliabilityPdfOptionsFromModal(current={}){
+    const next={...(current||{})};
+    const boxes=[...document.querySelectorAll('#modalRoot input[type="checkbox"]')];
+    const map=[
+      ['resumen',/resumen ejecutivo/i],
+      ['kpis',/kpis?\s+de\s+confiabilidad/i],
+      ['graficos',/gr[aá]ficos?/i],
+      ['historial',/historial\s+de\s+fallas|historial.*intervenciones|fallas\s*\/\s*intervenciones/i],
+      ['metodologia',/metodolog[ií]a\s+de\s+c[aá]lculo/i]
+    ];
+    let recognized=0;
+    for(const box of boxes){
+      const explicit=box.id?document.querySelector(`label[for="${box.id}"]`):null;
+      const holder=box.closest('label')||explicit||box.parentElement;
+      const label=String(holder?.textContent||box.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim();
+      const hit=map.find(([,pattern])=>pattern.test(label));
+      if(!hit)continue;
+      next[hit[0]]=Boolean(box.checked);
+      recognized++;
+    }
+    return recognized?next:(current||{});
+  }
+
   /* Esta implementación incorpora los tres canvas y descarga el archivo
    * mediante un Blob, con respaldo al mecanismo nativo de jsPDF. */
   window.v158BuildReviewedReliabilityPdf = async function(){
@@ -280,6 +306,7 @@
     if (!r) return;
     const C = window.ensurePdf?.();
     if (!C) return window.toast?.('No se pudo cargar el generador PDF','error');
+    r.opt=reliabilityPdfOptionsFromModal(r.opt||{});
     const c = r.content || {}, opt = r.opt || {};
     const restoreCharts=opt.graficos===true?await prepareReliabilityCharts():()=>{};
     const doc = new C({orientation:'landscape',unit:'mm',format:'a4'});
@@ -316,8 +343,27 @@
       y=drawRepairFrequencyScatter(doc,r.rank,y);
     }
     if(opt.resumen===true){textSection('Hallazgos',c.hallazgos);textSection('Hipótesis de causa raíz',c.hipotesis);textSection('Recomendaciones técnicas',c.recomendaciones);textSection('Conclusiones',c.conclusiones)}
-    if(opt.historial===true){if(y>115){doc.addPage();y=20}doc.autoTable({startY:y,head:[['Fecha','Equipo','Guía','Responsable','Duración','Estado','Observación']],body:r.rows.map(item=>[item.fecha_inicio||'',item.equipo||'',item.guia||'—',item.responsable||'—',window.fmtH(item.duracion_horas),item.estado_normalizado||'',item.observaciones||'']),styles:{fontSize:6.8,textColor:[28,34,41]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]},columnStyles:{6:{cellWidth:75}}})}
-    if(opt.metodologia===true){textSection('Metodología de cálculo','MTTR = horas totales de intervención ÷ fallas válidas. MTBF = horas operativas ÷ fallas válidas. Disponibilidad = horas operativas ÷ horas calendario × 100. Los registros marcados como excluidos por causa externa permanecen en el historial, pero no afectan los indicadores.')}
+    if(opt.historial===true){
+      if(y>115){doc.addPage();y=20}
+      y=sectionTitle(doc,'Historial de fallas / intervenciones',y);
+      const historyRows=Array.isArray(r.rows)?r.rows:[];
+      doc.autoTable({
+        startY:y,
+        head:[['Fecha','Equipo','Guía','Responsable','Duración','Estado','Observación']],
+        body:historyRows.length?historyRows.map(item=>[
+          item.fecha_inicio||'',item.equipo||'',item.guia||'—',item.responsable||'—',
+          window.fmtH?.(item.duracion_horas)||`${Number(item.duracion_horas||0).toFixed(1)} h`,
+          item.estado_normalizado||'',item.observaciones||''
+        ]):[['—','Sin intervenciones en el período','—','—','—','—','—']],
+        styles:{fontSize:6.8,textColor:[28,34,41],cellPadding:1.8,overflow:'linebreak'},
+        headStyles:{fillColor:[35,43,54],textColor:[255,255,255]},
+        columnStyles:{0:{cellWidth:22},1:{cellWidth:36},2:{cellWidth:35},3:{cellWidth:34},4:{cellWidth:20},5:{cellWidth:26},6:{cellWidth:95}}
+      });
+      y=(doc.lastAutoTable?.finalY||y)+8;
+    }
+    if(opt.metodologia===true){
+      textSection('Metodología de cálculo','MTTR = horas totales de intervención ÷ fallas válidas. MTBF = horas operativas ÷ fallas válidas. Disponibilidad = horas operativas ÷ horas calendario × 100. Los registros marcados como excluidos por causa externa permanecen en el historial, pero no afectan los indicadores.');
+    }
     const fileName=`Stainher_App_Confiabilidad_${window.state.correctivoFrom}_${window.state.correctivoTo}.pdf`;
     if(!downloadPdf(doc,fileName)){restoreCharts();return window.toast?.('El informe se generó, pero el navegador bloqueó la descarga. Habilita las descargas para este sitio e inténtalo nuevamente.','error')}
     restoreCharts();
@@ -366,16 +412,21 @@
     window[name] = wrapped;
   }
 
-  const originalCloseModal = window.closeModal;
-  window.closeModal = function(){
-    if (window.__STAINHER_KEEP_RELIABILITY_REVIEW__ && document.querySelector('#modalRoot .v158-review-modal')) return;
-    return originalCloseModal.apply(this, arguments);
-  };
+  if(!hadLegacy){
+    const originalCloseModal = window.closeModal;
+    const wrappedCloseModal=function(){
+      if (window.__STAINHER_KEEP_RELIABILITY_REVIEW__ && document.querySelector('#modalRoot .v158-review-modal')) return;
+      return originalCloseModal.apply(this, arguments);
+    };
+    wrappedCloseModal.__v1524ReliabilityActionsR119=true;
+    window.closeModal=wrappedCloseModal;
+  }
 
   window.v158ApproveReliabilityReport = async function(){
     const currentRole=String(window.v11Role?.()||window.state?.profile?.rol||'').toLowerCase();
     if(!['administrador','confiabilidad'].includes(currentRole))return window.toast?.('La aprobación requiere perfil Administrador o Confiabilidad.','error');
     const review=window.state?.v158ReliabilityReview;if(!review)return;
+    review.opt=reliabilityPdfOptionsFromModal(review.opt||{});
     review.content=typeof window.v158CollectReview==='function'?window.v158CollectReview():review.content;
     /* La descarga se inicia dentro del gesto del usuario, antes de esperar la
      * escritura remota. Así Safari y la aplicación de escritorio no la bloquean. */
@@ -393,16 +444,18 @@
   mountStyle();
   wrapRender('renderCorrectivoShell');
   wrapRender('loadCorrectivo');
-  let observerQueued = false;
-  const observer = new MutationObserver(() => {
-    if (observerQueued) return;
-    observerQueued = true;
-    setTimeout(() => {
-      observerQueued = false;
-      ensureActions();
-      ensureReviewActions();
-    }, 0);
-  });
-  observer.observe(document.body, { childList:true, subtree:true });
-  setTimeout(ensureActions, 0);
+  if(!hadLegacy){
+    let observerQueued = false;
+    const observer = new MutationObserver(() => {
+      if (observerQueued) return;
+      observerQueued = true;
+      setTimeout(() => {
+        observerQueued = false;
+        ensureActions();
+        ensureReviewActions();
+      }, 0);
+    });
+    observer.observe(document.body, { childList:true, subtree:true });
+  }
+  setTimeout(()=>{ensureActions();ensureReviewActions()},0);
 })();
