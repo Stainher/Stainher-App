@@ -103,7 +103,7 @@
           return status?.historical&&month?.ep?Number(month.real)||0:null;
         }
       }catch(_){}
-      return month?.ep?Number(month.real)||0:null;
+      return month?.ep?(Number.isFinite(Number(month.__r122Projectable))?Number(month.__r122Projectable):Number(month.real)||0):null;
     });
   }
 
