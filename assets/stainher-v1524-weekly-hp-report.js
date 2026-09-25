@@ -1,17 +1,19 @@
-/* Stainher V15.24 · R75 · Reporte Semanal HP dentro de Turnos y Novedades.
- * - Sin clasificación mensual Operaciones/Inversiones.
- * - ADC, Gerente y Confiabilidad: horas administrativas manuales.
- * - Planificador y Experta en Prevención: horas administrativas automáticas según malla.
- * - APR y resto de la dotación: horas operativas automáticas según malla.
- * - EF, ET y DA suman 12 h operativas esporádicas; SE descuenta el turno suspendido de 12 h.
+/* Stainher V15.24 · R115 · Reporte Semanal HP dentro de Turnos y Novedades.
+ * - Consolida la metodología histórica de reportabilidad HP.
+ * - Turno A: 12 h. Turno C: 4 h al inicio + 8 h al día siguiente.
+ * - Encierro dentro de turno no agrega horas esporádicas.
+ * - Día adicional / encierro fuera de turno primero compensan una suspensión por encierro.
+ * - Suspensión por encierro no reduce la cobertura contractual; si hay reemplazo identificado,
+ *   las horas se transfieren al reemplazante.
+ * - Horas extra quedan fuera del cálculo HP.
  * - Teletrabajo descuenta las horas correspondientes del cálculo HP en faena.
  * - FTE Codelco = Total HH en faena / 182,7.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R75')return;
+  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R115')return;
   window.__STAINHER_WEEKLY_HP_REPORT__=true;
-  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R75';
+  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R115';
 
   const PAGE_ID='reporte-hp';
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
@@ -33,7 +35,7 @@
   const monthName=(y,m)=>new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric'}).format(new Date(y,m-1,1));
   const sum=(arr,key)=>arr.reduce((a,x)=>a+Number(x[key]||0),0);
 
-  const state={year:new Date().getFullYear(),month:new Date().getMonth()+1,periods:[],people:[],profiles:new Map(),malla:[],nov:[],adjust:[],rows:[]};
+  const state={year:new Date().getFullYear(),month:new Date().getMonth()+1,periods:[],people:[],profiles:new Map(),malla:[],nov:[],adjust:[],rows:[],coverage:null};
 
   function defaultPeriods(y,m){
     const last=new Date(y,m,0).getDate(),mm=String(m).padStart(2,'0');
@@ -56,10 +58,11 @@
   function installRenderer(){
     try{
       const current=typeof window.v1523Renderer==='function'?window.v1523Renderer:(typeof v1523Renderer==='function'?v1523Renderer:null);
-      if(typeof current!=='function'||current.__stainherHpR75)return;
-      const hpRenderer=function(page){return page===PAGE_ID?render:current(page)};
-      hpRenderer.__stainherHpR75=true;
-      hpRenderer.__stainherHpBase=current;
+      if(typeof current!=='function'||current.__stainherHpR115)return;
+      const base=current.__stainherHpBase||current;
+      const hpRenderer=function(page){return page===PAGE_ID?render:base(page)};
+      hpRenderer.__stainherHpR115=true;
+      hpRenderer.__stainherHpBase=base;
       window.v1523Renderer=hpRenderer;
       try{v1523Renderer=hpRenderer}catch(_e){}
     }catch(error){console.error('[Stainher HP R75] No fue posible registrar el renderer HP.',error)}
@@ -87,15 +90,16 @@
       window.sb.from('dotacion_contrato').select('id,user_id,nombre,cargo,rut,estado,aplica_turnos,orden').eq('estado','activo').order('orden',{ascending:true}),
       window.sb.from('perfiles').select('id,nombre,rol,activo').eq('activo',true),
       window.sb.from('turnos_malla_v1512').select('user_id,fecha,turno_base,estado_publicacion').gte('fecha',dplus(min,-1)).lte('fecha',max).eq('estado_publicacion','publicado'),
-      window.sb.from('turnos_novedades_v15').select('user_id,tipo,fecha_inicio,fecha_fin,turno_base,clasificacion_auto,cantidad,unidad').lte('fecha_inicio',max).gte('fecha_fin',min),
+      window.sb.from('turnos_novedades_v15').select('id,user_id,tipo,fecha_inicio,fecha_fin,turno_base,clasificacion_auto,cantidad,unidad').lte('fecha_inicio',max).or(`fecha_fin.gte.${min},fecha_fin.is.null`),
       window.sb.from('hp_ajustes_manuales').select('*').eq('tipo','terreno_administrativo').gte('fecha',min).lte('fecha',max)
     ]);
     if(dot.error)throw dot.error;if(prof.error)throw prof.error;if(mal.error)throw mal.error;if(nov.error)throw nov.error;
     state.people=(dot.data||[]).filter(x=>x.user_id);
     state.profiles=new Map((prof.data||[]).map(x=>[String(x.id),x]));
     state.malla=mal.data||[];
-    state.nov=nov.data||[];
+    state.nov=(nov.data||[]).map((x,i)=>({...x,__hpIndex:i}));
     state.adjust=adj.error?[]:(adj.data||[]);
+    state.coverage=buildCoverageAllocation(min,max);
     state.rows=state.people.map(calcPerson);
   }
 
@@ -113,18 +117,73 @@
   function suspended(uid,date){
     return novelties(uid,date).some(n=>norm(n.tipo)==='suspendido_encierro'||norm(n.clasificacion_auto)==='suspendido_por_encierro');
   }
-  function extraNovelty(n){
-    const tipo=norm(n.tipo),cls=norm(n.clasificacion_auto),tb=norm(n.turno_base);
-    if(tipo==='dia_adicional')return true;
-    if(cls==='encierro_fuera_de_turno'||cls==='encierro_dentro_de_turno')return true;
-    if(tipo==='encierro_planificado'&&(tb==='a'||tb==='c'))return true;
-    if(tipo==='encierro_no_planificado'&&tb==='l')return true;
-    return false;
-  }
-  function extraOperationalHours(uid,date){
-    return novelties(uid,date).filter(extraNovelty).length*12;
+  function isSuspensionNovelty(n){
+    return norm(n?.tipo)==='suspendido_encierro'||norm(n?.clasificacion_auto)==='suspendido_por_encierro';
   }
   function turn(uid,date){return state.malla.find(r=>String(r.user_id)===String(uid)&&r.fecha===date)?.turno_base||''}
+  function isOperationalPerson(person){return !!person&&!isManualAdminPerson(person)&&!isAutoAdminPerson(person)}
+  function coverageExtraNovelty(n,uid,date){
+    const tipo=norm(n?.tipo),cls=norm(n?.clasificacion_auto);
+    if(tipo==='hora_extra')return false;
+    const candidate=tipo==='dia_adicional'||tipo==='encierro_no_planificado'||cls==='encierro_fuera_de_turno';
+    if(!candidate)return false;
+    const base=norm(turn(uid,date)||n?.turno_base);
+    return !base||base==='l';
+  }
+  function noveltyToken(n,date){return `${n?.id||n?.__hpIndex||'event'}|${date}`}
+  function buildCoverageAllocation(min,max){
+    const out={transferred:new Set(),assignments:new Map(),usedExtras:new Set(),matchedSuspensions:0,unmatchedSuspensions:0};
+    for(let d=min;d<=max;d=dplus(d,1)){
+      const suspensions=[],seenSuspensions=new Set();
+      for(const n of state.nov){
+        if(!isSuspensionNovelty(n)||!inRange(d,n.fecha_inicio,n.fecha_fin||n.fecha_inicio))continue;
+        const uid=String(n.user_id||''),person=state.people.find(p=>String(p.user_id)===uid);
+        if(!uid||!isOperationalPerson(person)||seenSuspensions.has(uid))continue;
+        const shift=String(turn(uid,d)||n.turno_base||'').toUpperCase();
+        if(!['A','C'].includes(shift))continue;
+        seenSuspensions.add(uid);suspensions.push({uid,shift});
+      }
+      const extras=[],seenExtras=new Set();
+      for(const n of state.nov){
+        const uid=String(n.user_id||''),person=state.people.find(p=>String(p.user_id)===uid);
+        if(!uid||!isOperationalPerson(person)||!inRange(d,n.fecha_inicio,n.fecha_fin||n.fecha_inicio)||!coverageExtraNovelty(n,uid,d))continue;
+        if(seenExtras.has(uid))continue;
+        seenExtras.add(uid);extras.push({uid,event:n,token:noveltyToken(n,d)});
+      }
+      suspensions.sort((a,b)=>a.shift.localeCompare(b.shift)||a.uid.localeCompare(b.uid));
+      extras.sort((a,b)=>{
+        const ap=norm(a.event?.tipo)==='encierro_no_planificado'||norm(a.event?.clasificacion_auto)==='encierro_fuera_de_turno'?0:1;
+        const bp=norm(b.event?.tipo)==='encierro_no_planificado'||norm(b.event?.clasificacion_auto)==='encierro_fuera_de_turno'?0:1;
+        return ap-bp||a.uid.localeCompare(b.uid);
+      });
+      const pairs=Math.min(suspensions.length,extras.length);
+      for(let i=0;i<pairs;i++){
+        const s=suspensions[i],e=extras[i];
+        out.transferred.add(`${s.uid}|${d}`);
+        out.usedExtras.add(e.token);
+        const key=`${e.uid}|${d}`,arr=out.assignments.get(key)||[];
+        arr.push(s.shift);out.assignments.set(key,arr);
+        out.matchedSuspensions++;
+      }
+      out.unmatchedSuspensions+=Math.max(0,suspensions.length-pairs);
+    }
+    return out;
+  }
+  function suspensionTransferred(uid,date){return !!state.coverage?.transferred?.has(`${uid}|${date}`)}
+  function replacementOperationalHours(uid,date){
+    if(!state.coverage)return 0;
+    const today=state.coverage.assignments.get(`${uid}|${date}`)||[];
+    const previous=state.coverage.assignments.get(`${uid}|${dplus(date,-1)}`)||[];
+    return today.reduce((s,shift)=>s+(shift==='C'?4:12),0)+previous.filter(shift=>shift==='C').length*8;
+  }
+  function sporadicOperationalHours(uid,date){
+    const person=state.people.find(p=>String(p.user_id)===String(uid));
+    if(!isOperationalPerson(person))return 0;
+    const extras=novelties(uid,date).filter(n=>coverageExtraNovelty(n,uid,date));
+    if(!extras.length)return 0;
+    if(extras.some(n=>state.coverage?.usedExtras?.has(noveltyToken(n,date))))return 0;
+    return 12;
+  }
   function manualAdmin(uid,a,b){
     return state.adjust.filter(x=>String(x.user_id)===String(uid)&&x.tipo==='terreno_administrativo'&&inRange(x.fecha,a,b)&&!telework(uid,x.fecha)).reduce((s,x)=>s+Number(x.horas||0),0);
   }
@@ -140,21 +199,27 @@
     let admin=0,oper=0,spor=0;
     if(isManualAdminPerson(person)){
       admin=manualAdmin(person.user_id,p.fecha_inicio,p.fecha_fin);
-      for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1))spor+=extraOperationalHours(person.user_id,d);
     }else if(isAutoAdminPerson(person)){
       for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
-        spor+=extraOperationalHours(person.user_id,d);
         if(blocked(person.user_id,d)||suspended(person.user_id,d)||telework(person.user_id,d))continue;
         admin+=autoAdminHours(person.user_id,d);
       }
     }else{
       for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
-        spor+=extraOperationalHours(person.user_id,d);
-        if(blocked(person.user_id,d))continue;
-        const prevDate=dplus(d,-1),td=turn(person.user_id,d),prev=turn(person.user_id,prevDate);
-        if(td==='A'&&!suspended(person.user_id,d)&&!telework(person.user_id,d))oper+=12;
-        if(td==='C'&&!suspended(person.user_id,d)&&!telework(person.user_id,d))oper+=5;
-        if(prev==='C'&&!suspended(person.user_id,prevDate)&&!telework(person.user_id,prevDate)&&!blocked(person.user_id,d))oper+=7;
+        const uid=person.user_id,prevDate=dplus(d,-1),td=turn(uid,d),prev=turn(uid,prevDate);
+        oper+=replacementOperationalHours(uid,d);
+        spor+=sporadicOperationalHours(uid,d);
+
+        if(!blocked(uid,d)){
+          const currentSuspensionBlocks=suspended(uid,d)&&suspensionTransferred(uid,d);
+          if(td==='A'&&!currentSuspensionBlocks&&!telework(uid,d))oper+=12;
+          if(td==='C'&&!currentSuspensionBlocks&&!telework(uid,d))oper+=4;
+        }
+
+        if(prev==='C'&&!blocked(uid,prevDate)){
+          const previousSuspensionBlocks=suspended(uid,prevDate)&&suspensionTransferred(uid,prevDate);
+          if(!previousSuspensionBlocks&&!telework(uid,prevDate))oper+=8;
+        }
       }
     }
     return {admin,oper,spor};
@@ -184,7 +249,8 @@
     return `<div class="panel"><div class="row-between"><div><h3>Rangos Codelco</h3><div class="muted">Los cortes son editables y se guardan por mes.</div></div>${canEdit()?'<button class="btn primary" id="hpSavePeriods">Guardar rangos</button>':''}</div><div class="hp-period-grid">${state.periods.map((p,i)=>`<div class="hp-period-card"><b>Período ${i+1}</b><label>Desde<input class="field hp-p-start" type="date" value="${p.fecha_inicio}" ${canEdit()?'':'disabled'}></label><label>Hasta<input class="field hp-p-end" type="date" value="${p.fecha_fin}" ${canEdit()?'':'disabled'}></label><label>Glosa<input class="field hp-p-label" value="${esc(p.etiqueta||'')}" placeholder="Opcional" ${canEdit()?'':'disabled'}></label></div>`).join('')}</div></div>`;
   }
   function rulesHtml(){
-    return `<div class="notice hp-rules"><b>Reglas de cálculo HP:</b> ADC, Gerente y Confiabilidad usan horas administrativas ingresadas manualmente. Planificador y Experta en Prevención generan horas administrativas desde su malla. APR y el resto de la dotación generan horas operativas desde la malla. EF, ET y DA agregan 12 h operativas esporádicas por día; SE descuenta las 12 h del turno suspendido. <b>TT (Teletrabajo)</b> descuenta de HP en faena las horas correspondientes al día/turno registrado.</div>`;
+    const matched=Number(state.coverage?.matchedSuspensions||0),pending=Number(state.coverage?.unmatchedSuspensions||0);
+    return `<div class="notice hp-rules"><b>Reglas de cálculo HP R115:</b> Turno A = 12 h. Turno C = 4 h al inicio + 8 h al día siguiente. Encierro dentro de turno no agrega horas. Día adicional y encierro fuera de turno compensan primero una suspensión por encierro; solo una cobertura adicional no utilizada como reemplazo se clasifica como esporádica. Las horas extra no participan del HP. <b>SE</b> no reduce la cobertura contractual: cuando existe reemplazante identificado, las horas se transfieren a ese trabajador. <b>TT</b> descuenta HP en faena. <span class="muted">Coberturas SE conciliadas: ${matched}${pending?` · sin reemplazante identificado en la novedad: ${pending}`:''}.</span></div>`;
   }
   function adjustmentsHtml(){
     if(!canEdit())return'';
@@ -384,7 +450,7 @@
   style.textContent=`#page-reporte-hp{min-width:0}.hp-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.hp-toolbar label{min-width:210px}.hp-rules{margin-bottom:14px}.hp-period-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.hp-period-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:grid;gap:8px}.hp-period-card label{display:grid;gap:4px;font-size:11px;color:var(--muted)}.hp-table-wrap,.hp-summary-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}.hp-table-wrap{overflow-x:auto}.hp-table{border-collapse:collapse;width:100%;min-width:920px;table-layout:fixed}.hp-table .hp-col-role{width:12%}.hp-table .hp-col-name{width:16%}.hp-table .hp-col-hour{width:6%}.hp-table th,.hp-table td,.hp-summary th,.hp-summary td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 4px;text-align:center}.hp-table th{background:var(--panel2);font-size:10.5px;line-height:1.15;white-space:normal}.hp-table td{font-size:11px;line-height:1.15;white-space:nowrap}.hp-table .hp-role-cell,.hp-table .hp-name-cell{text-align:left;white-space:normal;overflow-wrap:anywhere}.hp-table .hp-role-cell{font-size:10.5px}.hp-table .hp-name-cell{font-size:11px}.hp-summary th{background:var(--panel2)}.hp-summary{border-collapse:collapse;min-width:420px;width:min(100%,620px)}.hp-summary tbody th{text-align:left}.hp-summary-strong th,.hp-summary-strong td{font-weight:800}.hp-adjust-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.6fr auto;gap:10px;align-items:end;margin-top:14px}.hp-adjust-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}@media(max-width:1180px){.hp-table{min-width:860px}.hp-table th,.hp-table td{padding:5px 3px}.hp-table th{font-size:10px}.hp-table td{font-size:10.5px}}@media(max-width:1000px){.hp-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid button{width:100%}}@media(max-width:600px){.hp-period-grid,.hp-adjust-grid{grid-template-columns:1fr}.hp-toolbar label{min-width:0;width:100%}.hp-summary{min-width:380px}.hp-table{min-width:860px}}`;
   document.head.appendChild(style);
 
-  window.StainherWeeklyHP={render};
+  window.StainherWeeklyHP={render,version:'R115'};
   function boot(){installRenderer();window.addEventListener('stainher:modules-ready',installRenderer);window.addEventListener('stainher:profile-ready',installRenderer)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
