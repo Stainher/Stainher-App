@@ -113,6 +113,8 @@
     if(summary){
       setKpi(summary,'Mantenimiento real',split.equipment);
       setKpi(summary,'Gasto Operativo real',split.operational);
+      const opLabel=[...summary.querySelectorAll('span')].find(x=>clean(x.textContent).toLowerCase().startsWith('gasto operativo real'));
+      if(opLabel)opLabel.childNodes[0].textContent='Gasto Operativo / General real ';
       setKpi(summary,'Total real proyectable',split.projectable);
       setKpi(summary,'GGRR real',split.ggrr);
       setKpi(summary,'Total Neto real',split.total);
@@ -144,9 +146,24 @@
       const tbody=partTable.querySelector('tbody');
       if(tbody)tbody.innerHTML=`
         <tr><td>Mantenimiento equipos</td><td class="money-cell-v8">${money(split.equipment)}</td></tr>
-        <tr><td>Gasto Operativo</td><td class="money-cell-v8">${money(split.operational)}</td></tr>
+        <tr><td>Gasto Operativo / General</td><td class="money-cell-v8">${money(split.operational)}</td></tr>
         <tr><td>GGRR</td><td class="money-cell-v8">${money(split.ggrr)}</td></tr>
         <tr class="forecast-total-v9"><td><b>Total Neto real</b></td><td class="money-cell-v8"><b>${money(split.total)}</b></td></tr>`;
+    }
+
+    const existingNote=body.querySelector('.r122-forecast-history-note');
+    existingNote?.remove();
+    if(summary){
+      const note=document.createElement('div');
+      note.className='notice r122-forecast-history-note';
+      if(split.source==='residual'){
+        note.innerHTML=`<b>Conciliación R122:</b> el EDP informa Mantenimiento por ${money(Number(ep.mantenimiento)||0)} y GGRR por ${money(split.ggrr)}. El Gasto Operativo / General no se toma desde Mantenimiento; se obtiene como Total Neto − Mantenimiento − GGRR = <b>${money(split.operational)}</b>. Puedes ingresar el detalle por equipo desde Estados de Pago.`;
+      }else if(split.source==='detail'){
+        note.innerHTML=`<b>Conciliación R122:</b> Mantenimiento por equipos se obtiene del desglose guardado en el EDP (<b>${money(split.equipment)}</b>) y el Gasto Operativo / General se calcula por diferencia (<b>${money(split.operational)}</b>).`;
+      }else{
+        note.innerHTML=`<b>Conciliación R122:</b> se conserva la compatibilidad con el histórico anterior. Para mayor trazabilidad, completa el desglose por equipo desde Estados de Pago.`;
+      }
+      summary.insertAdjacentElement('afterend',note);
     }
 
     try{window.StainherContractForecastR121?.rebuildCharts?.()}catch(_){}
@@ -202,8 +219,8 @@
     const warning=root.querySelector('[data-r122-warning]');
     if(warning){
       warning.textContent=operational===OP_REFERENCE
-        ?'El desglose concilia con el Gasto Operativo contractual de referencia.'
-        :`Gasto Operativo calculado por diferencia: ${money(operational)}. Referencia contractual: ${money(OP_REFERENCE)}.`;
+        ?'El desglose concilia con el Gasto Operativo / General contractual de referencia.'
+        :`Gasto Operativo / General calculado por diferencia: ${money(operational)}. Referencia contractual: ${money(OP_REFERENCE)}.`;
       warning.className='notice '+(operational===OP_REFERENCE?'success':'warn');
     }
   }
@@ -216,7 +233,7 @@
     const month=MONTHS_ES[Number(ep.mes_edp)-1]||String(ep.mes_edp);
     root.innerHTML=`<div class="modal-bg"><div class="modal" style="width:min(760px,100%)">
       <div class="row-between"><div><h3>Detalle mantenimiento por equipo</h3><div class="muted">EP${ep.ep_num} · ${month} ${ep.anio_edp}</div></div><button class="btn" type="button" onclick="closeModal()">Cerrar</button></div>
-      <div class="notice">Ingresa el monto neto real por grupo de equipo. El total de equipos se utiliza en el Resumen Mensual Histórico y el Gasto Operativo se calcula por diferencia contra el Total Neto menos GGRR.</div>
+      <div class="notice">Ingresa el monto neto real por grupo de equipo. El total de equipos se utiliza en el Resumen Mensual Histórico. <b>Mantenimiento informado en este EDP: ${money(ep.mantenimiento||0)}</b>. El Gasto Operativo / General se concilia contra el Total Neto menos GGRR y el detalle de equipos.</div>
       <form id="r122EdpEquipmentForm" class="form-grid">
         ${GROUPS.map(([code,label])=>{
           const value=current.find(x=>x.grupo_codigo===code)?.monto||0;
@@ -224,7 +241,7 @@
         }).join('')}
         <div class="full" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px">
           <div class="kpi"><span>Equipos</span><strong data-r122-total="equipment">—</strong></div>
-          <div class="kpi"><span>Gasto Operativo</span><strong data-r122-total="operational">—</strong></div>
+          <div class="kpi"><span>Gasto Operativo / General</span><strong data-r122-total="operational">—</strong></div>
           <div class="kpi"><span>Proyectable</span><strong data-r122-total="projectable">—</strong></div>
           <div class="kpi"><span>GGRR</span><strong data-r122-total="ggrr">—</strong></div>
           <div class="kpi"><span>Total Neto</span><strong data-r122-total="total">—</strong></div>
