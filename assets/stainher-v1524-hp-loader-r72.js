@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R124 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R125 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R124')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R125')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R124';
+  window.__STAINHER_HP_LOADER_VERSION__='R125';
 
-  const BUILD='20260925-r124-forecast-history-visible';
+  const BUILD='20260925-r125-edp-inline-detail';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -102,6 +102,7 @@
       await load('stainher-edp-equipment-runtime-r122','stainher-v1524-edp-equipment-r122.js');
       await load('stainher-contract-forecast-runtime-r123','stainher-v1524-contract-forecast-r123.js');
       await load('stainher-forecast-history-runtime-r124','stainher-v1524-forecast-history-r124.js');
+      await load('stainher-edp-inline-runtime-r125','stainher-v1524-edp-inline-r125.js');
       window.StainherContractForecastR95?.install?.();
       window.StainherContractForecastR96?.install?.();
       window.StainherContractForecastR98?.install?.();
@@ -113,11 +114,13 @@
       await window.StainherEdpEquipmentR122?.install?.();
       window.StainherContractForecastR123?.install?.();
       window.StainherForecastHistoryR124?.install?.();
+      window.StainherEdpInlineR125?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r105-ready'));
       window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r121-ready'));
       window.dispatchEvent(new CustomEvent('stainher:edp-equipment-r122-ready'));
       window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r123-ready'));
       window.dispatchEvent(new CustomEvent('stainher:forecast-history-r124-ready'));
+      window.dispatchEvent(new CustomEvent('stainher:edp-inline-r125-ready'));
     }catch(error){
       console.error('[Stainher Forecast R95]',error);
     }
@@ -248,8 +251,9 @@
   window.StainherHPR122=api;
   window.StainherHPR123=api;
   window.StainherHPR124=api;
+  window.StainherHPR125=api;
 
-  async function bootstrapR124(){
+  async function bootstrapR125(){
     await refreshAccessR107();
     await refreshBudgets();
     await refreshContractForecast();
@@ -274,17 +278,19 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r122-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r123-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r124-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r125-ready'));
   }
-  api.bootstrapR112=bootstrapR124;
-  api.bootstrapR115=bootstrapR124;
-  api.bootstrapR116=bootstrapR124;
-  api.bootstrapR117=bootstrapR124;
-  api.bootstrapR118=bootstrapR124;
-  api.bootstrapR119=bootstrapR124;
-  api.bootstrapR120=bootstrapR124;
-  api.bootstrapR121=bootstrapR124;
-  api.bootstrapR122=bootstrapR124;
-  api.bootstrapR123=bootstrapR124;
-  api.bootstrapR124=bootstrapR124;
-  bootstrapR124().catch(error=>console.error('[Stainher Runtime R124]',error));
+  api.bootstrapR112=bootstrapR125;
+  api.bootstrapR115=bootstrapR125;
+  api.bootstrapR116=bootstrapR125;
+  api.bootstrapR117=bootstrapR125;
+  api.bootstrapR118=bootstrapR125;
+  api.bootstrapR119=bootstrapR125;
+  api.bootstrapR120=bootstrapR125;
+  api.bootstrapR121=bootstrapR125;
+  api.bootstrapR122=bootstrapR125;
+  api.bootstrapR123=bootstrapR125;
+  api.bootstrapR124=bootstrapR125;
+  api.bootstrapR125=bootstrapR125;
+  bootstrapR125().catch(error=>console.error('[Stainher Runtime R125]',error));
 })();
