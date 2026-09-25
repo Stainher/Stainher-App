@@ -240,13 +240,35 @@
     setTimeout(()=>root.querySelector('[data-r118-observation-close]')?.focus(),0);
   }
 
+  function fullObservation(row,table,fallback=''){
+    const headers=[...table.querySelectorAll('thead th')].map(headerText);
+    const cells=[...(row?.children||[])];
+    const value=key=>{
+      const index=headers.findIndex(h=>norm(h).includes(norm(key)));
+      return index>=0?clean(cells[index]?.textContent||''):'';
+    };
+    const date=value('fecha').match(/\d{4}-\d{2}-\d{2}/)?.[0]||'';
+    const equipment=value('equipo'),guide=value('guia');
+    const rows=Array.isArray(window.state?.correctivo)?window.state.correctivo:[];
+    const match=rows.find(item=>{
+      const itemDate=String(item?.fecha_inicio||item?.fecha||'').slice(0,10);
+      const itemEquipment=clean(item?.equipo||item?.equipo_original||item?.equipos?.nombre||'');
+      const itemGuide=clean(item?.guia||item?.numero_guia||'');
+      if(date&&itemDate&&date!==itemDate)return false;
+      if(equipment&&itemEquipment&&norm(equipment)!==norm(itemEquipment))return false;
+      if(guide&&guide!=='—'&&guide!=='-'&&itemGuide&&norm(guide)!==norm(itemGuide))return false;
+      return Boolean(date||equipment||guide);
+    });
+    return String(match?.observaciones||match?.observacion||fallback||'').trim();
+  }
+
   function decorateObservations(table){
     const headers=[...table.querySelectorAll('thead th')].map(headerText);
     const index=headers.findIndex(h=>norm(h).includes('observ'));
     if(index<0)return;
     table.querySelectorAll('tbody tr').forEach(row=>{
       const cell=row.children[index];if(!cell||cell.dataset.r118Observation==='1')return;
-      const full=String(cell.textContent||'').trim();
+      const full=fullObservation(row,table,String(cell.textContent||'').trim());
       cell.dataset.r118Observation='1';
       cell.dataset.r118ObservationFull=full;
       if(!full||full==='—'||full==='-')return;
@@ -371,7 +393,7 @@
     const button=tools.querySelector('[data-r118-download-history]');
     if(button&&!button.dataset.r118Bound){
       button.dataset.r118Bound='1';
-      button.addEventListener('click',()=>downloadHistory(table));
+      button.addEventListener('click',()=>downloadHistory(findHistoryTable()?.table||table));
     }
   }
 
