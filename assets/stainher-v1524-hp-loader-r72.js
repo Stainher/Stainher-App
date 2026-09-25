@@ -153,7 +153,8 @@
       await load('stainher-hp-admin-detail-runtime-r78','stainher-v1524-hp-admin-detail-r74.js');
       await load('stainher-hp-layout-runtime-r78','stainher-v1524-hp-layout-r78.js');
       await load('stainher-weekly-hp-router-r78','stainher-v1524-hp-router-r57.js');
-      window.dispatchEvent(new CustomEvent('stainher:hp-r78-ready'));\n      window.dispatchEvent(new CustomEvent('stainher:hp-r115-ready'));
+      window.dispatchEvent(new CustomEvent('stainher:hp-r78-ready'));
+      window.dispatchEvent(new CustomEvent('stainher:hp-r115-ready'));
     }catch(error){
       console.error('[Stainher HP R78]',error);
     }
@@ -191,7 +192,8 @@
   window.StainherHPR110={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
   const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
   window.StainherHPR111=api;
-  window.StainherHPR112=api;\n  window.StainherHPR115=api;
+  window.StainherHPR112=api;
+  window.StainherHPR115=api;
 
   async function bootstrapR115(){
     await refreshAccessR107();
@@ -204,7 +206,8 @@
     await refreshSignature();
     await refreshFreeReport();
     await refresh();
-    window.dispatchEvent(new CustomEvent('stainher:runtime-r112-ready'));\n    window.dispatchEvent(new CustomEvent('stainher:runtime-r115-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r112-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r115-ready'));
   }
   api.bootstrapR112=bootstrapR115;
   api.bootstrapR115=bootstrapR115;
