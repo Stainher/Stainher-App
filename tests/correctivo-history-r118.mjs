@@ -19,7 +19,7 @@ assert.match(moduleSrc,/!norm\(x\.label\)\.includes\('accion'\)/,'La columna Acc
 assert.match(moduleSrc,/correctivoFrom/,'La descarga debe respetar el período seleccionado');
 assert.match(loader,/stainher-v1524-corrective-history-r118\.js/,'El cargador autenticado debe cargar R118');
 assert.match(loader,/refreshCorrectivoHistoryR118/,'El bootstrap debe ejecutar la mejora de Correctivo');
-assert.match(loader,/HP_LOADER_VERSION__='R118'/,'El cargador debe quedar consolidado como R118');
+assert.match(loader,/HP_LOADER_VERSION__='R119'/,'El cargador consolidado debe incluir R118 dentro de la revisión R119');
 
 new Function(moduleSrc);
 new Function(loader);
