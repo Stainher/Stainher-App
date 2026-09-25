@@ -246,7 +246,7 @@
     if(index<0)return;
     table.querySelectorAll('tbody tr').forEach(row=>{
       const cell=row.children[index];if(!cell||cell.dataset.r118Observation==='1')return;
-      const full=clean(cell.textContent||'');
+      const full=String(cell.textContent||'').trim();
       cell.dataset.r118Observation='1';
       cell.dataset.r118ObservationFull=full;
       if(!full||full==='—'||full==='-')return;
@@ -375,7 +375,7 @@
     }
   }
 
-  let busy=false,pending=false;
+  let busy=false,pending=false,installed=false;
   function enhance(){
     if(busy)return;
     const found=findHistoryTable();if(!found)return;
@@ -395,6 +395,7 @@
   }
 
   function install(){
+    if(installed)return;installed=true;
     installStyle();modal();enhance();
     const host=page()||document.getElementById('appView')||document.body;
     new MutationObserver(()=>{if(!busy)schedule()}).observe(host,{childList:true,subtree:true});
