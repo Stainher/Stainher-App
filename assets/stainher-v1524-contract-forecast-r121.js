@@ -97,13 +97,14 @@
   function historicalSeries(f){
     const year=Number(window.state?.forecastYear||document.getElementById('forecastYear')?.value||new Date().getFullYear());
     return (f.months||[]).map((month,index)=>{
+      const corrected=Number.isFinite(Number(month?.__r122Projectable))?Number(month.__r122Projectable):Number(month?.real)||0;
       try{
         if(typeof window.forecastHistoricalStatusV92==='function'){
           const status=window.forecastHistoricalStatusV92(year,index+1);
-          return status?.historical&&month?.ep?Number(month.real)||0:null;
+          return status?.historical&&month?.ep?corrected:null;
         }
       }catch(_){}
-      return month?.ep?(Number.isFinite(Number(month.__r122Projectable))?Number(month.__r122Projectable):Number(month.real)||0):null;
+      return month?.ep?corrected:null;
     });
   }
 
