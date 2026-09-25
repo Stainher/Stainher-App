@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R75 · comparación histórica Reporte Semanal HP.
+/* Stainher V15.24 · R117 · comparación histórica Reporte Semanal HP.
  * Compara los tres meses cerrados anteriores al mes seleccionado.
  * Junio–agosto 2026 usan la línea base histórica entregada por administración;
  * meses posteriores se calculan desde malla, novedades y ajustes HP.
@@ -7,9 +7,9 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_HISTORY_VERSION__==='R75')return;
+  if(window.__STAINHER_HP_HISTORY_VERSION__==='R117')return;
   window.__STAINHER_HP_HISTORY_R73__=true;
-  window.__STAINHER_HP_HISTORY_VERSION__='R75';
+  window.__STAINHER_HP_HISTORY_VERSION__='R117';
 
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
@@ -18,7 +18,7 @@
   const fteFromHours=hours=>Number(hours||0)/FTE_DIVISOR;
   const BASELINE={
     '2026-06':{admin:310,oper:2124,spor:0,total:2434,fte:fteFromHours(2434),source:'historico'},
-    '2026-07':{admin:316,oper:1888,spor:0,total:2204,fte:fteFromHours(2204),source:'historico'},
+    '2026-07':{admin:306,oper:1888,spor:0,total:2194,fte:fteFromHours(2194),registered:2450,outside:256,dotacion:17,source:'oficial'},
     '2026-08':{admin:460,oper:2104,spor:0,total:2564,fte:fteFromHours(2564),source:'historico'}
   };
   const cache=new Map();
@@ -206,8 +206,8 @@
   function mount(page){
     if(!page)return;
     patchMonthlyFte(page);
-    if(page.dataset.hpHistoryR75Bound!=='1'){
-      page.dataset.hpHistoryR75Bound='1';
+    if(page.dataset.hpHistoryR117Bound!=='1'){
+      page.dataset.hpHistoryR117Bound='1';
       page.addEventListener('change',event=>{
         if(event.target?.id!=='hpMonth')return;
         const expected=event.target.value;
@@ -219,8 +219,9 @@
 
   document.getElementById('stainher-hp-history-r73-style')?.remove();
   document.getElementById('stainher-hp-history-r75-style')?.remove();
+  document.getElementById('stainher-hp-history-r117-style')?.remove();
   const style=document.createElement('style');
-  style.id='stainher-hp-history-r75-style';
+  style.id='stainher-hp-history-r117-style';
   style.textContent=`.hp-history-panel{margin-top:14px}.hp-history-sub{margin-bottom:10px}.hp-history-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.hp-history-table{border-collapse:collapse;width:100%;min-width:620px;table-layout:fixed}.hp-history-table th,.hp-history-table td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 10px;text-align:center}.hp-history-table thead th{background:var(--panel2)}.hp-history-table tbody th{text-align:left;background:var(--panel2);width:34%}.hp-history-analysis{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}.hp-history-analysis ul{margin:8px 0 0;padding-left:20px;display:grid;gap:8px}.hp-history-main{font-weight:500}@media(max-width:700px){.hp-history-table th,.hp-history-table td{padding:7px 6px;font-size:11px}}`;
   document.head.appendChild(style);
 

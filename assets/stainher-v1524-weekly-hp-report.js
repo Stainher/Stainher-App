@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R116 · Reporte Semanal HP dentro de Turnos y Novedades.
+/* Stainher V15.24 · R117 · Reporte Semanal HP dentro de Turnos y Novedades.
  * - Consolida la metodología histórica de reportabilidad HP.
  * - Turno A: 12 h. Turno C: 4 h al inicio + 8 h al día siguiente.
  * - Encierro dentro de turno no agrega horas esporádicas.
@@ -11,9 +11,9 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R116')return;
+  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R117')return;
   window.__STAINHER_WEEKLY_HP_REPORT__=true;
-  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R116';
+  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R117';
 
   const PAGE_ID='reporte-hp';
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
@@ -23,6 +23,37 @@
   const CONTRACT='4600029879';
   const FTE_DIVISOR=182.7;
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
+  const OFFICIAL_CLOSED_MONTHS={
+    '2026-07':{
+      label:'Cierre oficial julio 2026',
+      registered:2450,
+      outside:256,
+      inFaena:2194,
+      admin:306,
+      oper:1888,
+      spor:0,
+      dotacion:17,
+      rows:[
+    {nombre:'Luis Adolfo Rojas Orellana',cargo:'Supervisor',bucket:'oper',daily:[12,0,0,0,0,0,0,0,12,12,12,12,12,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,12]},
+    {nombre:'Sebastian Andres Cataldo Vasquez',cargo:'Técnico Mecánico',bucket:'oper',daily:[8,0,0,0,0,0,0,0,12,12,12,12,12,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,12]},
+    {nombre:'Luciano Andres Pichilen Mendez',cargo:'Técnico',bucket:'oper',daily:[8,0,0,0,0,0,0,0,12,12,12,12,12,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,12]},
+    {nombre:'Manuel Eduardo Guanipa Paz',cargo:'Supervisor',bucket:'oper',daily:[0,4,12,12,12,12,12,8,0,0,0,0,0,0,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,0,0]},
+    {nombre:'Boris Ignacio Gutierrez Brito',cargo:'Técnico Eléctrico',bucket:'oper',daily:[0,4,12,12,12,12,12,8,0,0,0,0,0,0,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,0,0]},
+    {nombre:'Efrain Alberto del Pino Cortes',cargo:'Técnico',bucket:'oper',daily:[0,4,12,12,12,12,12,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+    {nombre:'Cristian Gonzalo Flores Muñoz',cargo:'Supervisor',bucket:'oper',daily:[12,0,0,0,0,0,0,0,4,12,12,12,12,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,12]},
+    {nombre:'Felipe Sebastian Miranda Calderon',cargo:'Técnico Mecánico',bucket:'oper',daily:[12,0,0,0,0,0,0,0,4,12,12,12,12,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,12]},
+    {nombre:'Luis Alberto Contreras Jimenez',cargo:'Supervisor',bucket:'oper',daily:[0,12,12,12,12,12,12,12,0,0,0,0,0,0,4,12,12,12,12,12,12,12,12,12,12,12,12,12,8,0,0]},
+    {nombre:'Pablo Andres Lillo Perez',cargo:'Técnico Eléctrico',bucket:'oper',daily:[0,12,12,12,12,12,12,12,0,0,0,0,0,0,4,12,12,12,12,12,12,12,12,12,12,12,12,12,8,0,0]},
+    {nombre:'Ronald Daniel Garcia Aguilar',cargo:'Técnico',bucket:'oper',daily:[0,12,12,12,12,12,12,12,0,0,0,0,0,0,4,12,12,12,12,12,12,12,12,12,12,12,12,12,8,0,0]},
+    {nombre:'Ercira Pilar Hurtado Fuentes',cargo:'APR',bucket:'oper',daily:[0,0,0,0,0,0,0,0,12,12,12,12,12,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+    {nombre:'Alex Silva',cargo:'APR',bucket:'oper',daily:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+    {nombre:'Cinthia Carolina Gallardo Madrid',cargo:'JHSE',bucket:'admin',daily:[12,6,0,0,0,12,12,12,6,0,0,0,12,12,12,0,0,0,0,0,0,0,0,0,0,0,12,12,12,6,0]},
+    {nombre:'Jose Antonio Humberto Cisternas Pirul',cargo:'Planificación',bucket:'admin',daily:[12,6,0,0,0,12,12,12,6,0,0,0,12,12,12,0,0,0,0,0,0,0,0,0,0,0,12,12,12,6,0]},
+    {nombre:'Juan Ignacio Soto Muñoz',cargo:'Confiabilidad',bucket:'admin',daily:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+    {nombre:'Ismael Galvez Reyes',cargo:'ADC',bucket:'admin',daily:[0,0,0,0,0,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+  ]
+    }
+  };
 
   const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
   const role=()=>norm(typeof window.v11Role==='function'?window.v11Role():(window.state?.profile?.rol||window.state?.user?.rol||window.currentProfile?.rol||''));
@@ -35,7 +66,7 @@
   const monthName=(y,m)=>new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric'}).format(new Date(y,m-1,1));
   const sum=(arr,key)=>arr.reduce((a,x)=>a+Number(x[key]||0),0);
 
-  const state={year:new Date().getFullYear(),month:new Date().getMonth()+1,periods:[],people:[],profiles:new Map(),malla:[],nov:[],adjust:[],rows:[],coverage:null};
+  const state={year:new Date().getFullYear(),month:new Date().getMonth()+1,periods:[],people:[],profiles:new Map(),malla:[],nov:[],adjust:[],rows:[],coverage:null,official:null};
 
   function defaultPeriods(y,m){
     const last=new Date(y,m,0).getDate(),mm=String(m).padStart(2,'0');
@@ -58,10 +89,10 @@
   function installRenderer(){
     try{
       const current=typeof window.v1523Renderer==='function'?window.v1523Renderer:(typeof v1523Renderer==='function'?v1523Renderer:null);
-      if(typeof current!=='function'||current.__stainherHpR116)return;
+      if(typeof current!=='function'||current.__stainherHpR117)return;
       const base=current.__stainherHpBase||current;
       const hpRenderer=function(page){return page===PAGE_ID?render:base(page)};
-      hpRenderer.__stainherHpR116=true;
+      hpRenderer.__stainherHpR117=true;
       hpRenderer.__stainherHpBase=base;
       window.v1523Renderer=hpRenderer;
       try{v1523Renderer=hpRenderer}catch(_e){}
@@ -82,10 +113,29 @@
   function manualAdminPeople(){return state.people.filter(isManualAdminPerson)}
 
   async function load(){
-    const y=state.year,m=state.month;
+    const y=state.year,m=state.month,key=`${y}-${String(m).padStart(2,'0')}`;
     const p=await window.sb.from('hp_periodos_codelco').select('*').eq('anio',y).eq('mes',m).order('orden');
     state.periods=p.error||!p.data?.length?defaultPeriods(y,m):p.data;
     const min=state.periods[0].fecha_inicio,max=state.periods[state.periods.length-1].fecha_fin;
+    state.official=OFFICIAL_CLOSED_MONTHS[key]||null;
+
+    if(state.official){
+      const dot=await window.sb.from('dotacion_contrato').select('id,user_id,nombre,cargo,rut,estado,aplica_turnos,orden');
+      if(dot.error)throw dot.error;
+      const liveByName=new Map((dot.data||[]).map(x=>[norm(x.nombre),x]));
+      state.people=state.official.rows.map((row,index)=>{
+        const live=liveByName.get(norm(row.nombre))||{};
+        return {...live,id:live.id||`official-${key}-${index+1}`,user_id:live.user_id||`official-${key}-${index+1}`,nombre:row.nombre,cargo:row.cargo,rut:live.rut||'',estado:'historico',orden:index+1,officialBucket:row.bucket,officialDaily:row.daily};
+      });
+      state.profiles=new Map();
+      state.malla=[];
+      state.nov=[];
+      state.adjust=[];
+      state.coverage=null;
+      state.rows=state.people.map(calcPerson);
+      return;
+    }
+
     const [dot,prof,mal,nov,adj]=await Promise.all([
       window.sb.from('dotacion_contrato').select('id,user_id,nombre,cargo,rut,estado,aplica_turnos,orden').eq('estado','activo').order('orden',{ascending:true}),
       window.sb.from('perfiles').select('id,nombre,rol,activo').eq('activo',true),
@@ -184,6 +234,15 @@
 
   function calcPeriod(person,p){
     let admin=0,oper=0,spor=0;
+    if(Array.isArray(person.officialDaily)){
+      let officialHours=0;
+      for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
+        if(d.slice(0,7)!==`${state.year}-${String(state.month).padStart(2,'0')}`)continue;
+        officialHours+=Number(person.officialDaily[Number(d.slice(-2))-1]||0);
+      }
+      if(person.officialBucket==='admin')admin=officialHours;else oper=officialHours;
+      return {admin,oper,spor};
+    }
     if(isManualAdminPerson(person)){
       admin=manualAdmin(person.user_id,p.fecha_inicio,p.fecha_fin);
     }else if(isAutoAdminPerson(person)){
@@ -221,7 +280,8 @@
   }
   function summaryHtml(){
     const s=monthlySummary(),fmt=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:2}),fmtFte=n=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
-    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>RESUMEN MENSUAL</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr><tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
+    const officialExtra=state.official?`<tr><th>HH Administrativas fuera de faena</th><td>${fmt(state.official.outside)}</td></tr><tr><th>TOTAL HH registradas</th><td>${fmt(state.official.registered)}</td></tr>`:'';
+    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>RESUMEN MENSUAL</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas en faena</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr>${officialExtra}<tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
   }
 
   function renderTable(){
@@ -235,10 +295,15 @@
     return `<div class="panel"><div class="row-between"><div><h3>Rangos Codelco</h3><div class="muted">Los cortes son editables y se guardan por mes.</div></div>${canEdit()?'<button class="btn primary" id="hpSavePeriods">Guardar rangos</button>':''}</div><div class="hp-period-grid">${state.periods.map((p,i)=>`<div class="hp-period-card"><b>Período ${i+1}</b><label>Desde<input class="field hp-p-start" type="date" value="${p.fecha_inicio}" ${canEdit()?'':'disabled'}></label><label>Hasta<input class="field hp-p-end" type="date" value="${p.fecha_fin}" ${canEdit()?'':'disabled'}></label><label>Glosa<input class="field hp-p-label" value="${esc(p.etiqueta||'')}" placeholder="Opcional" ${canEdit()?'':'disabled'}></label></div>`).join('')}</div></div>`;
   }
   function rulesHtml(){
+    if(state.official){
+      const o=state.official;
+      return `<div class="notice hp-rules"><b>${esc(o.label)}:</b> información cerrada según reporte oficial entregado. HH registradas: <b>${Number(o.registered).toLocaleString('es-CL')}</b>; administrativas fuera de faena excluidas del FTE: <b>${Number(o.outside).toLocaleString('es-CL')}</b>; HH en faena: <b>${Number(o.inFaena).toLocaleString('es-CL')}</b>; dotación informada: <b>${o.dotacion}</b>. FTE = HH en faena / 182,7.</div>`;
+    }
     const matched=Number(state.coverage?.matchedSuspensions||0),pending=Number(state.coverage?.unmatchedSuspensions||0);
     return `<div class="notice hp-rules"><b>Reglas de cálculo HP R116:</b> Turno A = 12 h. Turno C = 4 h al inicio + 8 h al día siguiente. Encierro dentro de turno no agrega horas. Día adicional y encierro fuera de turno siempre registran 12 h esporádicas. Cuando una de estas coberturas compensa un <b>SE</b>, las horas base se descuentan al trabajador suspendido y se mantienen como esporádicas en quien cubre, conservando la cobertura contractual sin alterar la naturaleza del evento. Las horas extra no participan del HP. <b>TT</b> descuenta HP en faena. <span class="muted">Coberturas SE conciliadas: ${matched}${pending?` · SE sin cobertura identificada: ${pending}`:''}.</span></div>`;
   }
   function adjustmentsHtml(){
+    if(state.official)return'';
     if(!canEdit())return'';
     const people=manualAdminPeople();
     if(!people.length)return `<div class="panel"><h3>Horas administrativas manuales</h3><div class="notice warn">No hay ADC, Gerente o personal de Confiabilidad activo disponible para registrar horas.</div></div>`;
@@ -436,7 +501,7 @@
   style.textContent=`#page-reporte-hp{min-width:0}.hp-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.hp-toolbar label{min-width:210px}.hp-rules{margin-bottom:14px}.hp-period-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.hp-period-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:grid;gap:8px}.hp-period-card label{display:grid;gap:4px;font-size:11px;color:var(--muted)}.hp-table-wrap,.hp-summary-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}.hp-table-wrap{overflow-x:auto}.hp-table{border-collapse:collapse;width:100%;min-width:920px;table-layout:fixed}.hp-table .hp-col-role{width:12%}.hp-table .hp-col-name{width:16%}.hp-table .hp-col-hour{width:6%}.hp-table th,.hp-table td,.hp-summary th,.hp-summary td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 4px;text-align:center}.hp-table th{background:var(--panel2);font-size:10.5px;line-height:1.15;white-space:normal}.hp-table td{font-size:11px;line-height:1.15;white-space:nowrap}.hp-table .hp-role-cell,.hp-table .hp-name-cell{text-align:left;white-space:normal;overflow-wrap:anywhere}.hp-table .hp-role-cell{font-size:10.5px}.hp-table .hp-name-cell{font-size:11px}.hp-summary th{background:var(--panel2)}.hp-summary{border-collapse:collapse;min-width:420px;width:min(100%,620px)}.hp-summary tbody th{text-align:left}.hp-summary-strong th,.hp-summary-strong td{font-weight:800}.hp-adjust-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.6fr auto;gap:10px;align-items:end;margin-top:14px}.hp-adjust-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}@media(max-width:1180px){.hp-table{min-width:860px}.hp-table th,.hp-table td{padding:5px 3px}.hp-table th{font-size:10px}.hp-table td{font-size:10.5px}}@media(max-width:1000px){.hp-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-adjust-grid button{width:100%}}@media(max-width:600px){.hp-period-grid,.hp-adjust-grid{grid-template-columns:1fr}.hp-toolbar label{min-width:0;width:100%}.hp-summary{min-width:380px}.hp-table{min-width:860px}}`;
   document.head.appendChild(style);
 
-  window.StainherWeeklyHP={render,version:'R116'};
+  window.StainherWeeklyHP={render,version:'R117'};
   function boot(){installRenderer();window.addEventListener('stainher:modules-ready',installRenderer);window.addEventListener('stainher:profile-ready',installRenderer)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
