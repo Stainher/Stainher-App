@@ -22,7 +22,7 @@ assert.match(forecast,/try\{out=current\.apply/,'El render debe sobrevivir a una
 assert.match(loader,/stainher-v1524-contract-forecast-r121\.js/,'El loader debe cargar R121 después de las capas históricas');
 assert.match(loader,/StainherContractForecastR121\?\.install/,'El loader debe instalar R121');
 assert.match(loader,/contract-forecast-r121-ready/,'Debe emitir evento de Forecast R121');
-assert.match(loader,/HP_LOADER_VERSION__='R121'/,'El loader debe quedar consolidado como R121');
+assert.match(loader,/HP_LOADER_VERSION__='R122'/,'El loader debe quedar consolidado como R121');
 assert.match(loader,/refreshEquipmentViewR120/,'La mejora R120 de Equipos debe conservarse');
 assert.match(loader,/refreshReliabilityActionsR119/,'R119 debe conservarse');
 assert.match(loader,/refreshCorrectivoHistoryR118/,'R118 debe conservarse');
