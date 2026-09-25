@@ -127,7 +127,7 @@
     if(tipo==='hora_extra')return false;
     const candidate=tipo==='dia_adicional'||tipo==='encierro_no_planificado'||cls==='encierro_fuera_de_turno';
     if(!candidate)return false;
-    const base=norm(n?.turno_base||turn(uid,date));
+    const base=norm(turn(uid,date)||n?.turno_base);
     return !base||base==='l';
   }
   function noveltyToken(n,date){return `${n?.id||n?.__hpIndex||'event'}|${date}`}
@@ -150,6 +150,12 @@
         if(seenExtras.has(uid))continue;
         seenExtras.add(uid);extras.push({uid,event:n,token:noveltyToken(n,d)});
       }
+      suspensions.sort((a,b)=>a.shift.localeCompare(b.shift)||a.uid.localeCompare(b.uid));
+      extras.sort((a,b)=>{
+        const ap=norm(a.event?.tipo)==='encierro_no_planificado'||norm(a.event?.clasificacion_auto)==='encierro_fuera_de_turno'?0:1;
+        const bp=norm(b.event?.tipo)==='encierro_no_planificado'||norm(b.event?.clasificacion_auto)==='encierro_fuera_de_turno'?0:1;
+        return ap-bp||a.uid.localeCompare(b.uid);
+      });
       const pairs=Math.min(suspensions.length,extras.length);
       for(let i=0;i<pairs;i++){
         const s=suspensions[i],e=extras[i];
