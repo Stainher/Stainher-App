@@ -371,7 +371,7 @@
     return toolbar;
   }
 
-  let busy=false,scheduled=false;
+  let busy=false,scheduled=false,installed=false;
   function enhance(){
     if(busy)return;
     const root=page();if(!root)return;
@@ -405,6 +405,7 @@
   }
 
   function install(){
+    if(installed)return;installed=true;
     mountStyle();
     enhance();
     const root=page()||document.getElementById('appView')||document.body;
