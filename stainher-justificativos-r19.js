@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const BUILD='20260928-r129-justificativo-post-emit-edit';
+  const BUILD='20260928-r130-justificativo-text-justify';
   const LEGAL_REPRESENTATIVE={name:'Luis Poblete López',role:'Representante Legal'};
   const MODULE_URL=document.currentScript?.src||location.href;
   const LEGAL_SIGNATURE_URL=new URL('assets/firma-timbre-luis-poblete.png',MODULE_URL).href+`?build=${BUILD}`;
@@ -33,7 +33,7 @@
     if(document.getElementById('stainher-justificativos-r19-style'))return;
     const s=document.createElement('style');s.id='stainher-justificativos-r19-style';s.textContent=`
       .v1524-just-fields{display:contents}.v1524-just-card{border-left:4px solid #38bdf8!important}.v1524-just-detail{display:grid;gap:5px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(56,189,248,.07)}
-      .v1524-letter-preview{padding:20px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#172033;line-height:1.55}.v1524-letter-preview p{margin:0 0 12px}.v1524-legal-signature{display:grid;justify-items:center;width:260px;margin:24px auto 0;border-top:1px solid #94a3b8;padding-top:8px}.v1524-legal-signature img{display:block;width:190px;height:70px;object-fit:contain;margin:-78px 0 0}.v1524-legal-signature span{font-size:11px;font-weight:700}
+      .v1524-letter-preview{padding:20px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#172033;line-height:1.55}.v1524-letter-preview p{margin:0 0 12px}.v1524-letter-preview .v1524-justified{text-align:justify;text-justify:inter-word;hyphens:auto}.v1524-legal-signature{display:grid;justify-items:center;width:260px;margin:24px auto 0;border-top:1px solid #94a3b8;padding-top:8px}.v1524-legal-signature img{display:block;width:190px;height:70px;object-fit:contain;margin:-78px 0 0}.v1524-legal-signature span{font-size:11px;font-weight:700}
       @media(max-width:760px){.v1524-letter-preview{padding:14px;font-size:13px}}
     `;document.head.appendChild(s);
   }
@@ -88,7 +88,7 @@
 
   function defaultLetterText(x){return `Por medio de la presente, Stainher Ascensores Ltda., en su calidad de empleador, certifica que don(a) ${personName(x)}, quien se desempeña como ${roleName(x)} en el Contrato 4600029879 – Codelco División Andina, se encontraba cumpliendo funciones laborales y el turno asignado el día ${date(x.fecha_inicio)}. El presente certificado se emite para acreditar formalmente dicha circunstancia laboral ante la institución destinataria.`}
   function letterText(x){return String(x.justificativo_cuerpo||'').trim()||defaultLetterText(x)}
-  function letterPreview(x){const institution=safe(x.justificativo_institucion||'Institución destinataria');return `<p><b>Fecha de emisión:</b> ${safe(issueDate(x))}</p><p><b>Señores<br>${institution}<br>Presente</b></p><p>De nuestra consideración:</p><p>${safe(letterText(x))}</p><p>El presente certificado se extiende a solicitud del interesado, para ser presentado ante ${institution} y acreditar formalmente la circunstancia laboral antes señalada.</p><p>Sin otro particular, saluda atentamente,</p><div class="v1524-legal-signature"><img src="${safe(LEGAL_SIGNATURE_URL)}" alt="Firma y timbre del representante legal"><span>${safe(LEGAL_REPRESENTATIVE.name)}</span><small>${safe(LEGAL_REPRESENTATIVE.role)}<br>Stainher Ascensores Ltda.</small></div>`}
+  function letterPreview(x){const institution=safe(x.justificativo_institucion||'Institución destinataria');return `<p><b>Fecha de emisión:</b> ${safe(issueDate(x))}</p><p><b>Señores<br>${institution}<br>Presente</b></p><p>De nuestra consideración:</p><p class="v1524-justified">${safe(letterText(x))}</p><p class="v1524-justified">El presente certificado se extiende a solicitud del interesado, para ser presentado ante ${institution} y acreditar formalmente la circunstancia laboral antes señalada.</p><p>Sin otro particular, saluda atentamente,</p><div class="v1524-legal-signature"><img src="${safe(LEGAL_SIGNATURE_URL)}" alt="Firma y timbre del representante legal"><span>${safe(LEGAL_REPRESENTATIVE.name)}</span><small>${safe(LEGAL_REPRESENTATIVE.role)}<br>Stainher Ascensores Ltda.</small></div>`}
 
   window.v1524OpenJustificationVisa=function(id){
     const x=row(id);if(!x||!isJust(x)||role()!=='recursos_humanos')return window.toast?.('No tienes autorización para visar este documento.','error');
@@ -136,8 +136,17 @@
   window.v1524BuildJustificationPdf=function(x){
     const C=window.ensurePdf(),doc=new C({unit:'mm',format:'a4'});window.installCorporatePdfV95?.(doc,'Justificativo Laboral','Documento visado por Recursos Humanos');let y=43;
     doc.setTextColor(25,31,40);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(`Fecha de emisión: ${issueDate(x)}`,196,y,{align:'right'});y+=12;doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(['Señores',x.justificativo_institucion||'Institución destinataria','Presente'],14,y);y+=20;doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setLineHeightFactor(1.45);
-    const paragraphs=['De nuestra consideración:',letterText(x),`El presente certificado se extiende a solicitud del interesado, para ser presentado ante ${x.justificativo_institucion||'la institución destinataria'} y acreditar formalmente la circunstancia laboral antes señalada.`,'Sin otro particular, saluda atentamente,'].filter(Boolean);
-    for(const paragraph of paragraphs){const lines=doc.splitTextToSize(paragraph,180);doc.text(lines,14,y);y+=lines.length*5+5}
+    const paragraphs=[
+      {text:'De nuestra consideración:',justify:false},
+      {text:letterText(x),justify:true},
+      {text:`El presente certificado se extiende a solicitud del interesado, para ser presentado ante ${x.justificativo_institucion||'la institución destinataria'} y acreditar formalmente la circunstancia laboral antes señalada.`,justify:true},
+      {text:'Sin otro particular, saluda atentamente,',justify:false}
+    ].filter(item=>item.text);
+    for(const item of paragraphs){
+      const lines=doc.splitTextToSize(item.text,180);
+      doc.text(lines,14,y,item.justify?{align:'justify',maxWidth:180}:{align:'left'});
+      y+=lines.length*5+5;
+    }
     y=Math.max(y+8,165);const sig=legalSignature();if(sig)try{doc.addImage(sig,'PNG',75,y,60,24)}catch(_){}doc.setDrawColor(130,145,165);doc.line(70,y+27,140,y+27);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text(LEGAL_REPRESENTATIVE.name,105,y+33,{align:'center'});doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text([LEGAL_REPRESENTATIVE.role,'Stainher Ascensores Ltda.'],105,y+38,{align:'center'});doc.setFontSize(7);doc.text(`Folio: ${String(x.id||'').slice(0,8).toUpperCase()}`,14,275);return doc;
   };
   window.v1524DownloadJustification=async function(id){const x=row(id);if(x?.estado!=='aprobada')return window.toast?.('El justificativo todavía no ha sido visado por Recursos Humanos.','warn');try{await preloadLegalSignature();window.v1524BuildJustificationPdf(x).save(window.v1524JustificationFilename(x))}catch(error){window.toast?.('No se pudo incorporar la firma institucional: '+(error.message||String(error)),'error')}};
@@ -145,5 +154,5 @@
   const baseRender=window.renderSolicitudesV15;
   window.renderSolicitudesV15=async function(...args){const out=await baseRender?.(...args);const rows=window.state?.v154Requests||[],cards=[...document.querySelectorAll('#page-solicitudes .v152-request-card')];cards.forEach((card,index)=>{const x=rows[index];if(!isJust(x))return;card.classList.add('v1524-just-card');const wide=card.querySelector('.wide'),detail=document.createElement('div');detail.className='wide v1524-just-detail';detail.innerHTML=`<small>Destinatario del justificativo</small><b>${safe(x.justificativo_institucion||'—')}</b><span><b>Fecha a justificar:</b> ${safe(date(x.fecha_inicio))}</span>`;wide?.before(detail);wide?.classList.add('hidden')});return out};
 
-  preloadLegalSignature().catch(()=>{});installStyle();window.STAINHER_JUSTIFICATIVOS={build:BUILD,ready:true,postEmitEdit:true};
+  preloadLegalSignature().catch(()=>{});installStyle();window.STAINHER_JUSTIFICATIVOS={build:BUILD,ready:true,postEmitEdit:true,justifiedText:true};
 })();
