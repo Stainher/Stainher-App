@@ -100,6 +100,9 @@ export default {
     }
 
     const stage=clean(r.etapa,40).toLowerCase();
+    if(!["aprobador","rrhh"].includes(stage)){
+      return response(req,{ok:false,error:"La solicitud ya no tiene una etapa pendiente de autorización."},409);
+    }
     const recipientId=stage==="rrhh"
       ?clean(r.rrhh_user_id??r.aprobador_user_id,80)
       :clean(r.aprobador_user_id,80);
