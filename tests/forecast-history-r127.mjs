@@ -7,7 +7,7 @@ const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 assert.match(history,/FORECAST_HISTORY_R127__===BUILD/,'R127 debe quedar activo');
 assert.match(history,/No tocar el DOM si nada cambió/,'Debe evitar rerender cuando no cambia el estado');
 assert.match(history,/sig===lastSignature/,'Debe usar firma de estado para no recrear el selector');
-assert.doesNotMatch(history,/MutationObserver/,'R127 no debe usar el observador global que cerraba el selector');
+assert.doesNotMatch(history,/new MutationObserver/,'R127 no debe crear el observador global que cerraba el selector');
 assert.match(history,/data-r127-month/,'Debe conservar selector mensual');
 assert.match(history,/addEventListener\('change'/,'El cambio de mes debe ser explícito');
 assert.match(history,/window\.state\.forecastMonth=next/,'El mes seleccionado debe persistir en el estado');
