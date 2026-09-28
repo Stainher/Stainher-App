@@ -1,18 +1,22 @@
-/* Stainher App V15.24 · R120 · Equipos: lista / fichas
+/* Stainher App V15.24 · R131 · Equipos: lista / fichas + acciones compactas
  * - Vista Lista como presentación inicial del módulo Equipos.
  * - Alternador Lista / Fichas sin alterar datos, permisos ni acciones existentes.
  * - La lista reutiliza las acciones ya renderizadas en cada ficha, preservando CRUD y RLS.
+ * - R131 unifica Detalle / Editar y agrupa acciones destructivas bajo "Gestionar".
+ * - Evita botones apilados y mantiene la misma jerarquía visual en Lista y Fichas.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_EQUIPMENT_VIEW_VERSION__==='R120')return;
-  window.__STAINHER_EQUIPMENT_VIEW_VERSION__='R120';
+  if(window.__STAINHER_EQUIPMENT_VIEW_VERSION__==='R131')return;
+  window.__STAINHER_EQUIPMENT_VIEW_VERSION__='R131';
 
   const PAGE_ID='page-equipos';
   const STYLE_ID='stainher-equipment-view-r120-style';
   const TOOLBAR_CLASS='stainher-equipment-view-toolbar-r120';
   const LIST_CLASS='stainher-equipment-list-r120';
   const GRID_MARKER='stainher-equipment-card-grid-r120';
+  const ACTION_BAR='stainher-equipment-actionbar-r131';
+  const SOURCE_ACTIONS='stainher-equipment-source-actions-r131';
 
   const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
   const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
@@ -72,7 +76,7 @@
       #${PAGE_ID} .stainher-equipment-list-head-r120,
       #${PAGE_ID} .stainher-equipment-list-row-r120{
         display:grid!important;
-        grid-template-columns:minmax(170px,1.3fr) minmax(115px,.8fr) minmax(150px,1fr) minmax(155px,1fr) minmax(135px,.9fr) minmax(90px,.6fr) minmax(240px,1.45fr)!important;
+        grid-template-columns:minmax(170px,1.3fr) minmax(115px,.8fr) minmax(150px,1fr) minmax(155px,1fr) minmax(135px,.9fr) minmax(90px,.6fr) minmax(210px,1.2fr)!important;
         gap:12px!important;
         align-items:center!important;
       }
@@ -143,14 +147,104 @@
       }
       #${PAGE_ID} .stainher-equipment-list-actions-r120{
         display:flex!important;
-        flex-wrap:wrap!important;
-        gap:7px!important;
+        flex-wrap:nowrap!important;
+        gap:6px!important;
         justify-content:flex-end!important;
+        align-items:center!important;
+        min-width:0!important;
       }
-      #${PAGE_ID} .stainher-equipment-list-actions-r120 .btn{
-        min-height:36px!important;
-        padding:7px 10px!important;
+      #${PAGE_ID} .${ACTION_BAR}{
+        display:flex!important;
+        flex-wrap:nowrap!important;
+        align-items:center!important;
+        justify-content:flex-end!important;
+        gap:6px!important;
+        width:100%!important;
+        min-width:0!important;
+      }
+      #${PAGE_ID} .equipment-card > .${ACTION_BAR}{
+        margin-top:13px!important;
+        padding-top:12px!important;
+        border-top:1px solid var(--line,#2b3645)!important;
+      }
+      #${PAGE_ID} .${SOURCE_ACTIONS}{
+        display:none!important;
+      }
+      #${PAGE_ID} [data-r131-source-action="1"]{
+        display:none!important;
+      }
+      #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-action-r131,
+      #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-manage-r131{
+        min-height:34px!important;
+        height:34px!important;
+        padding:6px 10px!important;
+        border-radius:8px!important;
         white-space:nowrap!important;
+        font-size:12px!important;
+        font-weight:650!important;
+        line-height:1!important;
+      }
+      #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-detail-r131{
+        background:rgba(59,130,246,.16)!important;
+        border-color:rgba(96,165,250,.45)!important;
+        color:#bfdbfe!important;
+      }
+      #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-edit-r131{
+        background:rgba(249,115,22,.12)!important;
+        border-color:rgba(251,146,60,.42)!important;
+        color:#fed7aa!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-wrap-r131{
+        position:relative!important;
+        flex:0 0 auto!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-wrap-r131 > summary{
+        list-style:none!important;
+        user-select:none!important;
+        display:inline-flex!important;
+        align-items:center!important;
+        gap:5px!important;
+        cursor:pointer!important;
+        background:var(--panel2,#16212d)!important;
+        border:1px solid var(--line,#3a4655)!important;
+        color:var(--text,#f5f7fa)!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-wrap-r131 > summary::-webkit-details-marker{
+        display:none!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-wrap-r131[open] > summary{
+        border-color:rgba(148,163,184,.62)!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-menu-r131{
+        position:absolute!important;
+        z-index:40!important;
+        top:calc(100% + 6px)!important;
+        right:0!important;
+        width:max-content!important;
+        min-width:205px!important;
+        max-width:min(280px,80vw)!important;
+        display:grid!important;
+        gap:4px!important;
+        padding:6px!important;
+        border:1px solid var(--line,#334155)!important;
+        border-radius:10px!important;
+        background:var(--panel,#111922)!important;
+        box-shadow:0 14px 34px rgba(0,0,0,.34)!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-menu-r131 button{
+        width:100%!important;
+        min-height:34px!important;
+        padding:7px 9px!important;
+        border:0!important;
+        border-radius:7px!important;
+        background:transparent!important;
+        color:#fda4af!important;
+        text-align:left!important;
+        font-size:12px!important;
+        white-space:normal!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-menu-r131 button:hover{
+        background:rgba(244,63,94,.12)!important;
       }
 
       #${PAGE_ID}[data-stainher-equipment-view="list"] .${GRID_MARKER}{
@@ -213,6 +307,18 @@
         #${PAGE_ID} .stainher-equipment-list-actions-r120{
           justify-content:flex-start!important;
           padding-top:4px!important;
+          overflow:visible!important;
+        }
+        #${PAGE_ID} .${ACTION_BAR}{
+          justify-content:flex-start!important;
+          flex-wrap:wrap!important;
+        }
+        #${PAGE_ID} .stainher-equipment-manage-wrap-r131{
+          position:static!important;
+        }
+        #${PAGE_ID} .stainher-equipment-manage-menu-r131{
+          left:0!important;
+          right:auto!important;
         }
       }
     `;
@@ -250,24 +356,111 @@
     return match?.[0]||'Plan preventivo';
   }
 
-  function proxyActions(card){
-    const actions=[...card.querySelectorAll('button')].filter(btn=>{
+  function actionKind(label){
+    const value=norm(label);
+    if(/eliminar|dar de baja|retirar/.test(value))return 'danger';
+    if(/editar/.test(value))return 'edit';
+    if(/detalle|ver ficha|ver detalle/.test(value))return 'detail';
+    return 'other';
+  }
+
+  function sourceActionButtons(card){
+    return [...card.querySelectorAll('button')].filter(btn=>{
+      if(btn.closest('.'+ACTION_BAR))return false;
       const label=clean(btn.textContent||'');
       return label&&!btn.disabled&&!/nuevo equipo/i.test(label);
     });
-    return actions.map((button,index)=>{
-      const clone=document.createElement('button');
-      clone.type='button';
-      clone.className=button.className||'btn';
-      clone.textContent=clean(button.textContent||'Acción');
-      clone.dataset.r120Proxy=String(index);
-      clone.addEventListener('click',event=>{
-        event.preventDefault();
-        event.stopPropagation();
-        button.click();
-      });
-      return clone;
+  }
+
+  function actionLabel(button){
+    const label=clean(button.textContent||'Acción');
+    if(norm(label)==='retirar')return 'Retirar · conservar historial';
+    return label;
+  }
+
+  function proxyButton(button,kind){
+    const clone=document.createElement('button');
+    clone.type='button';
+    clone.className='btn stainher-equipment-action-r131 '+(
+      kind==='detail'?'stainher-equipment-detail-r131':
+      kind==='edit'?'stainher-equipment-edit-r131':''
+    );
+    clone.textContent=kind==='detail'?'Detalle':kind==='edit'?'Editar':actionLabel(button);
+    clone.dataset.r131Action=kind;
+    clone.addEventListener('click',event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      button.click();
     });
+    return clone;
+  }
+
+  function buildActionGroup(buttons){
+    const group=document.createElement('div');
+    group.className=ACTION_BAR;
+
+    const buckets={detail:[],edit:[],danger:[],other:[]};
+    buttons.forEach(button=>buckets[actionKind(button.textContent)].push(button));
+
+    if(buckets.detail[0])group.appendChild(proxyButton(buckets.detail[0],'detail'));
+    if(buckets.edit[0])group.appendChild(proxyButton(buckets.edit[0],'edit'));
+    buckets.other.forEach(button=>group.appendChild(proxyButton(button,'other')));
+
+    if(buckets.danger.length){
+      const details=document.createElement('details');
+      details.className='stainher-equipment-manage-wrap-r131';
+      const summary=document.createElement('summary');
+      summary.className='btn stainher-equipment-manage-r131';
+      summary.textContent='Gestionar ▾';
+      const menu=document.createElement('div');
+      menu.className='stainher-equipment-manage-menu-r131';
+
+      buckets.danger.forEach(button=>{
+        const action=document.createElement('button');
+        action.type='button';
+        action.textContent=actionLabel(button);
+        action.addEventListener('click',event=>{
+          event.preventDefault();
+          event.stopPropagation();
+          details.open=false;
+          button.click();
+        });
+        menu.appendChild(action);
+      });
+      details.append(summary,menu);
+      group.appendChild(details);
+    }
+    return group;
+  }
+
+  function markSourceContainers(card,buttons){
+    buttons.forEach(button=>{
+      const container=button.closest('.actions,.stainher-crud-actions');
+      if(container&&card.contains(container)){
+        container.classList.add(SOURCE_ACTIONS);
+      }else{
+        button.dataset.r131SourceAction='1';
+      }
+    });
+  }
+
+  function organizeCardActions(card){
+    const buttons=sourceActionButtons(card);
+    if(!buttons.length)return;
+
+    markSourceContainers(card,buttons);
+    const signature=buttons.map(button=>clean(button.textContent||'')).join('|');
+    const current=card.querySelector(':scope > .'+ACTION_BAR);
+    if(current?.dataset.r131Signature===signature)return;
+
+    current?.remove();
+    const group=buildActionGroup(buttons);
+    group.dataset.r131Signature=signature;
+    card.appendChild(group);
+  }
+
+  function proxyActions(card){
+    return buildActionGroup(sourceActionButtons(card));
   }
 
   function cell(label,col){
@@ -324,7 +517,8 @@
     const actions=document.createElement('div');
     actions.className='stainher-equipment-list-actions-r120';
     actions.dataset.r120Col='acciones';
-    proxyActions(card).forEach(button=>actions.appendChild(button));
+    const group=proxyActions(card);
+    if(group.children.length)actions.appendChild(group);
 
     row.append(primary,type,maker,plan,criticality,status,actions);
     return row;
@@ -383,8 +577,13 @@
       mountStyle();
       grid.classList.add(GRID_MARKER);
       ensureToolbar(root,grid);
+      cards.forEach(organizeCardActions);
 
-      const signature=cards.map(card=>clean(card.textContent||'')).join('||');
+      const signature=cards.map(card=>[
+        clean(card.querySelector('h1,h2,h3,h4')?.textContent||''),
+        sourceActionButtons(card).map(button=>clean(button.textContent||'')).join('|'),
+        clean(card.textContent||'')
+      ].join('::')).join('||');
       const oldList=root.querySelector('.'+LIST_CLASS);
       if(!oldList||oldList.dataset.r120Signature!==signature){
         const nextList=buildList(cards);
@@ -420,5 +619,6 @@
   }
 
   window.StainherEquipmentViewR120={install,enhance,setView};
+  window.StainherEquipmentViewR131={install,enhance,setView,organizeCardActions};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
