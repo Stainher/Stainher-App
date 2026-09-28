@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R134 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R135 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R134')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R135')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R134';
+  window.__STAINHER_HP_LOADER_VERSION__='R135';
 
-  const BUILD='20260928-r134-request-approver-email';
+  const BUILD='20260928-r135-request-approver-routing';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -207,6 +207,16 @@
     }
   }
 
+  async function refreshRequestApproverR135(){
+    try{
+      await load('stainher-request-approver-runtime-r135','stainher-v1524-request-approver-r135.js');
+      window.StainherRequestApproverR135?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:request-approver-r135-ready'));
+    }catch(error){
+      console.error('[Stainher Solicitudes R135]',error);
+    }
+  }
+
   async function refresh(){
     try{
       await load('stainher-weekly-hp-runtime-r117','stainher-v1524-weekly-hp-report.js');
@@ -253,7 +263,7 @@
   window.StainherHPR108={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107};
   window.StainherHPR109={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
   window.StainherHPR110={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
-  const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109,refreshCorrectivoHistoryR118,refreshReliabilityActionsR119,refreshEquipmentViewR132,refreshSolicitudesViewR133};
+  const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109,refreshCorrectivoHistoryR118,refreshReliabilityActionsR119,refreshEquipmentViewR132,refreshSolicitudesViewR133,refreshRequestApproverR135};
   window.StainherHPR111=api;
   window.StainherHPR112=api;
   window.StainherHPR115=api;
@@ -274,8 +284,9 @@
   window.StainherHPR132=api;
   window.StainherHPR133=api;
   window.StainherHPR134=api;
+  window.StainherHPR135=api;
 
-  async function bootstrapR134(){
+  async function bootstrapR135(){
     await refreshAccessR107();
     await refreshBudgets();
     await refreshContractForecast();
@@ -289,6 +300,7 @@
     await refreshCorrectivoHistoryR118();
     await refreshEquipmentViewR132();
     await refreshSolicitudesViewR133();
+    await refreshRequestApproverR135();
     await refresh();
     window.dispatchEvent(new CustomEvent('stainher:runtime-r112-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r115-ready'));
@@ -309,25 +321,27 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r132-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r133-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r134-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r135-ready'));
   }
-  api.bootstrapR112=bootstrapR134;
-  api.bootstrapR115=bootstrapR134;
-  api.bootstrapR116=bootstrapR134;
-  api.bootstrapR117=bootstrapR134;
-  api.bootstrapR118=bootstrapR134;
-  api.bootstrapR119=bootstrapR134;
-  api.bootstrapR120=bootstrapR134;
-  api.bootstrapR121=bootstrapR134;
-  api.bootstrapR122=bootstrapR134;
-  api.bootstrapR123=bootstrapR134;
-  api.bootstrapR124=bootstrapR134;
-  api.bootstrapR125=bootstrapR134;
-  api.bootstrapR126=bootstrapR134;
-  api.bootstrapR127=bootstrapR134;
-  api.bootstrapR128=bootstrapR134;
-  api.bootstrapR131=bootstrapR134;
-  api.bootstrapR132=bootstrapR134;
-  api.bootstrapR133=bootstrapR134;
-  api.bootstrapR134=bootstrapR134;
-  bootstrapR134().catch(error=>console.error('[Stainher Runtime R134]',error));
+  api.bootstrapR112=bootstrapR135;
+  api.bootstrapR115=bootstrapR135;
+  api.bootstrapR116=bootstrapR135;
+  api.bootstrapR117=bootstrapR135;
+  api.bootstrapR118=bootstrapR135;
+  api.bootstrapR119=bootstrapR135;
+  api.bootstrapR120=bootstrapR135;
+  api.bootstrapR121=bootstrapR135;
+  api.bootstrapR122=bootstrapR135;
+  api.bootstrapR123=bootstrapR135;
+  api.bootstrapR124=bootstrapR135;
+  api.bootstrapR125=bootstrapR135;
+  api.bootstrapR126=bootstrapR135;
+  api.bootstrapR127=bootstrapR135;
+  api.bootstrapR128=bootstrapR135;
+  api.bootstrapR131=bootstrapR135;
+  api.bootstrapR132=bootstrapR135;
+  api.bootstrapR133=bootstrapR135;
+  api.bootstrapR134=bootstrapR135;
+  api.bootstrapR135=bootstrapR135;
+  bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();
