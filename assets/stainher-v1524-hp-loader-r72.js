@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R133 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R134 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R133')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R134')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R133';
+  window.__STAINHER_HP_LOADER_VERSION__='R134';
 
-  const BUILD='20260928-r133-solicitudes-compact-expanded';
+  const BUILD='20260928-r134-request-approver-email';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -273,8 +273,9 @@
   window.StainherHPR131=api;
   window.StainherHPR132=api;
   window.StainherHPR133=api;
+  window.StainherHPR134=api;
 
-  async function bootstrapR133(){
+  async function bootstrapR134(){
     await refreshAccessR107();
     await refreshBudgets();
     await refreshContractForecast();
@@ -307,24 +308,26 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r131-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r132-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r133-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r134-ready'));
   }
-  api.bootstrapR112=bootstrapR133;
-  api.bootstrapR115=bootstrapR133;
-  api.bootstrapR116=bootstrapR133;
-  api.bootstrapR117=bootstrapR133;
-  api.bootstrapR118=bootstrapR133;
-  api.bootstrapR119=bootstrapR133;
-  api.bootstrapR120=bootstrapR133;
-  api.bootstrapR121=bootstrapR133;
-  api.bootstrapR122=bootstrapR133;
-  api.bootstrapR123=bootstrapR133;
-  api.bootstrapR124=bootstrapR133;
-  api.bootstrapR125=bootstrapR133;
-  api.bootstrapR126=bootstrapR133;
-  api.bootstrapR127=bootstrapR133;
-  api.bootstrapR128=bootstrapR133;
-  api.bootstrapR131=bootstrapR133;
-  api.bootstrapR132=bootstrapR133;
-  api.bootstrapR133=bootstrapR133;
-  bootstrapR133().catch(error=>console.error('[Stainher Runtime R133]',error));
+  api.bootstrapR112=bootstrapR134;
+  api.bootstrapR115=bootstrapR134;
+  api.bootstrapR116=bootstrapR134;
+  api.bootstrapR117=bootstrapR134;
+  api.bootstrapR118=bootstrapR134;
+  api.bootstrapR119=bootstrapR134;
+  api.bootstrapR120=bootstrapR134;
+  api.bootstrapR121=bootstrapR134;
+  api.bootstrapR122=bootstrapR134;
+  api.bootstrapR123=bootstrapR134;
+  api.bootstrapR124=bootstrapR134;
+  api.bootstrapR125=bootstrapR134;
+  api.bootstrapR126=bootstrapR134;
+  api.bootstrapR127=bootstrapR134;
+  api.bootstrapR128=bootstrapR134;
+  api.bootstrapR131=bootstrapR134;
+  api.bootstrapR132=bootstrapR134;
+  api.bootstrapR133=bootstrapR134;
+  api.bootstrapR134=bootstrapR134;
+  bootstrapR134().catch(error=>console.error('[Stainher Runtime R134]',error));
 })();
