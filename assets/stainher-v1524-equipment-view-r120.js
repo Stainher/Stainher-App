@@ -1,14 +1,15 @@
-/* Stainher App V15.24 · R131 · Equipos: lista / fichas + acciones compactas
+/* Stainher App V15.24 · R132 · Equipos: acciones compactas responsivas
  * - Vista Lista como presentación inicial del módulo Equipos.
  * - Alternador Lista / Fichas sin alterar datos, permisos ni acciones existentes.
  * - La lista reutiliza las acciones ya renderizadas en cada ficha, preservando CRUD y RLS.
  * - R131 unifica Detalle / Editar y agrupa acciones destructivas bajo "Gestionar".
- * - Evita botones apilados y mantiene la misma jerarquía visual en Lista y Fichas.
+ * - R132 evita recorte/desborde de texto al cambiar zoom o tamaño de ventana.
+ * - Mantiene acciones en una sola línea en escritorio y adapta el layout antes de comprimir botones.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_EQUIPMENT_VIEW_VERSION__==='R131')return;
-  window.__STAINHER_EQUIPMENT_VIEW_VERSION__='R131';
+  if(window.__STAINHER_EQUIPMENT_VIEW_VERSION__==='R132')return;
+  window.__STAINHER_EQUIPMENT_VIEW_VERSION__='R132';
 
   const PAGE_ID='page-equipos';
   const STYLE_ID='stainher-equipment-view-r120-style';
@@ -76,7 +77,7 @@
       #${PAGE_ID} .stainher-equipment-list-head-r120,
       #${PAGE_ID} .stainher-equipment-list-row-r120{
         display:grid!important;
-        grid-template-columns:minmax(170px,1.3fr) minmax(115px,.8fr) minmax(150px,1fr) minmax(155px,1fr) minmax(135px,.9fr) minmax(90px,.6fr) minmax(210px,1.2fr)!important;
+        grid-template-columns:minmax(180px,1.3fr) minmax(105px,.72fr) minmax(145px,.95fr) minmax(175px,1.02fr) minmax(110px,.72fr) minmax(80px,.55fr) minmax(255px,1.35fr)!important;
         gap:12px!important;
         align-items:center!important;
       }
@@ -151,7 +152,8 @@
         gap:6px!important;
         justify-content:flex-end!important;
         align-items:center!important;
-        min-width:0!important;
+        min-width:255px!important;
+        overflow:visible!important;
       }
       #${PAGE_ID} .${ACTION_BAR}{
         display:flex!important;
@@ -159,8 +161,11 @@
         align-items:center!important;
         justify-content:flex-end!important;
         gap:6px!important;
-        width:100%!important;
-        min-width:0!important;
+        width:max-content!important;
+        min-width:max-content!important;
+        max-width:none!important;
+        flex:0 0 auto!important;
+        overflow:visible!important;
       }
       #${PAGE_ID} .equipment-card > .${ACTION_BAR}{
         margin-top:13px!important;
@@ -177,13 +182,23 @@
       #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-manage-r131{
         min-height:34px!important;
         height:34px!important;
+        width:auto!important;
+        min-width:max-content!important;
+        max-width:none!important;
+        flex:0 0 auto!important;
         padding:6px 10px!important;
         border-radius:8px!important;
         white-space:nowrap!important;
+        overflow:visible!important;
+        text-overflow:clip!important;
+        box-sizing:border-box!important;
         font-size:12px!important;
         font-weight:650!important;
         line-height:1!important;
       }
+      #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-detail-r131{min-width:62px!important}
+      #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-edit-r131{min-width:54px!important}
+      #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-manage-r131{min-width:98px!important}
       #${PAGE_ID} .${ACTION_BAR} .stainher-equipment-detail-r131{
         background:rgba(59,130,246,.16)!important;
         border-color:rgba(96,165,250,.45)!important;
@@ -211,6 +226,16 @@
       }
       #${PAGE_ID} .stainher-equipment-manage-wrap-r131 > summary::-webkit-details-marker{
         display:none!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-wrap-r131 > summary::marker{
+        content:''!important;
+        display:none!important;
+      }
+      #${PAGE_ID} .stainher-equipment-manage-wrap-r131 > summary::after{
+        content:'▾'!important;
+        margin-left:2px!important;
+        font-size:10px!important;
+        opacity:.8!important;
       }
       #${PAGE_ID} .stainher-equipment-manage-wrap-r131[open] > summary{
         border-color:rgba(148,163,184,.62)!important;
@@ -275,10 +300,10 @@
         background:#1769c2!important;color:#fff!important;border-color:#1769c2!important;
       }
 
-      @media(max-width:1180px){
+      @media(max-width:1360px){
         #${PAGE_ID} .stainher-equipment-list-head-r120{display:none!important}
         #${PAGE_ID} .stainher-equipment-list-row-r120{
-          grid-template-columns:minmax(190px,1.4fr) minmax(140px,1fr) minmax(140px,1fr) minmax(230px,1.4fr)!important;
+          grid-template-columns:minmax(190px,1.35fr) minmax(150px,1fr) minmax(140px,.9fr) minmax(255px,1.45fr)!important;
         }
         #${PAGE_ID} .stainher-equipment-list-cell-r120[data-r120-col="tipo"],
         #${PAGE_ID} .stainher-equipment-list-cell-r120[data-r120-col="estado"]{
@@ -307,11 +332,15 @@
         #${PAGE_ID} .stainher-equipment-list-actions-r120{
           justify-content:flex-start!important;
           padding-top:4px!important;
+          min-width:0!important;
           overflow:visible!important;
         }
         #${PAGE_ID} .${ACTION_BAR}{
           justify-content:flex-start!important;
           flex-wrap:wrap!important;
+          width:auto!important;
+          min-width:0!important;
+          max-width:100%!important;
         }
         #${PAGE_ID} .stainher-equipment-manage-wrap-r131{
           position:static!important;
@@ -411,7 +440,7 @@
       details.className='stainher-equipment-manage-wrap-r131';
       const summary=document.createElement('summary');
       summary.className='btn stainher-equipment-manage-r131';
-      summary.textContent='Gestionar ▾';
+      summary.textContent='Gestionar';
       const menu=document.createElement('div');
       menu.className='stainher-equipment-manage-menu-r131';
 
@@ -620,5 +649,6 @@
 
   window.StainherEquipmentViewR120={install,enhance,setView};
   window.StainherEquipmentViewR131={install,enhance,setView,organizeCardActions};
+  window.StainherEquipmentViewR132={install,enhance,setView,organizeCardActions};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
