@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const BUILD='20260908-d22-r21-justificativo-historico-nombres';
+  const BUILD='20260928-r129-justificativo-post-emit-edit';
   const LEGAL_REPRESENTATIVE={name:'Luis Poblete López',role:'Representante Legal'};
   const MODULE_URL=document.currentScript?.src||location.href;
   const LEGAL_SIGNATURE_URL=new URL('assets/firma-timbre-luis-poblete.png',MODULE_URL).href+`?build=${BUILD}`;
@@ -9,6 +9,12 @@
   const isJust=x=>x?.tipo==='justificativo';
   const role=()=>String(window.v11Role?.()||window.state?.profile?.rol||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
   const canRequestJustification=()=>['tecnico','supervisor'].includes(role())||/^(tecnico|supervisor)(?:_|\b)/.test(role());
+  const canEditIssuedJustification=x=>{
+    const r=role();
+    if(r==='administrador')return true;
+    if(r!=='recursos_humanos')return false;
+    return String(x?.rrhh_user_id||'')===String(window.state?.session?.user?.id||'');
+  };
   const row=id=>(window.state?.v154Requests||[]).find(x=>String(x.id)===String(id));
   const safe=v=>window.esc?window.esc(String(v??'')):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const date=v=>window.fmtDateCL?.(v)||v||'—';
@@ -76,7 +82,7 @@
     if(!isJust(x))return baseActions?.(x)||'';
     const assigned=String(x.rrhh_user_id||'')===String(window.state?.session?.user?.id||'');let html='';
     if(x.estado==='pendiente_rrhh'&&x.etapa==='rrhh'&&role()==='recursos_humanos'&&assigned)html=`<button class="btn primary" onclick="v1524OpenJustificationVisa('${x.id}')">Revisar y visar</button><button class="btn" onclick="v1524RejectJustification('${x.id}')">Rechazar</button>`;
-    if(x.estado==='aprobada')html+=`<button class="btn" onclick="v1524DownloadJustification('${x.id}')">Descargar PDF</button>`;
+    if(x.estado==='aprobada'){if(canEditIssuedJustification(x))html+=`<button class="btn" onclick="v1524EditIssuedJustification('${x.id}')">Editar justificativo</button>`;html+=`<button class="btn" onclick="v1524DownloadJustification('${x.id}')">Descargar PDF</button>`;}
     return html;
   };
 
@@ -91,6 +97,38 @@
     document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Revisar justificativo laboral</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><form id="v1524JustVisaForm" class="form-grid"><div class="full notice warn"><b>Antecedente interno para conocimiento de RR.HH.</b><br>${safe(internalBackground)}<br><small>Este antecedente no se incluirá en la vista final ni en el PDF.</small></div><label class="full">Institución destinataria<input class="field" name="institucion" maxlength="180" value="${safe(draft.justificativo_institucion||'')}"></label><label class="full">Texto del certificado<textarea class="field" name="cuerpo" maxlength="4000" rows="7" required>${safe(draft.justificativo_cuerpo)}</textarea></label><div class="full"><div class="row-between"><h4>Vista preliminar del documento final</h4><small class="muted">Se actualiza mientras editas</small></div><div class="v1524-letter-preview" data-just-preview>${letterPreview(draft)}</div></div><div class="full notice">Al visar, se guardará este texto y el documento quedará emitido con la firma institucional de ${safe(LEGAL_REPRESENTATIVE.name)}, ${safe(LEGAL_REPRESENTATIVE.role)}.</div><div class="full"><button class="btn primary" type="submit">Visar y emitir PDF</button></div></form></div></div>`;
     const form=document.getElementById('v1524JustVisaForm'),refresh=()=>{draft.justificativo_institucion=form.institucion.value.trim();draft.justificativo_cuerpo=form.cuerpo.value.trim();form.querySelector('[data-just-preview]').innerHTML=letterPreview(draft)};form.institucion.addEventListener('input',refresh);form.cuerpo.addEventListener('input',refresh);
     form.onsubmit=async event=>{event.preventDefault();refresh();if(draft.justificativo_institucion.length<2)return window.toast?.('Indica la institución destinataria.','error');if(draft.justificativo_cuerpo.length<80)return window.toast?.('El texto del certificado debe contener al menos 80 caracteres.','error');const button=event.currentTarget.querySelector('[type="submit"]');button.disabled=true;button.textContent='Incorporando firma…';try{await preloadLegalSignature();button.textContent='Emitiendo PDF…';const q=await window.sb.rpc('editar_y_resolver_justificativo_v1524',{p_id:String(id),p_accion:'visar',p_motivo:null,p_institucion:draft.justificativo_institucion,p_cuerpo:draft.justificativo_cuerpo});if(q.error)throw q.error;Object.assign(x,draft,{estado:'aprobada',justificativo_emitido_at:new Date().toISOString()});window.v1524BuildJustificationPdf(x).save(window.v1524JustificationFilename(x));window.closeModal?.();await window.renderSolicitudesV15?.();await window.v15LoadNotifications?.();window.toast?.('Justificativo visado y PDF emitido.','success')}catch(error){window.toast?.(error.message||String(error),'error');button.disabled=false;button.textContent='Visar y emitir PDF'}};
+  };
+  window.v1524EditIssuedJustification=function(id){
+    const x=row(id);
+    if(!x||!isJust(x)||x.estado!=='aprobada')return window.toast?.('El justificativo todavía no está emitido.','warn');
+    if(!canEditIssuedJustification(x))return window.toast?.('No tienes autorización para editar este justificativo emitido.','error');
+    const draft={...x,justificativo_cuerpo:letterText(x)};
+    document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Editar justificativo emitido</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><form id="v1524JustEditIssuedForm" class="form-grid"><div class="full notice warn"><b>Documento ya emitido.</b><br>Los cambios reemplazarán la versión disponible para descarga. El documento mantendrá su estado <b>Emitido</b> y la firma institucional del representante legal.</div><label class="full">Institución destinataria<input class="field" name="institucion" maxlength="180" value="${safe(draft.justificativo_institucion||'')}" required></label><label class="full">Texto del certificado<textarea class="field" name="cuerpo" maxlength="4000" rows="7" required>${safe(draft.justificativo_cuerpo)}</textarea></label><div class="full"><div class="row-between"><h4>Vista preliminar actualizada</h4><small class="muted">Se actualiza mientras editas</small></div><div class="v1524-letter-preview" data-just-preview>${letterPreview(draft)}</div></div><div class="full"><button class="btn primary" type="submit">Guardar cambios</button></div></form></div></div>`;
+    const form=document.getElementById('v1524JustEditIssuedForm');
+    const refresh=()=>{draft.justificativo_institucion=form.institucion.value.trim();draft.justificativo_cuerpo=form.cuerpo.value.trim();form.querySelector('[data-just-preview]').innerHTML=letterPreview(draft)};
+    form.institucion.addEventListener('input',refresh);
+    form.cuerpo.addEventListener('input',refresh);
+    form.onsubmit=async event=>{
+      event.preventDefault();refresh();
+      if(draft.justificativo_institucion.length<2)return window.toast?.('Indica la institución destinataria.','error');
+      if(draft.justificativo_cuerpo.length<80)return window.toast?.('El texto del certificado debe contener al menos 80 caracteres.','error');
+      const button=event.currentTarget.querySelector('[type="submit"]');
+      if(button?.disabled)return;
+      button.disabled=true;button.textContent='Guardando…';
+      try{
+        const q=await window.sb.rpc('editar_justificativo_emitido_v1524',{p_id:String(id),p_institucion:draft.justificativo_institucion,p_cuerpo:draft.justificativo_cuerpo});
+        if(q.error)throw q.error;
+        const now=new Date().toISOString();
+        Object.assign(x,draft,{justificativo_emitido_at:now,justificativo_editado_at:now,justificativo_editado_por:window.state?.session?.user?.id||null});
+        window.closeModal?.();
+        await window.renderSolicitudesV15?.();
+        await window.v15LoadNotifications?.();
+        window.toast?.('Justificativo actualizado. La próxima descarga utilizará la versión corregida.','success');
+      }catch(error){
+        window.toast?.('No se pudo actualizar el justificativo: '+(error.message||String(error)),'error');
+        if(button&&document.body.contains(button)){button.disabled=false;button.textContent='Guardar cambios'}
+      }
+    };
   };
   window.v1524RejectJustification=async function(id){const motive=prompt('Motivo del rechazo del justificativo:');if(motive===null)return;if(motive.trim().length<5)return window.toast?.('Indica un motivo de al menos 5 caracteres.','error');try{const q=await window.sb.rpc('resolver_justificativo_laboral_v1524',{p_id:String(id),p_accion:'rechazar',p_motivo:motive.trim(),p_firma:null});if(q.error)throw q.error;await window.renderSolicitudesV15?.();await window.v15LoadNotifications?.();window.toast?.('Justificativo rechazado y solicitante notificado.','success')}catch(error){window.toast?.(error.message||String(error),'error')}};
 
@@ -107,5 +145,5 @@
   const baseRender=window.renderSolicitudesV15;
   window.renderSolicitudesV15=async function(...args){const out=await baseRender?.(...args);const rows=window.state?.v154Requests||[],cards=[...document.querySelectorAll('#page-solicitudes .v152-request-card')];cards.forEach((card,index)=>{const x=rows[index];if(!isJust(x))return;card.classList.add('v1524-just-card');const wide=card.querySelector('.wide'),detail=document.createElement('div');detail.className='wide v1524-just-detail';detail.innerHTML=`<small>Destinatario del justificativo</small><b>${safe(x.justificativo_institucion||'—')}</b><span><b>Fecha a justificar:</b> ${safe(date(x.fecha_inicio))}</span>`;wide?.before(detail);wide?.classList.add('hidden')});return out};
 
-  preloadLegalSignature().catch(()=>{});installStyle();window.STAINHER_JUSTIFICATIVOS={build:BUILD,ready:true};
+  preloadLegalSignature().catch(()=>{});installStyle();window.STAINHER_JUSTIFICATIVOS={build:BUILD,ready:true,postEmitEdit:true};
 })();
