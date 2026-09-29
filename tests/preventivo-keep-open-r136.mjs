@@ -17,7 +17,7 @@ assert.match(state,/window\.renderPreventivo=wrapped/,'Debe envolver el render p
 assert.match(state,/current\.apply\(this,arguments\)/,'Debe conservar la implementación preventiva existente');
 assert.doesNotMatch(state,/\.from\(|\.rpc\(/,'R136 no debe escribir ni consultar datos por su cuenta');
 
-assert.match(loader,/HP_LOADER_VERSION__='R137'/,'Loader consolidado debe haber superado R136');
+assert.match(loader,/HP_LOADER_VERSION__='R138'/,'Loader consolidado debe haber superado R137');
 assert.match(loader,/refreshPreventivoStateR137/,'R137 debe reemplazar la carga activa de R136');
 assert.doesNotMatch(loader,/await refreshPreventivoStateR136\(\)/,'R136 no debe seguir ejecutándose junto a R137');
 assert.match(loader,/stainher:runtime-r136-ready/,'El evento histórico R136 se conserva por compatibilidad');
