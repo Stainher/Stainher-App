@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const BUILD='20260928-r130-justificativo-text-justify';
+  const BUILD='20260928-r134-request-approver-email';
   const LEGAL_REPRESENTATIVE={name:'Luis Poblete López',role:'Representante Legal'};
   const MODULE_URL=document.currentScript?.src||location.href;
   const LEGAL_SIGNATURE_URL=new URL('assets/firma-timbre-luis-poblete.png',MODULE_URL).href+`?build=${BUILD}`;
@@ -70,7 +70,8 @@
       const button=form.querySelector('[type="submit"]');if(button?.disabled)return;if(button){button.disabled=true;button.textContent='Enviando a RR.HH.…'}
       try{
         const q=await window.sb.rpc('crear_justificativo_firmado_v1524',{p_fecha:values.fecha_inicio,p_institucion:values.justificativo_institucion,p_motivo:null,p_texto:values.justificativo_texto||null,p_firma:null});if(q.error)throw q.error;
-        window.closeModal?.();await window.renderSolicitudesV15?.();await window.v15LoadNotifications?.();window.toast?.('Justificativo enviado directamente a Recursos Humanos.','success');
+        let mailError=null;try{await window.v1517SendRequestApprovalEmail?.(q.data?.id)}catch(emailError){mailError=emailError;console.warn('correo justificativo RRHH',emailError)}
+        window.closeModal?.();await window.renderSolicitudesV15?.();await window.v15LoadNotifications?.();window.toast?.(mailError?'Justificativo registrado para RR.HH.; no fue posible entregar el correo.':'Justificativo enviado a Recursos Humanos y notificado por correo.',mailError?'warn':'success');
       }catch(error){window.v1523RecordError?.('solicitudes/justificativo',error);window.toast?.('No se pudo enviar el justificativo: '+(error.message||String(error)),'error');if(button&&document.body.contains(button)){button.disabled=false;button.textContent='Enviar solicitud'}}
     };
     sync();return out;
@@ -154,5 +155,5 @@
   const baseRender=window.renderSolicitudesV15;
   window.renderSolicitudesV15=async function(...args){const out=await baseRender?.(...args);const rows=window.state?.v154Requests||[],cards=[...document.querySelectorAll('#page-solicitudes .v152-request-card')];cards.forEach((card,index)=>{const x=rows[index];if(!isJust(x))return;card.classList.add('v1524-just-card');const wide=card.querySelector('.wide'),detail=document.createElement('div');detail.className='wide v1524-just-detail';detail.innerHTML=`<small>Destinatario del justificativo</small><b>${safe(x.justificativo_institucion||'—')}</b><span><b>Fecha a justificar:</b> ${safe(date(x.fecha_inicio))}</span>`;wide?.before(detail);wide?.classList.add('hidden')});return out};
 
-  preloadLegalSignature().catch(()=>{});installStyle();window.STAINHER_JUSTIFICATIVOS={build:BUILD,ready:true,postEmitEdit:true,justifiedText:true};
+  preloadLegalSignature().catch(()=>{});installStyle();window.STAINHER_JUSTIFICATIVOS={build:BUILD,ready:true,postEmitEdit:true,justifiedText:true,approverEmail:true};
 })();

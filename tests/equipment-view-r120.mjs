@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const view=fs.readFileSync('assets/stainher-v1524-equipment-view-r120.js','utf8');
 const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 
-assert.match(view,/EQUIPMENT_VIEW_VERSION__='R131'/,'R131 debe conservar la vista Lista/Fichas de Equipos');
+assert.match(view,/EQUIPMENT_VIEW_VERSION__='R132'/,'R132 debe conservar la vista Lista/Fichas de Equipos');
 assert.match(view,/data-stainher-equipment-view="list"/,'Debe existir la regla visual para Lista');
 assert.match(view,/data-stainher-equipment-view="cards"/,'Debe existir la regla visual para Fichas');
 assert.match(view,/if\(!root\.dataset\.stainherEquipmentView\)root\.dataset\.stainherEquipmentView='list'/,'Lista debe ser la vista inicial por defecto');
@@ -20,8 +20,8 @@ assert.match(view,/grid-template-columns/,'La lista debe alinear sus columnas');
 assert.match(view,/@media\(max-width:760px\)/,'Debe existir adaptación móvil');
 assert.match(view,/if\(installed\)return;installed=true/,'El módulo no debe instalar observadores duplicados');
 
-assert.match(loader,/HP_LOADER_VERSION__='R131'/,'El cargador consolidado debe conservar Lista/Fichas dentro de R131');
-assert.match(loader,/refreshEquipmentViewR131/,'El bootstrap debe cargar la vista optimizada de Equipos');
+assert.match(loader,/HP_LOADER_VERSION__='R135'/,'El cargador R135 debe conservar Lista/Fichas de Equipos R132');
+assert.match(loader,/refreshEquipmentViewR132/,'El bootstrap debe cargar la vista optimizada de Equipos');
 assert.match(loader,/stainher-v1524-equipment-view-r120\.js/,'El cargador debe cargar el módulo R120');
 assert.match(loader,/refreshReliabilityActionsR119/,'R119 debe conservarse');
 assert.match(loader,/refreshCorrectivoHistoryR118/,'R118 debe conservarse');

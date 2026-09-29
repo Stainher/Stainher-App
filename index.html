@@ -161,7 +161,7 @@ window.STAINHER_BUILD = '20260907-d20-r19-restauracion-funcional-integral';
       {id:'stainher-v1524-runtime-audit-d20-script',src:'stainher-v1524-runtime-audit.js?build=20260924-r112-loader-consolidation',domain:'diagnostico'},
       {id:'stainher-reliability-charts-dark-r19-d20-script',src:'stainher-reliability-charts-dark-r19.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'confiabilidad-graficos'},
       {id:'stainher-v1524-signature-upload-d20-script',src:'stainher-v1524-signature-upload.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'firmas'},
-      {id:'stainher-justificativos-r19-d20-script',src:'../stainher-justificativos-r19.js?build=20260928-r130-justificativo-text-justify',domain:'justificativos'},
+      {id:'stainher-justificativos-r19-d20-script',src:'../stainher-justificativos-r19.js?build=20260928-r134-request-approver-email',domain:'justificativos'},
       {id:'stainher-permiso-no-remunerado-r23-script',src:'stainher-permiso-no-remunerado-r23.js?build=20260909-r27-modal-freeze',domain:'solicitudes'}
   ]);
   const status={state:'idle',loaded:[],failed:null,startedAt:null,finishedAt:null};
@@ -9634,6 +9634,13 @@ async function v1517CreateOwnRequest(o){
   const q=await sb.rpc('crear_solicitud_propia_v1517',{p_tipo:o.tipo,p_fecha_inicio:o.fecha_inicio||null,p_fecha_fin:o.fecha_fin||null,p_comentario:o.comentario||null,p_firma_solicitante:o.firma_solicitante||null});
   if(q.error)throw q.error;return q.data;
 }
+async function v1517SendRequestApprovalEmail(id){
+  if(!id)throw new Error('La solicitud no tiene identificador para notificar por correo.');
+  const {data,error}=await sb.functions.invoke('send-request-approval-email',{body:{request_id:String(id)}});
+  if(error||data?.error)throw new Error(data?.error||error?.message||'No se pudo enviar el correo al autorizador.');
+  return data||{ok:true};
+}
+window.v1517SendRequestApprovalEmail=v1517SendRequestApprovalEmail;
 
 v154RequestModal=function(){
   if(!state.session)return toast('Debes iniciar sesión para crear una solicitud.','error');
@@ -9642,7 +9649,7 @@ v154RequestModal=function(){
   document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Nueva solicitud</h3><button class="btn" onclick="closeModal()">Cerrar</button></div>${preview?'<div class="notice warn">Estás simulando otro perfil. Para guardar debes iniciar sesión con ese usuario real.</div>':'<div class="notice">La solicitud será enviada automáticamente al aprobador jerárquico correspondiente.</div>'}<form id="v1517RequestForm" class="form-grid"><label class="full">Tipo<select class="field" name="tipo" required><option value="">Seleccionar</option><option value="vacaciones">Vacaciones</option><option value="permiso">Permiso / ausencia</option><option value="cambio_turno">Cambio puntual de turno</option><option value="otro">Otra solicitud</option></select></label><label data-v1517-date>Desde<input class="field" data-v1514-date name="fecha_inicio" type="date" min="${today}" required></label><label data-v1517-date>Hasta<input class="field" data-v1514-date name="fecha_fin" type="date" min="${today}" required></label><label class="full">Motivo / comentario<textarea class="field" name="comentario" rows="4" required placeholder="Describe claramente lo que necesitas."></textarea></label><div id="v1517VacationSignature" class="full v154-signature-box hidden"><h4>Firma del solicitante</h4><canvas id="v1517RequestSig" class="v12-signature" width="1000" height="220"></canvas><div class="v154-signature-state">Firma pendiente</div></div><div id="v1517OtherHint" class="full notice hidden"><b>Otra solicitud:</b> puede corresponder a materiales, repuestos, herramientas, apoyo u otra necesidad laboral y no requiere un rango de fechas.</div><div class="full"><button class="btn primary">Enviar solicitud</button></div></form></div></div>`;
   const f=document.getElementById('v1517RequestForm'),sigBox=document.getElementById('v1517VacationSignature'),hint=document.getElementById('v1517OtherHint'),dateLabels=[...f.querySelectorAll('[data-v1517-date]')];v1514InstallDatePickers?.(f);
   const sync=()=>{const vac=f.tipo.value==='vacaciones',other=f.tipo.value==='otro';sigBox.classList.toggle('hidden',!vac);hint.classList.toggle('hidden',!other);dateLabels.forEach(l=>l.classList.toggle('hidden',other));[f.fecha_inicio,f.fecha_fin].forEach(i=>{i.required=!other;if(other)i.value='' });if(vac){v12SetupSig('v1517RequestSig');v154InstallSignatureFullscreen?.('v1517RequestSig','Firma solicitud de vacaciones')}};f.tipo.onchange=sync;
-  f.onsubmit=async e=>{e.preventDefault();if(preview)return toast('Modo simulación: inicia sesión con el perfil real para guardar.','warn');const o=Object.fromEntries(new FormData(f));if(o.tipo!=='otro'&&(!o.fecha_inicio||!o.fecha_fin||o.fecha_inicio>o.fecha_fin))return toast('El rango de fechas no es válido.','error');if(o.tipo==='vacaciones'&&!V12_SIG?.v1517RequestSig)return toast('Debes firmar la solicitud de vacaciones.','error');if(o.tipo==='vacaciones')o.firma_solicitante=v12SigData('v1517RequestSig');try{const data=await v1517CreateOwnRequest(o);await v15Notify('Nueva solicitud',`${state.profile?.nombre||state.session.user.email} · ${v152RequestLabel(o.tipo)}`,'importante',data?.aprobador_user_id||null,'solicitudes',data?.id||null);closeModal();await renderSolicitudesV15();await v15LoadNotifications?.();toast('Solicitud enviada al aprobador','success')}catch(err){toast(err.message||String(err),'error')}};
+  f.onsubmit=async e=>{e.preventDefault();if(preview)return toast('Modo simulación: inicia sesión con el perfil real para guardar.','warn');const o=Object.fromEntries(new FormData(f));if(o.tipo!=='otro'&&(!o.fecha_inicio||!o.fecha_fin||o.fecha_inicio>o.fecha_fin))return toast('El rango de fechas no es válido.','error');if(o.tipo==='vacaciones'&&!V12_SIG?.v1517RequestSig)return toast('Debes firmar la solicitud de vacaciones.','error');if(o.tipo==='vacaciones')o.firma_solicitante=v12SigData('v1517RequestSig');try{const data=await v1517CreateOwnRequest(o);await v15Notify('Nueva solicitud',`${state.profile?.nombre||state.session.user.email} · ${v152RequestLabel(o.tipo)}`,'importante',data?.aprobador_user_id||null,'solicitudes',data?.id||null);let mailError=null;try{await v1517SendRequestApprovalEmail(data?.id)}catch(emailError){mailError=emailError;console.warn('correo solicitud aprobador',emailError)}closeModal();await renderSolicitudesV15();await v15LoadNotifications?.();toast(mailError?'Solicitud registrada. La notificación interna fue enviada, pero el correo al autorizador no pudo entregarse.':'Solicitud enviada al aprobador y notificada por correo',mailError?'warn':'success')}catch(err){toast(err.message||String(err),'error')}};
 };
 v152RequestModal=v154RequestModal;v15VacationModal=v154RequestModal;
 
@@ -9677,7 +9684,11 @@ async function v1517RpcResolve(id,action,motive=null,signature=null){const q=awa
 
 async function v1517AfterResolution(data,label){
   await v1517ResolveRequestNotifications(data.id,label);
-  if(data.estado==='pendiente_rrhh'){await v1517NotifyHR(data);toast('Aprobación registrada. La solicitud pasa a Recursos Humanos.','success')}
+  if(data.estado==='pendiente_rrhh'){
+    await v1517NotifyHR(data);
+    let mailError=null;try{await v1517SendRequestApprovalEmail(data.id)}catch(emailError){mailError=emailError;console.warn('correo solicitud RRHH',emailError)}
+    toast(mailError?'Aprobación registrada y enviada a RR.HH.; no fue posible entregar el correo.':'Aprobación registrada. RR.HH. fue notificado también por correo',mailError?'warn':'success');
+  }
   else{await v15Notify(`Solicitud ${data.estado==='aprobada'?'aprobada':'rechazada'}`,`Solicitud ${data.id}`,'normal',data.solicitante_user_id,'solicitudes',data.id);toast(`Solicitud ${data.estado==='aprobada'?'aprobada':'rechazada'}`,'success')}
   closeModal();await renderSolicitudesV15();
 }
