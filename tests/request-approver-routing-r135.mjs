@@ -29,7 +29,7 @@ assert.match(migration,/set estado='pendiente'/,'Una solicitud aprobada reenviad
 assert.match(migration,/Solicitud reenviada para aprobación/,'Debe crear nueva notificación interna');
 assert.match(migration,/vacaciones ya finalizadas por RR\.HH\./,'No debe reabrir vacaciones ya finalizadas');
 
-assert.match(loader,/HP_LOADER_VERSION__='R138'/,'Loader debe quedar consolidado en R138');
+assert.match(loader,/HP_LOADER_VERSION__='R140'/,'Loader debe quedar consolidado en R140');
 assert.match(loader,/refreshRequestApproverR135/,'Loader debe cargar R135');
 assert.match(loader,/stainher-v1524-request-approver-r135\.js/,'Loader debe cargar el módulo de enrutamiento');
 assert.match(loader,/StainherRequestApproverR135\?\.install/,'Loader debe instalar R135');
