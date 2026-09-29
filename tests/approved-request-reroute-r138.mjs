@@ -29,7 +29,7 @@ assert.match(migration,/etapa='aprobador'/,'Debe volver a etapa de aprobación')
 assert.match(migration,/firma_aprobador=null/,'Debe limpiar la firma anterior para nueva aprobación');
 assert.match(migration,/Solicitud aprobada reasignada/,'Debe crear notificación nueva');
 
-assert.match(loader,/HP_LOADER_VERSION__='R138'/,'Loader debe quedar consolidado en R138');
+assert.match(loader,/HP_LOADER_VERSION__='R139'/,'Loader debe quedar consolidado en R139');
 assert.match(loader,/refreshApprovedRerouteR138/,'Loader debe cargar R138');
 assert.match(loader,/stainher-v1524-approved-reroute-r138\.js/,'Loader debe cargar el módulo R138');
 assert.match(loader,/StainherApprovedRerouteR138\?\.install/,'Loader debe instalar R138');
