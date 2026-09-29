@@ -53,6 +53,10 @@
 
     const wrapped=function(x){
       let html=current.apply(this,arguments)||'';
+      if(String(x?.estado||'')==='aprobada'){
+        const legacy='<button class="btn" type="button" onclick="v135RerouteRequest(\''+String(x.id)+'\')">Reenviar a Cristian Lagos</button>';
+        html=html.replace(legacy,'');
+      }
       if(canReassignApproved(x)&&!html.includes("v138ReassignApprovedRequest('"+String(x.id)+"')")){
         html+='<button class="btn" type="button" onclick="v138ReassignApprovedRequest(\''+String(x.id)+'\')">Reasignar a Cristian Lagos</button>';
       }
