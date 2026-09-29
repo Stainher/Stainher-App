@@ -17,12 +17,11 @@ assert.match(state,/window\.renderPreventivo=wrapped/,'Debe envolver el render p
 assert.match(state,/current\.apply\(this,arguments\)/,'Debe conservar la implementación preventiva existente');
 assert.doesNotMatch(state,/\.from\(|\.rpc\(/,'R136 no debe escribir ni consultar datos por su cuenta');
 
-assert.match(loader,/HP_LOADER_VERSION__='R136'/,'Loader debe quedar consolidado en R136');
-assert.match(loader,/refreshPreventivoStateR136/,'Loader debe cargar la persistencia de vista Preventivo');
-assert.match(loader,/stainher-v1524-preventivo-state-r136\.js/,'Loader debe cargar el módulo R136');
-assert.match(loader,/StainherPreventivoStateR136\?\.install/,'Loader debe instalar R136');
-assert.match(loader,/stainher:preventivo-state-r136-ready/,'Loader debe emitir evento de módulo R136');
-assert.match(loader,/stainher:runtime-r136-ready/,'Loader debe emitir runtime R136');
+assert.match(loader,/HP_LOADER_VERSION__='R137'/,'Loader consolidado debe haber superado R136');
+assert.match(loader,/refreshPreventivoStateR137/,'R137 debe reemplazar la carga activa de R136');
+assert.doesNotMatch(loader,/await refreshPreventivoStateR136\(\)/,'R136 no debe seguir ejecutándose junto a R137');
+assert.match(loader,/stainher:runtime-r136-ready/,'El evento histórico R136 se conserva por compatibilidad');
+assert.match(loader,/stainher:runtime-r137-ready/,'El runtime vigente debe ser R137');
 assert.match(loader,/refreshRequestApproverR135/,'R135 de solicitudes debe conservarse');
 assert.match(loader,/refreshSolicitudesViewR133/,'R133 debe conservarse');
 assert.match(loader,/refreshEquipmentViewR132/,'R132 debe conservarse');
