@@ -11,7 +11,7 @@
 
   const PAGE_ID='page-preventivo';
   const GROUP='v1523-prev-equipment-group';
-  const ACTION_RE=/\b(calendarizar|reprogramar|confirmar\s+ejecuci[oó]n)\b/i;
+  const ACTION_RE=/\b(calendarizar|reprogramar|confirmar\s+ejecuci[oó]n|eliminar\s+programaci[oó]n)\b/i;
   const rememberedOpen=new Set();
   let pendingAction=null;
   let observer=null;
