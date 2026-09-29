@@ -19,7 +19,7 @@ assert.match(state,/window\.scrollTo/,'Debe conservar la posición vertical');
 assert.match(state,/window\.scrollBy/,'Debe compensar cambios de altura tras el refresco');
 assert.doesNotMatch(state,/\.from\(|\.rpc\(/,'R137 no debe modificar ni consultar datos');
 
-assert.match(loader,/HP_LOADER_VERSION__='R137'/,'Loader debe quedar consolidado en R137');
+assert.match(loader,/HP_LOADER_VERSION__='R138'/,'Loader debe quedar consolidado en R138');
 assert.match(loader,/refreshPreventivoStateR137/,'Loader debe cargar R137');
 assert.match(loader,/stainher-v1524-preventivo-state-r137\.js/,'Loader debe cargar el módulo R137');
 assert.match(loader,/StainherPreventivoStateR137\?\.install/,'Loader debe instalar R137');
