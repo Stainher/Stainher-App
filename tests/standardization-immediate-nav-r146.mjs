@@ -12,10 +12,12 @@ test('R146 instala el acceso temprano de Estandarización',()=>{
   assert.match(source,/stainher-v1524-standardization-r141\.js/);
 });
 
-test('R146 conserva los roles autorizados y precarga al montar',()=>{
+test('R146 conserva los roles autorizados y precarga una sola vez',()=>{
   for(const role of ['administrador','gerente','planificador','confiabilidad','prevencion','supervisor']){
     assert.ok(source.includes(`'${role}'`),`falta rol ${role}`);
   }
-  assert.match(source,/preload\(\)\.then\(\(\)=>mount\(\)\)/);
+  assert.match(source,/if\(!window\.StainherStandardizationR141\|\|!window\.StainherStandardizationAccessR142\)/);
+  assert.match(source,/preload\(\)\.catch\(\(\)=>\{\}\)/);
+  assert.doesNotMatch(source,/preload\(\)\.then\(\(\)=>mount\(\)\)/);
   assert.match(source,/window\.renderEstandarizacion/);
 });
