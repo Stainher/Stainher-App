@@ -35,8 +35,8 @@
     try{return String(window.v11Role?.()||window.state?.profile?.rol||'').toLowerCase()}
     catch(_){return ''}
   };
-  const canView=()=>VIEW_ROLES.has(role());
-  const canEdit=()=>EDIT_ROLES.has(role());
+  const canView=()=>{try{if(typeof window.canViewV11==='function')return !!window.canViewV11('estandarizacion')}catch(_){}return VIEW_ROLES.has(role())};
+  const canEdit=()=>{try{if(typeof window.canEditV11==='function')return !!window.canEditV11('estandarizacion')}catch(_){}return EDIT_ROLES.has(role())};
   const fmtDate=value=>{
     if(!value)return '—';
     try{return new Date(String(value).slice(0,10)+'T12:00:00').toLocaleDateString('es-CL')}
