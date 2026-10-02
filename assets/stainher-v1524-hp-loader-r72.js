@@ -169,8 +169,12 @@
       window.StainherCorrectivoHistoryR118?.install?.();
       window.StainherCorrectivoHistoryR118?.enhance?.();
       window.dispatchEvent(new CustomEvent('stainher:correctivo-history-r118-ready'));
+      await load('stainher-correctivo-times-runtime-r147','stainher-v1524-corrective-times-r147.js');
+      window.StainherCorrectivoTimesR147?.install?.();
+      window.StainherCorrectivoTimesR147?.enhance?.();
+      window.dispatchEvent(new CustomEvent('stainher:correctivo-times-r147-ready'));
     }catch(error){
-      console.error('[Stainher Correctivo History R118]',error);
+      console.error('[Stainher Correctivo History R118/R147]',error);
     }
   }
 
