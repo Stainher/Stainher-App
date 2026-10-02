@@ -1,7 +1,8 @@
 /* Stainher App V15.24 · Inicio consolidado
- * Este módulo conserva únicamente dos responsabilidades:
+ * Este módulo conserva responsabilidades de arranque visual:
  * 1) etiquetas compactas de turno en Inicio;
- * 2) acceso directo Registrar avería exclusivo para Supervisor.
+ * 2) acceso directo Registrar avería exclusivo para Supervisor;
+ * 3) puente temprano R146 para que Estandarización esté disponible desde el primer menú.
  *
  * Las pestañas de Alertas y el alcance de Dotación se eliminaron de este archivo
  * para evitar dobles controladores. Sus únicas implementaciones autoritativas son
@@ -114,6 +115,145 @@
     if(root)new MutationObserver(mount).observe(root,{childList:true,subtree:true});
     window.addEventListener('stainher:modules-ready',()=>setTimeout(mount,0));
   }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+})();
+
+/* R146 · Estandarización visible desde el primer render del menú.
+ * El cargador autenticado R142 incorpora este módulo al final de una cadena larga.
+ * Este puente crea el acceso apenas existen perfil y navegación, y adelanta en
+ * segundo plano R142/R141. No consulta datos ni altera permisos persistidos.
+ */
+(function installStandardizationImmediateNavR146(){
+  'use strict';
+  const BUILD='20261002-r146-standardization-immediate-nav';
+  if(window.__STAINHER_STANDARDIZATION_IMMEDIATE_NAV_R146__===BUILD)return;
+  window.__STAINHER_STANDARDIZATION_IMMEDIATE_NAV_R146__=BUILD;
+
+  const ALLOWED=new Set(['administrador','gerente','planificador','confiabilidad','prevencion','supervisor']);
+  const SELECTOR='button[data-page="estandarizacion"]';
+  let preloadPromise=null;
+
+  function role(){
+    try{return String(window.v11Role?.()||window.state?.profile?.rol||'').trim().toLowerCase()}catch(_){return ''}
+  }
+
+  function loadScript(id,src,ready){
+    if(ready())return Promise.resolve();
+    const current=document.getElementById(id);
+    if(current)current.remove();
+    return new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.id=id;
+      script.async=false;
+      script.src=`${src}?build=${encodeURIComponent(BUILD)}`;
+      script.addEventListener('load',resolve,{once:true});
+      script.addEventListener('error',()=>reject(new Error(`No fue posible cargar ${src}`)),{once:true});
+      document.head.appendChild(script);
+    });
+  }
+
+  async function preload(){
+    if(window.StainherStandardizationR141&&window.StainherStandardizationAccessR142){
+      window.StainherStandardizationAccessR142.install?.();
+      window.StainherStandardizationR141.install?.();
+      window.StainherStandardizationAccessR142.refreshPermissions?.();
+      return;
+    }
+    if(preloadPromise)return preloadPromise;
+    preloadPromise=(async()=>{
+      await loadScript(
+        'stainher-standardization-access-early-r146',
+        'stainher-v1524-standardization-access-r142.js',
+        ()=>!!window.StainherStandardizationAccessR142
+      );
+      window.StainherStandardizationAccessR142?.install?.();
+
+      await loadScript(
+        'stainher-standardization-early-r146',
+        'stainher-v1524-standardization-r141.js',
+        ()=>!!window.StainherStandardizationR141
+      );
+      window.StainherStandardizationR141?.install?.();
+      window.StainherStandardizationAccessR142?.refreshPermissions?.();
+      window.dispatchEvent(new CustomEvent('stainher:standardization-r141-ready'));
+      window.dispatchEvent(new CustomEvent('stainher:standardization-access-r142-ready'));
+    })().catch(error=>{
+      preloadPromise=null;
+      console.error('[Stainher Estandarización R146]',error);
+      throw error;
+    });
+    return preloadPromise;
+  }
+
+  async function openStandardization(event){
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    try{
+      await preload();
+      if(window.StainherStandardizationR141?.canView?.()===false)return;
+      window.StainherStandardizationR141?.install?.();
+      document.querySelectorAll('.nav button').forEach(node=>node.classList.remove('active'));
+      const button=document.querySelector(SELECTOR);
+      button?.classList.add('active');
+      document.querySelectorAll('.page').forEach(node=>node.classList.add('hidden'));
+      const page=document.getElementById('page-estandarizacion');
+      page?.classList.remove('hidden');
+      await window.renderEstandarizacion?.();
+    }catch(error){
+      window.toast?.('No fue posible abrir Estandarización. Intenta nuevamente.','error');
+    }
+  }
+
+  function mount(){
+    const nav=document.querySelector('.sidebar .nav')||document.querySelector('.nav');
+    const currentRole=role();
+    if(!nav||!currentRole)return false;
+
+    let button=nav.querySelector(SELECTOR);
+    if(!ALLOWED.has(currentRole)){
+      if(button?.dataset?.stainherR146Early==='1')button.remove();
+      return true;
+    }
+
+    if(!button){
+      button=document.createElement('button');
+      button.type='button';
+      button.dataset.page='estandarizacion';
+      button.dataset.stainherR146Early='1';
+      button.className='v15-nav stainher-standardization-nav';
+      button.innerHTML='◇ Estandarización';
+      button.title='Estandarización';
+      button.setAttribute('aria-label','Estandarización');
+      button.addEventListener('click',openStandardization,true);
+      const equipment=nav.querySelector('button[data-page="equipos"]');
+      if(equipment?.nextSibling)nav.insertBefore(button,equipment.nextSibling);
+      else if(equipment)equipment.insertAdjacentElement('afterend',button);
+      else nav.appendChild(button);
+    }else{
+      button.classList.remove('hidden');
+    }
+
+    if(!window.StainherStandardizationR141||!window.StainherStandardizationAccessR142){
+      preload().catch(()=>{});
+    }
+    return true;
+  }
+
+  function boot(){
+    mount();
+    let tries=0;
+    const timer=setInterval(()=>{
+      tries++;
+      const ready=mount();
+      if((ready&&role())||tries>=100)clearInterval(timer);
+    },50);
+    const root=document.querySelector('.sidebar')||document.body;
+    if(root)new MutationObserver(()=>mount()).observe(root,{childList:true,subtree:true});
+    window.addEventListener('stainher:modules-ready',()=>setTimeout(mount,0));
+  }
+
+  window.StainherStandardizationImmediateNavR146=Object.freeze({mount,preload,version:BUILD});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
 })();
