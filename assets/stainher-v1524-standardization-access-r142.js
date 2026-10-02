@@ -1,10 +1,10 @@
-/* Stainher V15.24 · R142 · Integración de Estandarización al núcleo de permisos.
- * Corrige R141: el módulo existía y tenía RLS, pero no estaba registrado en
- * V11_DEFAULTS / V1518_MODULES ni en el renderizador global V15.23.
+/* Stainher V15.24 · R142/R144 · Integración de Estandarización al núcleo de permisos.
+ * R142 corrige permisos y navegación de R141.
+ * R144 carga el dashboard gráfico y el informe PDF de Estandarización.
  */
 (()=>{
   'use strict';
-  const BUILD='20261002-r142-standardization-access';
+  const BUILD='20261002-r144-standardization-dashboard-bridge';
   if(window.__STAINHER_STANDARDIZATION_ACCESS_R142__===BUILD)return;
   window.__STAINHER_STANDARDIZATION_ACCESS_R142__=BUILD;
 
@@ -21,6 +21,7 @@
     consulta:'ninguno',
     recursos_humanos:'ninguno'
   };
+  let dashboardPromise=null;
 
   function registerPermissions(){
     try{
@@ -79,6 +80,33 @@
     wrapRenderer('v1518RenderModule');
   }
 
+  function loadDashboardR144(){
+    if(window.StainherStandardizationDashboardR144){
+      window.StainherStandardizationDashboardR144.install?.();
+      return Promise.resolve(window.StainherStandardizationDashboardR144);
+    }
+    if(dashboardPromise)return dashboardPromise;
+    dashboardPromise=new Promise((resolve,reject)=>{
+      const id='stainher-standardization-dashboard-runtime-r144';
+      document.getElementById(id)?.remove();
+      const script=document.createElement('script');
+      script.id=id;
+      script.async=false;
+      script.src=`stainher-v1524-standardization-dashboard-r144.js?build=${encodeURIComponent(BUILD+'-'+Date.now())}`;
+      script.addEventListener('load',()=>{
+        window.StainherStandardizationDashboardR144?.install?.();
+        window.dispatchEvent(new CustomEvent('stainher:standardization-dashboard-r144-ready'));
+        resolve(window.StainherStandardizationDashboardR144||null);
+      },{once:true});
+      script.addEventListener('error',()=>{
+        dashboardPromise=null;
+        reject(new Error('No fue posible cargar el dashboard R144 de Estandarización.'));
+      },{once:true});
+      document.head.appendChild(script);
+    });
+    return dashboardPromise;
+  }
+
   function refreshPermissions(){
     registerPermissions();
     registerRenderers();
@@ -87,6 +115,7 @@
     try{window.v1519BuildMobileNav?.()}catch(_){}
     try{window.v1518DecorateSidebar?.()}catch(_){}
     try{window.v1518BuildMobileNav?.()}catch(_){}
+    loadDashboardR144().catch(error=>console.error('[Stainher R144]',error));
   }
 
   function install(){
@@ -106,13 +135,15 @@
   window.StainherStandardizationAccessR142=Object.freeze({
     install,
     refreshPermissions,
+    loadDashboardR144,
     defaults:{...DEFAULTS},
     version:BUILD
   });
 
   window.addEventListener('stainher:modules-ready',install);
-  window.addEventListener('stainher:standardization-r141-ready',refreshPermissions);
+  window.addEventListener('stainher:standardization-r141-ready',()=>{refreshPermissions();loadDashboardR144().catch(error=>console.error('[Stainher R144]',error))});
   window.addEventListener('stainher:runtime-r141-ready',refreshPermissions);
+  window.addEventListener('stainher:runtime-r142-ready',()=>loadDashboardR144().catch(error=>console.error('[Stainher R144]',error)));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
   else install();
 })();
