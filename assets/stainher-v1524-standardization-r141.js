@@ -397,7 +397,7 @@
       const estado=String(fd.get('estado')||'NO REALIZADO');
       let fecha=String(fd.get('fecha_ejecucion')||'').trim()||null;
       if(estado==='REALIZADO'&&!fecha)fecha=todayIso();
-      if(estado!=='REALIZADO'&&row?.estado!=='REALIZADO')fecha=null;
+      if(estado!=='REALIZADO')fecha=null;
 
       const payload={
         equipo:String(fd.get('equipo')||'').trim(),
