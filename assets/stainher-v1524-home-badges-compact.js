@@ -141,9 +141,7 @@
   function loadScript(id,src,ready){
     if(ready())return Promise.resolve();
     const current=document.getElementById(id);
-    if(current){
-      current.remove();
-    }
+    if(current)current.remove();
     return new Promise((resolve,reject)=>{
       const script=document.createElement('script');
       script.id=id;
@@ -236,7 +234,9 @@
       button.classList.remove('hidden');
     }
 
-    preload().then(()=>mount()).catch(()=>{});
+    if(!window.StainherStandardizationR141||!window.StainherStandardizationAccessR142){
+      preload().catch(()=>{});
+    }
     return true;
   }
 
