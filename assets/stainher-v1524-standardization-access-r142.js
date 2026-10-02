@@ -1,10 +1,11 @@
-/* Stainher V15.24 · R142/R144 · Integración de Estandarización al núcleo de permisos.
+/* Stainher V15.24 · R142/R144/R145 · Integración de Estandarización al núcleo de permisos.
  * R142 corrige permisos y navegación de R141.
- * R144 carga el dashboard gráfico y el informe PDF de Estandarización.
+ * R144 carga el dashboard gráfico e informe PDF.
+ * R145 corrige el pie del PDF y representa el avance total como dona.
  */
 (()=>{
   'use strict';
-  const BUILD='20261002-r144-standardization-dashboard-bridge';
+  const BUILD='20261002-r145-standardization-pdf-bridge';
   if(window.__STAINHER_STANDARDIZATION_ACCESS_R142__===BUILD)return;
   window.__STAINHER_STANDARDIZATION_ACCESS_R142__=BUILD;
 
@@ -22,6 +23,7 @@
     recursos_humanos:'ninguno'
   };
   let dashboardPromise=null;
+  let reportPromise=null;
 
   function registerPermissions(){
     try{
@@ -107,6 +109,36 @@
     return dashboardPromise;
   }
 
+  function loadReportR145(){
+    if(window.StainherStandardizationReportR145){
+      window.StainherStandardizationReportR145.install?.();
+      return Promise.resolve(window.StainherStandardizationReportR145);
+    }
+    if(reportPromise)return reportPromise;
+    reportPromise=loadDashboardR144().then(()=>new Promise((resolve,reject)=>{
+      const id='stainher-standardization-report-runtime-r145';
+      document.getElementById(id)?.remove();
+      const script=document.createElement('script');
+      script.id=id;
+      script.async=false;
+      script.src=`stainher-v1524-standardization-report-r145.js?build=${encodeURIComponent(BUILD+'-'+Date.now())}`;
+      script.addEventListener('load',()=>{
+        window.StainherStandardizationReportR145?.install?.();
+        window.dispatchEvent(new CustomEvent('stainher:standardization-report-r145-ready'));
+        resolve(window.StainherStandardizationReportR145||null);
+      },{once:true});
+      script.addEventListener('error',()=>{
+        reportPromise=null;
+        reject(new Error('No fue posible cargar la corrección R145 del informe de Estandarización.'));
+      },{once:true});
+      document.head.appendChild(script);
+    })).catch(error=>{
+      reportPromise=null;
+      throw error;
+    });
+    return reportPromise;
+  }
+
   function refreshPermissions(){
     registerPermissions();
     registerRenderers();
@@ -115,7 +147,7 @@
     try{window.v1519BuildMobileNav?.()}catch(_){}
     try{window.v1518DecorateSidebar?.()}catch(_){}
     try{window.v1518BuildMobileNav?.()}catch(_){}
-    loadDashboardR144().catch(error=>console.error('[Stainher R144]',error));
+    loadReportR145().catch(error=>console.error('[Stainher R145]',error));
   }
 
   function install(){
@@ -136,14 +168,15 @@
     install,
     refreshPermissions,
     loadDashboardR144,
+    loadReportR145,
     defaults:{...DEFAULTS},
     version:BUILD
   });
 
   window.addEventListener('stainher:modules-ready',install);
-  window.addEventListener('stainher:standardization-r141-ready',()=>{refreshPermissions();loadDashboardR144().catch(error=>console.error('[Stainher R144]',error))});
+  window.addEventListener('stainher:standardization-r141-ready',()=>{refreshPermissions();loadReportR145().catch(error=>console.error('[Stainher R145]',error))});
   window.addEventListener('stainher:runtime-r141-ready',refreshPermissions);
-  window.addEventListener('stainher:runtime-r142-ready',()=>loadDashboardR144().catch(error=>console.error('[Stainher R144]',error)));
+  window.addEventListener('stainher:runtime-r142-ready',()=>loadReportR145().catch(error=>console.error('[Stainher R145]',error)));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
   else install();
 })();
