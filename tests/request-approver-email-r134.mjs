@@ -27,5 +27,5 @@ assert.match(just,/20260928-r134-request-approver-email/,'Justificativos deben c
 assert.match(just,/v1517SendRequestApprovalEmail\?\.\(q\.data\?\.id\)/,'Justificativos deben notificar por correo a RRHH');
 assert.match(just,/approverEmail:true/,'Debe marcar correo a autorizador activo');
 
-assert.match(loader,/HP_LOADER_VERSION__='R140'/,'Loader debe quedar consolidado en R140');
+assert.match(loader,/HP_LOADER_VERSION__='R141'/,'Loader debe quedar consolidado en R141');
 console.log('request-approver-email-r134: ok');
