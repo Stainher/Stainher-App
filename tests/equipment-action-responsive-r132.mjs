@@ -17,7 +17,7 @@ assert.match(view,/summary\.textContent='Gestionar'/,'Gestionar no debe duplicar
 assert.match(view,/@media\(max-width:1360px\)/,'Debe cambiar de layout antes de comprimir acciones');
 assert.match(view,/@media\(max-width:760px\)/,'Debe conservar adaptación móvil');
 
-assert.match(loader,/HP_LOADER_VERSION__='R141'/,'Loader consolidado R141 debe conservar Equipos R132');
+assert.match(loader,/HP_LOADER_VERSION__='R142'/,'Loader consolidado R142 debe conservar Equipos R132');
 assert.match(loader,/refreshEquipmentViewR132/,'Loader debe cargar R132');
 assert.match(loader,/StainherEquipmentViewR132\?\.install/,'Loader debe instalar R132');
 assert.match(loader,/stainher:equipment-view-r132-ready/,'Loader debe emitir evento R132');
