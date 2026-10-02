@@ -223,16 +223,16 @@
     const cards=[['Total',s.total,dark],['Realizadas',s.done,green],['En proceso',s.process,yellow],['No realizadas',s.pending,red],['Avance',`${s.pct}%`,dark]];
     cards.forEach((item,i)=>{
       const x=14+i*54;
-      doc.setFillColor(...light);doc.setDrawColor(218,222,228);doc.roundedRect(x,31,49,20,2,2,'FD');
-      doc.setTextColor(90,98,108);doc.setFontSize(7.5);doc.text(item[0].toUpperCase(),x+3,37);
-      doc.setTextColor(...item[2]);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(String(item[1]),x+3,47);doc.setFont('helvetica','normal');
+      doc.setFillColor(...light);doc.setDrawColor(218,222,228);doc.roundedRect(x,42,49,20,2,2,'FD');
+      doc.setTextColor(90,98,108);doc.setFontSize(7.5);doc.text(item[0].toUpperCase(),x+3,48);
+      doc.setTextColor(...item[2]);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(String(item[1]),x+3,58);doc.setFont('helvetica','normal');
     });
-    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Avance total',14,61);
-    drawStackedBar(doc,14,65,124,8,[s.done,s.process,s.pending],s.total,[green,yellow,red]);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.text(`Realizadas ${s.done} · En proceso ${s.process} · No realizadas ${s.pending}`,14,78);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Avance total',14,72);
+    drawStackedBar(doc,14,76,124,8,[s.done,s.process,s.pending],s.total,[green,yellow,red]);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.text(`Realizadas ${s.done} · En proceso ${s.process} · No realizadas ${s.pending}`,14,89);
 
-    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Avance por equipo',150,61);
-    let y=67;
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Avance por equipo',150,72);
+    let y=78;
     gs.forEach(g=>{
       doc.setFont('helvetica','normal');doc.setFontSize(7.2);doc.setTextColor(0,0,0);
       const label=doc.splitTextToSize(g.name,52)[0];doc.text(label,150,y+3);
@@ -247,7 +247,7 @@
         [row.observacion,row.detalle_ejecucion].filter(Boolean).join(' · ')
       ]);
       doc.autoTable({
-        startY:Math.max(116,y+5),
+        startY:Math.max(130,y+5),
         head:[['Equipo','Actividad','Alcance','Estado','Fecha','Responsable','Observación / avance']],
         body:detail,
         margin:{left:14,right:14,bottom:14},
