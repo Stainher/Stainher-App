@@ -15,11 +15,22 @@
   const money=v=>typeof window.fmtCLP==='function'?window.fmtCLP(Math.round(num(v))):'$ '+Math.round(num(v)).toLocaleString('es-CL');
   const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const dateCL=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:String(v||'')};
+  const qtyText=v=>{
+    const n=Number(v)||0;
+    return Number.isInteger(n)?String(n):n.toLocaleString('es-CL',{maximumFractionDigits:2});
+  };
   function historyDetail(r){
-    const names=(Array.isArray(r?.materiales)?r.materiales:[])
-      .map(x=>String(x?.detalle||'').trim())
+    const lines=(Array.isArray(r?.materiales)?r.materiales:[])
+      .map(x=>{
+        const name=String(x?.detalle||'').trim();
+        if(!name)return '';
+        const qty=Number(x?.cantidad)||0,unit=String(x?.unidad||'').trim();
+        if(qty<=0)return name;
+        if(unit.toLowerCase()==='unidad')return `${name} (${qtyText(qty)} ${qty===1?'unidad':'unidades'})`;
+        return unit?`${name} (${qtyText(qty)} ${unit})`:`${name} (${qtyText(qty)})`;
+      })
       .filter(Boolean);
-    return names.length?names.join(' · '):'—';
+    return lines.length?lines.join('\n'):'—';
   }
   const slug=v=>String(v||'EQUIPO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'EQUIPO';
   const codeFor=(equipment,date)=>{const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return `${slug(equipment)}-PE-${m?`${m[3]}-${m[2]}-${m[1].slice(-2)}`:'SIN-FECHA'}`};
@@ -100,7 +111,7 @@
 
   function renderList(){
     const body=document.getElementById('r80Body');if(!body)return;const rows=state().rows,total=rows.reduce((a,x)=>a+num(x.total_final),0),issued=rows.filter(x=>x.estado==='emitido').length;
-    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Valor total</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div><div class="r80-list"><table><thead><tr><th>Código</th><th>Fecha</th><th>Detalle</th><th style="text-align:right">Total (Iva Incluido)</th><th style="text-align:right">Acciones</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${esc(r.codigo)}</b></td><td>${esc(dateCL(r.fecha))}</td><td class="r155-history-detail">${esc(historyDetail(r))}</td><td class="money"><b>${money(r.total_final)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="5"><div class="empty">Aún no hay presupuestos registrados.</div></td></tr>'}</tbody></table></div>`;
+    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Valor total</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div><div class="r80-list"><table><thead><tr><th>Fecha</th><th>Código</th><th>Detalle</th><th style="text-align:right">Total (Iva Incluido)</th><th style="text-align:right">Acciones</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(dateCL(r.fecha))}</td><td><b>${esc(r.codigo)}</b></td><td class="r155-history-detail">${esc(historyDetail(r))}</td><td class="money"><b>${money(r.total_final)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="5"><div class="empty">Aún no hay presupuestos registrados.</div></td></tr>'}</tbody></table></div>`;
     body.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));body.querySelectorAll('[data-pdf]').forEach(b=>b.addEventListener('click',()=>downloadSavedPdf(b.dataset.pdf)));body.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>removeBudget(b.dataset.delete)));
   }
 
