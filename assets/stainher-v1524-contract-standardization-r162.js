@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r165-estandarizacion-informe-pdf';
+  const BUILD='20261019-r170-estandarizacion-pdf-fotos';
   if(window.__STAINHER_CONTRACT_STANDARDIZATION_R162__===BUILD)return;
   window.__STAINHER_CONTRACT_STANDARDIZATION_R162__=BUILD;
 
@@ -31,6 +31,17 @@
       #page-contrato .r165-report-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
       #page-contrato .r165-report-controls .btn{white-space:nowrap}
       #page-contrato .r165-edp-legend{font-size:10px;color:var(--muted);text-transform:none;line-height:1.2}
+      #page-contrato .r170-photo-panel{border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c);padding:11px 12px;margin:0 0 14px}
+      #page-contrato .r170-photo-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+      #page-contrato .r170-photo-head h4{margin:0 0 3px;font-size:12px}
+      #page-contrato .r170-photo-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+      #page-contrato .r170-photo-count{font-size:10px;color:var(--muted)}
+      #page-contrato .r170-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:9px;margin-top:10px}
+      #page-contrato .r170-photo-card{position:relative;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel2)}
+      #page-contrato .r170-photo-card img{display:block;width:100%;height:95px;object-fit:cover;background:#fff}
+      #page-contrato .r170-photo-name{padding:6px 28px 6px 7px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #page-contrato .r170-photo-remove{position:absolute;right:5px;bottom:4px;width:22px;height:22px;min-width:22px!important;padding:0!important;border-radius:999px!important}
+      #page-contrato .r170-photo-empty{margin-top:8px;padding:10px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:10px;text-align:center}
       #page-contrato .r162-kpis{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px;margin:0 0 14px}
       #page-contrato .r162-kpi{border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c);padding:11px;min-width:0}
       #page-contrato .r162-kpi span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}
@@ -74,6 +85,92 @@
     return obs||'—';
   }
 
+  function photoStore(){
+    window.state=window.state||{};
+    return window.state.r170StandardizationPhotos||(window.state.r170StandardizationPhotos={});
+  }
+  function photosForEp(epId){
+    const store=photoStore(),key=String(epId||'');
+    return store[key]||(store[key]=[]);
+  }
+  function readFileDataUrl(file){
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(String(reader.result||''));
+      reader.onerror=()=>reject(reader.error||new Error('No fue posible leer la fotografía.'));
+      reader.readAsDataURL(file);
+    });
+  }
+  function loadBrowserImage(src){
+    return new Promise((resolve,reject)=>{
+      const img=new Image();
+      img.onload=()=>resolve(img);
+      img.onerror=()=>reject(new Error('Formato de imagen no compatible.'));
+      img.src=src;
+    });
+  }
+  async function normalizePhoto(file){
+    if(!String(file?.type||'').startsWith('image/'))throw new Error(`${file?.name||'Archivo'} no es una imagen válida.`);
+    const src=await readFileDataUrl(file),img=await loadBrowserImage(src);
+    const maxSide=1600,scale=Math.min(1,maxSide/Math.max(img.naturalWidth||1,img.naturalHeight||1));
+    const width=Math.max(1,Math.round((img.naturalWidth||1)*scale)),height=Math.max(1,Math.round((img.naturalHeight||1)*scale));
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const ctx=canvas.getContext('2d');if(!ctx)throw new Error('No fue posible procesar la fotografía.');
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);ctx.drawImage(img,0,0,width,height);
+    return {
+      id:`r170-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      name:String(file.name||'Fotografía'),
+      dataUrl:canvas.toDataURL('image/jpeg',0.84),
+      width,
+      height
+    };
+  }
+  async function addPhotoFiles(epId,fileList){
+    const current=photosForEp(epId),files=[...Array.from(fileList||[])];
+    if(!files.length)return;
+    const room=Math.max(0,20-current.length);
+    if(!room)return window.toast?.('Puedes incorporar hasta 20 fotografías por informe.','warn');
+    const accepted=files.slice(0,room);
+    let added=0;
+    for(const file of accepted){
+      try{current.push(await normalizePhoto(file));added++}
+      catch(error){window.toast?.(`${file?.name||'Imagen'}: ${error?.message||error}`,'error')}
+    }
+    if(files.length>accepted.length)window.toast?.('Se alcanzó el máximo de 20 fotografías para este EDP.','warn');
+    if(added)window.toast?.(`${added} fotografía${added===1?'':'s'} agregada${added===1?'':'s'} al informe.`,'success');
+  }
+  function removePhoto(epId,id){
+    const photos=photosForEp(epId),index=photos.findIndex(x=>String(x.id)===String(id));
+    if(index>=0)photos.splice(index,1);
+  }
+  function photoPanelHtml(epId){
+    const photos=photosForEp(epId);
+    return `<div class="r170-photo-panel">
+      <div class="r170-photo-head">
+        <div><h4>Registro fotográfico del informe</h4><div class="muted" style="font-size:10px">Selecciona fotografías desde tu PC. Se incorporan al PDF actual y no se almacenan en la plataforma.</div></div>
+        <div class="r170-photo-actions">
+          <span class="r170-photo-count">${photos.length} fotografía${photos.length===1?'':'s'}</span>
+          <input id="r170PhotoInput" type="file" accept="image/*" multiple hidden>
+          <button class="btn" type="button" data-r170-add-photo>+ Agregar fotografías</button>
+        </div>
+      </div>
+      ${photos.length?`<div class="r170-photo-grid">${photos.map(photo=>`<div class="r170-photo-card"><img src="${esc(photo.dataUrl)}" alt="${esc(photo.name)}"><div class="r170-photo-name" title="${esc(photo.name)}">${esc(photo.name)}</div><button class="btn danger-btn r170-photo-remove" type="button" data-r170-remove-photo="${esc(photo.id)}" title="Quitar fotografía">×</button></div>`).join('')}</div>`:'<div class="r170-photo-empty">Aún no has agregado fotografías para este EDP.</div>'}
+    </div>`;
+  }
+  function fitPhoto(photo,maxW,maxH){
+    const w=Math.max(1,Number(photo?.width)||1),h=Math.max(1,Number(photo?.height)||1),scale=Math.min(maxW/w,maxH/h);
+    return {w:w*scale,h:h*scale};
+  }
+  function requireCorporatePdf(){
+    const C=typeof window.ensurePdf==='function'?window.ensurePdf():null;
+    if(!C)throw new Error('No se pudo cargar el generador PDF corporativo de Stainher App.');
+    if(typeof window.pdfHeader!=='function')throw new Error('No se pudo cargar el formato corporativo de Stainher App.');
+    return C;
+  }
+  function corporateHeader(doc,title,subtitle){
+    window.pdfHeader(doc,title,subtitle);
+  }
+
   async function fetchRows(){
     const q=await window.sb.from(TABLE)
       .select('id,codigo,equipo_nombre,fecha,materiales,observacion,venta_neta,iva,total_final,estado_pago_id,tipo_imputacion,created_at')
@@ -109,12 +206,8 @@
   }
 
   async function downloadReport(){
-    const C=window.jspdf?.jsPDF;
-    if(!C){
-      window.toast?.('No se pudo cargar el generador PDF.','error');
-      return false;
-    }
     try{
+      const C=requireCorporatePdf();
       const rows=await fetchRows();
       const epId=String(window.state?.r162StandardizationEpId||selectedEpId(rows));
       const ep=eps().find(x=>String(x.id)===epId)||null;
@@ -125,37 +218,26 @@
       const net=filtered.reduce((s,x)=>s+num(x.venta_neta),0);
       const iva=filtered.reduce((s,x)=>s+num(x.iva),0);
       const total=filtered.reduce((s,x)=>s+num(x.total_final),0);
+      const photos=photosForEp(epId);
+      const subtitle=`EP${ep.ep_num} · ${months[Number(ep.mes_edp)-1]||ep.mes_edp} ${ep.anio_edp} · ${dateCL(ep.periodo_inicio)} - ${dateCL(ep.periodo_fin)}`;
       const doc=new C({orientation:'landscape',unit:'mm',format:'a4'});
+      corporateHeader(doc,'Informe de Estandarización e Innovación',subtitle);
 
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(18);
-      doc.text('STAINHER',14,16);
-      doc.setFontSize(14);
-      doc.text('Informe de Estandarización e Innovación',14,27);
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(9);
-      doc.setTextColor(90);
-      doc.text(`EP${ep.ep_num} · ${months[Number(ep.mes_edp)-1]||ep.mes_edp} ${ep.anio_edp} · ${dateCL(ep.periodo_inicio)} → ${dateCL(ep.periodo_fin)}`,14,34);
-      doc.setTextColor(0);
-      doc.setDrawColor(239,91,42);
-      doc.setLineWidth(.8);
-      doc.line(14,38,283,38);
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica','bold');
-      doc.text(`Presupuestos: ${filtered.length}`,14,48);
-      doc.text(`Monto neto: ${money(net)}`,67,48);
-      doc.text(`IVA: ${money(iva)}`,132,48);
-      doc.text(`Total IVA incluido: ${money(total)}`,185,48);
-      doc.setFont('helvetica','normal');
-
-      if(typeof doc.autoTable!=='function'){
-        window.toast?.('No se pudo cargar el generador de tablas PDF.','error');
-        return false;
-      }
+      if(typeof doc.autoTable!=='function')throw new Error('No se pudo cargar el generador de tablas PDF de Stainher App.');
 
       doc.autoTable({
-        startY:55,
+        startY:42,
+        theme:'grid',
+        head:[['Presupuestos asignados','Monto neto','IVA','Total IVA incluido']],
+        body:[[String(filtered.length),money(net),money(iva),money(total)]],
+        styles:{fontSize:9,cellPadding:3,textColor:[25,31,40]},
+        headStyles:{fillColor:[35,43,54],textColor:[255,255,255],fontStyle:'bold',halign:'center'},
+        bodyStyles:{fontStyle:'bold',halign:'center'},
+        margin:{left:14,right:14,top:42,bottom:22}
+      });
+
+      doc.autoTable({
+        startY:(doc.lastAutoTable?.finalY||58)+7,
         head:[['Fecha','Código','Equipo','Detalle','Monto neto','Total IVA incluido']],
         body:filtered.map(row=>[
           dateCL(row.fecha),
@@ -175,13 +257,28 @@
           4:{cellWidth:32,halign:'right'},
           5:{cellWidth:34,halign:'right'}
         },
-        margin:{left:14,right:14}
+        margin:{left:14,right:14,top:42,bottom:22},
+        didDrawPage:data=>{if(data.pageNumber>1)corporateHeader(doc,'Informe de Estandarización e Innovación',subtitle)}
       });
 
-      const y=Math.min(198,(doc.lastAutoTable?.finalY||55)+8);
-      doc.setFontSize(7);
-      doc.setTextColor(100);
-      doc.text(`Generado ${new Date().toLocaleString('es-CL')} · Stainher App · Contrato 4600029879`,14,y);
+      if(photos.length){
+        for(let index=0;index<photos.length;index+=2){
+          doc.addPage('a4','landscape');
+          corporateHeader(doc,'Registro fotográfico - Estandarización e Innovación',subtitle);
+          const pair=photos.slice(index,index+2),boxW=126,boxH=112,gap=8,totalW=pair.length===1?boxW:(boxW*2+gap),startX=(297-totalW)/2;
+          pair.forEach((photo,pos)=>{
+            const x=startX+pos*(boxW+gap),y=48,size=fitPhoto(photo,boxW,boxH);
+            const imageX=x+(boxW-size.w)/2,imageY=y+(boxH-size.h)/2;
+            doc.setDrawColor(205,214,224);doc.setFillColor(248,250,252);doc.roundedRect(x,y,boxW,boxH,2,2,'FD');
+            try{doc.addImage(photo.dataUrl,'JPEG',imageX,imageY,size.w,size.h,'','FAST')}catch(error){console.warn('[Stainher R170] fotografía PDF',error)}
+            doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(75,85,99);
+            const caption=doc.splitTextToSize(String(photo.name||`Fotografía ${index+pos+1}`),boxW-4);
+            doc.text(caption,x+2,y+boxH+5,{maxWidth:boxW-4});
+            doc.setTextColor(0);
+          });
+        }
+      }
+
       doc.save(`Estandarizacion_Innovacion_EP${ep.ep_num}.pdf`);
       return true;
     }catch(error){
@@ -232,6 +329,7 @@
           ${ep?`EP${esc(ep.ep_num)} · ${esc(months[Number(ep.mes_edp)-1]||ep.mes_edp)} ${esc(ep.anio_edp)} · ${esc(dateCL(ep.periodo_inicio))} → ${esc(dateCL(ep.periodo_fin))}`:'Sin Estado de Pago seleccionado'}.
           Los montos se obtienen automáticamente desde los presupuestos asignados; no se duplican dentro de Gastos Reembolsables.
         </div>
+        ${photoPanelHtml(epId)}
         <div class="r162-table"><table>
           <thead><tr><th>Fecha</th><th>Código</th><th>Equipo</th><th>Detalle</th><th>Monto neto</th><th>Total IVA incluido</th></tr></thead>
           <tbody>${filtered.map(row=>`
@@ -250,6 +348,17 @@
         render();
       });
       host.querySelector('[data-r165-report]')?.addEventListener('click',downloadReport);
+      const photoInput=host.querySelector('#r170PhotoInput');
+      host.querySelector('[data-r170-add-photo]')?.addEventListener('click',()=>photoInput?.click());
+      photoInput?.addEventListener('change',async event=>{
+        await addPhotoFiles(epId,event.target.files);
+        event.target.value='';
+        render();
+      });
+      host.querySelectorAll('[data-r170-remove-photo]').forEach(button=>button.addEventListener('click',()=>{
+        removePhoto(epId,button.dataset.r170RemovePhoto);
+        render();
+      }));
       return true;
     }catch(error){
       if(host.isConnected)host.innerHTML=`<div class="notice error">No fue posible cargar Estandarización e Innovación: ${esc(error?.message||error||'Error desconocido')}</div>`;
@@ -363,7 +472,7 @@
     }
   }
 
-  window.StainherContractStandardizationR162=Object.freeze({install,render,decorateTabs,downloadReport,version:BUILD});
+  window.StainherContractStandardizationR162=Object.freeze({install,render,decorateTabs,downloadReport,addPhotoFiles,removePhoto,photosForEp,version:BUILD});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   window.addEventListener('stainher:modules-ready',install);
   window.addEventListener('stainher:runtime-r142-ready',install);
