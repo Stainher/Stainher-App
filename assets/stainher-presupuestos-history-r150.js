@@ -217,7 +217,7 @@
       detailRow=document.createElement('tr');
       detailRow.className='r150-detail-row';
       const td=document.createElement('td');
-      td.colSpan=5;
+      td.colSpan=6;
       detailRow.appendChild(td);
       sourceRow.insertAdjacentElement('afterend',detailRow);
     }
