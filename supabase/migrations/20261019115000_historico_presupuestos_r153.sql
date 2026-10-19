@@ -5,7 +5,8 @@
 alter table public.presupuestos_tecnico_comerciales_v1524
   add column if not exists tipo_imputacion text,
   add column if not exists registro_historico boolean not null default false,
-  add column if not exists tipo_documento_origen text;
+  add column if not exists tipo_documento_origen text,
+  add column if not exists estado_origen text;
 
 do $$
 begin
@@ -112,7 +113,8 @@ insert into public.presupuestos_tecnico_comerciales_v1524(
   asignado_ggrr_by,
   tipo_imputacion,
   registro_historico,
-  tipo_documento_origen
+  tipo_documento_origen,
+  estado_origen
 )
 select
   codigo,
@@ -129,7 +131,7 @@ select
   round(monto_neto*0.19),
   monto_neto+round(monto_neto*0.19),
   detalle,
-  'aprobado',
+  'emitido',
   '44b92981-9398-42cb-a334-a51baa876125'::uuid,
   estado_pago_id,
   gasto_reembolsable_id,
@@ -137,7 +139,8 @@ select
   case when tipo_imputacion='gasto_reembolsable' then '44b92981-9398-42cb-a334-a51baa876125'::uuid else null end,
   tipo_imputacion,
   true,
-  tipo_documento
+  tipo_documento,
+  'APROBADO'
 from validated
 on conflict (codigo) do update
 set equipo_nombre=excluded.equipo_nombre,
@@ -151,6 +154,8 @@ set equipo_nombre=excluded.equipo_nombre,
     tipo_imputacion=excluded.tipo_imputacion,
     registro_historico=true,
     tipo_documento_origen=excluded.tipo_documento_origen,
+    estado_origen='APROBADO',
+    estado='emitido',
     updated_at=now();
 
 -- Seguridad de integridad: la carga debe resolver exactamente los 38 antecedentes.
