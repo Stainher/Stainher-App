@@ -9,8 +9,9 @@ assert.match(core,/<th>Fecha<\/th><th>Código<\/th><th>Equipo<\/th><th>Detalle<\
 assert.match(core,/function historyDetail\(r\)/,'Debe construir resumen rápido');
 assert.match(core,/r\?\.materiales/,'Resumen debe usar materiales');
 assert.doesNotMatch(core,/r\?\.fletes/,'Resumen no debe usar fletes');
-assert.doesNotMatch(core,/r\?\.observacion/,'Resumen no debe usar observaciones');
+assert.match(core,/r\?\.observacion/,'Históricos sin materiales deben usar la descripción guardada en observación');
 assert.match(core,/lines\.join\('\\n'\)/,'Debe mostrar ítems del detalle en líneas legibles');
+assert.match(core,/return historical\|\|'—'/,'Debe mostrar el detalle histórico cuando materiales esté vacío');
 assert.match(core,/unidad':'unidades'/,'Debe incluir cantidad/unidad en el detalle');
 assert.match(core,/Total \(Iva Incluido\)/,'Debe indicar que el total incluye IVA');
 assert.match(core,/r155-history-detail/,'Debe aplicar estilo al resumen');
