@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20260925-r125-edp-inline-detail';
+  const BUILD='20261019-r161-edp-estandarizacion';
   if(window.__STAINHER_EDP_INLINE_R125__===BUILD)return;
   window.__STAINHER_EDP_INLINE_R125__=BUILD;
 
@@ -55,6 +55,18 @@
       }
       #modalRoot .r125-edp-grid label{min-width:0!important}
       #modalRoot .r125-edp-grid input{width:100%!important}
+      #modalRoot .r161-estandarizacion-field input{
+        color:#34d399!important;
+        font-weight:700!important;
+        cursor:default!important;
+      }
+      #modalRoot .r161-estandarizacion-note{
+        display:block!important;
+        margin-top:4px!important;
+        color:var(--muted,#94a3b8)!important;
+        font-size:10px!important;
+        line-height:1.25!important;
+      }
       #modalRoot .r125-edp-summary{
         display:grid!important;
         grid-template-columns:repeat(5,minmax(0,1fr))!important;
@@ -106,16 +118,62 @@
     if(!num)return null;
     return (window.state?.contractData?.edp||[]).find(ep=>Number(ep.ep_num)===num)||null;
   }
-  function labelInput(m,needle){
+  function labelNode(m,needle){
     const target=norm(needle);
-    const label=[...m.querySelectorAll('label')].find(x=>norm(x.childNodes?.[0]?.textContent||x.textContent).startsWith(target));
-    return label?.querySelector('input,select,textarea')||null;
+    return [...m.querySelectorAll('label')].find(x=>norm(x.childNodes?.[0]?.textContent||x.textContent).startsWith(target))||null;
+  }
+  function labelInput(m,needle){
+    return labelNode(m,needle)?.querySelector('input,select,textarea')||null;
+  }
+  async function standardizationFor(epId){
+    if(!window.sb?.from||!epId)return {amount:0,count:0};
+    const q=await window.sb.from('presupuestos_tecnico_comerciales_v1524')
+      .select('id,venta_neta')
+      .eq('estado_pago_id',epId)
+      .eq('tipo_imputacion','estandarizacion');
+    if(q.error)throw q.error;
+    const rows=q.data||[];
+    return {
+      amount:rows.reduce((sum,row)=>sum+Math.max(0,Number(row.venta_neta)||0),0),
+      count:rows.length
+    };
+  }
+  function ensureStandardizationField(m,data){
+    let label=m.querySelector('[data-r161-standardization-field]');
+    if(!label){
+      label=document.createElement('label');
+      label.className='r161-estandarizacion-field';
+      label.dataset.r161StandardizationField='1';
+      label.innerHTML='Estandarización<input class="field" type="number" min="0" step="1" readonly data-r161-standardization><small class="r161-estandarizacion-note" data-r161-standardization-note></small>';
+      const ggrrLabel=labelNode(m,'Gastos Reembolsables');
+      if(ggrrLabel)ggrrLabel.insertAdjacentElement('afterend',label);
+      else{
+        const firstGrid=m.querySelector('.grid,.form-grid');
+        firstGrid?.appendChild(label);
+      }
+    }
+    const input=label.querySelector('[data-r161-standardization]');
+    const note=label.querySelector('[data-r161-standardization-note]');
+    if(input)input.value=String(Math.round(Number(data?.amount)||0));
+    if(note){
+      const count=Math.max(0,Number(data?.count)||0);
+      note.textContent=count
+        ?`Automático · ${count} presupuesto${count===1?'':'s'} asignado${count===1?'':'s'} a este EDP`
+        :'Automático · Sin presupuestos de Estandarización asignados';
+    }
+    return input;
   }
   function baseValues(m,ep){
     const total=Number(labelInput(m,'Total Neto')?.value??ep?.total_neto??0)||0;
     const maintenance=Number(labelInput(m,'Mantenimiento')?.value??ep?.mantenimiento??0)||0;
     const ggrr=Number(labelInput(m,'Gastos Reembolsables')?.value??ep?.gastos_reembolsables??0)||0;
-    return {total:Math.max(0,total),maintenance:Math.max(0,maintenance),ggrr:Math.max(0,ggrr)};
+    const standardization=Number(m.querySelector('[data-r161-standardization]')?.value||0)||0;
+    return {
+      total:Math.max(0,total),
+      maintenance:Math.max(0,maintenance),
+      ggrr:Math.max(0,ggrr),
+      standardization:Math.max(0,standardization)
+    };
   }
   function detailsFor(epId){
     const api=window.StainherEdpEquipmentR122;
@@ -131,8 +189,8 @@
     const equipment=values.reduce((a,b)=>a+b,0);
     const base=baseValues(m,ep);
     const diff=base.maintenance-equipment;
-    const operational=Math.max(0,base.total-base.ggrr-equipment);
-    const projected=equipment+operational;
+    const operational=Math.max(0,base.total-base.ggrr-base.standardization-equipment);
+    const projected=equipment+operational+base.standardization;
     const put=(key,value)=>{
       const el=section.querySelector(`[data-r125-total="${key}"]`);
       if(el)el.textContent=money(value);
@@ -141,6 +199,7 @@
     put('maintenance',base.maintenance);
     put('operational',operational);
     put('ggrr',base.ggrr);
+    put('standardization',base.standardization);
     put('total',base.total);
     put('projected',projected);
 
@@ -191,7 +250,10 @@
     try{
       await ensureDetails();
       const current=detailsFor(ep.id);
+      let standardization={amount:0,count:0};
+      try{standardization=await standardizationFor(ep.id)}catch(error){console.error('[Stainher EDP R161] estandarización',error)}
       m.classList.add('r125-edp-modal');
+      ensureStandardizationField(m,standardization);
 
       const section=document.createElement('section');
       section.className='r125-edp-detail';
@@ -214,6 +276,7 @@
           <div class="kpi"><span>Detalle equipos</span><strong data-r125-total="equipment">—</strong></div>
           <div class="kpi"><span>Gasto Operativo / General</span><strong data-r125-total="operational">—</strong></div>
           <div class="kpi"><span>GGRR</span><strong data-r125-total="ggrr">—</strong></div>
+          <div class="kpi"><span>Estandarización</span><strong data-r125-total="standardization">—</strong></div>
           <div class="kpi"><span>Total Neto</span><strong data-r125-total="total">—</strong></div>
         </div>
         <div class="notice r125-edp-diff" data-r125-diff style="margin-top:10px"></div>
@@ -226,7 +289,7 @@
       else m.appendChild(section);
 
       section.querySelectorAll('[data-r125-amount]').forEach(input=>input.addEventListener('input',()=>recalc(section,m,ep)));
-      [labelInput(m,'Total Neto'),labelInput(m,'Mantenimiento'),labelInput(m,'Gastos Reembolsables')].filter(Boolean)
+      [labelInput(m,'Total Neto'),labelInput(m,'Mantenimiento'),labelInput(m,'Gastos Reembolsables'),m.querySelector('[data-r161-standardization]')].filter(Boolean)
         .forEach(input=>input.addEventListener('input',()=>recalc(section,m,ep)));
       section.querySelector('[data-r125-save]')?.addEventListener('click',()=>save(section,m,ep));
       recalc(section,m,ep);
@@ -245,6 +308,6 @@
     window.addEventListener('stainher:runtime-r125-ready',()=>setTimeout(enhance,0));
   }
 
-  window.StainherEdpInlineR125=Object.freeze({install,enhance});
+  window.StainherEdpInlineR125=Object.freeze({install,enhance,standardizationFor,ensureStandardizationField});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
