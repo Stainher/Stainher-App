@@ -11,6 +11,9 @@ assert.match(core,/function filteredBudgetRows\(\)/,'Debe aplicar filtros al his
 assert.match(core,/haystack\.includes\(q\)/,'Buscador debe buscar en código equipo detalle y observación');
 assert.match(core,/function aggregateEquipment\(rows\)/,'Debe agrupar presupuestos por equipo');
 assert.match(core,/Cantidad de presupuestos por equipo/,'Debe mostrar gráfico de cantidad por equipo');
+assert.match(core,/function countColumnChart\(groups\)/,'Cantidad por equipo debe usar gráfico de columnas');
+assert.match(core,/class="r169-column-bar"/,'Debe renderizar columnas verticales');
+assert.match(core,/height:\$\{pct\}%/,'Altura de columna debe ser proporcional a la cantidad');
 assert.match(core,/Valor por equipo · IVA incluido/,'Debe mostrar gráfico de valor por equipo');
 assert.match(core,/Los gráficos consideran los filtros aplicados/,'Gráficos deben respetar filtros');
 assert.match(core,/class="r160-chart-bar"/,'Debe representar barras de detalle por equipo');
