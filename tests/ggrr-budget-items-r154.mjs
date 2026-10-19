@@ -10,6 +10,11 @@ assert.match(moduleSrc,/row\?\.materiales/,'Debe usar materiales');
 assert.match(moduleSrc,/row\?\.fletes/,'Debe usar fletes');
 assert.match(moduleSrc,/lines\.join\('\\n'\)/,'Debe separar ítems en líneas');
 assert.match(moduleSrc,/detalle:budgetDetail\(row\)/,'Estado local de GGRR debe usar detalle real');
+assert.match(moduleSrc,/width:94px!important/,'Botón GGRR/Estandarización debe mantener ancho fijo');
+assert.match(moduleSrc,/height:40px!important/,'Botón GGRR/Estandarización debe mantener alto fijo');
+assert.match(moduleSrc,/r152-ep-line/,'Estandarización debe mostrar EP en primera línea');
+assert.match(moduleSrc,/r152-type-line">Estandarización/,'Estandarización debe mostrarse centrada en segunda línea');
+assert.match(moduleSrc,/font-size:9px!important/,'Segunda línea de Estandarización debe usar fuente reducida');
 
 assert.match(migration,/presupuesto_detalle_ggrr_r154/,'Debe crear función de detalle');
 assert.match(migration,/jsonb_array_elements\(coalesce\(p_materiales/,'Debe procesar materiales');
