@@ -66,11 +66,11 @@
         min-width:980px!important;
         table-layout:fixed!important;
       }
-      #page-contrato .r80-list th:nth-child(1),#page-contrato .r80-list td:nth-child(1){width:24%!important;text-align:left!important}
-      #page-contrato .r80-list th:nth-child(2),#page-contrato .r80-list td:nth-child(2){width:16%!important;text-align:left!important}
-      #page-contrato .r80-list th:nth-child(3),#page-contrato .r80-list td:nth-child(3){width:12%!important;text-align:center!important}
-      #page-contrato .r80-list th:nth-child(4),#page-contrato .r80-list td:nth-child(4){width:14%!important;text-align:right!important;font-variant-numeric:tabular-nums!important}
-      #page-contrato .r80-list th:nth-child(5),#page-contrato .r80-list td:nth-child(5){width:34%!important;text-align:right!important}
+      #page-contrato .r80-list th:nth-child(1),#page-contrato .r80-list td:nth-child(1){width:22%!important;text-align:left!important}
+      #page-contrato .r80-list th:nth-child(2),#page-contrato .r80-list td:nth-child(2){width:11%!important;text-align:center!important}
+      #page-contrato .r80-list th:nth-child(3),#page-contrato .r80-list td:nth-child(3){width:30%!important;text-align:left!important}
+      #page-contrato .r80-list th:nth-child(4),#page-contrato .r80-list td:nth-child(4){width:12%!important;text-align:right!important;font-variant-numeric:tabular-nums!important}
+      #page-contrato .r80-list th:nth-child(5),#page-contrato .r80-list td:nth-child(5){width:25%!important;text-align:right!important}
       #page-contrato .r80-list .actions{
         display:flex!important;
         flex-wrap:wrap!important;
