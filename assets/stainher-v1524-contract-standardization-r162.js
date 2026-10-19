@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r162-estandarizacion-innovacion-contrato';
+  const BUILD='20261019-r164-estandarizacion-tab-compat';
   if(window.__STAINHER_CONTRACT_STANDARDIZATION_R162__===BUILD)return;
   window.__STAINHER_CONTRACT_STANDARDIZATION_R162__=BUILD;
 
@@ -161,29 +161,59 @@
     }
   }
 
+  function tabRoot(){
+    return document.querySelector('#page-contrato .v1520-tabs')
+      || document.querySelector('#page-contrato #v1519ContractTabs')
+      || document.querySelector('#page-contrato .v1516-contract-tabs')
+      || document.querySelector('#page-contrato .contract-tabs');
+  }
+
   function decorateTabs(){
-    const tabs=document.querySelector('#page-contrato .contract-tabs');
+    const tabs=tabRoot();
     if(!tabs)return false;
     let btn=tabs.querySelector('[data-r162-standardization-tab]');
     if(!btn){
       btn=document.createElement('button');
       btn.type='button';
-      btn.className='contract-tab';
+      btn.className=tabs.classList.contains('v1520-tabs')?'btn':'contract-tab';
       btn.dataset.r162StandardizationTab='1';
       btn.textContent='Estandarización e Innovación';
       btn.addEventListener('click',()=>{
         window.state=window.state||{};
         window.state.contractTab=TAB;
-        if(typeof window.renderContractTab==='function')window.renderContractTab();
-        else render();
+        tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===btn));
+        render();
       });
     }
-    const ggrr=[...tabs.querySelectorAll('.contract-tab')].find(x=>norm(x.textContent)==='gastos reembolsables');
+    const ggrr=[...tabs.querySelectorAll('button')].find(x=>norm(x.textContent)==='gastos reembolsables');
     if(ggrr&&ggrr.nextElementSibling!==btn)ggrr.insertAdjacentElement('afterend',btn);
     else if(!btn.isConnected)tabs.appendChild(btn);
     const selected=window.state?.contractTab===TAB;
-    btn.classList.toggle('active',selected);
-    if(selected)tabs.querySelectorAll('.contract-tab').forEach(x=>{if(x!==btn)x.classList.remove('active')});
+    tabs.querySelectorAll('button').forEach(x=>{
+      if(x===btn)x.classList.toggle('active',selected);
+      else if(selected)x.classList.remove('active');
+    });
+    return true;
+  }
+
+  function wrapSetContractTab(){
+    const current=window.setContractTab;
+    if(typeof current!=='function'||current.__r164Standardization)return false;
+    const wrapped=async function(tab){
+      if(tab===TAB){
+        window.state=window.state||{};
+        window.state.contractTab=TAB;
+        decorateTabs();
+        return render();
+      }
+      const out=await current.apply(this,arguments);
+      decorateTabs();
+      return out;
+    };
+    wrapped.__r164Standardization=true;
+    wrapped.__base=current;
+    window.setContractTab=wrapped;
+    try{setContractTab=wrapped}catch(_){}
     return true;
   }
 
@@ -225,6 +255,7 @@
     installStyle();
     wrapRenderContrato();
     wrapRenderContractTab();
+    wrapSetContractTab();
     decorateTabs();
     if(window.state?.contractTab===TAB)render();
     if(!observer){
@@ -238,4 +269,5 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   window.addEventListener('stainher:modules-ready',install);
   window.addEventListener('stainher:runtime-r142-ready',install);
+  window.addEventListener('stainher:runtime-r163-ready',install);
 })();
