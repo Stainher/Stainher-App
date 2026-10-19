@@ -15,28 +15,11 @@
   const money=v=>typeof window.fmtCLP==='function'?window.fmtCLP(Math.round(num(v))):'$ '+Math.round(num(v)).toLocaleString('es-CL');
   const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const dateCL=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:String(v||'')};
-  const qtyText=v=>{const n=Number(v)||0;return Number.isInteger(n)?String(n):n.toLocaleString('es-CL',{maximumFractionDigits:2})};
   function historyDetail(r){
-    const lines=[];
-    (Array.isArray(r?.materiales)?r.materiales:[]).forEach(x=>{
-      const name=String(x?.detalle||'').trim();if(!name)return;
-      const qty=Number(x?.cantidad)||0,unit=String(x?.unidad||'').trim();
-      let suffix='';
-      if(qty>0){
-        if(unit.toLowerCase()==='unidad')suffix=` (${qtyText(qty)} ${qty===1?'unidad':'unidades'})`;
-        else if(unit)suffix=` (${qtyText(qty)} ${unit})`;
-        else suffix=` (${qtyText(qty)})`;
-      }
-      lines.push(name+suffix);
-    });
-    (Array.isArray(r?.fletes)?r.fletes:[]).forEach(x=>{
-      const name=String(x?.detalle||'').trim();if(!name)return;
-      const qty=Number(x?.cantidad)||0;
-      lines.push(name+(qty>0?` (${qtyText(qty)} ${qty===1?'unidad':'unidades'})`:''));
-    });
-    if(lines.length)return lines.join('\n');
-    const obs=String(r?.observacion||'').trim();
-    return obs||'—';
+    const names=(Array.isArray(r?.materiales)?r.materiales:[])
+      .map(x=>String(x?.detalle||'').trim())
+      .filter(Boolean);
+    return names.length?names.join(' · '):'—';
   }
   const slug=v=>String(v||'EQUIPO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'EQUIPO';
   const codeFor=(equipment,date)=>{const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return `${slug(equipment)}-PE-${m?`${m[3]}-${m[2]}-${m[1].slice(-2)}`:'SIN-FECHA'}`};
