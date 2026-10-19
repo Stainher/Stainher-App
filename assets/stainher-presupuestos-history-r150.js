@@ -168,7 +168,7 @@
         <div class="r150-detail-head">
           <div>
             <h4>Detalle · ${esc(row.codigo||'Presupuesto')}</h4>
-            <div class="r150-detail-meta">${esc(row.equipo_nombre||'')} · Estado: ${esc(row.estado||'borrador')} · Utilidad: ${num(row.utilidad_pct).toLocaleString('es-CL')}%</div>
+            <div class="r150-detail-meta">${esc(row.equipo_nombre||'')} · Utilidad: ${num(row.utilidad_pct).toLocaleString('es-CL')}%</div>
           </div>
         </div>
         <div class="r150-detail-grid">
@@ -217,7 +217,7 @@
       detailRow=document.createElement('tr');
       detailRow.className='r150-detail-row';
       const td=document.createElement('td');
-      td.colSpan=8;
+      td.colSpan=5;
       detailRow.appendChild(td);
       sourceRow.insertAdjacentElement('afterend',detailRow);
     }
