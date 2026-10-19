@@ -4,7 +4,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20260924-r110-presupuestos-confiabilidad';
+  const BUILD='20261019-r160-presupuestos-analytics';
   if(window.__STAINHER_PRESUPUESTOS_R80__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_R80__=BUILD;
 
@@ -105,6 +105,22 @@
       #page-contrato .r80-list{overflow:auto;border:1px solid var(--line);border-radius:11px}.r80-list table{width:100%;border-collapse:collapse;min-width:980px}
       #page-contrato .r80-list th,#page-contrato .r80-list td{padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:left}.r80-list th{background:var(--panel2);color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}.r80-list td{font-size:14px;line-height:1.35}.r80-list td.money{text-align:right;font-variant-numeric:tabular-nums;font-size:15px}.r80-list .actions{display:flex;gap:7px;justify-content:flex-end;white-space:nowrap}
       #page-contrato .r155-history-detail{white-space:pre-line!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+      #page-contrato .r160-budget-tools{display:grid;grid-template-columns:minmax(240px,1.5fr) repeat(3,minmax(150px,.7fr)) auto;gap:9px;align-items:end;margin:0 0 12px}
+      #page-contrato .r160-budget-tools label{display:grid;gap:5px;color:var(--muted);font-size:10px;text-transform:uppercase}
+      #page-contrato .r160-budget-tools .field{width:100%;min-width:0}
+      #page-contrato .r160-results-line{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 10px;color:var(--muted);font-size:11px}
+      #page-contrato .r160-budget-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
+      #page-contrato .r160-chart-card{border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c);overflow:hidden;min-width:0}
+      #page-contrato .r160-chart-card h4{margin:0;padding:10px 12px;background:var(--panel2);font-size:12px}
+      #page-contrato .r160-chart-body{display:grid;gap:9px;padding:11px 12px;max-height:300px;overflow:auto}
+      #page-contrato .r160-chart-row{display:grid;grid-template-columns:minmax(110px,.9fr) minmax(120px,1.5fr) auto;gap:9px;align-items:center;min-width:0}
+      #page-contrato .r160-chart-label{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #page-contrato .r160-chart-track{height:10px;border-radius:999px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+      #page-contrato .r160-chart-bar{display:block;height:100%;min-width:2px;background:var(--accent,#ef5b2a);border-radius:999px}
+      #page-contrato .r160-chart-value{font-size:11px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+      #page-contrato .r160-chart-empty{padding:18px 12px;color:var(--muted);font-size:11px;text-align:center}
+      @media(max-width:1100px){#page-contrato .r160-budget-tools{grid-template-columns:1fr 1fr}#page-contrato .r160-budget-tools [data-r160-clear]{width:100%}}
+      @media(max-width:850px){#page-contrato .r160-budget-charts{grid-template-columns:1fr}}
       @media(max-width:900px){#page-contrato .r80-kpis{grid-template-columns:1fr 1fr}#page-contrato .r80-head{grid-template-columns:1fr 1fr}#page-contrato .r80-summary{grid-template-columns:1fr}#page-contrato .r80-mat,#page-contrato .r80-freight{grid-template-columns:1fr 1fr}#page-contrato .r80-mat>*:first-child,#page-contrato .r80-freight>*:first-child{grid-column:1/-1}}
       @media(max-width:520px){#page-contrato .r80-kpis,#page-contrato .r80-head{grid-template-columns:1fr}#page-contrato .r80-actions .btn{width:100%}}
     `;document.head.appendChild(s);
@@ -133,10 +149,87 @@
   }
   function renderBudgetTab(){mountTab();shell();Promise.all([loadEquipment(),loadRows()]).catch(e=>window.toast?.(e.message||String(e),'error'))}
 
+  const normSearch=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  function listFilters(){
+    const s=state();
+    return s.filters||(s.filters={search:'',equipment:'',destination:'',ep:''});
+  }
+  function contractEps(){return Array.isArray(window.state?.contractData?.edp)?window.state.contractData.edp:[]}
+  function filteredBudgetRows(){
+    const f=listFilters(),q=normSearch(f.search);
+    return state().rows.filter(row=>{
+      if(f.equipment&&String(row.equipo_nombre||'')!==f.equipment)return false;
+      if(f.destination==='sin_asignar'&&row.estado_pago_id)return false;
+      if(f.destination&&f.destination!=='sin_asignar'&&String(row.tipo_imputacion||'')!==f.destination)return false;
+      if(f.ep&&String(row.estado_pago_id||'')!==String(f.ep))return false;
+      if(q){
+        const haystack=normSearch([row.codigo,row.equipo_nombre,historyDetail(row),row.observacion,dateCL(row.fecha)].join(' '));
+        if(!haystack.includes(q))return false;
+      }
+      return true;
+    });
+  }
+  function budgetTableRows(rows){
+    return rows.map(r=>`<tr><td>${esc(dateCL(r.fecha))}</td><td><b>${esc(r.codigo)}</b></td><td>${esc(r.equipo_nombre||'—')}</td><td class="r155-history-detail">${esc(historyDetail(r))}</td><td class="money"><b>${money(r.total_final)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="6"><div class="empty">No hay presupuestos para los filtros seleccionados.</div></td></tr>';
+  }
+  function aggregateEquipment(rows){
+    const map=new Map();
+    rows.forEach(row=>{
+      const name=String(row.equipo_nombre||'Sin equipo').trim()||'Sin equipo';
+      const item=map.get(name)||{name,count:0,total:0};
+      item.count+=1;item.total+=num(row.total_final);map.set(name,item);
+    });
+    return [...map.values()];
+  }
+  function chartRows(groups,mode){
+    const sorted=[...groups].sort((a,b)=>(mode==='count'?b.count-a.count:b.total-a.total)||a.name.localeCompare(b.name,'es'));
+    const max=Math.max(1,...sorted.map(x=>mode==='count'?x.count:x.total));
+    if(!sorted.length)return '<div class="r160-chart-empty">Sin datos para graficar.</div>';
+    return sorted.map(x=>{
+      const value=mode==='count'?x.count:x.total;
+      const pct=Math.max(2,Math.round(value/max*100));
+      const label=mode==='count'?String(x.count):money(x.total);
+      return `<div class="r160-chart-row" title="${esc(x.name)}"><span class="r160-chart-label">${esc(x.name)}</span><span class="r160-chart-track"><i class="r160-chart-bar" style="width:${pct}%"></i></span><strong class="r160-chart-value">${esc(label)}</strong></div>`;
+    }).join('');
+  }
+  function bindBudgetRowActions(root){
+    root.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));
+    root.querySelectorAll('[data-pdf]').forEach(b=>b.addEventListener('click',()=>downloadSavedPdf(b.dataset.pdf)));
+    root.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>removeBudget(b.dataset.delete)));
+  }
+  function refreshBudgetResults(){
+    const rows=filteredBudgetRows(),all=state().rows;
+    const tbody=document.getElementById('r160BudgetRows'),charts=document.getElementById('r160BudgetCharts'),summary=document.getElementById('r160BudgetResultCount');
+    if(tbody){tbody.innerHTML=budgetTableRows(rows);bindBudgetRowActions(tbody)}
+    if(summary)summary.textContent=`Mostrando ${rows.length} de ${all.length} presupuestos`;
+    if(charts){
+      const groups=aggregateEquipment(rows);
+      charts.innerHTML=`<div class="r160-chart-card"><h4>Cantidad de presupuestos por equipo</h4><div class="r160-chart-body">${chartRows(groups,'count')}</div></div><div class="r160-chart-card"><h4>Valor por equipo · IVA incluido</h4><div class="r160-chart-body">${chartRows(groups,'total')}</div></div>`;
+    }
+  }
   function renderList(){
-    const body=document.getElementById('r80Body');if(!body)return;const rows=state().rows,total=rows.reduce((a,x)=>a+num(x.total_final),0),issued=rows.filter(x=>x.estado==='emitido').length;
-    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Valor total</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div><div class="r80-list"><table><thead><tr><th>Fecha</th><th>Código</th><th>Equipo</th><th>Detalle</th><th style="text-align:right">Total (Iva Incluido)</th><th style="text-align:right">Acciones</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(dateCL(r.fecha))}</td><td><b>${esc(r.codigo)}</b></td><td>${esc(r.equipo_nombre||'—')}</td><td class="r155-history-detail">${esc(historyDetail(r))}</td><td class="money"><b>${money(r.total_final)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="6"><div class="empty">Aún no hay presupuestos registrados.</div></td></tr>'}</tbody></table></div>`;
-    body.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));body.querySelectorAll('[data-pdf]').forEach(b=>b.addEventListener('click',()=>downloadSavedPdf(b.dataset.pdf)));body.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>removeBudget(b.dataset.delete)));
+    const body=document.getElementById('r80Body');if(!body)return;
+    const rows=state().rows,total=rows.reduce((a,x)=>a+num(x.total_final),0),issued=rows.filter(x=>x.estado==='emitido').length,f=listFilters();
+    const equipments=[...new Set(rows.map(x=>String(x.equipo_nombre||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+    const epOptions=contractEps().slice().sort((a,b)=>Number(b.ep_num)-Number(a.ep_num)).map(ep=>`<option value="${esc(ep.id)}" ${String(f.ep)===String(ep.id)?'selected':''}>EP${esc(ep.ep_num)}</option>`).join('');
+    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Valor total</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div>
+      <div class="r160-budget-tools">
+        <label>Buscar<input class="field" id="r160BudgetSearch" type="search" placeholder="Código, equipo o detalle" value="${esc(f.search)}"></label>
+        <label>Equipo<select class="field" id="r160BudgetEquipment"><option value="">Todos</option>${equipments.map(name=>`<option value="${esc(name)}" ${f.equipment===name?'selected':''}>${esc(name)}</option>`).join('')}</select></label>
+        <label>Destino<select class="field" id="r160BudgetDestination"><option value="">Todos</option><option value="sin_asignar" ${f.destination==='sin_asignar'?'selected':''}>Sin asignar</option><option value="gasto_reembolsable" ${f.destination==='gasto_reembolsable'?'selected':''}>GGRR</option><option value="estandarizacion" ${f.destination==='estandarizacion'?'selected':''}>Estandarización</option></select></label>
+        <label>Estado de Pago<select class="field" id="r160BudgetEp"><option value="">Todos</option>${epOptions}</select></label>
+        <button class="btn" type="button" data-r160-clear>Limpiar</button>
+      </div>
+      <div class="r160-results-line"><span id="r160BudgetResultCount"></span><span>Los gráficos consideran los filtros aplicados.</span></div>
+      <div class="r160-budget-charts" id="r160BudgetCharts"></div>
+      <div class="r80-list"><table><thead><tr><th>Fecha</th><th>Código</th><th>Equipo</th><th>Detalle</th><th style="text-align:right">Total (Iva Incluido)</th><th style="text-align:right">Acciones</th></tr></thead><tbody id="r160BudgetRows"></tbody></table></div>`;
+    const search=document.getElementById('r160BudgetSearch'),equipment=document.getElementById('r160BudgetEquipment'),destination=document.getElementById('r160BudgetDestination'),ep=document.getElementById('r160BudgetEp');
+    search?.addEventListener('input',()=>{f.search=search.value;refreshBudgetResults()});
+    equipment?.addEventListener('change',()=>{f.equipment=equipment.value;refreshBudgetResults()});
+    destination?.addEventListener('change',()=>{f.destination=destination.value;refreshBudgetResults()});
+    ep?.addEventListener('change',()=>{f.ep=ep.value;refreshBudgetResults()});
+    body.querySelector('[data-r160-clear]')?.addEventListener('click',()=>{f.search='';f.equipment='';f.destination='';f.ep='';renderList()});
+    refreshBudgetResults();
   }
 
   function equipmentOptions(selected){return `<option value="">Seleccionar equipo</option>${state().equipment.map(e=>`<option value="${esc(e.id)}" data-name="${esc(e.nombre)}" ${String(e.id)===String(selected)?'selected':''}>${esc(e.nombre)}</option>`).join('')}`}
