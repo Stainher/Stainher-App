@@ -15,6 +15,12 @@ assert.match(core,/Valor por equipo · IVA incluido/,'Debe mostrar gráfico de v
 assert.match(core,/Los gráficos consideran los filtros aplicados/,'Gráficos deben respetar filtros');
 assert.match(core,/class="r160-chart-bar"/,'Debe representar barras de detalle por equipo');
 assert.match(core,/Mostrando \$\{rows\.length\} de \$\{all\.length\} presupuestos/,'Debe mostrar cantidad filtrada');
+assert.match(core,/Total GGRR · IVA incluido/,'Debe mostrar total separado de GGRR');
+assert.match(core,/Total Estandarización e Innovación · IVA incluido/,'Debe mostrar total separado de Estandarización e Innovación');
+assert.match(core,/Total general · IVA incluido/,'Debe conservar el total general');
+assert.match(core,/x\.tipo_imputacion==='gasto_reembolsable'/,'Total GGRR debe usar destino asignado');
+assert.match(core,/x\.tipo_imputacion==='estandarizacion'/,'Total Estandarización debe usar destino asignado');
+assert.match(core,/repeat\(6,minmax\(145px,1fr\)\)/,'KPIs deben distribuirse en seis tarjetas');
 
 new Function(core);
 console.log('presupuestos-analytics-r160: ok');
