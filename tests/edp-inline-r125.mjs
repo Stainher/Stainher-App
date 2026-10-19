@@ -19,6 +19,11 @@ assert.match(inline,/Guardar desglose equipos/,'Debe tener acción de guardado v
 assert.match(inline,/Mantenimiento EDP/,'Debe mostrar conciliación con Mantenimiento');
 assert.match(inline,/Gasto Operativo \/ General/,'Debe mostrar Gasto Operativo / General');
 assert.match(inline,/Gastos Reembolsables/,'Debe leer GGRR desde el modal');
+assert.match(inline,/data-r161-standardization/,'Debe agregar campo Estandarización al editor EDP');
+assert.match(inline,/tipo_imputacion','estandarizacion'/,'Debe sumar presupuestos asignados como Estandarización');
+assert.match(inline,/base\.total-base\.ggrr-base\.standardization-equipment/,'Gasto Operativo no debe absorber Estandarización');
+assert.match(inline,/data-r125-total="standardization"/,'Resumen EDP debe mostrar Estandarización');
+assert.match(inline,/readonly data-r161-standardization/,'Monto de Estandarización debe ser automático y no editable manualmente');
 assert.match(inline,/MutationObserver/,'Debe reaccionar al modal aunque se abra después de cargar el módulo');
 
 assert.match(loader,/HP_LOADER_VERSION__='R125'/,'El loader debe quedar consolidado como R125');
