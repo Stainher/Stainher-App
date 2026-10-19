@@ -30,6 +30,7 @@
       #page-contrato .r162-toolbar label{display:grid;gap:5px;color:var(--muted);font-size:10px;text-transform:uppercase;min-width:260px}
       #page-contrato .r165-report-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
       #page-contrato .r165-report-controls .btn{white-space:nowrap}
+      #page-contrato .r165-edp-legend{font-size:10px;color:var(--muted);text-transform:none;line-height:1.2}
       #page-contrato .r162-kpis{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px;margin:0 0 14px}
       #page-contrato .r162-kpi{border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c);padding:11px;min-width:0}
       #page-contrato .r162-kpi span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}
@@ -93,9 +94,16 @@
     return String(withRows?.id||ordered[0]?.id||'');
   }
 
-  function epOptionHtml(selected){
+  function epOptionHtml(selected,rows=[]){
+    const counts=new Map();
+    (Array.isArray(rows)?rows:[]).forEach(row=>{
+      const id=String(row?.estado_pago_id||'');
+      if(id)counts.set(id,(counts.get(id)||0)+1);
+    });
     return [...eps()].sort((a,b)=>Number(b.ep_num)-Number(a.ep_num)).map(ep=>{
-      const label=`EP${ep.ep_num} · ${months[Number(ep.mes_edp)-1]||ep.mes_edp} ${ep.anio_edp}`;
+      const count=counts.get(String(ep.id))||0;
+      const mark=count?'● ':'';
+      const label=`${mark}EP${ep.ep_num} · ${months[Number(ep.mes_edp)-1]||ep.mes_edp} ${ep.anio_edp}`;
       return `<option value="${esc(ep.id)}" ${String(ep.id)===String(selected)?'selected':''}>${esc(label)}</option>`;
     }).join('');
   }
@@ -208,7 +216,8 @@
           </div>
           <div class="r165-report-controls">
             <label>Estado de Pago
-              <select class="field" id="r162EpSelect">${epOptionHtml(epId)}</select>
+              <select class="field" id="r162EpSelect">${epOptionHtml(epId,rows)}</select>
+              <span class="r165-edp-legend">● = contiene datos</span>
             </label>
             <button class="btn primary" type="button" data-r165-report>Generar informe</button>
           </div>
