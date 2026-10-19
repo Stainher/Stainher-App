@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r154-presupuestos-ggrr-items';
+  const BUILD='20261019-r160-presupuestos-destino-edp';
   if(window.__STAINHER_PRESUPUESTOS_GGRR_R152__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_GGRR_R152__=BUILD;
 
@@ -162,7 +162,7 @@
   }
 
   function labelForAssigned(row){
-    if(!row?.estado_pago_id)return 'Asignar GGRR';
+    if(!row?.estado_pago_id)return 'Asignar';
     const ep=eps().find(x=>String(x.id)===String(row.estado_pago_id));
     if(row?.tipo_imputacion==='estandarizacion'){
       return ep?.ep_num?`EP${ep.ep_num} · Estandarización`:'Estandarización';
@@ -200,7 +200,7 @@
       btn.classList.toggle('r152-standardization',isStandardization);
       btn.title=assigned
         ?(row?.tipo_imputacion==='estandarizacion'?'Presupuesto histórico imputado a Estandarización.':'Este presupuesto ya fue asignado a Gastos Reembolsables.')
-        :'Asignar este presupuesto a Gastos Reembolsables de un Estado de Pago.';
+        :'Asignar este presupuesto a GGRR o Estandarización en un Estado de Pago.';
     });
   }
 
@@ -220,60 +220,85 @@
     }).join('');
   }
 
+  function assignmentNotice(){
+    const destination=document.getElementById('r160Destination')?.value||'gasto_reembolsable';
+    const notice=document.getElementById('r160AssignNotice');
+    const button=document.querySelector('[data-r152-confirm]');
+    if(notice){
+      notice.innerHTML=destination==='estandarizacion'
+        ?'El presupuesto quedará vinculado al <b>Estado de Pago seleccionado</b> como <b>Estandarización</b>. No aumentará el monto de Gastos Reembolsables.'
+        :'Se registrará como documento de <b>Gastos Reembolsables</b> usando el monto neto del presupuesto y se sumará al GGRR reconocido del Estado de Pago seleccionado.';
+    }
+    if(button)button.textContent=destination==='estandarizacion'?'Asignar a Estandarización':'Asignar a GGRR';
+  }
+
   function openAssign(id){
     const row=budget(id);
     if(!row)return window.toast?.('Presupuesto no encontrado.','error');
-    if(row.estado_pago_id)return window.toast?.('Este presupuesto ya está asignado a Gastos Reembolsables.','warn');
+    if(row.estado_pago_id)return window.toast?.('Este presupuesto ya está asignado a un Estado de Pago.','warn');
     const all=eps();
     if(!all.length)return window.toast?.('No hay Estados de Pago disponibles para asignar.','error');
     const suggested=matchingEp(row);
     const root=document.getElementById('modalRoot');
     if(!root)return;
-    root.innerHTML=`<div class="modal-bg"><div class="modal" style="width:min(620px,96vw)">
+    root.innerHTML=`<div class="modal-bg"><div class="modal" style="width:min(660px,96vw)">
       <div class="row-between">
-        <div><h3>Asignar presupuesto a Gasto Reembolsable</h3><div class="muted">${esc(row.codigo||'')}</div></div>
+        <div><h3>Asignar presupuesto a Estado de Pago</h3><div class="muted">${esc(row.codigo||'')}</div></div>
         <button class="btn" type="button" onclick="closeModal()">Cerrar</button>
       </div>
       <div class="r152-ggrr-summary">
         <div class="r152-ggrr-card"><span>Equipo</span><strong>${esc(row.equipo_nombre||'—')}</strong></div>
-        <div class="r152-ggrr-card"><span>Monto neto a registrar en GGRR</span><strong>${money(row.venta_neta)}</strong></div>
+        <div class="r152-ggrr-card"><span>Monto neto</span><strong>${money(row.venta_neta)}</strong></div>
         <div class="r152-ggrr-card"><span>Total presupuesto IVA incluido</span><strong>${money(row.total_final)}</strong></div>
         <div class="r152-ggrr-card"><span>Fecha documento</span><strong>${dateCL(row.fecha)}</strong></div>
       </div>
-      <label>Estado de Pago
-        <select class="field" id="r152EpSelect" style="width:100%;margin-top:6px">${epOptions(suggested?.id)}</select>
-      </label>
-      <div class="notice" style="margin-top:12px">
-        Se registrará como documento de <b>Gastos Reembolsables</b> usando el monto neto del presupuesto. El sistema sumará ese monto al GGRR reconocido del Estado de Pago seleccionado y bloqueará una segunda asignación del mismo presupuesto.
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:12px">
+        <label>Destino
+          <select class="field" id="r160Destination" style="width:100%;margin-top:6px">
+            <option value="gasto_reembolsable">Gastos Reembolsables</option>
+            <option value="estandarizacion">Estandarización</option>
+          </select>
+        </label>
+        <label>Estado de Pago
+          <select class="field" id="r152EpSelect" style="width:100%;margin-top:6px">${epOptions(suggested?.id)}</select>
+        </label>
       </div>
+      <div class="notice" id="r160AssignNotice" style="margin-top:12px"></div>
       <div class="row" style="justify-content:flex-end;margin-top:14px">
         <button class="btn primary" type="button" data-r152-confirm>Asignar a GGRR</button>
       </div>
     </div></div>`;
+    root.querySelector('#r160Destination')?.addEventListener('change',assignmentNotice);
     root.querySelector('[data-r152-confirm]')?.addEventListener('click',()=>assign(id));
+    assignmentNotice();
   }
 
   async function assign(id){
     const row=budget(id);
     const epId=document.getElementById('r152EpSelect')?.value;
+    const destination=document.getElementById('r160Destination')?.value||'gasto_reembolsable';
     if(!row||!epId)return window.toast?.('Selecciona un Estado de Pago.','error');
+    if(!['gasto_reembolsable','estandarizacion'].includes(destination))return window.toast?.('Selecciona un destino válido.','error');
     const button=document.querySelector('[data-r152-confirm]');
     if(button){button.disabled=true;button.textContent='Asignando…';}
     try{
-      const out=await window.sb.rpc('asignar_presupuesto_ggrr_r152',{
+      const out=await window.sb.rpc('asignar_presupuesto_edp_r160',{
         p_presupuesto_id:id,
-        p_estado_pago_id:epId
+        p_estado_pago_id:epId,
+        p_tipo_imputacion:destination
       });
       if(out.error)throw out.error;
       const data=Array.isArray(out.data)?out.data[0]:out.data;
       row.estado_pago_id=data?.estado_pago_id||epId;
       row.gasto_reembolsable_id=data?.gasto_reembolsable_id||null;
-      row.asignado_ggrr_at=new Date().toISOString();
+      row.tipo_imputacion=data?.tipo_imputacion||destination;
+      row.asignado_edp_at=new Date().toISOString();
+      if(destination==='gasto_reembolsable')row.asignado_ggrr_at=row.asignado_edp_at;
 
       const ep=eps().find(x=>String(x.id)===String(row.estado_pago_id));
-      if(ep&&data?.nuevo_total_ggrr!=null)ep.gastos_reembolsables=Number(data.nuevo_total_ggrr);
+      if(destination==='gasto_reembolsable'&&ep&&data?.nuevo_total_ggrr!=null)ep.gastos_reembolsables=Number(data.nuevo_total_ggrr);
 
-      if(window.state?.contractData){
+      if(destination==='gasto_reembolsable'&&window.state?.contractData){
         window.state.contractData.reemb=Array.isArray(window.state.contractData.reemb)?window.state.contractData.reemb:[];
         if(data?.gasto_reembolsable_id&&!window.state.contractData.reemb.some(x=>String(x.id)===String(data.gasto_reembolsable_id))){
           window.state.contractData.reemb.push({
@@ -295,9 +320,10 @@
 
       window.closeModal?.();
       decorate();
-      window.toast?.(`Presupuesto asignado a EP${data?.ep_num||ep?.ep_num||''} como Gasto Reembolsable.`,'success');
+      const label=destination==='estandarizacion'?'Estandarización':'Gasto Reembolsable';
+      window.toast?.(`Presupuesto asignado a EP${data?.ep_num||ep?.ep_num||''} como ${label}.`,'success');
     }catch(error){
-      if(button){button.disabled=false;button.textContent='Asignar a GGRR';}
+      if(button){button.disabled=false;assignmentNotice();}
       window.toast?.(error.message||String(error),'error');
     }
   }
