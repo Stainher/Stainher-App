@@ -30,10 +30,13 @@
       await load('stainher-presupuestos-pdf-footer-runtime-r93','stainher-presupuestos-pdf-footer-r84.js');
       await load('stainher-presupuestos-grid-runtime-r93','stainher-presupuestos-grid-r85.js');
       await load('stainher-presupuestos-history-runtime-r150','stainher-presupuestos-history-r150.js');
+      await load('stainher-presupuestos-ggrr-runtime-r152','stainher-presupuestos-ggrr-r152.js');
       await load('stainher-presupuestos-router-runtime-r93','stainher-presupuestos-router-r82.js');
       window.StainherPresupuestosHistoryR150?.install?.();
+      window.StainherPresupuestosGgrrR152?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:presupuestos-r85-ready'));
       window.dispatchEvent(new CustomEvent('stainher:presupuestos-r150-ready'));
+      window.dispatchEvent(new CustomEvent('stainher:presupuestos-r152-ready'));
     }catch(error){
       console.error('[Stainher Presupuestos R85]',error);
     }
