@@ -4,7 +4,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r167-totales-destino-presupuestos';
+  const BUILD='20261019-r168-historico-total-neto';
   if(window.__STAINHER_PRESUPUESTOS_R80__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_R80__=BUILD;
 
@@ -171,7 +171,7 @@
     });
   }
   function budgetTableRows(rows){
-    return rows.map(r=>`<tr><td>${esc(dateCL(r.fecha))}</td><td><b>${esc(r.codigo)}</b></td><td>${esc(r.equipo_nombre||'—')}</td><td class="r155-history-detail">${esc(historyDetail(r))}</td><td class="money"><b>${money(r.total_final)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="6"><div class="empty">No hay presupuestos para los filtros seleccionados.</div></td></tr>';
+    return rows.map(r=>`<tr><td>${esc(dateCL(r.fecha))}</td><td><b>${esc(r.codigo)}</b></td><td>${esc(r.equipo_nombre||'—')}</td><td class="r155-history-detail">${esc(historyDetail(r))}</td><td class="money"><b>${money(r.venta_neta)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="6"><div class="empty">No hay presupuestos para los filtros seleccionados.</div></td></tr>';
   }
   function aggregateEquipment(rows){
     const map=new Map();
@@ -223,7 +223,7 @@
       </div>
       <div class="r160-results-line"><span id="r160BudgetResultCount"></span><span>Los gráficos consideran los filtros aplicados.</span></div>
       <div class="r160-budget-charts" id="r160BudgetCharts"></div>
-      <div class="r80-list"><table><thead><tr><th>Fecha</th><th>Código</th><th>Equipo</th><th>Detalle</th><th style="text-align:right">Total (Iva Incluido)</th><th style="text-align:right">Acciones</th></tr></thead><tbody id="r160BudgetRows"></tbody></table></div>`;
+      <div class="r80-list"><table><thead><tr><th>Fecha</th><th>Código</th><th>Equipo</th><th>Detalle</th><th style="text-align:right">Total neto</th><th style="text-align:right">Acciones</th></tr></thead><tbody id="r160BudgetRows"></tbody></table></div>`;
     const search=document.getElementById('r160BudgetSearch'),equipment=document.getElementById('r160BudgetEquipment'),destination=document.getElementById('r160BudgetDestination'),ep=document.getElementById('r160BudgetEp');
     search?.addEventListener('input',()=>{f.search=search.value;refreshBudgetResults()});
     equipment?.addEventListener('change',()=>{f.equipment=equipment.value;refreshBudgetResults()});

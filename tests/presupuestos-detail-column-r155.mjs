@@ -13,7 +13,9 @@ assert.match(core,/r\?\.observacion/,'Históricos sin materiales deben usar la d
 assert.match(core,/lines\.join\('\\n'\)/,'Debe mostrar ítems del detalle en líneas legibles');
 assert.match(core,/return historical\|\|'—'/,'Debe mostrar el detalle histórico cuando materiales esté vacío');
 assert.match(core,/unidad':'unidades'/,'Debe incluir cantidad/unidad en el detalle');
-assert.match(core,/Total \(Iva Incluido\)/,'Debe indicar que el total incluye IVA');
+assert.match(core,/>Total neto<\/th>/,'Histórico debe mostrar encabezado Total neto');
+assert.match(core,/money\(r\.venta_neta\)/,'Cada fila del histórico debe mostrar venta neta');
+assert.doesNotMatch(core,/>Total \(Iva Incluido\)<\/th>/,'Histórico ya no debe mostrar Total IVA incluido');
 assert.match(core,/r155-history-detail/,'Debe aplicar estilo al resumen');
 assert.match(core,/class="panel r80-form" data-no-collapse="1"/,'El editor debe quedar excluido del colapsado transversal');
 assert.doesNotMatch(history,/btn\.textContent='Detalle'/,'No debe volver a crear botón Detalle');
