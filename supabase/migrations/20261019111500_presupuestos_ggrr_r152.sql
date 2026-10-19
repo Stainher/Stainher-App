@@ -63,6 +63,14 @@ begin
     raise exception 'Presupuesto no encontrado';
   end if;
 
+  if v_role = 'confiabilidad' and v_budget.created_by is distinct from v_uid then
+    raise exception 'Confiabilidad solo puede asignar presupuestos creados por su propio perfil';
+  end if;
+
+  if not public.tiene_permiso('contrato','editar') then
+    raise exception 'Tu perfil no tiene permiso para editar Administración del Contrato';
+  end if;
+
   if v_budget.gasto_reembolsable_id is not null or v_budget.estado_pago_id is not null then
     raise exception 'Este presupuesto ya está asignado a un Estado de Pago';
   end if;
