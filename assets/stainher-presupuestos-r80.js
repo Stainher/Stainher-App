@@ -30,7 +30,9 @@
         return unit?`${name} (${qtyText(qty)} ${unit})`:`${name} (${qtyText(qty)})`;
       })
       .filter(Boolean);
-    return lines.length?lines.join('\n'):'—';
+    if(lines.length)return lines.join('\n');
+    const historical=String(r?.observacion||'').trim();
+    return historical||'—';
   }
   const slug=v=>String(v||'EQUIPO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'EQUIPO';
   const codeFor=(equipment,date)=>{const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return `${slug(equipment)}-PE-${m?`${m[3]}-${m[2]}-${m[1].slice(-2)}`:'SIN-FECHA'}`};
