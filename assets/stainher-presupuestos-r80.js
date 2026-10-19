@@ -4,7 +4,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r160-presupuestos-analytics';
+  const BUILD='20261019-r166-sync-presupuestos-edp';
   if(window.__STAINHER_PRESUPUESTOS_R80__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_R80__=BUILD;
 
@@ -257,6 +257,30 @@
     const body=document.getElementById('r80Body');if(!body)return;body.querySelector('[data-back]')?.addEventListener('click',renderList);body.querySelector('[data-add-mat]')?.addEventListener('click',()=>{document.getElementById('r80Mats')?.insertAdjacentHTML('beforeend',matRow({cantidad:1,unidad:'Unidad'}));bindRemovers();sync()});body.querySelector('[data-add-freight]')?.addEventListener('click',()=>{document.getElementById('r80Freights')?.insertAdjacentHTML('beforeend',freightRow({cantidad:1}));bindRemovers();sync()});body.addEventListener('input',sync);body.addEventListener('change',sync);body.querySelector('[data-save]')?.addEventListener('click',saveBudget);body.querySelector('[data-preview]')?.addEventListener('click',()=>makePdf(readDraft(),false));bindRemovers();
   }
 
+  async function refreshAssignedContractData(row){
+    if(!row?.estado_pago_id||!window.sb?.from)return;
+    try{
+      const epQ=await window.sb.from('estados_pago').select('*').eq('id',row.estado_pago_id).single();
+      if(!epQ.error&&epQ.data&&window.state?.contractData){
+        window.state.contractData.edp=Array.isArray(window.state.contractData.edp)?window.state.contractData.edp:[];
+        const i=window.state.contractData.edp.findIndex(x=>String(x.id)===String(epQ.data.id));
+        if(i>=0)window.state.contractData.edp[i]={...window.state.contractData.edp[i],...epQ.data};
+        else window.state.contractData.edp.push(epQ.data);
+      }
+      if(row.tipo_imputacion==='gasto_reembolsable'&&row.gasto_reembolsable_id){
+        const gQ=await window.sb.from('gastos_reembolsables').select('*').eq('id',row.gasto_reembolsable_id).single();
+        if(!gQ.error&&gQ.data&&window.state?.contractData){
+          window.state.contractData.reemb=Array.isArray(window.state.contractData.reemb)?window.state.contractData.reemb:[];
+          const j=window.state.contractData.reemb.findIndex(x=>String(x.id)===String(gQ.data.id));
+          if(j>=0)window.state.contractData.reemb[j]={...window.state.contractData.reemb[j],...gQ.data};
+          else window.state.contractData.reemb.push(gQ.data);
+        }
+      }
+    }catch(error){
+      console.error('[Stainher R166] No fue posible refrescar EDP local',error);
+    }
+  }
+
   async function saveBudget(){
     const d=readDraft(),existing=d.id?state().rows.find(x=>String(x.id)===String(d.id)):null;
     if(!canUse()||(existing&&!canEdit(existing)))return window.toast?.('No tienes permiso para guardar este presupuesto.','error');
@@ -278,7 +302,9 @@
       }
     }
     if(out?.error)return window.toast?.(out.error.code==='23505'?'No fue posible generar un código correlativo único. Actualiza e intenta nuevamente.':out.error.message||String(out.error),'error');
-    window.toast?.('Presupuesto guardado correctamente.','success');
+    const saved=out?.data||existing||d;
+    if(existing?.estado_pago_id)await refreshAssignedContractData(saved);
+    window.toast?.(existing?.estado_pago_id?'Presupuesto y Estado de Pago actualizados correctamente.':'Presupuesto guardado correctamente.','success');
     state().editing=null;
     await loadRows();
   }
