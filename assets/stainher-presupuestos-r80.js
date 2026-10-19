@@ -35,7 +35,29 @@
     return historical||'—';
   }
   const slug=v=>String(v||'EQUIPO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'EQUIPO';
-  const codeFor=(equipment,date)=>{const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return `${slug(equipment)}-PE-${m?`${m[3]}-${m[2]}-${m[1].slice(-2)}`:'SIN-FECHA'}`};
+  const baseCodeFor=(equipment,date)=>{const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return `${slug(equipment)}-PE-${m?`${m[3]}-${m[2]}-${m[1].slice(-2)}`:'SIN-FECHA'}`};
+  const regexEscape=v=>String(v||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  function nextCodeFromRows(equipment,date,rows,excludeId=''){
+    const base=baseCodeFor(equipment,date),rx=new RegExp(`^${regexEscape(base)}(?:-(\\d+))?$`);
+    let found=false,maxSuffix=0;
+    (Array.isArray(rows)?rows:[]).forEach(row=>{
+      if(excludeId&&String(row?.id)===String(excludeId))return;
+      const match=String(row?.codigo||'').match(rx);
+      if(!match)return;
+      found=true;
+      if(match[1])maxSuffix=Math.max(maxSuffix,Number(match[1])||0);
+    });
+    return found?`${base}-${maxSuffix+1}`:base;
+  }
+  const nextCodeFor=(equipment,date,excludeId='')=>nextCodeFromRows(equipment,date,state().rows,excludeId);
+  function documentCode(d){
+    if(d?.codigo)return String(d.codigo);
+    if(d?.id){
+      const stored=state().rows.find(x=>String(x.id)===String(d.id));
+      if(stored?.codigo)return String(stored.codigo);
+    }
+    return nextCodeFor(d?.equipo_nombre,d?.fecha,d?.id);
+  }
   const uid=()=>String(window.state?.session?.user?.id||window.state?.user?.id||'');
   const role=()=>String(window.state?.profile?.rol||'').trim().toLowerCase();
   const canUse=()=>!window.state?.v15PreviewRole&&['administrador','confiabilidad'].includes(role());
@@ -124,7 +146,7 @@
   function openEditor(id){const row=id?state().rows.find(x=>String(x.id)===String(id)):null;if(!canUse()||(row&&!canEdit(row)))return window.toast?.('No tienes permiso para editar este presupuesto.','error');state().editing=row?clone(row):blank();renderEditor()}
   function renderEditor(){
     const body=document.getElementById('r80Body');if(!body)return;const d=state().editing||blank(),k=calc(d);
-    body.innerHTML=`<div class="panel r80-form" data-no-collapse="1"><div class="row-between"><div><h3 style="margin:0">${d.id?'Editar':'Nuevo'} presupuesto</h3><div class="muted">Propuesta técnico comercial</div></div><button class="btn" type="button" data-back>← Historial</button></div><div class="r80-head"><label>Equipo<select class="field" id="r80Equipment">${equipmentOptions(d.equipo_id)}</select></label><label>Fecha<input class="field" id="r80Date" type="date" value="${esc(d.fecha||today())}"></label><label>Código del documento<div class="r80-code" id="r80Code">${esc(codeFor(d.equipo_nombre,d.fecha))}</div></label><label>Utilidad %<input class="field" id="r80Margin" type="number" min="0" step="0.1" value="${num(d.utilidad_pct)}"></label></div><div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de materiales</h4><button class="btn" type="button" data-add-mat>+ Material</button></div><div id="r80Mats">${(d.materiales?.length?d.materiales:[{}]).map(matRow).join('')}</div></div><div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de fletes o transportes</h4><button class="btn" type="button" data-add-freight>+ Flete</button></div><div id="r80Freights">${(d.fletes?.length?d.fletes:[{}]).map(freightRow).join('')}</div></div><label>Observación<textarea class="field" id="r80Observation" rows="3">${esc(d.observacion||'')}</textarea></label><div class="r80-summary"><div class="r80-summary-card"><h4>Resumen de costos</h4><div class="r80-summary-row"><span>Materiales</span><b id="r80MatSum">${money(k.subtotal_materiales)}</b></div><div class="r80-summary-row"><span>Fletes</span><b id="r80FreightSum">${money(k.subtotal_fletes)}</b></div><div class="r80-summary-row total"><span>Total costos netos</span><b id="r80Costs">${money(k.total_costos_netos)}</b></div><div class="r80-summary-row"><span>Utilidad</span><b id="r80Utility">${money(k.utilidad)}</b></div><div class="r80-summary-row total"><span>Subtotal</span><b id="r80Net">${money(k.venta_neta)}</b></div></div><div class="r80-summary-card"><h4>Venta final</h4><div class="r80-summary-row"><span>Total venta neta</span><b id="r80FinalNet">${money(k.venta_neta)}</b></div><div class="r80-summary-row"><span>IVA (19%)</span><b id="r80Iva">${money(k.iva)}</b></div><div class="r80-summary-row grand"><span>TOTAL</span><b id="r80Total">${money(k.total_final)}</b></div></div></div><div class="r80-actions"><button class="btn" type="button" data-preview>↓ Generar PDF</button><button class="btn primary" type="button" data-save>Guardar presupuesto</button></div></div>`;bindEditor();
+    body.innerHTML=`<div class="panel r80-form" data-no-collapse="1"><div class="row-between"><div><h3 style="margin:0">${d.id?'Editar':'Nuevo'} presupuesto</h3><div class="muted">Propuesta técnico comercial</div></div><button class="btn" type="button" data-back>← Historial</button></div><div class="r80-head"><label>Equipo<select class="field" id="r80Equipment">${equipmentOptions(d.equipo_id)}</select></label><label>Fecha<input class="field" id="r80Date" type="date" value="${esc(d.fecha||today())}"></label><label>Código del documento<div class="r80-code" id="r80Code">${esc(documentCode(d))}</div></label><label>Utilidad %<input class="field" id="r80Margin" type="number" min="0" step="0.1" value="${num(d.utilidad_pct)}"></label></div><div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de materiales</h4><button class="btn" type="button" data-add-mat>+ Material</button></div><div id="r80Mats">${(d.materiales?.length?d.materiales:[{}]).map(matRow).join('')}</div></div><div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de fletes o transportes</h4><button class="btn" type="button" data-add-freight>+ Flete</button></div><div id="r80Freights">${(d.fletes?.length?d.fletes:[{}]).map(freightRow).join('')}</div></div><label>Observación<textarea class="field" id="r80Observation" rows="3">${esc(d.observacion||'')}</textarea></label><div class="r80-summary"><div class="r80-summary-card"><h4>Resumen de costos</h4><div class="r80-summary-row"><span>Materiales</span><b id="r80MatSum">${money(k.subtotal_materiales)}</b></div><div class="r80-summary-row"><span>Fletes</span><b id="r80FreightSum">${money(k.subtotal_fletes)}</b></div><div class="r80-summary-row total"><span>Total costos netos</span><b id="r80Costs">${money(k.total_costos_netos)}</b></div><div class="r80-summary-row"><span>Utilidad</span><b id="r80Utility">${money(k.utilidad)}</b></div><div class="r80-summary-row total"><span>Subtotal</span><b id="r80Net">${money(k.venta_neta)}</b></div></div><div class="r80-summary-card"><h4>Venta final</h4><div class="r80-summary-row"><span>Total venta neta</span><b id="r80FinalNet">${money(k.venta_neta)}</b></div><div class="r80-summary-row"><span>IVA (19%)</span><b id="r80Iva">${money(k.iva)}</b></div><div class="r80-summary-row grand"><span>TOTAL</span><b id="r80Total">${money(k.total_final)}</b></div></div></div><div class="r80-actions"><button class="btn" type="button" data-preview>↓ Generar PDF</button><button class="btn primary" type="button" data-save>Guardar presupuesto</button></div></div>`;bindEditor();
   }
 
   function readDraft(){
@@ -132,7 +154,7 @@
     return{id:state().editing?.id||null,equipo_id:sel?.value||'',equipo_nombre:opt?.dataset?.name||'',fecha:document.getElementById('r80Date')?.value||today(),utilidad_pct:num(document.getElementById('r80Margin')?.value),materiales:[...document.querySelectorAll('[data-mat]')].map(r=>({detalle:r.querySelector('[data-f="detalle"]')?.value?.trim()||'',cantidad:num(r.querySelector('[data-f="cantidad"]')?.value),unidad:r.querySelector('[data-f="unidad"]')?.value?.trim()||'Unidad',precio_unitario:num(r.querySelector('[data-f="precio_unitario"]')?.value)})).filter(x=>x.detalle||x.precio_unitario),fletes:[...document.querySelectorAll('[data-freight]')].map(r=>({detalle:r.querySelector('[data-f="detalle"]')?.value?.trim()||'',cantidad:num(r.querySelector('[data-f="cantidad"]')?.value),monto_total:num(r.querySelector('[data-f="monto_total"]')?.value)})).filter(x=>x.detalle||x.monto_total),observacion:document.getElementById('r80Observation')?.value?.trim()||'',estado:state().editing?.estado||'borrador'};
   }
   function sync(){
-    const d=readDraft(),k=calc(d),set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};set('r80Code',codeFor(d.equipo_nombre,d.fecha));set('r80MatSum',money(k.subtotal_materiales));set('r80FreightSum',money(k.subtotal_fletes));set('r80Costs',money(k.total_costos_netos));set('r80Utility',money(k.utilidad));set('r80Net',money(k.venta_neta));set('r80FinalNet',money(k.venta_neta));set('r80Iva',money(k.iva));set('r80Total',money(k.total_final));document.querySelectorAll('[data-mat]').forEach(r=>{const total=r.querySelector('[data-mat-total]');if(total)total.textContent=money(num(r.querySelector('[data-f="cantidad"]')?.value)*num(r.querySelector('[data-f="precio_unitario"]')?.value))})
+    const d=readDraft(),k=calc(d),set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};set('r80Code',documentCode(d));set('r80MatSum',money(k.subtotal_materiales));set('r80FreightSum',money(k.subtotal_fletes));set('r80Costs',money(k.total_costos_netos));set('r80Utility',money(k.utilidad));set('r80Net',money(k.venta_neta));set('r80FinalNet',money(k.venta_neta));set('r80Iva',money(k.iva));set('r80Total',money(k.total_final));document.querySelectorAll('[data-mat]').forEach(r=>{const total=r.querySelector('[data-mat-total]');if(total)total.textContent=money(num(r.querySelector('[data-f="cantidad"]')?.value)*num(r.querySelector('[data-f="precio_unitario"]')?.value))})
   }
   function bindRemovers(){
     document.querySelectorAll('[data-remove-mat]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',()=>{if(document.querySelectorAll('[data-mat]').length<=1)return window.toast?.('Debe quedar al menos una fila de materiales.','warn');b.closest('[data-mat]')?.remove();sync()})});
@@ -143,7 +165,29 @@
   }
 
   async function saveBudget(){
-    const d=readDraft(),existing=d.id?state().rows.find(x=>String(x.id)===String(d.id)):null;if(!canUse()||(existing&&!canEdit(existing)))return window.toast?.('No tienes permiso para guardar este presupuesto.','error');if(!d.equipo_id||!d.equipo_nombre)return window.toast?.('Selecciona un equipo.','error');if(!d.fecha)return window.toast?.('Selecciona la fecha.','error');const k=calc(d),payload={codigo:codeFor(d.equipo_nombre,d.fecha),equipo_id:d.equipo_id,equipo_nombre:d.equipo_nombre,fecha:d.fecha,materiales:d.materiales,fletes:d.fletes,utilidad_pct:d.utilidad_pct,...k,observacion:d.observacion,estado:d.estado,updated_at:new Date().toISOString()};let out;if(d.id)out=await window.sb.from(TABLE).update(payload).eq('id',d.id).select('*').single();else out=await window.sb.from(TABLE).insert({...payload,created_by:uid()}).select('*').single();if(out.error)return window.toast?.(out.error.code==='23505'?'Ya existe un presupuesto para ese equipo y fecha.':out.error.message||String(out.error),'error');window.toast?.('Presupuesto guardado correctamente.','success');state().editing=null;await loadRows();
+    const d=readDraft(),existing=d.id?state().rows.find(x=>String(x.id)===String(d.id)):null;
+    if(!canUse()||(existing&&!canEdit(existing)))return window.toast?.('No tienes permiso para guardar este presupuesto.','error');
+    if(!d.equipo_id||!d.equipo_nombre)return window.toast?.('Selecciona un equipo.','error');
+    if(!d.fecha)return window.toast?.('Selecciona la fecha.','error');
+    const k=calc(d),basePayload={equipo_id:d.equipo_id,equipo_nombre:d.equipo_nombre,fecha:d.fecha,materiales:d.materiales,fletes:d.fletes,utilidad_pct:d.utilidad_pct,...k,observacion:d.observacion,estado:d.estado,updated_at:new Date().toISOString()};
+    let out;
+    if(d.id){
+      out=await window.sb.from(TABLE).update({codigo:existing?.codigo||documentCode(d),...basePayload}).eq('id',d.id).select('*').single();
+    }else{
+      let candidates=state().rows;
+      for(let attempt=0;attempt<6;attempt++){
+        const codigo=nextCodeFromRows(d.equipo_nombre,d.fecha,candidates);
+        out=await window.sb.from(TABLE).insert({codigo,...basePayload,created_by:uid()}).select('*').single();
+        if(!out.error||out.error.code!=='23505')break;
+        const latest=await window.sb.from(TABLE).select('id,codigo');
+        if(latest.error)break;
+        candidates=latest.data||candidates;
+      }
+    }
+    if(out?.error)return window.toast?.(out.error.code==='23505'?'No fue posible generar un código correlativo único. Actualiza e intenta nuevamente.':out.error.message||String(out.error),'error');
+    window.toast?.('Presupuesto guardado correctamente.','success');
+    state().editing=null;
+    await loadRows();
   }
   async function removeBudget(id){if(!canDelete())return window.toast?.('Solo el Administrador puede eliminar presupuestos.','error');if(!window.confirm?.('¿Eliminar este presupuesto?'))return;const out=await window.sb.from(TABLE).delete().eq('id',id);if(out.error)return window.toast?.(out.error.message||String(out.error),'error');window.toast?.('Presupuesto eliminado.','success');await loadRows()}
   async function administratorSignature(){
@@ -157,7 +201,7 @@
   async function downloadSavedPdf(id){const row=state().rows.find(x=>String(x.id)===String(id));if(row)await makePdf(clone(row),true)}
 
   async function makePdf(d,markIssued){
-    if(!canUse())return window.toast?.('No tienes permiso para generar presupuestos.','error');if(!d.equipo_nombre||!d.fecha)return window.toast?.('Selecciona equipo y fecha antes de generar el PDF.','error');let signer;try{signer=await administratorSignature()}catch(error){return window.toast?.(error.message||String(error),'error')}const C=typeof window.ensurePdf==='function'?window.ensurePdf():window.jspdf?.jsPDF;if(!C)return window.toast?.('No se pudo cargar el generador PDF.','error');const k=calc(d),code=codeFor(d.equipo_nombre,d.fecha),doc=new C({orientation:'portrait',unit:'mm',format:'a4'});
+    if(!canUse())return window.toast?.('No tienes permiso para generar presupuestos.','error');if(!d.equipo_nombre||!d.fecha)return window.toast?.('Selecciona equipo y fecha antes de generar el PDF.','error');let signer;try{signer=await administratorSignature()}catch(error){return window.toast?.(error.message||String(error),'error')}const C=typeof window.ensurePdf==='function'?window.ensurePdf():window.jspdf?.jsPDF;if(!C)return window.toast?.('No se pudo cargar el generador PDF.','error');const k=calc(d),code=documentCode(d),doc=new C({orientation:'portrait',unit:'mm',format:'a4'});
     if(typeof window.pdfHeader==='function')window.pdfHeader(doc,'Propuesta Técnico Comercial',`${code} · ${d.equipo_nombre}`);else{doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('STAINHER',14,16);doc.setFontSize(14);doc.text('Propuesta Técnico Comercial',14,27);doc.setDrawColor(239,91,42);doc.line(14,38,196,38)}
     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(`CÓDIGO: ${code}`,14,47);doc.text(`EQUIPO: ${d.equipo_nombre}`,14,54);
     doc.autoTable({startY:62,theme:'grid',head:[[{content:'COSTO DE MATERIALES',colSpan:5,styles:{halign:'center'}}],['Detalle','Cantidad','Unidad','Precio Unitario','Monto Total']],body:(d.materiales||[]).map(x=>[x.detalle||'',num(x.cantidad).toLocaleString('es-CL'),x.unidad||'',money(x.precio_unitario),money(num(x.cantidad)*num(x.precio_unitario))]).concat([['TOTAL','','','',money(k.subtotal_materiales)]]),styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[35,43,54]},columnStyles:{1:{halign:'center'},3:{halign:'right'},4:{halign:'right'}}});
