@@ -97,6 +97,9 @@
   function labelForAssigned(row){
     if(!row?.estado_pago_id)return 'Asignar GGRR';
     const ep=eps().find(x=>String(x.id)===String(row.estado_pago_id));
+    if(row?.tipo_imputacion==='estandarizacion'){
+      return ep?.ep_num?`EP${ep.ep_num} · Estandarización`:'Estandarización';
+    }
     return ep?.ep_num?`EP${ep.ep_num} GGRR`:'GGRR asignado';
   }
 
@@ -121,7 +124,9 @@
       btn.textContent=labelForAssigned(row);
       btn.disabled=assigned;
       btn.classList.toggle('r152-assigned',assigned);
-      btn.title=assigned?'Este presupuesto ya fue asignado a Gastos Reembolsables.':'Asignar este presupuesto a Gastos Reembolsables de un Estado de Pago.';
+      btn.title=assigned
+        ?(row?.tipo_imputacion==='estandarizacion'?'Presupuesto histórico imputado a Estandarización.':'Este presupuesto ya fue asignado a Gastos Reembolsables.')
+        :'Asignar este presupuesto a Gastos Reembolsables de un Estado de Pago.';
     });
   }
 
