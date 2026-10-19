@@ -11,6 +11,9 @@ assert.doesNotMatch(moduleSrc,/Comunicados e informes.*insertAdjacentElement/s,'
 assert.match(moduleSrc,/\.eq\('tipo_imputacion','estandarizacion'\)/,'Debe cargar presupuestos imputados a Estandarización');
 assert.match(moduleSrc,/\.not\('estado_pago_id','is',null\)/,'Solo debe listar presupuestos asociados a un EDP');
 assert.match(moduleSrc,/id="r162EpSelect"/,'Debe permitir seleccionar Estado de Pago');
+assert.match(moduleSrc,/const mark=count\?'● ':'/,'Debe marcar los EDP que contienen datos');
+assert.match(moduleSrc,/● = contiene datos/,'Debe mostrar la leyenda de la marca');
+assert.match(moduleSrc,/epOptionHtml\(epId,rows\)/,'El selector debe calcular la marca usando los registros disponibles');
 assert.match(moduleSrc,/Monto neto/,'Debe mostrar monto neto');
 assert.match(moduleSrc,/Total IVA incluido/,'Debe mostrar total IVA incluido');
 assert.match(moduleSrc,/Presupuestos asignados/,'Debe mostrar cantidad de presupuestos asignados');
