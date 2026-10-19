@@ -24,7 +24,14 @@
       .split(/\r?\n/)
       .map(x=>x.trim())
       .filter(x=>x&&!/^flete\b/i.test(x));
-    return linked.length?linked.join(' · '):'—';
+    if(linked.length)return linked.join(' · ');
+    // En los registros históricos R153, observacion contiene el "Detalle"
+    // original entregado para la carga; no se usa como fallback en presupuestos nuevos.
+    if(r?.registro_historico){
+      const original=String(r?.observacion||'').trim();
+      if(original)return original.replace(/\r?\n+/g,' · ');
+    }
+    return '—';
   }
   const slug=v=>String(v||'EQUIPO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'EQUIPO';
   const codeFor=(equipment,date)=>{const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return `${slug(equipment)}-PE-${m?`${m[3]}-${m[2]}-${m[1].slice(-2)}`:'SIN-FECHA'}`};
