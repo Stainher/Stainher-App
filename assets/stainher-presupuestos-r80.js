@@ -4,7 +4,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r166-sync-presupuestos-edp';
+  const BUILD='20261019-r167-totales-destino-presupuestos';
   if(window.__STAINHER_PRESUPUESTOS_R80__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_R80__=BUILD;
 
@@ -82,7 +82,7 @@
     if(document.getElementById('stainher-presupuestos-r80-style'))return;
     const s=document.createElement('style');s.id='stainher-presupuestos-r80-style';s.textContent=`
       #page-contrato .r80-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-      #page-contrato .r80-kpis{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:9px;margin:10px 0 14px}
+      #page-contrato .r80-kpis{display:grid;grid-template-columns:repeat(6,minmax(145px,1fr));gap:9px;margin:10px 0 14px}
       #page-contrato .r80-kpi{border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c);padding:11px;min-width:0}
       #page-contrato .r80-kpi span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}.r80-kpi b{display:block;margin-top:5px;font-size:18px;overflow-wrap:anywhere}
       #page-contrato .r80-form{display:grid;gap:14px}
@@ -121,6 +121,7 @@
       #page-contrato .r160-chart-empty{padding:18px 12px;color:var(--muted);font-size:11px;text-align:center}
       @media(max-width:1100px){#page-contrato .r160-budget-tools{grid-template-columns:1fr 1fr}#page-contrato .r160-budget-tools [data-r160-clear]{width:100%}}
       @media(max-width:850px){#page-contrato .r160-budget-charts{grid-template-columns:1fr}}
+      @media(max-width:1200px){#page-contrato .r80-kpis{grid-template-columns:repeat(3,1fr)}}
       @media(max-width:900px){#page-contrato .r80-kpis{grid-template-columns:1fr 1fr}#page-contrato .r80-head{grid-template-columns:1fr 1fr}#page-contrato .r80-summary{grid-template-columns:1fr}#page-contrato .r80-mat,#page-contrato .r80-freight{grid-template-columns:1fr 1fr}#page-contrato .r80-mat>*:first-child,#page-contrato .r80-freight>*:first-child{grid-column:1/-1}}
       @media(max-width:520px){#page-contrato .r80-kpis,#page-contrato .r80-head{grid-template-columns:1fr}#page-contrato .r80-actions .btn{width:100%}}
     `;document.head.appendChild(s);
@@ -209,10 +210,10 @@
   }
   function renderList(){
     const body=document.getElementById('r80Body');if(!body)return;
-    const rows=state().rows,total=rows.reduce((a,x)=>a+num(x.total_final),0),issued=rows.filter(x=>x.estado==='emitido').length,f=listFilters();
+    const rows=state().rows,total=rows.reduce((a,x)=>a+num(x.total_final),0),ggrrTotal=rows.filter(x=>x.tipo_imputacion==='gasto_reembolsable').reduce((a,x)=>a+num(x.total_final),0),standardizationTotal=rows.filter(x=>x.tipo_imputacion==='estandarizacion').reduce((a,x)=>a+num(x.total_final),0),issued=rows.filter(x=>x.estado==='emitido').length,f=listFilters();
     const equipments=[...new Set(rows.map(x=>String(x.equipo_nombre||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
     const epOptions=contractEps().slice().sort((a,b)=>Number(b.ep_num)-Number(a.ep_num)).map(ep=>`<option value="${esc(ep.id)}" ${String(f.ep)===String(ep.id)?'selected':''}>EP${esc(ep.ep_num)}</option>`).join('');
-    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Valor total</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div>
+    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Total GGRR · IVA incluido</span><b>${money(ggrrTotal)}</b></div><div class="r80-kpi"><span>Total Estandarización e Innovación · IVA incluido</span><b>${money(standardizationTotal)}</b></div><div class="r80-kpi"><span>Total general · IVA incluido</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div>
       <div class="r160-budget-tools">
         <label>Buscar<input class="field" id="r160BudgetSearch" type="search" placeholder="Código, equipo o detalle" value="${esc(f.search)}"></label>
         <label>Equipo<select class="field" id="r160BudgetEquipment"><option value="">Todos</option>${equipments.map(name=>`<option value="${esc(name)}" ${f.equipment===name?'selected':''}>${esc(name)}</option>`).join('')}</select></label>
