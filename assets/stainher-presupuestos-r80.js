@@ -4,7 +4,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r168-historico-total-neto';
+  const BUILD='20261019-r169-grafico-columnas-presupuestos';
   if(window.__STAINHER_PRESUPUESTOS_R80__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_R80__=BUILD;
 
@@ -119,6 +119,12 @@
       #page-contrato .r160-chart-bar{display:block;height:100%;min-width:2px;background:var(--accent,#ef5b2a);border-radius:999px}
       #page-contrato .r160-chart-value{font-size:11px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
       #page-contrato .r160-chart-empty{padding:18px 12px;color:var(--muted);font-size:11px;text-align:center}
+      #page-contrato .r169-column-chart{display:flex;align-items:flex-end;gap:12px;padding:16px 14px 12px;min-height:245px;overflow-x:auto;overflow-y:hidden}
+      #page-contrato .r169-column-item{display:grid;grid-template-rows:22px 160px auto;gap:6px;align-items:end;justify-items:center;min-width:62px;flex:1 0 62px;height:100%}
+      #page-contrato .r169-column-value{font-size:11px;font-weight:800;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
+      #page-contrato .r169-column-well{width:34px;height:160px;display:flex;align-items:flex-end;justify-content:center;border-radius:7px 7px 3px 3px;background:var(--panel2);border:1px solid var(--line);overflow:hidden}
+      #page-contrato .r169-column-bar{display:block;width:100%;min-height:4px;background:var(--accent,#ef5b2a);border-radius:6px 6px 0 0}
+      #page-contrato .r169-column-label{font-size:10px;line-height:1.15;text-align:center;max-width:92px;min-height:35px;display:flex;align-items:flex-start;justify-content:center;overflow-wrap:anywhere}
       @media(max-width:1100px){#page-contrato .r160-budget-tools{grid-template-columns:1fr 1fr}#page-contrato .r160-budget-tools [data-r160-clear]{width:100%}}
       @media(max-width:850px){#page-contrato .r160-budget-charts{grid-template-columns:1fr}}
       @media(max-width:1200px){#page-contrato .r80-kpis{grid-template-columns:repeat(3,1fr)}}
@@ -182,6 +188,15 @@
     });
     return [...map.values()];
   }
+  function countColumnChart(groups){
+    const sorted=[...groups].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'es'));
+    const max=Math.max(1,...sorted.map(x=>x.count));
+    if(!sorted.length)return '<div class="r160-chart-empty">Sin datos para graficar.</div>';
+    return `<div class="r169-column-chart">${sorted.map(x=>{
+      const pct=Math.max(3,Math.round(x.count/max*100));
+      return `<div class="r169-column-item" title="${esc(x.name)} · ${x.count} presupuesto${x.count===1?'':'s'}"><strong class="r169-column-value">${x.count}</strong><span class="r169-column-well"><i class="r169-column-bar" style="height:${pct}%"></i></span><span class="r169-column-label">${esc(x.name)}</span></div>`;
+    }).join('')}</div>`;
+  }
   function chartRows(groups,mode){
     const sorted=[...groups].sort((a,b)=>(mode==='count'?b.count-a.count:b.total-a.total)||a.name.localeCompare(b.name,'es'));
     const max=Math.max(1,...sorted.map(x=>mode==='count'?x.count:x.total));
@@ -205,7 +220,7 @@
     if(summary)summary.textContent=`Mostrando ${rows.length} de ${all.length} presupuestos`;
     if(charts){
       const groups=aggregateEquipment(rows);
-      charts.innerHTML=`<div class="r160-chart-card"><h4>Cantidad de presupuestos por equipo</h4><div class="r160-chart-body">${chartRows(groups,'count')}</div></div><div class="r160-chart-card"><h4>Valor por equipo · IVA incluido</h4><div class="r160-chart-body">${chartRows(groups,'total')}</div></div>`;
+      charts.innerHTML=`<div class="r160-chart-card"><h4>Cantidad de presupuestos por equipo</h4>${countColumnChart(groups)}</div><div class="r160-chart-card"><h4>Valor por equipo · IVA incluido</h4><div class="r160-chart-body">${chartRows(groups,'total')}</div></div>`;
     }
   }
   function renderList(){
