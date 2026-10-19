@@ -9,8 +9,11 @@ assert.doesNotMatch(core,/<th>Equipo<\/th>/,'Histórico no debe mostrar columna 
 assert.match(core,/function historyDetail\(r\)/,'Debe construir resumen rápido');
 assert.match(core,/r\?\.materiales/,'Resumen debe usar materiales');
 assert.doesNotMatch(core,/r\?\.fletes/,'Resumen no debe usar fletes');
-assert.doesNotMatch(core,/r\?\.observacion/,'Resumen no debe usar observaciones');
-assert.match(core,/names\.join\(' · '\)/,'Debe mostrar solo nombres de piezas');
+assert.match(core,/if\(r\?\.registro_historico\)[\s\S]*r\?\.observacion/,'Solo históricos pueden usar el detalle original guardado en observación');
+assert.match(core,/names\.join\(' · '\)/,'Debe mostrar nombres de piezas');
+assert.match(core,/Total \(IVA Incluido\)/,'Encabezado total debe indicar IVA incluido');
+assert.match(core,/font-size:13px;font-family:inherit/,'Debe igualar tipografía y tamaño de GGRR');
+assert.match(core,/gastos_reembolsables.*select\('id,detalle'\)/s,'Debe recuperar detalle GGRR para históricos sin materiales');
 assert.match(core,/r155-history-detail/,'Debe aplicar estilo al resumen');
 assert.match(ggrr,/nth-child\(3\).*width:30%/s,'Detalle debe tener ancho prioritario');
 
