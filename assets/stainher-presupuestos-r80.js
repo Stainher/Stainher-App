@@ -15,6 +15,29 @@
   const money=v=>typeof window.fmtCLP==='function'?window.fmtCLP(Math.round(num(v))):'$ '+Math.round(num(v)).toLocaleString('es-CL');
   const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const dateCL=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:String(v||'')};
+  const qtyText=v=>{const n=Number(v)||0;return Number.isInteger(n)?String(n):n.toLocaleString('es-CL',{maximumFractionDigits:2})};
+  function historyDetail(r){
+    const lines=[];
+    (Array.isArray(r?.materiales)?r.materiales:[]).forEach(x=>{
+      const name=String(x?.detalle||'').trim();if(!name)return;
+      const qty=Number(x?.cantidad)||0,unit=String(x?.unidad||'').trim();
+      let suffix='';
+      if(qty>0){
+        if(unit.toLowerCase()==='unidad')suffix=` (${qtyText(qty)} ${qty===1?'unidad':'unidades'})`;
+        else if(unit)suffix=` (${qtyText(qty)} ${unit})`;
+        else suffix=` (${qtyText(qty)})`;
+      }
+      lines.push(name+suffix);
+    });
+    (Array.isArray(r?.fletes)?r.fletes:[]).forEach(x=>{
+      const name=String(x?.detalle||'').trim();if(!name)return;
+      const qty=Number(x?.cantidad)||0;
+      lines.push(name+(qty>0?` (${qtyText(qty)} ${qty===1?'unidad':'unidades'})`:''));
+    });
+    if(lines.length)return lines.join('\n');
+    const obs=String(r?.observacion||'').trim();
+    return obs||'—';
+  }
   const slug=v=>String(v||'EQUIPO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'EQUIPO';
   const codeFor=(equipment,date)=>{const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return `${slug(equipment)}-PE-${m?`${m[3]}-${m[2]}-${m[1].slice(-2)}`:'SIN-FECHA'}`};
   const uid=()=>String(window.state?.session?.user?.id||window.state?.user?.id||'');
@@ -63,6 +86,7 @@
       #page-contrato .r80-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
       #page-contrato .r80-list{overflow:auto;border:1px solid var(--line);border-radius:11px}.r80-list table{width:100%;border-collapse:collapse;min-width:980px}
       #page-contrato .r80-list th,#page-contrato .r80-list td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:10px;vertical-align:middle;text-align:left}.r80-list th{background:var(--panel2);color:var(--muted)}.r80-list td.money{text-align:right;font-variant-numeric:tabular-nums}.r80-list .actions{display:flex;gap:6px;justify-content:flex-end;white-space:nowrap}
+      #page-contrato .r155-history-detail{white-space:pre-line!important;line-height:1.4!important;overflow-wrap:anywhere!important}
       @media(max-width:900px){#page-contrato .r80-kpis{grid-template-columns:1fr 1fr}#page-contrato .r80-head{grid-template-columns:1fr 1fr}#page-contrato .r80-summary{grid-template-columns:1fr}#page-contrato .r80-mat,#page-contrato .r80-freight{grid-template-columns:1fr 1fr}#page-contrato .r80-mat>*:first-child,#page-contrato .r80-freight>*:first-child{grid-column:1/-1}}
       @media(max-width:520px){#page-contrato .r80-kpis,#page-contrato .r80-head{grid-template-columns:1fr}#page-contrato .r80-actions .btn{width:100%}}
     `;document.head.appendChild(s);
@@ -93,7 +117,7 @@
 
   function renderList(){
     const body=document.getElementById('r80Body');if(!body)return;const rows=state().rows,total=rows.reduce((a,x)=>a+num(x.total_final),0),issued=rows.filter(x=>x.estado==='emitido').length;
-    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Valor total</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div><div class="r80-list"><table><thead><tr><th>Código</th><th>Equipo</th><th>Fecha</th><th style="text-align:right">Total</th><th style="text-align:right">Acciones</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${esc(r.codigo)}</b></td><td>${esc(r.equipo_nombre)}</td><td>${esc(dateCL(r.fecha))}</td><td class="money"><b>${money(r.total_final)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="5"><div class="empty">Aún no hay presupuestos registrados.</div></td></tr>'}</tbody></table></div>`;
+    body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Valor total</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div><div class="r80-list"><table><thead><tr><th>Código</th><th>Fecha</th><th>Detalle</th><th style="text-align:right">Total</th><th style="text-align:right">Acciones</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${esc(r.codigo)}</b></td><td>${esc(dateCL(r.fecha))}</td><td class="r155-history-detail">${esc(historyDetail(r))}</td><td class="money"><b>${money(r.total_final)}</b></td><td><div class="actions">${canEdit(r)?`<button class="btn" data-edit="${esc(r.id)}">Editar</button>`:''}<button class="btn" data-pdf="${esc(r.id)}">PDF</button>${canDelete()?`<button class="btn danger-btn" data-delete="${esc(r.id)}">Eliminar</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="5"><div class="empty">Aún no hay presupuestos registrados.</div></td></tr>'}</tbody></table></div>`;
     body.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));body.querySelectorAll('[data-pdf]').forEach(b=>b.addEventListener('click',()=>downloadSavedPdf(b.dataset.pdf)));body.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>removeBudget(b.dataset.delete)));
   }
 
