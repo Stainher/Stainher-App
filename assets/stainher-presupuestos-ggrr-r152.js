@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R152 · Histórico de Presupuestos simplificado + asignación a GGRR.
+/* Stainher V15.24 · R154 · Presupuestos en GGRR con detalle real de ítems.
  * - Oculta Estado, Venta neta e IVA del histórico.
  * - Mantiene Total y acciones.
  * - Permite asignar un presupuesto directamente a Gastos Reembolsables de un EDP.
@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r152-presupuestos-ggrr';
+  const BUILD='20261019-r154-presupuestos-ggrr-items';
   if(window.__STAINHER_PRESUPUESTOS_GGRR_R152__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_GGRR_R152__=BUILD;
 
@@ -19,6 +19,35 @@
     const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
     return m?`${m[3]}-${m[2]}-${m[1]}`:String(v||'');
   };
+  const qtyText=v=>{
+    const n=Number(v)||0;
+    return Number.isInteger(n)?String(n):n.toLocaleString('es-CL',{maximumFractionDigits:2});
+  };
+  function budgetDetail(row){
+    const lines=[];
+    (Array.isArray(row?.materiales)?row.materiales:[]).forEach(x=>{
+      const name=String(x?.detalle||'').trim();
+      if(!name)return;
+      const qty=Number(x?.cantidad)||0,unit=String(x?.unidad||'').trim();
+      let suffix='';
+      if(qty>0){
+        if(unit.toLowerCase()==='unidad')suffix=` (${qtyText(qty)} ${qty===1?'unidad':'unidades'})`;
+        else if(unit)suffix=` (${qtyText(qty)} ${unit})`;
+        else suffix=` (${qtyText(qty)})`;
+      }
+      lines.push(name+suffix);
+    });
+    (Array.isArray(row?.fletes)?row.fletes:[]).forEach(x=>{
+      const name=String(x?.detalle||'').trim();
+      if(!name)return;
+      const qty=Number(x?.cantidad)||0;
+      lines.push(name+(qty>0?` (${qtyText(qty)} ${qty===1?'unidad':'unidades'})`:''));
+    });
+    if(lines.length)return lines.join('\n');
+    const obs=String(row?.observacion||'').trim();
+    if(obs)return obs;
+    return 'Presupuesto técnico comercial · '+String(row?.codigo||'');
+  }
 
   function budgets(){return Array.isArray(window.state?.r80Budgets?.rows)?window.state.r80Budgets.rows:[]}
   function budget(id){return budgets().find(x=>String(x.id)===String(id))||null}
@@ -211,7 +240,7 @@
             tipo_documento:'Presupuesto técnico comercial',
             equipo:row.equipo_nombre,
             fecha_documento:row.fecha,
-            detalle:'Presupuesto técnico comercial · '+row.codigo,
+            detalle:budgetDetail(row),
             monto_detalle:Number(data.monto_neto||row.venta_neta||0),
             estado:'APROBADO',
             enlace:null
@@ -245,6 +274,6 @@
     window.addEventListener('stainher:modules-ready',schedule);
   }
 
-  window.StainherPresupuestosGgrrR152=Object.freeze({install,decorate,openAssign,version:BUILD});
+  window.StainherPresupuestosGgrrR152=Object.freeze({install,decorate,openAssign,budgetDetail,version:BUILD});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
