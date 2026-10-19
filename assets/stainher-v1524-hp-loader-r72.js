@@ -110,6 +110,7 @@
       await load('stainher-forecast-history-runtime-r128','stainher-v1524-forecast-history-r128.js');
       await load('stainher-edp-inline-runtime-r125','stainher-v1524-edp-inline-r125.js');
       await load('stainher-edp-quarterly-runtime-r149','stainher-v1524-edp-quarterly-certification-r149.js');
+      await load('stainher-contract-standardization-runtime-r162','stainher-v1524-contract-standardization-r162.js');
       window.StainherContractForecastR95?.install?.();
       window.StainherContractForecastR96?.install?.();
       window.StainherContractForecastR98?.install?.();
@@ -123,6 +124,8 @@
       window.StainherForecastHistoryR128?.install?.();
       window.StainherEdpInlineR125?.install?.();
       window.StainherEdpQuarterlyR149?.install?.();
+      window.StainherContractStandardizationR162?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:contract-standardization-r162-ready'));
       window.dispatchEvent(new CustomEvent('stainher:edp-inline-r125-ready'));
       window.dispatchEvent(new CustomEvent('stainher:edp-quarterly-r149-ready'));
       window.dispatchEvent(new CustomEvent('stainher:contract-forecast-r105-ready'));
