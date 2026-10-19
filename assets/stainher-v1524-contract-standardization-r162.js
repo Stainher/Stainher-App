@@ -73,7 +73,7 @@
 
   async function fetchRows(){
     const q=await window.sb.from(TABLE)
-      .select('id,codigo,equipo_nombre,fecha,materiales,observacion,venta_neta,iva,total_final,estado_pago_id,tipo_imputacion')
+      .select('id,codigo,equipo_nombre,fecha,materiales,observacion,venta_neta,iva,total_final,estado_pago_id,tipo_imputacion,created_at')
       .eq('tipo_imputacion','estandarizacion')
       .not('estado_pago_id','is',null)
       .order('fecha',{ascending:false})
@@ -181,7 +181,9 @@
     const ggrr=[...tabs.querySelectorAll('.contract-tab')].find(x=>norm(x.textContent)==='gastos reembolsables');
     if(ggrr&&ggrr.nextElementSibling!==btn)ggrr.insertAdjacentElement('afterend',btn);
     else if(!btn.isConnected)tabs.appendChild(btn);
-    tabs.querySelectorAll('.contract-tab').forEach(x=>x.classList.toggle('active',x===btn&&window.state?.contractTab===TAB));
+    const selected=window.state?.contractTab===TAB;
+    btn.classList.toggle('active',selected);
+    if(selected)tabs.querySelectorAll('.contract-tab').forEach(x=>{if(x!==btn)x.classList.remove('active')});
     return true;
   }
 
