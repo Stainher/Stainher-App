@@ -1,10 +1,10 @@
-/* Stainher V15.24 · R149 · Certificación trimestral en EDP.
+/* Stainher V15.24 · R151 · Certificación trimestral en EDP sin bloque informativo.
  * EP17 / octubre 2026 incorpora actividad contractual periódica de certificación
  * por $12.009.072, adicional al mantenimiento base de $30.843.324.
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r149-edp-quarterly-certification';
+  const BUILD='20261019-r151-edp-quarterly-no-message';
   if(window.__STAINHER_EDP_QUARTERLY_R149__===BUILD)return;
   window.__STAINHER_EDP_QUARTERLY_R149__=BUILD;
 
@@ -48,13 +48,6 @@
     const s=document.createElement('style');
     s.id='stainher-edp-quarterly-r149-style';
     s.textContent=`
-      #modalRoot .r149-quarterly-box{
-        margin:12px 0 0!important;padding:12px 14px!important;
-        border:1px solid rgba(56,189,248,.38)!important;border-radius:12px!important;
-        background:rgba(14,165,233,.08)!important;line-height:1.45!important
-      }
-      #modalRoot .r149-quarterly-title{font-weight:800!important;margin-bottom:4px!important}
-      #modalRoot .r149-quarterly-total{font-weight:900!important;color:#7dd3fc!important}
       #modalRoot .r149-cert-note{display:block!important;margin-top:4px!important;color:#7dd3fc!important;font-size:10px!important;line-height:1.25!important}
       #modalRoot .r149-added-kpi{border-color:rgba(56,189,248,.38)!important}
       #modalRoot .r125-edp-summary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
@@ -62,19 +55,6 @@
       @media(max-width:480px){#modalRoot .r125-edp-summary{grid-template-columns:1fr!important}}
     `;
     document.head.appendChild(s);
-  }
-
-  function ensureActivityBox(section){
-    if(section.querySelector('.r149-quarterly-box'))return;
-    const summary=section.querySelector('.r125-edp-summary');
-    const box=document.createElement('div');
-    box.className='r149-quarterly-box';
-    box.innerHTML=`
-      <div class="r149-quarterly-title">Certificación trimestral sistema de levante (cables y poleas)</div>
-      <div>Actividad contractual periódica correspondiente a octubre. Se suma al mantenimiento base para conciliar el detalle real por equipo.</div>
-      <div style="margin-top:6px">Total certificación: <span class="r149-quarterly-total">${money(TOTAL_CERT)}</span></div>
-    `;
-    summary?.insertAdjacentElement('beforebegin',box);
   }
 
   function ensureKpis(section){
@@ -147,7 +127,6 @@
     if(!applies(ep))return false;
     const section=m.querySelector('.r125-edp-detail');
     if(!section)return false;
-    ensureActivityBox(section);
     ensureKpis(section);
     annotateInputs(section);
     reconcile(section,m);
