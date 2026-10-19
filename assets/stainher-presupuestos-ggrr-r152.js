@@ -66,21 +66,27 @@
         min-width:980px!important;
         table-layout:fixed!important;
       }
-      #page-contrato .r80-list th:nth-child(1),#page-contrato .r80-list td:nth-child(1){width:22%!important;text-align:left!important}
-      #page-contrato .r80-list th:nth-child(2),#page-contrato .r80-list td:nth-child(2){width:11%!important;text-align:center!important}
-      #page-contrato .r80-list th:nth-child(3),#page-contrato .r80-list td:nth-child(3){width:30%!important;text-align:left!important}
-      #page-contrato .r80-list th:nth-child(4),#page-contrato .r80-list td:nth-child(4){width:12%!important;text-align:right!important;font-variant-numeric:tabular-nums!important}
-      #page-contrato .r80-list th:nth-child(5),#page-contrato .r80-list td:nth-child(5){width:25%!important;text-align:right!important}
+      #page-contrato .r80-list th:nth-child(1),#page-contrato .r80-list td:nth-child(1){width:10%!important;text-align:left!important}
+      #page-contrato .r80-list th:nth-child(2),#page-contrato .r80-list td:nth-child(2){width:17%!important;text-align:left!important}
+      #page-contrato .r80-list th:nth-child(3),#page-contrato .r80-list td:nth-child(3){width:13%!important;text-align:left!important}
+      #page-contrato .r80-list th:nth-child(4),#page-contrato .r80-list td:nth-child(4){width:24%!important;text-align:left!important}
+      #page-contrato .r80-list th:nth-child(5),#page-contrato .r80-list td:nth-child(5){width:12%!important;text-align:right!important;font-variant-numeric:tabular-nums!important}
+      #page-contrato .r80-list th:nth-child(6),#page-contrato .r80-list td:nth-child(6){width:24%!important;text-align:right!important}
+      #page-contrato .r80-list th{font-size:12px!important;padding:12px 12px!important;text-transform:uppercase!important;letter-spacing:.02em!important}
+      #page-contrato .r80-list td{font-size:14px!important;padding:13px 12px!important;line-height:1.35!important}
+      #page-contrato .r80-list td.money{font-size:15px!important}
       #page-contrato .r80-list .actions{
         display:flex!important;
-        flex-wrap:wrap!important;
+        flex-wrap:nowrap!important;
         gap:7px!important;
         justify-content:flex-end!important;
       }
       #page-contrato .r80-list .actions .btn{
         width:auto!important;
-        min-width:66px!important;
-        flex:1 1 66px!important;
+        min-width:54px!important;
+        flex:0 0 auto!important;
+        padding:9px 11px!important;
+        font-size:13px!important;
       }
       #page-contrato .r152-assigned{
         border-color:rgba(52,211,153,.38)!important;
@@ -100,6 +106,9 @@
       }
       #modalRoot .r152-ggrr-card span{display:block!important;color:var(--muted,#94a3b8)!important;font-size:10px!important}
       #modalRoot .r152-ggrr-card strong{display:block!important;margin-top:5px!important;font-size:16px!important}
+      @media(max-width:1180px){
+        #page-contrato .r80-list .actions{flex-wrap:wrap!important}
+      }
       @media(max-width:760px){
         #page-contrato .r80-list table{min-width:840px!important}
         #modalRoot .r152-ggrr-summary{grid-template-columns:1fr!important}
@@ -120,7 +129,7 @@
         remove.forEach(i=>tr.children[i]?.remove());
       });
     }
-    [...table.querySelectorAll('.r150-detail-row>td')].forEach(td=>td.colSpan=5);
+    [...table.querySelectorAll('.r150-detail-row>td')].forEach(td=>td.colSpan=6);
   }
 
   function labelForAssigned(row){
