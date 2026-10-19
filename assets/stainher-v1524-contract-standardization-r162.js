@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r164-estandarizacion-tab-compat';
+  const BUILD='20261019-r165-estandarizacion-informe-pdf';
   if(window.__STAINHER_CONTRACT_STANDARDIZATION_R162__===BUILD)return;
   window.__STAINHER_CONTRACT_STANDARDIZATION_R162__=BUILD;
 
@@ -28,6 +28,8 @@
     s.textContent=`
       #page-contrato .r162-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
       #page-contrato .r162-toolbar label{display:grid;gap:5px;color:var(--muted);font-size:10px;text-transform:uppercase;min-width:260px}
+      #page-contrato .r165-report-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+      #page-contrato .r165-report-controls .btn{white-space:nowrap}
       #page-contrato .r162-kpis{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px;margin:0 0 14px}
       #page-contrato .r162-kpi{border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c);padding:11px;min-width:0}
       #page-contrato .r162-kpi span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}
@@ -98,6 +100,89 @@
     }).join('');
   }
 
+  async function downloadReport(){
+    const C=window.jspdf?.jsPDF;
+    if(!C){
+      window.toast?.('No se pudo cargar el generador PDF.','error');
+      return false;
+    }
+    try{
+      const rows=await fetchRows();
+      const epId=String(window.state?.r162StandardizationEpId||selectedEpId(rows));
+      const ep=eps().find(x=>String(x.id)===epId)||null;
+      const filtered=rows.filter(x=>String(x.estado_pago_id)===epId);
+      if(!ep)return window.toast?.('Selecciona un Estado de Pago.','error');
+      if(!filtered.length)return window.toast?.('No hay presupuestos de Estandarización e Innovación para este EDP.','warn');
+
+      const net=filtered.reduce((s,x)=>s+num(x.venta_neta),0);
+      const iva=filtered.reduce((s,x)=>s+num(x.iva),0);
+      const total=filtered.reduce((s,x)=>s+num(x.total_final),0);
+      const doc=new C({orientation:'landscape',unit:'mm',format:'a4'});
+
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(18);
+      doc.text('STAINHER',14,16);
+      doc.setFontSize(14);
+      doc.text('Informe de Estandarización e Innovación',14,27);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.setTextColor(90);
+      doc.text(`EP${ep.ep_num} · ${months[Number(ep.mes_edp)-1]||ep.mes_edp} ${ep.anio_edp} · ${dateCL(ep.periodo_inicio)} → ${dateCL(ep.periodo_fin)}`,14,34);
+      doc.setTextColor(0);
+      doc.setDrawColor(239,91,42);
+      doc.setLineWidth(.8);
+      doc.line(14,38,283,38);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.text(`Presupuestos: ${filtered.length}`,14,48);
+      doc.text(`Monto neto: ${money(net)}`,67,48);
+      doc.text(`IVA: ${money(iva)}`,132,48);
+      doc.text(`Total IVA incluido: ${money(total)}`,185,48);
+      doc.setFont('helvetica','normal');
+
+      if(typeof doc.autoTable!=='function'){
+        window.toast?.('No se pudo cargar el generador de tablas PDF.','error');
+        return false;
+      }
+
+      doc.autoTable({
+        startY:55,
+        head:[['Fecha','Código','Equipo','Detalle','Monto neto','Total IVA incluido']],
+        body:filtered.map(row=>[
+          dateCL(row.fecha),
+          row.codigo||'—',
+          row.equipo_nombre||'—',
+          budgetDetail(row),
+          money(row.venta_neta),
+          money(row.total_final)
+        ]),
+        styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},
+        headStyles:{fillColor:[35,43,54]},
+        columnStyles:{
+          0:{cellWidth:24},
+          1:{cellWidth:48},
+          2:{cellWidth:38},
+          3:{cellWidth:92},
+          4:{cellWidth:32,halign:'right'},
+          5:{cellWidth:34,halign:'right'}
+        },
+        margin:{left:14,right:14}
+      });
+
+      const y=Math.min(198,(doc.lastAutoTable?.finalY||55)+8);
+      doc.setFontSize(7);
+      doc.setTextColor(100);
+      doc.text(`Generado ${new Date().toLocaleString('es-CL')} · Stainher App · Contrato 4600029879`,14,y);
+      doc.save(`Estandarizacion_Innovacion_EP${ep.ep_num}.pdf`);
+      return true;
+    }catch(error){
+      console.error('[Stainher R165] Informe Estandarización e Innovación',error);
+      window.toast?.(error?.message||String(error),'error');
+      return false;
+    }
+  }
+
   async function render(){
     if(window.state?.contractTab!==TAB)return false;
     const host=document.getElementById('contractContent');
@@ -121,9 +206,12 @@
             <h3 style="margin:0 0 3px">Estandarización e Innovación</h3>
             <div class="muted">Presupuestos imputados al Estado de Pago seleccionado como Estandarización e Innovación.</div>
           </div>
-          <label>Estado de Pago
-            <select class="field" id="r162EpSelect">${epOptionHtml(epId)}</select>
-          </label>
+          <div class="r165-report-controls">
+            <label>Estado de Pago
+              <select class="field" id="r162EpSelect">${epOptionHtml(epId)}</select>
+            </label>
+            <button class="btn primary" type="button" data-r165-report>Generar informe</button>
+          </div>
         </div>
         <div class="r162-kpis">
           <div class="r162-kpi"><span>Presupuestos asignados</span><b>${filtered.length}</b></div>
@@ -152,6 +240,7 @@
         window.state.r162StandardizationEpId=event.target.value;
         render();
       });
+      host.querySelector('[data-r165-report]')?.addEventListener('click',downloadReport);
       return true;
     }catch(error){
       if(host.isConnected)host.innerHTML=`<div class="notice error">No fue posible cargar Estandarización e Innovación: ${esc(error?.message||error||'Error desconocido')}</div>`;
@@ -265,7 +354,7 @@
     }
   }
 
-  window.StainherContractStandardizationR162=Object.freeze({install,render,decorateTabs,version:BUILD});
+  window.StainherContractStandardizationR162=Object.freeze({install,render,decorateTabs,downloadReport,version:BUILD});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   window.addEventListener('stainher:modules-ready',install);
   window.addEventListener('stainher:runtime-r142-ready',install);
