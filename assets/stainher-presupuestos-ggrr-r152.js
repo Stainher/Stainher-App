@@ -88,9 +88,38 @@
         padding:9px 11px!important;
         font-size:13px!important;
       }
+      #page-contrato .r80-list .actions [data-r152-ggrr]{
+        width:94px!important;
+        min-width:94px!important;
+        max-width:94px!important;
+        height:40px!important;
+        padding:5px 7px!important;
+        display:flex!important;
+        flex-direction:column!important;
+        align-items:center!important;
+        justify-content:center!important;
+        gap:1px!important;
+        text-align:center!important;
+        line-height:1.05!important;
+      }
       #page-contrato .r152-assigned{
         border-color:rgba(52,211,153,.38)!important;
         color:#34d399!important;
+      }
+      #page-contrato .r152-standardization .r152-ep-line{
+        display:block!important;
+        font-size:12px!important;
+        font-weight:700!important;
+        line-height:1.05!important;
+        white-space:nowrap!important;
+      }
+      #page-contrato .r152-standardization .r152-type-line{
+        display:block!important;
+        font-size:9px!important;
+        font-weight:600!important;
+        line-height:1.05!important;
+        white-space:nowrap!important;
+        text-align:center!important;
       }
       #modalRoot .r152-ggrr-summary{
         display:grid!important;
@@ -159,9 +188,16 @@
         btn.addEventListener('click',()=>openAssign(id));
       }
       const assigned=!!row?.estado_pago_id;
-      btn.textContent=labelForAssigned(row);
+      const isStandardization=assigned&&row?.tipo_imputacion==='estandarizacion';
+      if(isStandardization){
+        const ep=eps().find(x=>String(x.id)===String(row.estado_pago_id));
+        btn.innerHTML=`<span class="r152-ep-line">${esc(ep?.ep_num?`EP${ep.ep_num}`:'EP')}</span><span class="r152-type-line">Estandarización</span>`;
+      }else{
+        btn.textContent=labelForAssigned(row);
+      }
       btn.disabled=assigned;
       btn.classList.toggle('r152-assigned',assigned);
+      btn.classList.toggle('r152-standardization',isStandardization);
       btn.title=assigned
         ?(row?.tipo_imputacion==='estandarizacion'?'Presupuesto histórico imputado a Estandarización.':'Este presupuesto ya fue asignado a Gastos Reembolsables.')
         :'Asignar este presupuesto a Gastos Reembolsables de un Estado de Pago.';
