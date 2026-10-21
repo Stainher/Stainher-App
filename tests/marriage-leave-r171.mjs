@@ -51,3 +51,7 @@ assert.match(mail,/permiso_nacimiento:"Permiso por nacimiento de hijo"/,'Correo 
 new Function(moduleSrc);
 new Function(loader);
 console.log('legal-leave-r171: ok');
+
+assert.match(moduleSrc,/Este dato es informativo y no bloquea la solicitud/,'La anticipación debe quedar solo como registro informativo');
+assert.match(moduleSrc,/La solicitud puede enviarse igualmente/,'Debe permitir solicitudes con poca anticipación');
+assert.doesNotMatch(moduleSrc,/inferior a 30 días/,'No debe advertir como incumplimiento bloqueante por menos de 30 días');
