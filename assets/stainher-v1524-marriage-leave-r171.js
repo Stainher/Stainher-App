@@ -104,12 +104,12 @@
 
   function deathRule(relation){
     return ({
-      hijo:{days:10,unit:'días corridos',business:false,label:'Hijo/a'},
-      conyuge:{days:7,unit:'días corridos',business:false,label:'Cónyuge o conviviente civil'},
-      gestacion:{days:7,unit:'días hábiles',business:true,label:'Hijo/a en período de gestación'},
-      padre:{days:4,unit:'días hábiles',business:true,label:'Padre'},
-      madre:{days:4,unit:'días hábiles',business:true,label:'Madre'},
-      hermano:{days:4,unit:'días hábiles',business:true,label:'Hermano/a'}
+      hijo:{days:10,unit:'días corridos',business:false,label:'Hijo/a',effective:'Desde el mismo día del fallecimiento.'},
+      conyuge:{days:7,unit:'días corridos',business:false,label:'Cónyuge o conviviente civil',effective:'Desde el mismo día del fallecimiento.'},
+      gestacion:{days:7,unit:'días hábiles',business:true,label:'Hijo/a en período de gestación',effective:'Desde el momento en que se acredita la muerte mediante certificado de defunción fetal.'},
+      padre:{days:4,unit:'días hábiles',business:true,label:'Padre',effective:'Desde el mismo día del fallecimiento.'},
+      madre:{days:4,unit:'días hábiles',business:true,label:'Madre',effective:'Desde el mismo día del fallecimiento.'},
+      hermano:{days:4,unit:'días hábiles',business:true,label:'Hermano/a',effective:'Desde el mismo día del fallecimiento.'}
     })[relation]||null;
   }
 
@@ -139,7 +139,7 @@
         'Fecha del fallecimiento / acreditación: '+dateCL(o.evento_fecha),
         'Período legal: '+dateCL(o.fecha_inicio)+' al '+dateCL(o.fecha_fin),
         'Beneficio: '+(rule?rule.days+' '+rule.unit:'según vínculo')+' de permiso pagado.',
-        o.fallecimiento_relacion==='gestacion'?'Defunción fetal: el permiso se hace efectivo desde la acreditación mediante certificado de defunción fetal.':'El permiso se hace efectivo a partir del fallecimiento.',
+        'Inicio efectivo: '+(rule?.effective||'Según el hecho que origina el permiso.'),
         String(o.comentario||'').trim()? 'Comentario del trabajador: '+String(o.comentario).trim():''
       ].filter(Boolean).join('\n');
     }
@@ -217,10 +217,23 @@
   async function syncDeath(form,set){
     const panel=form.querySelector('[data-r171-death-panel]');if(!panel||panel.classList.contains('hidden'))return;
     const rel=panel.querySelector('[name="fallecimiento_relacion"]')?.value||'',event=panel.querySelector('[name="evento_fecha"]')?.value||'',rule=deathRule(rel),status=panel.querySelector('[data-r171-death-status]');
-    if(!rule||!event){if(status)status.textContent='Selecciona vínculo y fecha para calcular el permiso.';return}
+    if(!rule){
+      if(status){status.className='r171-status warn';status.textContent='Selecciona el vínculo familiar para conocer la duración y desde cuándo se hace efectivo el permiso.'}
+      return;
+    }
+    if(!event){
+      if(status){
+        status.className='r171-status ok';
+        status.textContent='Corresponden '+rule.days+' '+rule.unit+(rule.business?'':' (continuos)')+'. '+rule.effective+' Indica la fecha para calcular el período exacto.';
+      }
+      return;
+    }
     form.fecha_inicio.value=event;
     form.fecha_fin.value=rule.business?endByBusinessDays(event,rule.days,set):addDays(event,rule.days-1);
-    if(status){status.className='r171-status ok';status.textContent='✓ Corresponden '+rule.days+' '+rule.unit+' · '+dateCL(form.fecha_inicio.value)+' al '+dateCL(form.fecha_fin.value)+'.'}
+    if(status){
+      status.className='r171-status ok';
+      status.innerHTML='<b>Permiso: '+rule.days+' '+rule.unit+(rule.business?'':' (continuos)')+'.</b> '+esc(rule.effective)+'<br><span>Período calculado: <b>'+dateCL(form.fecha_inicio.value)+' al '+dateCL(form.fecha_fin.value)+'</b>.</span>';
+    }
   }
 
   async function syncBirth(form,set){
@@ -263,7 +276,7 @@
         <label>Familiar<select class="field" name="fallecimiento_relacion"><option value="">Seleccionar</option><option value="hijo">Hijo/a · 10 días corridos</option><option value="conyuge">Cónyuge / conviviente civil · 7 días corridos</option><option value="gestacion">Hijo/a en gestación · 7 días hábiles</option><option value="padre">Padre · 4 días hábiles</option><option value="madre">Madre · 4 días hábiles</option><option value="hermano">Hermano/a · 4 días hábiles</option></select></label>
         <label>Fecha fallecimiento / acreditación<input class="field" name="evento_fecha" type="date"></label>
         <div class="r171-legal"><b>Art. 66 · Código del Trabajo</b>Permiso pagado adicional al feriado anual. Se hace efectivo desde el fallecimiento; en defunción fetal, desde su acreditación mediante el certificado correspondiente.</div>
-        <div class="r171-status warn" data-r171-death-status>Selecciona vínculo y fecha para calcular el permiso.</div>
+        <div class="r171-status warn" data-r171-death-status>Selecciona el vínculo familiar para conocer la cantidad de días, si son hábiles o corridos, y desde cuándo se hace efectivo el permiso.</div>
       </div>
       <div class="r171-box hidden" data-r171-birth-panel>
         <label>Origen<select class="field" name="nacimiento_origen"><option value="nacimiento">Nacimiento de hijo/a</option><option value="adopcion">Adopción</option></select></label>
