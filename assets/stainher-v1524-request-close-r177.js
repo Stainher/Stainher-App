@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261021-r178-solicitudes-finalizadas-tab';
+  const BUILD='20261021-r179-solicitudes-categorias-refresh';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -49,11 +49,22 @@
       try{
         const q=await window.sb.rpc('finalizar_solicitud_operacional_r177',{p_id:String(id),p_observacion:observation});
         if(q.error)throw q.error;
-        try{await window.v15Notify?.('Solicitud finalizada',`Solicitud ${String(id).slice(0,8)} · gestión completada`,'normal',row.solicitante_user_id,'solicitudes',id)}catch(error){console.warn('[Stainher R177] aviso',error)}
+        const committed=Array.isArray(q.data)?q.data[0]:q.data;
+        const local=(window.state?.v154Requests||[]).find(x=>String(x.id)===String(id));
+        if(local)Object.assign(local,{
+          estado:'finalizada',
+          etapa:'finalizada',
+          finalizada_at:committed?.finalizada_at||new Date().toISOString(),
+          finalizada_por:committed?.finalizada_por||uid(),
+          finalizacion_observacion:committed?.finalizacion_observacion||observation
+        });
+        window.state=window.state||{};
+        window.state.r178SolicitudesTab='finalizadas';
+        try{await window.v15Notify?.('Solicitud finalizada',`Solicitud ${String(id).slice(0,8)} · gestión completada`,'normal',row.solicitante_user_id,'solicitudes',id)}catch(error){console.warn('[Stainher R179] aviso',error)}
         window.closeModal?.();
         await window.renderSolicitudesV15?.();
         await window.v15LoadNotifications?.();
-        window.toast?.('Solicitud marcada como finalizada.','success');
+        window.toast?.('Solicitud marcada como finalizada y movida a Finalizadas.','success');
       }catch(error){
         window.toast?.('No se pudo finalizar la solicitud: '+(error?.message||String(error)),'error');
         if(button&&document.body.contains(button)){button.disabled=false;button.textContent='Marcar como finalizada'}
@@ -66,10 +77,14 @@
     let tabs=page.querySelector('[data-r178-tabs]');
     if(!tabs){
       tabs=document.createElement('div');tabs.dataset.r178Tabs='1';tabs.className='panel';tabs.style.marginBottom='12px';
-      tabs.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Solicitudes</b><div class="muted">Separa solicitudes activas de gestiones ya completadas.</div></div><div class="actions"><button class="btn primary" type="button" data-r178-tab="activas">Activas</button><button class="btn" type="button" data-r178-tab="finalizadas">Finalizadas <span data-r178-final-count></span></button></div></div>`;
+      tabs.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Solicitudes</b><div class="muted">Separa solicitudes activas de gestiones ya completadas.</div></div><div class="actions"><button class="btn primary" type="button" data-r178-tab="activas">Activas</button><button class="btn" type="button" data-r178-tab="finalizadas">Finalizadas <span data-r178-final-count></span></button></div></div><div class="actions" style="margin-top:10px;flex-wrap:wrap" data-r179-type-tabs><button class="btn primary" type="button" data-r179-type="todas">Todas</button><button class="btn" type="button" data-r179-type="vacaciones">Vacaciones</button><button class="btn" type="button" data-r179-type="permisos">Permisos</button><button class="btn" type="button" data-r179-type="otras">Otras</button></div>`;
       grid.insertAdjacentElement('beforebegin',tabs);
       tabs.querySelectorAll('[data-r178-tab]').forEach(button=>button.addEventListener('click',()=>{
         window.state=window.state||{};window.state.r178SolicitudesTab=button.dataset.r178Tab;
+        applyTab(page);
+      }));
+      tabs.querySelectorAll('[data-r179-type]').forEach(button=>button.addEventListener('click',()=>{
+        window.state=window.state||{};window.state.r179SolicitudesType=button.dataset.r179Type;
         applyTab(page);
       }));
     }
@@ -77,23 +92,31 @@
     const countNode=tabs.querySelector('[data-r178-final-count]');if(countNode)countNode.textContent=count?`(${count})`:'';
     applyTab(page);
   }
+  function requestCategory(type){
+    type=String(type||'');
+    if(type==='vacaciones')return 'vacaciones';
+    if(['permiso','permiso_matrimonio','permiso_fallecimiento','permiso_nacimiento','justificativo'].includes(type))return 'permisos';
+    return 'otras';
+  }
   function applyTab(page){
-    const selected=window.state?.r178SolicitudesTab||'activas',rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
+    const selected=window.state?.r178SolicitudesTab||'activas',typeSelected=window.state?.r179SolicitudesType||'todas',rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
     cards.forEach((card,index)=>{
       const row=rows[index];if(!row)return;
       const isFinal=String(row.estado||'')==='finalizada';
-      card.style.display=(selected==='finalizadas'?isFinal:!isFinal)?'':'none';
+      const stateMatch=selected==='finalizadas'?isFinal:!isFinal;
+      const category=requestCategory(row.tipo);
+      const typeMatch=typeSelected==='todas'||category===typeSelected;
+      card.style.display=(stateMatch&&typeMatch)?'':'none';
     });
-    page.querySelectorAll('[data-r178-tab]').forEach(button=>{
-      const active=button.dataset.r178Tab===selected;
-      button.classList.toggle('primary',active);
-    });
+    page.querySelectorAll('[data-r178-tab]').forEach(button=>button.classList.toggle('primary',button.dataset.r178Tab===selected));
+    page.querySelectorAll('[data-r179-type]').forEach(button=>button.classList.toggle('primary',button.dataset.r179Type===typeSelected));
     const grid=page.querySelector('.v152-request-grid');
     let empty=page.querySelector('[data-r178-empty]');
     const visible=cards.some(card=>card.style.display!=='none');
     if(!visible){
       if(!empty){empty=document.createElement('div');empty.dataset.r178Empty='1';empty.className='notice';grid.insertAdjacentElement('beforebegin',empty)}
-      empty.textContent=selected==='finalizadas'?'No hay solicitudes finalizadas.':'No hay solicitudes activas.';
+      const label=typeSelected==='todas'?'solicitudes':typeSelected==='vacaciones'?'vacaciones':typeSelected==='permisos'?'permisos':'otras solicitudes';
+      empty.textContent=selected==='finalizadas'?('No hay '+label+' finalizadas.'):('No hay '+label+' activas.');
     }else empty?.remove();
   }
 
