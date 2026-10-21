@@ -244,6 +244,16 @@
     }
   }
 
+  async function refreshMarriageLeaveR171(){
+    try{
+      await load('stainher-marriage-leave-runtime-r171','stainher-v1524-marriage-leave-r171.js');
+      window.StainherMarriageLeaveR171?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:marriage-leave-r171-ready'));
+    }catch(error){
+      console.error('[Stainher Solicitudes R171]',error);
+    }
+  }
+
   async function refreshPreventivoStateR137(){
     try{
       await load('stainher-preventivo-state-runtime-r137','stainher-v1524-preventivo-state-r137.js');
@@ -324,7 +334,7 @@
   window.StainherHPR108={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107};
   window.StainherHPR109={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
   window.StainherHPR110={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
-  const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109,refreshCorrectivoHistoryR118,refreshReliabilityActionsR119,refreshEquipmentViewR132,refreshSolicitudesViewR133,refreshRequestApproverR135,refreshApprovedRerouteR138,refreshPreventivoStateR137,refreshPreventivoDeleteScheduleR140,refreshStandardizationR141};
+  const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109,refreshCorrectivoHistoryR118,refreshReliabilityActionsR119,refreshEquipmentViewR132,refreshSolicitudesViewR133,refreshRequestApproverR135,refreshApprovedRerouteR138,refreshMarriageLeaveR171,refreshPreventivoStateR137,refreshPreventivoDeleteScheduleR140,refreshStandardizationR141};
   window.StainherHPR111=api;
   window.StainherHPR112=api;
   window.StainherHPR115=api;
@@ -370,6 +380,7 @@
     await refreshSolicitudesViewR133();
     await refreshRequestApproverR135();
     await refreshApprovedRerouteR138();
+    await refreshMarriageLeaveR171();
     await refreshPreventivoStateR137();
     await refreshPreventivoDeleteScheduleR140();
     await refreshStandardizationR141();
@@ -401,6 +412,7 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r141-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r142-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r163-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r171-ready'));
   }
   api.bootstrapR112=bootstrapR135;
   api.bootstrapR115=bootstrapR135;
