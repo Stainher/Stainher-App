@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261021-r177-finalizar-solicitudes';
+  const BUILD='20261021-r178-solicitudes-finalizadas-tab';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -61,27 +61,45 @@
     };
   };
 
-  function ensureFilter(page){
-    if(page.querySelector('[data-r177-filter]'))return;
+  function ensureTabs(page){
     const grid=page.querySelector('.v152-request-grid');if(!grid)return;
-    const bar=document.createElement('div');bar.dataset.r177Filter='1';bar.className='panel';bar.style.marginBottom='12px';
-    bar.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Estado de solicitudes</b><div class="muted">Distingue solicitudes aprobadas de gestiones realmente completadas.</div></div><select class="field" data-r177-status-filter style="max-width:220px"><option value="todas">Todas</option><option value="pendiente">Pendientes</option><option value="aprobada">Aprobadas</option><option value="finalizada">Finalizadas</option><option value="rechazada">Rechazadas</option></select></div>`;
-    grid.insertAdjacentElement('beforebegin',bar);
-    bar.querySelector('[data-r177-status-filter]').addEventListener('change',e=>applyFilter(page,e.target.value));
+    let tabs=page.querySelector('[data-r178-tabs]');
+    if(!tabs){
+      tabs=document.createElement('div');tabs.dataset.r178Tabs='1';tabs.className='panel';tabs.style.marginBottom='12px';
+      tabs.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Solicitudes</b><div class="muted">Separa solicitudes activas de gestiones ya completadas.</div></div><div class="actions"><button class="btn primary" type="button" data-r178-tab="activas">Activas</button><button class="btn" type="button" data-r178-tab="finalizadas">Finalizadas <span data-r178-final-count></span></button></div></div>`;
+      grid.insertAdjacentElement('beforebegin',tabs);
+      tabs.querySelectorAll('[data-r178-tab]').forEach(button=>button.addEventListener('click',()=>{
+        window.state=window.state||{};window.state.r178SolicitudesTab=button.dataset.r178Tab;
+        applyTab(page);
+      }));
+    }
+    const rows=window.state?.v154Requests||[],count=rows.filter(x=>String(x.estado||'')==='finalizada').length;
+    const countNode=tabs.querySelector('[data-r178-final-count]');if(countNode)countNode.textContent=count?`(${count})`:'';
+    applyTab(page);
   }
-  function applyFilter(page,value){
-    const rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
+  function applyTab(page){
+    const selected=window.state?.r178SolicitudesTab||'activas',rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
     cards.forEach((card,index)=>{
       const row=rows[index];if(!row)return;
-      const state=String(row.estado||'pendiente');
-      const show=value==='todas'||(value==='pendiente'&&['pendiente','pendiente_rrhh'].includes(state))||state===value;
-      card.style.display=show?'':'none';
+      const isFinal=String(row.estado||'')==='finalizada';
+      card.style.display=(selected==='finalizadas'?isFinal:!isFinal)?'':'none';
     });
+    page.querySelectorAll('[data-r178-tab]').forEach(button=>{
+      const active=button.dataset.r178Tab===selected;
+      button.classList.toggle('primary',active);
+    });
+    const grid=page.querySelector('.v152-request-grid');
+    let empty=page.querySelector('[data-r178-empty]');
+    const visible=cards.some(card=>card.style.display!=='none');
+    if(!visible){
+      if(!empty){empty=document.createElement('div');empty.dataset.r178Empty='1';empty.className='notice';grid.insertAdjacentElement('beforebegin',empty)}
+      empty.textContent=selected==='finalizadas'?'No hay solicitudes finalizadas.':'No hay solicitudes activas.';
+    }else empty?.remove();
   }
 
   function decorate(){
     const page=document.getElementById('page-solicitudes');if(!page)return;
-    ensureFilter(page);
+    ensureTabs(page);
     const rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
     cards.forEach((card,index)=>{
       const row=rows[index];if(!row)return;
