@@ -63,3 +63,9 @@ assert.match(moduleSrc,/event\.stopImmediatePropagation\(\)/,'Permisos legales d
 assert.match(moduleSrc,/const data=await createLegalRequest\(o\)/,'Formulario productivo debe usar RPC de permisos legales');
 assert.match(moduleSrc,/MutationObserver/,'Debe reinyectar opciones si el modal es reemplazado por otro runtime');
 assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R172'/,'Loader debe forzar versión R172');
+
+assert.match(moduleSrc,/Desde el mismo día del fallecimiento/,'Debe indicar inicio efectivo para fallecimiento directo');
+assert.match(moduleSrc,/Desde el momento en que se acredita la muerte mediante certificado de defunción fetal/,'Debe indicar inicio efectivo de defunción fetal');
+assert.match(moduleSrc,/días corridos'.*continuos|corridos\).*continuos/s,'Debe distinguir permisos corridos/continuos');
+assert.match(moduleSrc,/Período calculado:/,'Debe mostrar el período exacto calculado');
+assert.match(moduleSrc,/cantidad de días, si son hábiles o corridos, y desde cuándo se hace efectivo/,'Debe orientar al usuario antes de seleccionar');
