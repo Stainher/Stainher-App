@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R163 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R171 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R163')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R171')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R163';
+  window.__STAINHER_HP_LOADER_VERSION__='R171';
 
-  const BUILD='20261019-r163-force-contract-standardization';
+  const BUILD='20261021-r171-permisos-legales';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -363,6 +363,7 @@
   window.StainherHPR141=api;
   window.StainherHPR142=api;
   window.StainherHPR163=api;
+  window.StainherHPR171=api;
 
   async function bootstrapR135(){
     await refreshAccessR107();
@@ -441,5 +442,6 @@
   api.bootstrapR141=bootstrapR135;
   api.bootstrapR142=bootstrapR135;
   api.bootstrapR163=bootstrapR135;
+  api.bootstrapR171=bootstrapR135;
   bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();
