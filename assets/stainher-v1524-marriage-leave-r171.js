@@ -5,12 +5,13 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261021-r172-formulario-productivo-permisos-legales';
+  const BUILD='20261021-r175-comprobante-permisos';
   const TYPES={
     matrimonio:'permiso_matrimonio',
     fallecimiento:'permiso_fallecimiento',
     nacimiento:'permiso_nacimiento'
   };
+  const RECEIPT_TYPES=new Set(['permiso',TYPES.matrimonio,TYPES.fallecimiento,TYPES.nacimiento]);
   if(window.__STAINHER_LEGAL_LEAVE_R171__===BUILD)return;
   window.__STAINHER_LEGAL_LEAVE_R171__=BUILD;
   let timer=null,holidaysPromise=null;
@@ -337,12 +338,13 @@
       const oldText=submit?.textContent||'Enviar solicitud';if(submit){submit.disabled=true;submit.textContent='Enviando…'}
       try{
         const data=await createLegalRequest(o);
-        try{await window.v15Notify?.('Nueva solicitud',`${window.state?.profile?.nombre||window.state?.session?.user?.email||'Trabajador'} · ${window.v152RequestLabel?.(t)||t}`,'importante',data?.aprobador_user_id||null,'solicitudes',data?.id||null)}catch(error){console.warn('[Stainher R172] notificación',error)}
-        try{await window.v1517SendRequestApprovalEmail?.(data?.id)}catch(error){console.warn('[Stainher R172] correo aprobador',error)}
+        try{await window.v15Notify?.('Nueva solicitud',`${window.state?.profile?.nombre||window.state?.session?.user?.email||'Trabajador'} · ${window.v152RequestLabel?.(t)||t}`,'importante',data?.aprobador_user_id||null,'solicitudes',data?.id||null)}catch(error){console.warn('[Stainher R175] notificación',error)}
+        try{await window.v1517SendRequestApprovalEmail?.(data?.id)}catch(error){console.warn('[Stainher R175] correo aprobador',error)}
         window.closeModal?.();
         await window.renderSolicitudesV15?.();
         await window.v15LoadNotifications?.();
-        window.toast?.('Solicitud enviada al aprobador.','success');
+        if(data?.id)await window.v175DownloadPermitReceipt?.(data.id);
+        window.toast?.('Solicitud enviada y comprobante generado.','success');
       }catch(error){
         window.toast?.('No se pudo guardar la solicitud: '+(error?.message||String(error)),'error');
         if(submit&&document.body.contains(submit)){submit.disabled=false;submit.textContent=oldText}
@@ -361,11 +363,119 @@
     return true;
   }
 
+  function statusLabel(value){
+    return ({
+      pendiente:'PENDIENTE DE APROBACIÓN',
+      pendiente_rrhh:'PENDIENTE RR.HH.',
+      aprobada:'APROBADA',
+      rechazada:'RECHAZADA',
+      cancelada:'CANCELADA',
+      anulada:'ANULADA'
+    })[String(value||'').toLowerCase()]||String(value||'PENDIENTE').toUpperCase();
+  }
+  function eventLabel(row){
+    const type=String(row?.tipo||'');
+    const event=String(row?.permiso_legal_evento||'');
+    if(type===TYPES.matrimonio)return event==='auc'?'Acuerdo de Unión Civil':'Matrimonio';
+    if(type===TYPES.fallecimiento){
+      return deathRule(event)?.label||event.replaceAll('_',' ')||'Fallecimiento familiar';
+    }
+    if(type===TYPES.nacimiento)return event==='adopcion'?'Adopción':'Nacimiento de hijo/a';
+    return 'Permiso / ausencia';
+  }
+  function safeFile(v){
+    return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'')||'permiso';
+  }
+  async function requestReceiptData(id){
+    const q=await window.sb.from('solicitudes_v15')
+      .select('*,perfiles:solicitante_user_id(nombre,email,rol)')
+      .eq('id',String(id)).single();
+    if(q.error)throw q.error;
+    const row=q.data,ids=[row.aprobador_user_id,row.rrhh_user_id,row.resuelto_por].filter(Boolean);
+    if(ids.length){
+      const p=await window.sb.from('perfiles').select('id,nombre,email,rol').in('id',[...new Set(ids)]);
+      if(!p.error){
+        for(const person of p.data||[]){
+          if(String(person.id)===String(row.aprobador_user_id)){row.aprobador_nombre=person.nombre;row.aprobador_email=person.email}
+          if(String(person.id)===String(row.rrhh_user_id)){row.rrhh_nombre=person.nombre;row.rrhh_email=person.email}
+          if(String(person.id)===String(row.resuelto_por)){row.resuelto_nombre=person.nombre;row.resuelto_email=person.email}
+        }
+      }
+    }
+    return row;
+  }
+  function buildPermitReceiptPdf(row){
+    const C=typeof window.ensurePdf==='function'?window.ensurePdf():window.jspdf?.jsPDF;
+    if(!C)throw new Error('No se pudo cargar el generador PDF.');
+    const label=window.v152RequestLabel?.(row.tipo)||'Permiso';
+    const subtitle=`Solicitud ${String(row.id||'').slice(0,8).toUpperCase()} · ${statusLabel(row.estado)}`;
+    const doc=new C({unit:'mm',format:'a4'});
+    if(typeof window.installCorporatePdfV95==='function')window.installCorporatePdfV95(doc,'Comprobante de Permiso',subtitle);
+    else if(typeof window.pdfHeader==='function')window.pdfHeader(doc,'Comprobante de Permiso',subtitle);
+    else{
+      doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('STAINHER',14,16);
+      doc.setFontSize(14);doc.text('Comprobante de Permiso',14,27);doc.setDrawColor(239,91,42);doc.line(14,34,196,34);
+    }
+    if(typeof doc.autoTable!=='function')throw new Error('No se pudo cargar el generador de tablas PDF.');
+    const worker=row.perfiles?.nombre||row.solicitante_nombre||row.solicitante_user_id||'—';
+    const created=row.created_at?new Date(row.created_at).toLocaleString('es-CL'):'—';
+    const resolved=row.resuelto_at?new Date(row.resuelto_at).toLocaleString('es-CL'):'—';
+    const approver=row.aprobador_nombre||row.rrhh_nombre||row.resuelto_nombre||'Pendiente';
+    const body=[
+      ['Trabajador',worker],
+      ['Tipo de permiso',label],
+      ['Estado',statusLabel(row.estado)],
+      ['Período',row.fecha_inicio?`${dateCL(row.fecha_inicio)} al ${dateCL(row.fecha_fin||row.fecha_inicio)}`:'Sin período'],
+      ['Fecha del hecho',row.permiso_legal_fecha_evento?dateCL(row.permiso_legal_fecha_evento):'—'],
+      ['Detalle',eventLabel(row)],
+      ['Duración',row.permiso_legal_dias?`${row.permiso_legal_dias} ${row.permiso_legal_unidad||'días'}`:'Según solicitud'],
+      ['Modalidad',row.permiso_legal_modalidad||'—'],
+      ['Aprobador asignado',approver],
+      ['Creada',created],
+      ['Resolución',resolved]
+    ];
+    doc.autoTable({
+      startY:38,theme:'grid',body,
+      styles:{fontSize:8.5,cellPadding:2.5,textColor:[28,34,41]},
+      columnStyles:{0:{cellWidth:48,fontStyle:'bold'}},
+      headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}
+    });
+    let y=(doc.lastAutoTable?.finalY||90)+8;
+    const comment=String(row.comentario||'').trim();
+    if(comment){
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(28,34,41);doc.text('Antecedentes / observaciones',14,y);y+=5;
+      doc.setFont('helvetica','normal');doc.setFontSize(8);const lines=doc.splitTextToSize(comment,180);doc.text(lines,14,y);y+=lines.length*4+6;
+    }
+    if(row.motivo_rechazo){
+      if(y>250){doc.addPage();y=35}
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Motivo del rechazo',14,y);y+=5;
+      doc.setFont('helvetica','normal');doc.setFontSize(8);const lines=doc.splitTextToSize(String(row.motivo_rechazo),180);doc.text(lines,14,y);
+    }
+    doc.setFontSize(7);doc.setTextColor(100);
+    doc.text(`Generado ${new Date().toLocaleString('es-CL')} · Stainher App`,14,290);
+    return doc;
+  }
+  window.v175DownloadPermitReceipt=async function(id){
+    try{
+      const row=await requestReceiptData(id);
+      if(!RECEIPT_TYPES.has(String(row.tipo||'')))throw new Error('Esta solicitud no corresponde a un permiso con comprobante.');
+      const doc=buildPermitReceiptPdf(row),name=`Comprobante_${safeFile(window.v152RequestLabel?.(row.tipo)||'Permiso')}_${String(row.fecha_inicio||'').replace(/-/g,'')||'sin_fecha'}.pdf`;
+      doc.save(name);
+      return true;
+    }catch(error){
+      window.toast?.(error?.message||'No se pudo generar el comprobante del permiso.','error');
+      return false;
+    }
+  };
+
   function wrapActions(){
     const current=window.v1517RequestActions;if(typeof current!=='function'||current.__r171LegalLeave)return false;
     const wrapped=function(x){
       let html=current.apply(this,arguments)||'';
-      const cert=String(x?.permiso_legal_certificado_estado||'');
+      const type=String(x?.tipo||''),cert=String(x?.permiso_legal_certificado_estado||'');
+      if(RECEIPT_TYPES.has(type)){
+        html+='<button class="btn" type="button" onclick="v175DownloadPermitReceipt(\''+String(x.id)+'\')">Comprobante PDF</button>';
+      }
       if(['administrador','recursos_humanos'].includes(role())&&cert==='pendiente'){
         html+='<button class="btn" type="button" onclick="v171MarkLegalCertificate(\''+String(x.id)+'\')">Certificado recibido</button>';
       }
@@ -414,6 +524,6 @@
     window.addEventListener('stainher:request-approver-r135-ready',()=>{wrapLabel();wrapCreate();wrapModal();wrapActions();wrapRender();injectForm()});
     window.addEventListener('stainher:approved-reroute-r138-ready',()=>{wrapLabel();wrapCreate();wrapModal();wrapActions();wrapRender();injectForm()});
   }
-  window.StainherMarriageLeaveR171=Object.freeze({install,injectForm,legalComment,deathRule,version:BUILD});
+  window.StainherMarriageLeaveR171=Object.freeze({install,injectForm,legalComment,deathRule,buildPermitReceiptPdf,requestReceiptData,version:BUILD});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

@@ -69,3 +69,18 @@ assert.match(moduleSrc,/Desde el momento en que se acredita la muerte mediante c
 assert.match(moduleSrc,/días corridos'.*continuos|corridos\).*continuos/s,'Debe distinguir permisos corridos/continuos');
 assert.match(moduleSrc,/Período calculado:/,'Debe mostrar el período exacto calculado');
 assert.match(moduleSrc,/cantidad de días, si son hábiles o corridos, y desde cuándo se hace efectivo/,'Debe orientar al usuario antes de seleccionar');
+
+assert.match(moduleSrc,/Comprobante PDF/,'Debe agregar botón para descargar comprobante');
+assert.match(moduleSrc,/function buildPermitReceiptPdf\(row\)/,'Debe construir comprobante PDF');
+assert.match(moduleSrc,/Comprobante de Permiso/,'Comprobante debe usar título estándar');
+assert.match(moduleSrc,/installCorporatePdfV95|pdfHeader/,'Comprobante debe usar formato corporativo Stainher');
+assert.match(moduleSrc,/PENDIENTE DE APROBACIÓN/,'Comprobante debe reflejar estado pendiente');
+assert.match(moduleSrc,/APROBADA/,'Comprobante debe reflejar estado aprobado');
+assert.match(moduleSrc,/RECHAZADA/,'Comprobante debe reflejar estado rechazado');
+assert.match(moduleSrc,/Tipo de permiso/,'Comprobante debe incluir tipo de permiso');
+assert.match(moduleSrc,/Aprobador asignado/,'Comprobante debe incluir aprobador');
+assert.match(moduleSrc,/Fecha del hecho/,'Comprobante debe incluir fecha del evento legal');
+assert.match(moduleSrc,/Duración/,'Comprobante debe incluir duración');
+assert.match(moduleSrc,/await window\.v175DownloadPermitReceipt\?\.\(data\.id\)/,'Debe generar comprobante automáticamente al crear permiso legal');
+assert.match(moduleSrc,/RECEIPT_TYPES=new Set\(\['permiso'/,'Debe incluir también permiso no remunerado en comprobantes');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R175'/,'Loader debe forzar versión R175');
