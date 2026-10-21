@@ -29,3 +29,11 @@ assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R177'/,'Loader debe forza
 new Function(moduleSrc);
 new Function(loader);
 console.log('request-close-r177: ok');
+
+assert.match(moduleSrc,/data-r179-type="vacaciones"/,'Debe separar vacaciones');
+assert.match(moduleSrc,/data-r179-type="permisos"/,'Debe separar permisos');
+assert.match(moduleSrc,/data-r179-type="otras"/,'Debe separar otras solicitudes');
+assert.match(moduleSrc,/function requestCategory\(type\)/,'Debe clasificar solicitudes por tipo');
+assert.match(moduleSrc,/window\.state\.r178SolicitudesTab='finalizadas'/,'Al finalizar debe mover inmediatamente a la pestaña Finalizadas');
+assert.match(moduleSrc,/Object\.assign\(local,/,'Debe actualizar el estado local inmediatamente después del cierre');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R179'/,'Loader debe forzar versión R179');
