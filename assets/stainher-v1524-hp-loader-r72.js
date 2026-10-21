@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R175 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R177 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R175')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R177')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R175';
+  window.__STAINHER_HP_LOADER_VERSION__='R177';
 
-  const BUILD='20261021-r175-comprobante-permisos';
+  const BUILD='20261021-r177-finalizar-solicitudes';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -254,6 +254,16 @@
     }
   }
 
+  async function refreshRequestCloseR177(){
+    try{
+      await load('stainher-request-close-runtime-r177','stainher-v1524-request-close-r177.js');
+      window.StainherRequestCloseR177?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:request-close-r177-ready'));
+    }catch(error){
+      console.error('[Stainher Solicitudes R177]',error);
+    }
+  }
+
   async function refreshPreventivoStateR137(){
     try{
       await load('stainher-preventivo-state-runtime-r137','stainher-v1524-preventivo-state-r137.js');
@@ -366,6 +376,7 @@
   window.StainherHPR171=api;
   window.StainherHPR172=api;
   window.StainherHPR175=api;
+  window.StainherHPR177=api;
 
   async function bootstrapR135(){
     await refreshAccessR107();
@@ -384,6 +395,7 @@
     await refreshRequestApproverR135();
     await refreshApprovedRerouteR138();
     await refreshMarriageLeaveR171();
+    await refreshRequestCloseR177();
     await refreshPreventivoStateR137();
     await refreshPreventivoDeleteScheduleR140();
     await refreshStandardizationR141();
@@ -416,6 +428,7 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r142-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r163-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r171-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r177-ready'));
   }
   api.bootstrapR112=bootstrapR135;
   api.bootstrapR115=bootstrapR135;
@@ -447,5 +460,6 @@
   api.bootstrapR171=bootstrapR135;
   api.bootstrapR172=bootstrapR135;
   api.bootstrapR175=bootstrapR135;
+  api.bootstrapR177=bootstrapR135;
   bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();
