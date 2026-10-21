@@ -6,8 +6,10 @@ const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261021204500_finalizar_solicitudes_r177.sql','utf8');
 
 assert.match(moduleSrc,/Marcar como finalizada/,'Debe ofrecer cierre operacional');
-assert.match(moduleSrc,/Estado de solicitudes/,'Debe incorporar filtro por estado');
-assert.match(moduleSrc,/Finalizadas/,'Debe permitir filtrar solicitudes finalizadas');
+assert.match(moduleSrc,/data-r178-tab="activas"/,'Debe incorporar pestaña Activas');
+assert.match(moduleSrc,/data-r178-tab="finalizadas"/,'Debe incorporar pestaña Finalizadas');
+assert.match(moduleSrc,/data-r178-final-count/,'Debe mostrar contador de solicitudes finalizadas');
+assert.match(moduleSrc,/No hay solicitudes finalizadas/,'Debe mostrar estado vacío para finalizadas');
 assert.match(moduleSrc,/finalizar_solicitud_operacional_r177/,'Debe usar RPC específica');
 assert.match(moduleSrc,/finalizacion_observacion/,'Debe mostrar observación de cierre');
 assert.match(moduleSrc,/Gestión finalizada/,'Debe destacar solicitudes finalizadas');
