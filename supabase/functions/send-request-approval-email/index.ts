@@ -32,6 +32,9 @@ function typeLabel(v: unknown): string {
   return ({
     vacaciones:"Vacaciones",
     permiso:"Permiso / ausencia",
+    permiso_matrimonio:"Permiso por matrimonio / AUC",
+    permiso_fallecimiento:"Permiso por fallecimiento familiar",
+    permiso_nacimiento:"Permiso por nacimiento de hijo",
     cambio_turno:"Cambio puntual de turno",
     otro:"Otra solicitud",
     justificativo:"Justificativo laboral"

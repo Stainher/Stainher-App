@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R163 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R171 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R163')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R171')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R163';
+  window.__STAINHER_HP_LOADER_VERSION__='R171';
 
-  const BUILD='20261019-r163-force-contract-standardization';
+  const BUILD='20261021-r171-permisos-legales';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -244,6 +244,16 @@
     }
   }
 
+  async function refreshMarriageLeaveR171(){
+    try{
+      await load('stainher-marriage-leave-runtime-r171','stainher-v1524-marriage-leave-r171.js');
+      window.StainherMarriageLeaveR171?.install?.();
+      window.dispatchEvent(new CustomEvent('stainher:marriage-leave-r171-ready'));
+    }catch(error){
+      console.error('[Stainher Solicitudes R171]',error);
+    }
+  }
+
   async function refreshPreventivoStateR137(){
     try{
       await load('stainher-preventivo-state-runtime-r137','stainher-v1524-preventivo-state-r137.js');
@@ -324,7 +334,7 @@
   window.StainherHPR108={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107};
   window.StainherHPR109={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
   window.StainherHPR110={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109};
-  const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109,refreshCorrectivoHistoryR118,refreshReliabilityActionsR119,refreshEquipmentViewR132,refreshSolicitudesViewR133,refreshRequestApproverR135,refreshApprovedRerouteR138,refreshPreventivoStateR137,refreshPreventivoDeleteScheduleR140,refreshStandardizationR141};
+  const api={refresh,refreshBudgets,refreshLeadership,refreshSystem,refreshSignature,refreshFreeReport,refreshContractForecast,refreshTurnReport,refreshAccessR107,refreshVehicleExpiryR109,refreshCorrectivoHistoryR118,refreshReliabilityActionsR119,refreshEquipmentViewR132,refreshSolicitudesViewR133,refreshRequestApproverR135,refreshApprovedRerouteR138,refreshMarriageLeaveR171,refreshPreventivoStateR137,refreshPreventivoDeleteScheduleR140,refreshStandardizationR141};
   window.StainherHPR111=api;
   window.StainherHPR112=api;
   window.StainherHPR115=api;
@@ -353,6 +363,7 @@
   window.StainherHPR141=api;
   window.StainherHPR142=api;
   window.StainherHPR163=api;
+  window.StainherHPR171=api;
 
   async function bootstrapR135(){
     await refreshAccessR107();
@@ -370,6 +381,7 @@
     await refreshSolicitudesViewR133();
     await refreshRequestApproverR135();
     await refreshApprovedRerouteR138();
+    await refreshMarriageLeaveR171();
     await refreshPreventivoStateR137();
     await refreshPreventivoDeleteScheduleR140();
     await refreshStandardizationR141();
@@ -401,6 +413,7 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r141-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r142-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r163-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r171-ready'));
   }
   api.bootstrapR112=bootstrapR135;
   api.bootstrapR115=bootstrapR135;
@@ -429,5 +442,6 @@
   api.bootstrapR141=bootstrapR135;
   api.bootstrapR142=bootstrapR135;
   api.bootstrapR163=bootstrapR135;
+  api.bootstrapR171=bootstrapR135;
   bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();
