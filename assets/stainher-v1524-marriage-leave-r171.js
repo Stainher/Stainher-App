@@ -125,7 +125,7 @@
         'Fecha de celebración: '+dateCL(o.evento_fecha),
         'Período solicitado: '+dateCL(o.fecha_inicio)+' al '+dateCL(o.fecha_fin),
         'Beneficio: 5 días hábiles continuos de permiso pagado, adicionales al feriado anual.',
-        'Aviso previo registrado: '+(notice==null?'No determinado':notice+' días de anticipación'+(notice>=30?' · cumple referencia legal':' · inferior a 30 días'))+'.',
+        'Anticipación registrada al momento de solicitar: '+(notice==null?'No determinada':notice+' día'+(Math.abs(notice)===1?'':'s'))+'. Este dato es informativo y no bloquea la solicitud.',
         'Certificado del Registro Civil: pendiente de presentación dentro de los 30 días siguientes a la celebración.',
         String(o.comentario||'').trim()? 'Comentario del trabajador: '+String(o.comentario).trim():''
       ].filter(Boolean).join('\n');
@@ -208,7 +208,7 @@
     const box=form.querySelector('[data-r171-marriage-status]'),event=form.querySelector('[name="evento_fecha"]')?.value||'',from=form.fecha_inicio?.value||'',to=form.fecha_fin?.value||'';
     if(!box)return;
     const notice=diffDays(todayIso(),event),count=businessCount(from,to,set),parts=[];let cls='ok';
-    if(event){if(notice>=30)parts.push('✓ Aviso con '+notice+' días de anticipación.');else{parts.push('⚠ Aviso con '+(notice??0)+' días; la norma contempla 30 días de anticipación.');cls='warn'}}
+    if(event){parts.push('Anticipación registrada: '+(notice??0)+' día'+(Math.abs(notice??0)===1?'':'s')+'. La solicitud puede enviarse igualmente.')} 
     else{parts.push('Indica la fecha de celebración.');cls='warn'}
     if(from&&to){if(count===5)parts.push('✓ El rango contiene 5 días hábiles.');else{parts.push('⚠ El rango contiene '+count+' días hábiles; deben ser 5.');cls='warn'}}
     box.className='r171-status '+cls;box.textContent=parts.join(' ');
@@ -256,7 +256,7 @@
       <div class="r171-box hidden" data-r171-marriage-panel>
         <label>Tipo de celebración<select class="field" name="matrimonio_tipo"><option value="matrimonio">Matrimonio</option><option value="auc">Acuerdo de Unión Civil</option></select></label>
         <label>Fecha de celebración<input class="field" name="evento_fecha" type="date"></label>
-        <div class="r171-legal"><b>Art. 207 bis · Código del Trabajo</b>5 días hábiles continuos de permiso pagado, adicionales al feriado anual. Puede utilizarse el día de la celebración y en los días inmediatamente anteriores o posteriores. El aviso debe realizarse con 30 días de anticipación y el certificado del Registro Civil debe presentarse dentro de los 30 días siguientes.</div>
+        <div class="r171-legal"><b>Art. 207 bis · Código del Trabajo</b>5 días hábiles continuos de permiso pagado, adicionales al feriado anual. Puede utilizarse el día de la celebración y en los días inmediatamente anteriores o posteriores. La aplicación registra la anticipación real con que se solicita, sin impedir solicitudes de un día para otro. El certificado del Registro Civil debe presentarse dentro de los 30 días siguientes.</div>
         <div class="r171-status warn" data-r171-marriage-status>Indica fecha y período para validar el permiso.</div>
       </div>
       <div class="r171-box hidden" data-r171-death-panel>
