@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261021-r175-comprobante-permisos';
+  const BUILD='20261021-r176-comprobante-unico';
   const TYPES={
     matrimonio:'permiso_matrimonio',
     fallecimiento:'permiso_fallecimiento',
@@ -472,12 +472,16 @@
     const current=window.v1517RequestActions;if(typeof current!=='function'||current.__r171LegalLeave)return false;
     const wrapped=function(x){
       let html=current.apply(this,arguments)||'';
-      const type=String(x?.tipo||''),cert=String(x?.permiso_legal_certificado_estado||'');
+      const type=String(x?.tipo||''),cert=String(x?.permiso_legal_certificado_estado||''),id=String(x?.id||'');
+      // Limpia acciones R175/R171 heredadas de wrappers anteriores antes de agregar una sola instancia.
+      html=html
+        .replace(/<button[^>]*onclick="v175DownloadPermitReceipt\('[^']*'\)"[^>]*>Comprobante PDF<\/button>/g,'')
+        .replace(/<button[^>]*onclick="v171MarkLegalCertificate\('[^']*'\)"[^>]*>Certificado recibido<\/button>/g,'');
       if(RECEIPT_TYPES.has(type)){
-        html+='<button class="btn" type="button" onclick="v175DownloadPermitReceipt(\''+String(x.id)+'\')">Comprobante PDF</button>';
+        html+='<button class="btn" type="button" data-r176-permit-receipt="'+esc(id)+'" onclick="v175DownloadPermitReceipt(\''+id+'\')">Comprobante PDF</button>';
       }
       if(['administrador','recursos_humanos'].includes(role())&&cert==='pendiente'){
-        html+='<button class="btn" type="button" onclick="v171MarkLegalCertificate(\''+String(x.id)+'\')">Certificado recibido</button>';
+        html+='<button class="btn" type="button" data-r176-legal-certificate="'+esc(id)+'" onclick="v171MarkLegalCertificate(\''+id+'\')">Certificado recibido</button>';
       }
       return html;
     };

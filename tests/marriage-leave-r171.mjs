@@ -84,3 +84,7 @@ assert.match(moduleSrc,/Duración/,'Comprobante debe incluir duración');
 assert.match(moduleSrc,/await window\.v175DownloadPermitReceipt\?\.\(data\.id\)/,'Debe generar comprobante automáticamente al crear permiso legal');
 assert.match(moduleSrc,/RECEIPT_TYPES=new Set\(\['permiso'/,'Debe incluir también permiso no remunerado en comprobantes');
 assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R175'/,'Loader debe forzar versión R175');
+
+assert.match(moduleSrc,/data-r176-permit-receipt/,'Debe marcar el botón único de comprobante');
+assert.match(moduleSrc,/replace\(\/<button\[\^>\]\*onclick="v175DownloadPermitReceipt/,'Debe limpiar botones de comprobante heredados antes de renderizar');
+assert.match(moduleSrc,/data-r176-legal-certificate/,'Debe marcar la acción única de certificado');
