@@ -37,3 +37,9 @@ assert.match(moduleSrc,/function requestCategory\(type\)/,'Debe clasificar solic
 assert.match(moduleSrc,/window\.state\.r178SolicitudesTab='finalizadas'/,'Al finalizar debe mover inmediatamente a la pestaña Finalizadas');
 assert.match(moduleSrc,/Object\.assign\(local,/,'Debe actualizar el estado local inmediatamente después del cierre');
 assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R179'/,'Loader debe forzar versión R179');
+
+assert.match(moduleSrc,/r180-filter-hidden\{display:none!important\}/,'Filtro R180 debe prevalecer sobre display:grid!important de R133');
+assert.match(moduleSrc,/card\.classList\.toggle\('r180-filter-hidden',!show\)/,'Debe ocultar mediante clase persistente');
+assert.match(moduleSrc,/visibleCount===0/,'Estado vacío debe calcularse con el filtro real');
+assert.match(moduleSrc,/data\.r180RequestCategory=category|dataset\.r180RequestCategory=category/,'Debe etiquetar categoría por tarjeta');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R180'/,'Loader debe forzar versión R180');
