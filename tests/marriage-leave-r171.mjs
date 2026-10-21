@@ -55,3 +55,11 @@ console.log('legal-leave-r171: ok');
 assert.match(moduleSrc,/Este dato es informativo y no bloquea la solicitud/,'La anticipación debe quedar solo como registro informativo');
 assert.match(moduleSrc,/La solicitud puede enviarse igualmente/,'Debe permitir solicitudes con poca anticipación');
 assert.doesNotMatch(moduleSrc,/inferior a 30 días/,'No debe advertir como incumplimiento bloqueante por menos de 30 días');
+
+assert.match(moduleSrc,/v1522ReqForm/,'Debe soportar el formulario productivo v1522');
+assert.match(moduleSrc,/v1520ReqForm/,'Debe soportar formulario productivo anterior v1520');
+assert.match(moduleSrc,/document\.querySelector\('#modalRoot form'\)/,'Debe tener fallback genérico para variantes del modal');
+assert.match(moduleSrc,/event\.stopImmediatePropagation\(\)/,'Permisos legales deben interceptar el submit productivo');
+assert.match(moduleSrc,/const data=await createLegalRequest\(o\)/,'Formulario productivo debe usar RPC de permisos legales');
+assert.match(moduleSrc,/MutationObserver/,'Debe reinyectar opciones si el modal es reemplazado por otro runtime');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R172'/,'Loader debe forzar versión R172');

@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261021-r171-permisos-legales';
+  const BUILD='20261021-r172-formulario-productivo-permisos-legales';
   const TYPES={
     matrimonio:'permiso_matrimonio',
     fallecimiento:'permiso_fallecimiento',
@@ -239,7 +239,7 @@
   }
 
   function injectForm(){
-    const form=document.getElementById('v1517RequestForm');if(!form||form.dataset.r171LegalLeave==='1')return false;
+    const form=document.getElementById('v1522ReqForm')||document.getElementById('v1520ReqForm')||document.getElementById('v1517RequestForm')||document.getElementById('v1514RequestForm')||document.getElementById('v154RequestForm')||document.querySelector('#modalRoot form');if(!form||form.dataset.r171LegalLeave==='1')return false;
     const type=form.querySelector('select[name="tipo"]');if(!type)return false;
     form.dataset.r171LegalLeave='1';
 
@@ -275,7 +275,7 @@
     type.closest('label')?.insertAdjacentElement('afterend',panels);
 
     const comment=form.querySelector('[name="comentario"]'),originalPlaceholder=comment?.placeholder||'',originalRequired=!!comment?.required,baseSync=type.onchange;
-    const dateLabels=[...form.querySelectorAll('[data-v1517-date]')];
+    const dateLabels=[...form.querySelectorAll('[data-v1517-date],[data-date]')];
     const setRequired=(panel,on)=>panel.querySelectorAll('select,input').forEach(el=>el.required=on);
 
     const sync=async()=>{
@@ -298,15 +298,41 @@
 
     form.addEventListener('submit',async event=>{
       const t=type.value;if(!Object.values(TYPES).includes(t))return;
+      event.preventDefault();event.stopImmediatePropagation();
+      if(window.state?.v15PreviewRole||window.state?.v15PreviewUser)return window.toast?.('Modo simulación: inicia sesión con el usuario real para guardar.','warn');
       const set=await holidays();
       if(t===TYPES.matrimonio&&businessCount(form.fecha_inicio.value,form.fecha_fin.value,set)!==5){
-        event.preventDefault();event.stopImmediatePropagation();window.toast?.('El permiso por matrimonio/AUC debe comprender 5 días hábiles.','error');
+        return window.toast?.('El permiso por matrimonio/AUC debe comprender 5 días hábiles.','error');
       }
       if(t===TYPES.nacimiento&&panels.querySelector('[name="nacimiento_modalidad"]')?.value==='distribuido'){
         const ev=panels.querySelector('[data-r171-birth-panel] [name="evento_fecha"]')?.value||'',limit=iso(ev)?addDays(ev,30):'';
         if(!ev||form.fecha_inicio.value<ev||form.fecha_fin.value>limit||businessCount(form.fecha_inicio.value,form.fecha_fin.value,set)!==5){
-          event.preventDefault();event.stopImmediatePropagation();window.toast?.('El permiso distribuido por nacimiento debe considerar 5 días dentro del primer mes.','error');
+          return window.toast?.('El permiso distribuido por nacimiento debe considerar 5 días dentro del primer mes.','error');
         }
+      }
+      const o=Object.fromEntries(new FormData(form));
+      const activePanel=t===TYPES.matrimonio?panels.querySelector('[data-r171-marriage-panel]'):t===TYPES.fallecimiento?panels.querySelector('[data-r171-death-panel]'):panels.querySelector('[data-r171-birth-panel]');
+      o.evento_fecha=activePanel?.querySelector('[name="evento_fecha"]')?.value||'';
+      if(t===TYPES.matrimonio)o.matrimonio_tipo=activePanel?.querySelector('[name="matrimonio_tipo"]')?.value||'matrimonio';
+      if(t===TYPES.fallecimiento)o.fallecimiento_relacion=activePanel?.querySelector('[name="fallecimiento_relacion"]')?.value||'';
+      if(t===TYPES.nacimiento){
+        o.nacimiento_origen=activePanel?.querySelector('[name="nacimiento_origen"]')?.value||'nacimiento';
+        o.nacimiento_modalidad=activePanel?.querySelector('[name="nacimiento_modalidad"]')?.value||'continuo';
+      }
+      if(!iso(o.evento_fecha))return window.toast?.('Debes indicar la fecha del hecho que origina el permiso.','error');
+      const submit=form.querySelector('[type="submit"],button.btn.primary');
+      const oldText=submit?.textContent||'Enviar solicitud';if(submit){submit.disabled=true;submit.textContent='Enviando…'}
+      try{
+        const data=await createLegalRequest(o);
+        try{await window.v15Notify?.('Nueva solicitud',`${window.state?.profile?.nombre||window.state?.session?.user?.email||'Trabajador'} · ${window.v152RequestLabel?.(t)||t}`,'importante',data?.aprobador_user_id||null,'solicitudes',data?.id||null)}catch(error){console.warn('[Stainher R172] notificación',error)}
+        try{await window.v1517SendRequestApprovalEmail?.(data?.id)}catch(error){console.warn('[Stainher R172] correo aprobador',error)}
+        window.closeModal?.();
+        await window.renderSolicitudesV15?.();
+        await window.v15LoadNotifications?.();
+        window.toast?.('Solicitud enviada al aprobador.','success');
+      }catch(error){
+        window.toast?.('No se pudo guardar la solicitud: '+(error?.message||String(error)),'error');
+        if(submit&&document.body.contains(submit)){submit.disabled=false;submit.textContent=oldText}
       }
     },true);
 
@@ -365,6 +391,11 @@
 
   function install(){
     mountStyle();wrapLabel();wrapCreate();wrapModal();wrapActions();wrapRender();injectForm();decorateCards();
+    const root=document.getElementById('modalRoot');
+    if(root&&!root.__r172LegalObserver){
+      const observer=new MutationObserver(()=>queueMicrotask(injectForm));
+      observer.observe(root,{childList:true,subtree:true});root.__r172LegalObserver=observer;
+    }
     if(timer)return;let tries=0;timer=setInterval(()=>{tries++;wrapLabel();wrapCreate();wrapModal();wrapActions();wrapRender();injectForm();if(tries>=100){clearInterval(timer);timer=null}},150);
     window.addEventListener('stainher:modules-ready',()=>{wrapLabel();wrapCreate();wrapModal();wrapActions();wrapRender();injectForm();decorateCards()});
     window.addEventListener('stainher:request-approver-r135-ready',()=>{wrapLabel();wrapCreate();wrapModal();wrapActions();wrapRender();injectForm()});
