@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R172 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R175 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R172')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R175')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R172';
+  window.__STAINHER_HP_LOADER_VERSION__='R175';
 
-  const BUILD='20261021-r172-formulario-productivo-permisos';
+  const BUILD='20261021-r175-comprobante-permisos';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -365,6 +365,7 @@
   window.StainherHPR163=api;
   window.StainherHPR171=api;
   window.StainherHPR172=api;
+  window.StainherHPR175=api;
 
   async function bootstrapR135(){
     await refreshAccessR107();
@@ -445,5 +446,6 @@
   api.bootstrapR163=bootstrapR135;
   api.bootstrapR171=bootstrapR135;
   api.bootstrapR172=bootstrapR135;
+  api.bootstrapR175=bootstrapR135;
   bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();
