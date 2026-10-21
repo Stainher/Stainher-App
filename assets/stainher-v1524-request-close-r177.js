@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261021-r179-solicitudes-categorias-refresh';
+  const BUILD='20261021-r180-filtros-solicitudes-robustos';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -9,6 +9,15 @@
   const uid=()=>String(window.state?.session?.user?.id||window.state?.user?.id||'');
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const dateTime=v=>v?new Date(v).toLocaleString('es-CL'):'—';
+  function mountFilterStyle(){
+    if(document.getElementById('stainher-request-filter-r180-style'))return;
+    const style=document.createElement('style');
+    style.id='stainher-request-filter-r180-style';
+    style.textContent=`
+      #page-solicitudes .v152-request-card.r180-filter-hidden{display:none!important}
+    `;
+    document.head.appendChild(style);
+  }
 
   function canFinalize(row){
     if(!row||row.estado!=='aprobada'||!ELIGIBLE.has(String(row.tipo||'')))return false;
@@ -99,21 +108,28 @@
     return 'otras';
   }
   function applyTab(page){
+    mountFilterStyle();
     const selected=window.state?.r178SolicitudesTab||'activas',typeSelected=window.state?.r179SolicitudesType||'todas',rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
+    let visibleCount=0;
     cards.forEach((card,index)=>{
-      const row=rows[index];if(!row)return;
+      const row=rows[index];
+      if(!row){card.classList.add('r180-filter-hidden');return}
       const isFinal=String(row.estado||'')==='finalizada';
       const stateMatch=selected==='finalizadas'?isFinal:!isFinal;
       const category=requestCategory(row.tipo);
       const typeMatch=typeSelected==='todas'||category===typeSelected;
-      card.style.display=(stateMatch&&typeMatch)?'':'none';
+      const show=stateMatch&&typeMatch;
+      card.dataset.r180RequestId=String(row.id||'');
+      card.dataset.r180RequestState=String(row.estado||'');
+      card.dataset.r180RequestCategory=category;
+      card.classList.toggle('r180-filter-hidden',!show);
+      if(show)visibleCount++;
     });
     page.querySelectorAll('[data-r178-tab]').forEach(button=>button.classList.toggle('primary',button.dataset.r178Tab===selected));
     page.querySelectorAll('[data-r179-type]').forEach(button=>button.classList.toggle('primary',button.dataset.r179Type===typeSelected));
     const grid=page.querySelector('.v152-request-grid');
     let empty=page.querySelector('[data-r178-empty]');
-    const visible=cards.some(card=>card.style.display!=='none');
-    if(!visible){
+    if(visibleCount===0){
       if(!empty){empty=document.createElement('div');empty.dataset.r178Empty='1';empty.className='notice';grid.insertAdjacentElement('beforebegin',empty)}
       const label=typeSelected==='todas'?'solicitudes':typeSelected==='vacaciones'?'vacaciones':typeSelected==='permisos'?'permisos':'otras solicitudes';
       empty.textContent=selected==='finalizadas'?('No hay '+label+' finalizadas.'):('No hay '+label+' activas.');
@@ -148,7 +164,7 @@
   }
 
   function install(){
-    wrapStatus();wrapRender();decorate();
+    mountFilterStyle();wrapStatus();wrapRender();decorate();
     window.addEventListener('stainher:solicitudes-view-r133-ready',()=>{wrapStatus();wrapRender();decorate()});
     window.addEventListener('stainher:request-approver-r135-ready',()=>{wrapStatus();wrapRender();decorate()});
     window.addEventListener('stainher:approved-reroute-r138-ready',()=>{wrapStatus();wrapRender();decorate()});
