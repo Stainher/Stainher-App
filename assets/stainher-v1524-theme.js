@@ -703,16 +703,16 @@
         min-height:100vh!important;
         min-height:100dvh!important;
         overflow:hidden!important;
-        isolation:isolate;
+      }
+      html[data-theme="light"] body .sidebar{
+        background:#fff!important;
+      }
+      html[data-theme="modern"] body .sidebar{
+        background:linear-gradient(180deg,#142c43 0%,#102337 100%)!important;
       }
       html[data-theme="light"] body .sidebar::before,
       html[data-theme="modern"] body .sidebar::before{
-        content:"";
-        position:absolute;
-        inset:0;
-        background:inherit;
-        z-index:-1;
-        pointer-events:none;
+        display:none!important;
       }
       html[data-theme="light"] body .sidebar::after,
       html[data-theme="modern"] body .sidebar::after{display:none!important}
@@ -734,6 +734,16 @@
         width:100%!important;
         flex:0 0 auto!important;
         z-index:2!important;
+      }
+      /* El pie usa un color explícito: background:inherit copiaba capas
+         oscuras del contenedor de cuenta y producía el bloque negro. */
+      html[data-theme="light"] body .sidebar>.sidebar-bottom{
+        background:#fff!important;
+        border-color:#d7dee8!important;
+      }
+      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
+        background:#102337!important;
+        border-color:#29465f!important;
       }
     }
 
