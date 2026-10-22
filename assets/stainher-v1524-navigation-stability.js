@@ -73,6 +73,31 @@
       });
     });
   }
+  function normalizeCorrectivoSurfaces(){
+    const page=document.getElementById('page-correctivo');
+    if(page){
+      [...page.querySelectorAll('button')].forEach(button=>{
+        if(/^Confiabilidad$/i.test((button.textContent||'').trim())){
+          button.classList.add('stainher-correctivo-tab-r214');
+          const peers=[...button.parentElement?.querySelectorAll('button')||[]];
+          button.classList.toggle('stainher-correctivo-tab-active-r214',
+            peers.length>0 && !peers.some(x=>x!==button&&(x.matches('.active,[aria-selected="true"]'))));
+        }
+      });
+      [...page.querySelectorAll('div,aside,p')].forEach(node=>{
+        const txt=(node.textContent||'').trim();
+        if(node.children.length<=3 && txt.length<105 && /^Período seleccionado\s*:/i.test(txt)){
+          node.classList.add('stainher-correctivo-period-r214');
+        }
+      });
+    }
+    const root=document.getElementById('modalRoot')||document;
+    [...root.querySelectorAll('label')].forEach(label=>{
+      if(/^(Resumen ejecutivo|KPIs de confiabilidad|Gráficos|Historial de fallas\s*\/\s*intervenciones|Metodología de cálculo)$/i.test((label.textContent||'').trim())){
+        label.classList.add('stainher-report-choice-r214');
+      }
+    });
+  }
   function normalizeMobileTitle(){
     const title=document.getElementById('v151MobileTitle')||document.querySelector('.v151-mobile-title strong');
     if(!title)return;
@@ -138,7 +163,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeActionRows();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -156,7 +181,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
