@@ -397,12 +397,34 @@
     }
   }
 
+  /* R209: el guardado de Excluir de KPI vuelve a renderizar el historial.
+     Conservar desplegado el panel sin interferir en cambios de datos. */
+  let preserveHistoryOpen=false;
+  function historyDisclosure(){
+    const host=page();if(!host)return null;
+    return [...host.querySelectorAll('details')].find(el=>
+      /Historial del per[ií]odo/i.test(el.querySelector(':scope > summary')?.textContent||'')
+    )||null;
+  }
+  function restoreHistoryOpen(){
+    if(!preserveHistoryOpen)return;
+    const disclosure=historyDisclosure();
+    if(disclosure&&!disclosure.open)disclosure.open=true;
+  }
+  function isExcludeKpiControl(node){
+    const input=node?.closest?.('input[type="checkbox"]');
+    if(!input)return false;
+    const text=[input.id,input.name,input.getAttribute('aria-label'),input.closest('label')?.textContent,
+      input.closest('tr')?.textContent?.slice(0,300)].filter(Boolean).join(' ');
+    return /exclu.{0,30}kpi|kpi.{0,30}exclu/i.test(text);
+  }
   let busy=false,pending=false,installed=false;
   function enhance(){
     if(busy)return;
     const found=findHistoryTable();if(!found)return;
     busy=true;
     try{
+      restoreHistoryOpen();
       found.panel.classList.add('stainher-corr-history-r118');
       alignColumns(found.table);
       decorateObservations(found.table);
@@ -420,7 +442,17 @@
     if(installed)return;installed=true;
     installStyle();modal();enhance();
     const host=page()||document.getElementById('appView')||document.body;
-    new MutationObserver(()=>{if(!busy)schedule()}).observe(host,{childList:true,subtree:true});
+    new MutationObserver(()=>{if(!busy){restoreHistoryOpen();schedule()}}).observe(host,{childList:true,subtree:true});
+    host.addEventListener('change',event=>{
+      if(isExcludeKpiControl(event.target)){
+        preserveHistoryOpen=true;
+        restoreHistoryOpen();
+      }
+    },true);
+    host.addEventListener('click',event=>{
+      const summary=event.target?.closest?.('summary');
+      if(summary&&summary.parentElement===historyDisclosure())preserveHistoryOpen=false;
+    },true);
     document.addEventListener('click',event=>{
       const button=event.target?.closest?.('.stainher-corr-observation-r118');
       if(button){event.preventDefault();openObservation(button)}
