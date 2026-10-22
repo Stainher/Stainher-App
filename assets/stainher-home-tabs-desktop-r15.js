@@ -50,7 +50,14 @@
     `;
     document.head.appendChild(style);
   }
+  function ensureExpiryTab(){
+    document.querySelectorAll(BAR_SELECTOR).forEach(bar=>{
+      if(bar.querySelector('[data-alert-filter="documentos_vencidos"]'))return;
+      const button=document.createElement('button');button.type='button';button.className='btn';button.dataset.alertFilter='documentos_vencidos';button.textContent='Documentos vencidos';bar.appendChild(button);
+    });
+  }
   function syncButtons(){
+    ensureExpiryTab();
     const active=normalize(window.v152AlertFilter||'todas');
     document.querySelectorAll(BUTTON_SELECTOR).forEach(button=>{
       const key=keyOf(button);if(!key)return;
@@ -100,7 +107,7 @@
     return true;
   }
   function boot(){
-    mountStyle();patchGlobals();syncButtons();
+    mountStyle();ensureExpiryTab();patchGlobals();syncButtons();
     /* El mouse de escritorio se resuelve en pointerup antes de cualquier onclick heredado. */
     window.addEventListener('pointerup',event=>{
       if(event.pointerType==='mouse'||event.pointerType==='pen'){
