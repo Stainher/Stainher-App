@@ -24,79 +24,96 @@
     :root[data-theme="light"]{color-scheme:light;--bg:#f3f6fa;--panel:#fff;--panel2:#eaf0f6;--line:#c7d1dd;--text:#182230;--muted:#5b6878;--green:#087a57;--yellow:#8a5a00;--red:#b4233c;--blue:#1769c2}
     :root[data-theme="dark"]{color-scheme:dark}
     :root[data-theme="modern"]{
-      color-scheme:dark;
-      --bg:#0b1118;
-      --panel:#121a24;
-      --panel2:#172231;
-      --line:#2b3b4d;
-      --text:#edf4fb;
-      --muted:#93a4b8;
-      --green:#18b981;
-      --yellow:#f0b84b;
-      --red:#e55368;
-      --blue:#2f8be6;
-      --accent:#19a7a0;
-      --accent2:#ff7a2f;
+      color-scheme:light;
+      --bg:#e8eef5;
+      --panel:#f8fbff;
+      --panel2:#edf4fa;
+      --line:#b9c9d8;
+      --text:#142638;
+      --muted:#60758a;
+      --green:#087f66;
+      --yellow:#a66300;
+      --red:#c83e52;
+      --blue:#176fc1;
+      --accent:#087f8c;
+      --accent2:#e86427;
     }
     [data-theme="modern"] body{
       background:
-        radial-gradient(circle at 12% -8%,rgba(25,167,160,.16),transparent 30%),
-        radial-gradient(circle at 92% 4%,rgba(47,139,230,.13),transparent 26%),
-        linear-gradient(180deg,#0b1118 0%,#0d141d 100%)!important;
-      color:var(--text)!important;
+        radial-gradient(circle at 10% 0%,rgba(20,137,151,.12),transparent 28%),
+        radial-gradient(circle at 92% 3%,rgba(36,111,184,.10),transparent 26%),
+        linear-gradient(180deg,#eef4f9 0%,#e5edf4 100%)!important;
+      color:#142638!important;
     }
-    [data-theme="modern"] :where(.sidebar,.sidebar-bottom,.topbar,.mobile-topbar,.mobile-header,header.app-header,.page-header){
-      background:#0d151f!important;
-      border-color:#263647!important;
-      color:#edf4fb!important;
+    [data-theme="modern"] :where(.sidebar,.sidebar-bottom){
+      background:linear-gradient(180deg,#142c43 0%,#102337 100%)!important;
+      border-color:#29465f!important;
+      color:#f4f8fb!important;
+      box-shadow:6px 0 24px rgba(19,44,67,.12)!important;
+    }
+    [data-theme="modern"] :where(.topbar,.mobile-topbar,.mobile-header,header.app-header,.page-header){
+      background:rgba(248,251,255,.94)!important;
+      border-color:#bfd0df!important;
+      color:#142638!important;
+      backdrop-filter:blur(12px);
     }
     [data-theme="modern"] :where(.panel,.userbox,.modal,.login,.equipment-card,.kpi,.storage-card,.contract-card,.vehicle-card,.crew-card,.event-card,.mini-stat,.prev-equipment-card,.v152-request-card){
-      background:linear-gradient(180deg,#121b26 0%,#101821 100%)!important;
-      border-color:#2a3b4e!important;
-      color:#edf4fb!important;
-      box-shadow:0 10px 30px rgba(0,0,0,.12)!important;
+      background:linear-gradient(180deg,#fbfdff 0%,#f4f8fc 100%)!important;
+      border-color:#bfd0df!important;
+      color:#142638!important;
+      box-shadow:0 8px 24px rgba(32,64,91,.08)!important;
     }
     [data-theme="modern"] :where(.field,.inline-field,.inline-input,.inline-select,input,select,textarea){
-      background:#0e1721!important;
-      color:#edf4fb!important;
-      border-color:#34485e!important;
+      background:#ffffff!important;
+      color:#142638!important;
+      border-color:#aebfd0!important;
+      box-shadow:inset 0 1px 1px rgba(32,64,91,.04)!important;
     }
-    [data-theme="modern"] :where(.muted,small){color:#93a4b8!important}
-    [data-theme="modern"] :where(.nav button,.logout,.btn){color:#e8f0f8}
+    [data-theme="modern"] :where(.muted,small){color:#60758a!important}
+    [data-theme="modern"] .sidebar :where(.muted,small){color:#adc0d1!important}
+    [data-theme="modern"] :where(.nav button,.logout){color:#eaf2f8!important}
+    [data-theme="modern"] :where(.btn){color:#183149}
     [data-theme="modern"] .nav button:hover,
     [data-theme="modern"] .nav button.active{
-      background:linear-gradient(90deg,rgba(25,167,160,.18),rgba(47,139,230,.14))!important;
+      background:linear-gradient(90deg,rgba(20,164,166,.28),rgba(39,118,190,.30))!important;
       color:#fff!important;
-      border-color:#35506b!important;
+      border-color:#4f86ac!important;
+      box-shadow:inset 3px 0 0 #3fd0c5!important;
     }
     [data-theme="modern"] .btn.primary,
     [data-theme="modern"] button[aria-selected="true"],
     [data-theme="modern"] .btn.active,
     [data-theme="modern"] [role="tab"].active,
     [data-theme="modern"] [role="tab"][aria-selected="true"]{
-      background:linear-gradient(135deg,#137f9b 0%,#2f8be6 100%)!important;
+      background:linear-gradient(135deg,#087f8c 0%,#176fc1 100%)!important;
       color:#fff!important;
-      border-color:#3a9fe9!important;
-      box-shadow:0 6px 18px rgba(47,139,230,.18)!important;
+      border-color:#1b7fc8!important;
+      box-shadow:0 6px 16px rgba(23,111,193,.20)!important;
+    }
+    [data-theme="modern"] .btn:not(.primary):not(.danger){
+      background:#f7fbff!important;
+      border-color:#b8c9d9!important;
     }
     [data-theme="modern"] :where(.notice,.system-stat,.edp-badge,.alert-item,.gantt-wrap,.contract-tabs,.prev-view-tab){
-      background:#111c28!important;
-      color:#dce8f4!important;
-      border-color:#2c4055!important;
+      background:#eef5fa!important;
+      color:#1b344c!important;
+      border-color:#bfd0df!important;
     }
     [data-theme="modern"] :where(th,.v1520-table th,.admin-table th){
-      background:#162231!important;
-      color:#c8d6e5!important;
-      border-color:#2d4156!important;
+      background:#dfeaf3!important;
+      color:#24445f!important;
+      border-color:#b8c9d8!important;
     }
-    [data-theme="modern"] td{border-color:#26394c!important}
+    [data-theme="modern"] td{border-color:#cbd7e2!important;color:#183149!important}
+    [data-theme="modern"] :where(h1,h2,h3,h4,h5,h6,strong,b){color:#102a42}
+    [data-theme="modern"] .sidebar :where(h1,h2,h3,h4,h5,h6,strong,b){color:#f5f9fc!important}
     [data-theme="modern"] .status.ok,
-    [data-theme="modern"] .tag.ok{background:rgba(24,185,129,.16)!important;color:#48dca8!important;border-color:rgba(24,185,129,.38)!important}
+    [data-theme="modern"] .tag.ok{background:#d9f4e9!important;color:#08684f!important;border-color:#8ad5bd!important}
     [data-theme="modern"] .status.warn,
-    [data-theme="modern"] .tag.warn{background:rgba(240,184,75,.15)!important;color:#ffd278!important;border-color:rgba(240,184,75,.36)!important}
+    [data-theme="modern"] .tag.warn{background:#fff0ce!important;color:#8a5200!important;border-color:#e9c576!important}
     [data-theme="modern"] .status.bad,
-    [data-theme="modern"] .tag.bad{background:rgba(229,83,104,.16)!important;color:#ff8a9b!important;border-color:rgba(229,83,104,.36)!important}
-    [data-theme="modern"] ::selection{background:rgba(25,167,160,.42);color:#fff}
+    [data-theme="modern"] .tag.bad{background:#ffe1e5!important;color:#a3283c!important;border-color:#efa2ae!important}
+    [data-theme="modern"] ::selection{background:#9edee0;color:#102a42}
     [data-theme="light"] body{background:radial-gradient(circle at 10% 0%,#fff 0,#f3f6fa 38%);color:var(--text)}
     [data-theme="light"] .sidebar,[data-theme="light"] .sidebar-bottom{background:#fff}
     [data-theme="light"] .nav button,[data-theme="light"] .logout,[data-theme="light"] .btn{color:#1d2939}
@@ -522,8 +539,8 @@
   function refreshCharts(value){
     if(!window.Chart)return;
     const light=value===LIGHT,modern=value===MODERN;
-    const textColor=light?'#475467':modern?'#b9c8d8':'#c7d2df';
-    const gridColor=light?'rgba(71,84,103,.16)':modern?'rgba(93,121,149,.20)':'rgba(184,200,218,.14)';
+    const textColor=light?'#475467':modern?'#405b73':'#c7d2df';
+    const gridColor=light?'rgba(71,84,103,.16)':modern?'rgba(64,91,115,.18)':'rgba(184,200,218,.14)';
     const pastel=light
       ?['rgba(111,155,196,.72)','rgba(104,174,157,.72)','rgba(204,165,108,.72)','rgba(155,137,190,.70)','rgba(194,132,150,.68)']
       :modern
@@ -545,7 +562,7 @@
           dataset.borderColor=borders[index%borders.length];
           dataset.backgroundColor=pastel[index%pastel.length].replace(/\.[0-9]+\)$/,light?'.16)':'.20)');
           dataset.pointBackgroundColor=borders[index%borders.length];
-          dataset.pointBorderColor=light?'#fff':'#111923';dataset.pointRadius=3;dataset.borderWidth=2;
+          dataset.pointBorderColor=(light||modern)?'#fff':'#111923';dataset.pointRadius=3;dataset.borderWidth=2;
         }else{
           const count=Math.max(dataset.data?.length||1,1);
           dataset.backgroundColor=Array.from({length:count},(_,i)=>pastel[(i+index)%pastel.length]);
