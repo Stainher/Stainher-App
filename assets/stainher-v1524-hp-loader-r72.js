@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R199 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R200 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R199')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R200')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R199';
+  window.__STAINHER_HP_LOADER_VERSION__='R200';
 
-  const BUILD='20261022-r199-visual-cache-refresh';
+  const BUILD='20261022-r200-account-bottom';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
