@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R180 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R181 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R180')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R181')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R180';
+  window.__STAINHER_HP_LOADER_VERSION__='R181';
 
-  const BUILD='20261021-r180-filtros-solicitudes-robustos';
+  const BUILD='20261022-r181-estado-solo-otras';
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
@@ -379,6 +379,7 @@
   window.StainherHPR177=api;
   window.StainherHPR179=api;
   window.StainherHPR180=api;
+  window.StainherHPR181=api;
 
   async function bootstrapR135(){
     await refreshAccessR107();
@@ -433,6 +434,7 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r177-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r179-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r180-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r181-ready'));
   }
   api.bootstrapR112=bootstrapR135;
   api.bootstrapR115=bootstrapR135;
@@ -467,5 +469,6 @@
   api.bootstrapR177=bootstrapR135;
   api.bootstrapR179=bootstrapR135;
   api.bootstrapR180=bootstrapR135;
+  api.bootstrapR181=bootstrapR135;
   bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();
