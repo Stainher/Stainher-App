@@ -887,6 +887,17 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio .v152-alert-days *{
       color:#173b5a!important;-webkit-text-fill-color:#173b5a!important;
     }
+    /* R213: Correctivo claro/moderno, barra de período y navegación activa. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(.v1519-period-summary,.v1523-prev-period-note,.v1512-period-note,.edp-period-note){
+      background:#e8f1f9!important;color:#15334c!important;border:1px solid #aec7da!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(.v1519-period-summary,.v1523-prev-period-note,.v1512-period-note,.edp-period-note) *{color:#15334c!important;-webkit-text-fill-color:#15334c!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn)[aria-selected="true"],
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn).active{
+      background:#176fc1!important;border-color:#12589d!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn)[aria-selected="true"] *,
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn).active *{color:#fff!important;-webkit-text-fill-color:#fff!important}
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
