@@ -921,6 +921,25 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .stainher-report-choice-r214 *{
       color:#163751!important;-webkit-text-fill-color:#163751!important;
     }
+    /* R214: superficies del modal de turnos y el KPI de liderazgo detectados en DOM. */
+    html:is([data-theme="light"],[data-theme="modern"]) body .stainher-turn-worker-r214{
+      background:#eef5fb!important;border:1px solid #b6ccdf!important;color:#183751!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .stainher-turn-worker-r214 :is(label,span,small,strong){
+      color:#183751!important;-webkit-text-fill-color:#183751!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-leadership-kpi-r214{
+      background:#f4f9fd!important;border:1px solid #adc5da!important;color:#173956!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-leadership-kpi-r214 :is(strong,b,span,small){
+      color:#173956!important;-webkit-text-fill-color:#173956!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-period-surface-r214{
+      background:#e7f0f8!important;border:1px solid #b1c8dc!important;color:#173956!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-period-surface-r214 *{
+      color:#173956!important;-webkit-text-fill-color:#173956!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
