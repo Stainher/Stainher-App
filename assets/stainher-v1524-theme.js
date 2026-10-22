@@ -852,6 +852,18 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :is(.v152-alert-card,.home-alert-card,[class*="holiday-card"],[class*="reminder-card"]) :is(span,small,p,strong,b,[class*="days"]){
       color:#19364e!important;-webkit-text-fill-color:#19364e!important;
     }
+    /* R211 · Filas de acciones: sin franja blanca distinta del lienzo.
+       Solo superficies de barra directa, no tarjetas, formularios ni botones. */
+    html[data-theme="light"] body :is(.page[id^="page-"] > .v1524-toolbar,.page[id^="page-"] > .page-actions,.page[id^="page-"] > .action-bar,.page[id^="page-"] > .toolbar),
+    html[data-theme="modern"] body :is(.page[id^="page-"] > .v1524-toolbar,.page[id^="page-"] > .page-actions,.page[id^="page-"] > .action-bar,.page[id^="page-"] > .toolbar){
+      background:transparent!important;
+      background-image:none!important;
+      box-shadow:none!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .page[id^="page-"] > .topbar + :is(.toolbar,.page-actions,.action-bar){
+      background:transparent!important;
+      background-image:none!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
