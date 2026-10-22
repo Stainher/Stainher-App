@@ -27,5 +27,5 @@ test('Theme styles retain light, modern and dark support',()=>{
 });
 test('Legacy dark contrast is overridden in the leadership module',()=>{
   assert.match(theme,/syncLeadershipR219/);
-  assert.match(theme,/#page-liderazgo/);
+  assert.match(theme,/#page-liderazgo/);\n  assert.match(theme,/\\.v1512-mini-kpi/,'El CSS debe identificar la tarjeta de Liderazgo real');
 });
