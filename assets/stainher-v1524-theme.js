@@ -776,6 +776,35 @@
       -webkit-text-fill-color:#183149!important;
     }
 
+    /* R197: contraste en paneles oscuros que se conservan dentro de temas claros. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi{
+      background:#142230!important;
+      border-color:#344b60!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :where(strong,b,[class*="value"],[class*="number"]){
+      color:#f5f9ff!important;
+      -webkit-text-fill-color:#f5f9ff!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :where(small,label,span,.muted){
+      color:#b9d1e8!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :where(.bad,.danger,[class*="overdue"]){
+      color:#ff7186!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :where(.stainher-contract-alert-r94,.v152-alert-card) :where(.muted,small,[class*="meta"],[class*="subtitle"]){
+      color:#c8deed!important;
+      -webkit-text-fill-color:#c8deed!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :where(.btn.active,[role="tab"].active,button[aria-selected="true"]){
+      color:#ffffff!important;
+      -webkit-text-fill-color:#ffffff!important;
+      background:#176fc1!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :where(.btn.active,[role="tab"].active,button[aria-selected="true"]) *{
+      color:inherit!important;
+      -webkit-text-fill-color:inherit!important;
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
