@@ -482,7 +482,16 @@
     renderLoaded();
   }
 
+  function fixPageTitle(){
+    const page=document.getElementById('page-estandarizacion');
+    if(!page)return false;
+    const heading=page.querySelector(':scope > h1,:scope > .page-header h1,:scope > header h1,h1');
+    if(heading)heading.textContent='Estandarización';
+    return !!heading;
+  }
+
   function install(){
+    fixPageTitle();
     ensureStyles();
     ensurePage();
     ensureNav();
@@ -497,6 +506,7 @@
   window.renderEstandarizacion=render;
   window.StainherStandardizationR141=Object.freeze({
     install,
+    fixPageTitle,
     render,
     refresh,
     edit:openEditor,
