@@ -940,6 +940,18 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-period-surface-r214 *{
       color:#173956!important;-webkit-text-fill-color:#173956!important;
     }
+    /* R216 · tablas del detalle de eventos; no afecta la malla A/C/L. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .stainher-event-detail-table-r216 tbody tr,
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .stainher-event-detail-table-r216 tbody td{
+      background:#f6fafe!important;color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+      border-color:#b7cadc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .stainher-event-detail-table-r216 tbody tr:nth-child(even) td{
+      background:#eaf3fb!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .stainher-event-detail-table-r216 tbody td :is(span,small,strong,b,a){
+      color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
@@ -1095,7 +1107,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r215-leadership-version':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r216-turn-detail-contrast':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
