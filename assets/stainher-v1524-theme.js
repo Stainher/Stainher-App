@@ -522,6 +522,173 @@
       background:#eef3f8!important;color:#344054!important;border-color:#d7dee8!important
     }
 
+    /* R189 · Cobertura global del tema Moderno para componentes históricos. */
+    html[data-theme="modern"] body :where(
+      details[data-stainher-panel="staffing"],
+      details[data-stainher-home-panel="staffing"],
+      details.stainher-staffing-panel,
+      details.stainher-home-staffing,
+      #page-inicio [data-stainher-home-panel="staffing"] .v1524-home-kpis,
+      #page-inicio [data-stainher-home-panel="staffing"] .v1524-home-shifts,
+      #page-inicio [data-stainher-home-panel="staffing"] .v1524-home-grid,
+      .v1524-home-kpi,.v1524-home-group,.v1524-home-person,
+      #page-correctivo .panel,#page-correctivo .kpi,#page-correctivo .chart-wrap,#page-correctivo .v158-review-kpi,
+      .v157-group,.v157-group>summary,.v157-group-body,.v157-person,.v157-person-detail,.v157-doc,
+      .v1520-kpi,.v1520-table-wrap,.v1520-contract-card,.v1520-readonly,
+      .v1519-inventory-details,.v1519-inventory-body,.v1523-reemb-grid,.v1523-reemb-grid-row,
+      .v1523-turn-day-detail,.v1523-turn-person,.v1523-turn-event,
+      .v1523-prev-equipment-group,.v1523-prev-day-grid,.v1523-prev-unplanned-group,
+      .std-dashboard-r144 .panel,.std-dashboard-r144 .kpi,
+      #page-liderazgo .panel,#page-liderazgo .kpi,#page-liderazgo .chart-wrap
+    ){
+      background:#f7fafc!important;
+      color:#183149!important;
+      border-color:#b8c9d8!important;
+      box-shadow:0 4px 14px rgba(32,64,91,.06)!important;
+    }
+
+    html[data-theme="modern"] body :where(
+      .v1524-home-group h4,
+      .v1523-prev-equipment-head,.v1523-prev-day-grid thead th,.v1523-prev-day-grid .equipment,.v1523-prev-unplanned-group>header,
+      .v1520-table th,.v1520-weekday,.v1520-turn-matrix th,.v1520-turn-matrix td:first-child,
+      .v1520-gantt th,.v1520-gantt td:first-child,.v1523-reemb-grid-head,
+      .v157-group-head,
+      #page-liderazgo .v1519-period-summary,
+      #page-liderazgo [class*="summary"],
+      #page-preventivo [class*="equipment-head"]
+    ){
+      background:#e6eef5!important;
+      color:#24445f!important;
+      border-color:#b8c9d8!important;
+    }
+
+    html[data-theme="modern"] body :where(
+      .v1524-home-kpi b,.v1524-home-person b,.v1524-home-shifts .empty,
+      .v157-group-head b,.v157-person-name,.v157-person-role,.v157-person-detail>summary,.v157-doc-name,.v157-doc-meta b,
+      #page-correctivo .kpi>strong,
+      #page-liderazgo .kpi>strong,
+      #page-preventivo .v1523-prev-equipment-head,
+      #page-estandarizacion .std-dashboard-r144 h3,
+      #page-contrato .v1520-kpi b
+    ){
+      color:#142638!important;
+    }
+
+    html[data-theme="modern"] body :where(
+      .v1524-home-kpi span,.v1524-home-person small,.v1524-home-shifts .muted,
+      .v157-group-head span,.v157-doc-meta small,
+      #page-correctivo .muted,#page-correctivo small,
+      #page-liderazgo .muted,#page-liderazgo small
+    ){
+      color:#60758a!important;
+    }
+
+    html[data-theme="modern"] body #page-inicio :where(.v1524-home-group,.v1524-home-person,.v1524-home-kpi),
+    html[data-theme="modern"] body #page-preventivo :where(.v1523-prev-equipment-group,.v1523-prev-equipment-head),
+    html[data-theme="modern"] body #page-dotacion :where(.v157-group,.v157-group>summary,.v157-group-body,.v157-person),
+    html[data-theme="modern"] body #page-liderazgo :where(.kpi,.panel,.v1519-period-summary){
+      background:#f5f9fc!important;
+      color:#183149!important;
+      border-color:#b8c9d8!important;
+    }
+
+    html[data-theme="modern"] body #page-inicio .v1524-home-group h4,
+    html[data-theme="modern"] body #page-preventivo .v1523-prev-equipment-head,
+    html[data-theme="modern"] body #page-dotacion .v157-group>summary,
+    html[data-theme="modern"] body #page-liderazgo .v1519-period-summary{
+      background:#dfeaf3!important;
+      color:#203d56!important;
+      border-color:#b4c6d6!important;
+    }
+
+    html[data-theme="modern"] body :where(button,.btn)[disabled],
+    html[data-theme="modern"] body :where(button,.btn).disabled{
+      background:#edf2f6!important;
+      color:#8091a2!important;
+      border-color:#c4d0dc!important;
+      opacity:1!important;
+      box-shadow:none!important;
+    }
+
+    html[data-theme="modern"] body :where(input,select,textarea)[disabled]{
+      background:#edf2f6!important;
+      color:#6e8091!important;
+      border-color:#c4d0dc!important;
+      opacity:1!important;
+    }
+
+    html[data-theme="modern"] body :where(
+      #page-preventivo,#page-correctivo,#page-equipos,#page-estandarizacion,#page-vehiculos,
+      #page-dotacion,#page-turnos,#page-solicitudes,#page-liderazgo,#page-contrato,#page-administracion
+    ) :where(.panel,.kpi,.card,[class*="card"],[class*="panel"]){
+      --legacy-modern-bg:#f7fafc;
+    }
+
+    html[data-theme="modern"] body #page-turnos :where(.turnos-table,.v1512-turn-grid,.v1524-user-calendar,.v1524-calendar-day){
+      background:#f8fbfd!important;
+      color:#183149!important;
+      border-color:#b8c9d8!important;
+    }
+
+    html[data-theme="modern"] body #page-turnos :where(.turnos-table thead th,.turnos-table tbody th,.turnos-table .worker-cell,.v1512-turn-grid thead th,.v1512-turn-grid tbody th,.v1512-turn-grid .worker-cell){
+      background:#e5eef5!important;
+      color:#24445f!important;
+      border-color:#bccbd8!important;
+    }
+
+    html[data-theme="modern"] body #page-solicitudes :where(.v152-request-card,.v154-request-card){
+      background:#f8fbfd!important;
+      color:#183149!important;
+      border-color:#bccbd8!important;
+    }
+
+    html[data-theme="modern"] body #page-contrato :where(.contract-tabs,.v1520-tabs,.v1520-kpi,.v1520-contract-card){
+      background:#f8fbfd!important;
+      color:#183149!important;
+      border-color:#b8c9d8!important;
+    }
+
+    /* R192 · Sidebar continuo en temas claros/modernos. */
+    html[data-theme="light"] body .sidebar,
+    html[data-theme="modern"] body .sidebar{
+      min-height:100vh!important;
+      height:100vh!important;
+      position:fixed!important;
+      top:0!important;
+      bottom:0!important;
+      display:flex!important;
+      flex-direction:column!important;
+      overflow:hidden!important;
+    }
+    html[data-theme="light"] body .sidebar .nav,
+    html[data-theme="modern"] body .sidebar .nav{
+      flex:1 1 auto!important;
+      min-height:0!important;
+      overflow-y:auto!important;
+    }
+    html[data-theme="light"] body .sidebar-bottom,
+    html[data-theme="modern"] body .sidebar-bottom{
+      margin-top:auto!important;
+      position:relative!important;
+      left:auto!important;
+      right:auto!important;
+      bottom:auto!important;
+      width:100%!important;
+      flex:0 0 auto!important;
+      background:inherit!important;
+      border-top-color:rgba(255,255,255,.08)!important;
+    }
+    html[data-theme="light"] body .sidebar::after,
+    html[data-theme="modern"] body .sidebar::after{
+      content:"";
+      position:absolute;
+      inset:auto 0 0 0;
+      height:120px;
+      background:inherit;
+      z-index:-1;
+      pointer-events:none;
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
