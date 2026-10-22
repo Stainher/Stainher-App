@@ -15,17 +15,39 @@
     style.id='stainher-request-filter-r180-style';
     style.textContent=`
       #page-solicitudes .v152-request-card.r180-filter-hidden{display:none!important}
+      #page-solicitudes [data-r178-tabs]{
+        width:100%!important;
+        box-sizing:border-box!important;
+      }
       #page-solicitudes [data-r179-type-tabs]{
         display:grid!important;
-        grid-template-columns:repeat(4,minmax(0,1fr))!important;
+        grid-template-columns:repeat(3,minmax(0,1fr))!important;
         gap:10px!important;
         width:100%!important;
+        box-sizing:border-box!important;
       }
       #page-solicitudes [data-r181-state-tabs]{
         display:grid!important;
         grid-template-columns:repeat(2,minmax(0,1fr))!important;
         gap:10px!important;
         width:100%!important;
+        box-sizing:border-box!important;
+      }
+      #page-solicitudes [data-r178-tabs]{
+        margin-left:0!important;
+        margin-right:0!important;
+        padding-left:18px!important;
+        padding-right:18px!important;
+      }
+      #page-solicitudes .v152-request-grid{
+        width:100%!important;
+        box-sizing:border-box!important;
+      }
+      #page-solicitudes .v152-request-card{
+        width:100%!important;
+        box-sizing:border-box!important;
+        margin-left:0!important;
+        margin-right:0!important;
       }
       #page-solicitudes [data-r179-type-tabs] .btn,
       #page-solicitudes [data-r181-state-tabs] .btn{
@@ -43,6 +65,9 @@
       @media(max-width:680px){
         #page-solicitudes [data-r179-type-tabs]{
           grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        }
+        #page-solicitudes [data-r179-type="otras"]{
+          grid-column:1/-1!important;
         }
         #page-solicitudes [data-r181-state-tabs]{
           grid-template-columns:repeat(2,minmax(0,1fr))!important;
