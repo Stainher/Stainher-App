@@ -899,6 +899,28 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn)[aria-selected="true"] *,
     html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn).active *{color:#fff!important;-webkit-text-fill-color:#fff!important}
     html:is([data-theme="light"],[data-theme="modern"]) body .stainher-actions-surface-r214{background:transparent!important;background-image:none!important;box-shadow:none!important}
+    /* R214: corregir las superficies reales de Correctivo, no tarjetas ajenas. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-period-r214{
+      background:#e8f2fa!important;color:#163751!important;border:1px solid #b2c9dc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-period-r214 *{
+      color:#163751!important;-webkit-text-fill-color:#163751!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-tab-r214{
+      background:#f5f9fd!important;color:#163751!important;-webkit-text-fill-color:#163751!important;
+      border-color:#b2c9dc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-tab-r214.active,
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-tab-r214[aria-selected="true"]{
+      background:#176fc1!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .stainher-report-choice-r214{
+      background:#edf4fa!important;color:#163751!important;-webkit-text-fill-color:#163751!important;
+      border:1px solid #b2c9dc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .stainher-report-choice-r214 *{
+      color:#163751!important;-webkit-text-fill-color:#163751!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
