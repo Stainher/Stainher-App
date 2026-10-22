@@ -26,6 +26,6 @@ test('Theme styles retain light, modern and dark support',()=>{
   assert.match(theme,/DARK='dark'/);
 });
 test('Legacy dark contrast is overridden in the leadership module',()=>{
-  assert.match(theme,/syncLeadershipR218/);
+  assert.match(theme,/syncLeadershipR219/);
   assert.match(theme,/#page-liderazgo/);
 });
