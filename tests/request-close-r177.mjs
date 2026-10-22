@@ -49,3 +49,8 @@ assert.match(moduleSrc,/const useStateFilter=typeSelected==='otras'/,'Filtro de 
 assert.match(moduleSrc,/stateTabs\.hidden=!useStateFilter/,'Debe mostrar Activas/Finalizadas solo al seleccionar Otras');
 assert.match(moduleSrc,/window\.state\.r179SolicitudesType='otras'/,'Al finalizar debe llevar a Otras');
 assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R181'/,'Loader debe forzar versión R181');
+
+assert.match(moduleSrc,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/,'Categorías deben quedar en cuadrícula alineada de 4 columnas en escritorio');
+assert.match(moduleSrc,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Filtros de estado deben quedar alineados en 2 columnas');
+assert.match(moduleSrc,/width:100%!important/,'Botones de filtros deben ocupar el ancho de su celda');
+assert.match(moduleSrc,/height:42px!important/,'Botones de filtros deben tener altura uniforme');
