@@ -4,15 +4,49 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION='R204';
+  const REVISION='R206';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
+  function ensureBrandChips(){
+    if(document.getElementById('stainher-brand-chips-r206'))return;
+    const style=document.createElement('style');
+    style.id='stainher-brand-chips-r206';
+    style.textContent=`
+      html body .page .stainher-brand-chip-r206{
+        display:inline-flex!important;align-items:center!important;
+        background:linear-gradient(135deg,#e85d21,#bd360b)!important;
+        color:#fff!important;-webkit-text-fill-color:#fff!important;
+        border:1px solid #f48b54!important;border-radius:999px!important;
+        padding:4px 10px!important;box-shadow:0 2px 6px rgba(164,55,16,.17)!important
+      }
+      html body .page .stainher-brand-chip-r206 *{color:#fff!important;-webkit-text-fill-color:#fff!important}
+    `;
+    document.head.appendChild(style);
+  }
   function normalizeVersion(root=document){
+    ensureBrandChips();
     root.querySelectorAll?.('.v151-mobile-title small,.v1514-global-meta span:first-child,.global-meta .meta-chip:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child,[data-stainher-version]').forEach(node=>{
       const before=String(node.textContent||'');
       let after=before.replace(/V15\.\d+(?:\.\d+)*/gi,VERSION).replace(/\bR(?:19\d|20[0-3])\b/g,REVISION);
       if(/V15\.24/.test(after)&&!new RegExp('\\b'+REVISION+'\\b').test(after)&&node.closest('.global-meta,.v1514-global-meta,.v1513-version-meta'))after+=' · '+REVISION;
       if(after!==before)node.textContent=after;
+    });
+    // R206: los metadatos heredados pueden no usar las clases históricas.
+    // Detectar solamente etiquetas cortas en la cabecera de cada módulo.
+    root.querySelectorAll?.('.page[id^="page-"]').forEach(page=>{
+      const candidates=[...page.children].slice(0,5).flatMap(section=>[section,...section.querySelectorAll('span,small,.meta-chip,.version-chip')]);
+      candidates.forEach(node=>{
+        if(node.children.length && node.matches('.page-header,header,.global-meta,.v1514-global-meta'))return;
+        const value=String(node.textContent||'').trim();
+        if(value.length>85)return;
+        if(/^Stainher App\\s*[·-]\\s*V15\\.\\d+/i.test(value)){
+          const next='Stainher App · '+VERSION+' · '+REVISION;
+          if(node.textContent!==next)node.textContent=next;
+          node.classList.add('stainher-brand-chip-r206');
+        }else if(/^\\d{2}[-/]\\d{2}[-/]20\\d{2}$/.test(value)){
+          node.classList.add('stainher-brand-chip-r206');
+        }
+      });
     });
     document.title=`Stainher App ${VERSION}`;
   }
