@@ -834,6 +834,37 @@
       -webkit-text-fill-color:#fff!important;
     }
 
+    /* R201 · Anclaje real de la cuenta dentro del sidebar sticky.
+       Sobrescribe las reglas R195/R197 de position:relative más específicas.
+       Absolute se referencia al sidebar de 100dvh, no al scroll de página. */
+    @media(min-width:761px){
+      html[data-theme="light"] body .sidebar,
+      html[data-theme="modern"] body .sidebar{
+        position:sticky!important;
+        height:100dvh!important;
+        min-height:100dvh!important;
+        max-height:100dvh!important;
+        top:0!important;
+      }
+      html[data-theme="light"] body .sidebar>.sidebar-bottom,
+      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
+        position:absolute!important;
+        left:0!important;
+        right:0!important;
+        top:auto!important;
+        bottom:0!important;
+        width:100%!important;
+        margin:0!important;
+        padding:12px 14px max(16px,env(safe-area-inset-bottom))!important;
+        box-sizing:border-box!important;
+        z-index:20!important;
+      }
+      html[data-theme="light"] body .sidebar>.nav,
+      html[data-theme="modern"] body .sidebar>.nav{
+        padding-bottom:108px!important;
+      }
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
