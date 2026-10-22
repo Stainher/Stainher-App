@@ -805,6 +805,35 @@
       -webkit-text-fill-color:inherit!important;
     }
 
+    /* R198 · Fondo de columna continuo e independiente del alto del sidebar.
+       Se dibuja en el viewport: no cambia position de la barra ni la grilla. */
+    @media(min-width:761px){
+      html:is([data-theme="light"],[data-theme="modern"]) body::before{
+        content:"";
+        position:fixed;
+        top:0;
+        bottom:0;
+        left:0;
+        width:var(--stainher-r198-sidebar-width, 200px);
+        pointer-events:none;
+        z-index:0;
+      }
+      html[data-theme="light"] body::before{background:#fff}
+      html[data-theme="modern"] body::before{background:#102337}
+      html:is([data-theme="light"],[data-theme="modern"]) body .sidebar{
+        z-index:2!important;
+      }
+    }
+    /* R198 · Etiquetas descriptivas sobre tarjetas de alerta oscuras. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlertsR94 .stainher-contract-alert-r94 :where(p,small,.muted){
+      color:#d4e5f3!important;
+      -webkit-text-fill-color:#d4e5f3!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlertsR94 .stainher-contract-alert-r94 :where(p b,p strong,h4){
+      color:#fff!important;
+      -webkit-text-fill-color:#fff!important;
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
