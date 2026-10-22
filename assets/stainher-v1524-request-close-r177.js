@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261022-r183-alineacion-cuadricula-solicitudes';
+  const BUILD='20261022-r185-solicitudes-consolidadas';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -33,6 +33,10 @@
         width:100%!important;
         box-sizing:border-box!important;
       }
+      #page-solicitudes [data-r181-state-tabs][hidden],
+      #page-solicitudes [data-r181-state-tabs].r184-state-tabs-hidden{
+        display:none!important;
+      }
       #page-solicitudes [data-r178-tabs]{
         margin-left:0!important;
         margin-right:0!important;
@@ -48,6 +52,42 @@
         box-sizing:border-box!important;
         margin-left:0!important;
         margin-right:0!important;
+      }
+      @media(min-width:901px){
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:
+            minmax(150px,1fr)
+            minmax(170px,1.05fr)
+            minmax(190px,1.15fr)
+            minmax(170px,1fr)
+            minmax(110px,.65fr)
+            minmax(340px,1.65fr)!important;
+          column-gap:16px!important;
+          align-items:center!important;
+        }
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important;display:block!important}
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important;display:block!important}
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:3!important;display:block!important}
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:4!important;display:block!important}
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:5!important;display:block!important}
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+          grid-column:6!important;
+          grid-row:1!important;
+          min-width:0!important;
+          width:100%!important;
+          display:flex!important;
+          justify-content:flex-end!important;
+          align-items:center!important;
+          flex-wrap:nowrap!important;
+          gap:8px!important;
+        }
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions .btn{
+          flex:0 0 auto!important;
+          min-width:max-content!important;
+          height:34px!important;
+          min-height:34px!important;
+          margin:0!important;
+        }
       }
       #page-solicitudes [data-r179-type-tabs] .btn,
       #page-solicitudes [data-r181-state-tabs] .btn{
@@ -180,7 +220,10 @@
     const selected=window.state?.r178SolicitudesTab||'activas',typeSelected=window.state.r179SolicitudesType,rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
     const useStateFilter=typeSelected==='otras';
     const stateTabs=page.querySelector('[data-r181-state-tabs]');
-    if(stateTabs)stateTabs.hidden=!useStateFilter;
+    if(stateTabs){
+      stateTabs.hidden=!useStateFilter;
+      stateTabs.classList.toggle('r184-state-tabs-hidden',!useStateFilter);
+    }
     let visibleCount=0;
     cards.forEach((card,index)=>{
       const row=rows[index];
@@ -238,6 +281,8 @@
 
   function install(){
     mountFilterStyle();wrapStatus();wrapRender();decorate();
+    document.documentElement.classList.remove('stainher-r184-request-loading');
+    document.documentElement.classList.add('stainher-r184-request-ready');
     window.addEventListener('stainher:solicitudes-view-r133-ready',()=>{wrapStatus();wrapRender();decorate()});
     window.addEventListener('stainher:request-approver-r135-ready',()=>{wrapStatus();wrapRender();decorate()});
     window.addEventListener('stainher:approved-reroute-r138-ready',()=>{wrapStatus();wrapRender();decorate()});

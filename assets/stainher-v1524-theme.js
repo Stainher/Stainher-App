@@ -1,7 +1,7 @@
 /* Stainher V15.24 · tema accesible y persistente. Capa final, sin alterar PDFs. */
 (()=>{
   'use strict';
-  const KEY='stainher-theme-v1',DARK='dark',LIGHT='light';
+  const KEY='stainher-theme-v1',DARK='dark',LIGHT='light',MODERN='modern';
   const css=`
     /* Tipografía transversal: títulos consistentes, sin negrita. */
     html body,html body :where(button,input,select,textarea){font-family:Inter,Arial,sans-serif}
@@ -23,6 +23,80 @@
     body .stainher-mobile-title-label{display:block!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
     :root[data-theme="light"]{color-scheme:light;--bg:#f3f6fa;--panel:#fff;--panel2:#eaf0f6;--line:#c7d1dd;--text:#182230;--muted:#5b6878;--green:#087a57;--yellow:#8a5a00;--red:#b4233c;--blue:#1769c2}
     :root[data-theme="dark"]{color-scheme:dark}
+    :root[data-theme="modern"]{
+      color-scheme:dark;
+      --bg:#0b1118;
+      --panel:#121a24;
+      --panel2:#172231;
+      --line:#2b3b4d;
+      --text:#edf4fb;
+      --muted:#93a4b8;
+      --green:#18b981;
+      --yellow:#f0b84b;
+      --red:#e55368;
+      --blue:#2f8be6;
+      --accent:#19a7a0;
+      --accent2:#ff7a2f;
+    }
+    [data-theme="modern"] body{
+      background:
+        radial-gradient(circle at 12% -8%,rgba(25,167,160,.16),transparent 30%),
+        radial-gradient(circle at 92% 4%,rgba(47,139,230,.13),transparent 26%),
+        linear-gradient(180deg,#0b1118 0%,#0d141d 100%)!important;
+      color:var(--text)!important;
+    }
+    [data-theme="modern"] :where(.sidebar,.sidebar-bottom,.topbar,.mobile-topbar,.mobile-header,header.app-header,.page-header){
+      background:#0d151f!important;
+      border-color:#263647!important;
+      color:#edf4fb!important;
+    }
+    [data-theme="modern"] :where(.panel,.userbox,.modal,.login,.equipment-card,.kpi,.storage-card,.contract-card,.vehicle-card,.crew-card,.event-card,.mini-stat,.prev-equipment-card,.v152-request-card){
+      background:linear-gradient(180deg,#121b26 0%,#101821 100%)!important;
+      border-color:#2a3b4e!important;
+      color:#edf4fb!important;
+      box-shadow:0 10px 30px rgba(0,0,0,.12)!important;
+    }
+    [data-theme="modern"] :where(.field,.inline-field,.inline-input,.inline-select,input,select,textarea){
+      background:#0e1721!important;
+      color:#edf4fb!important;
+      border-color:#34485e!important;
+    }
+    [data-theme="modern"] :where(.muted,small){color:#93a4b8!important}
+    [data-theme="modern"] :where(.nav button,.logout,.btn){color:#e8f0f8}
+    [data-theme="modern"] .nav button:hover,
+    [data-theme="modern"] .nav button.active{
+      background:linear-gradient(90deg,rgba(25,167,160,.18),rgba(47,139,230,.14))!important;
+      color:#fff!important;
+      border-color:#35506b!important;
+    }
+    [data-theme="modern"] .btn.primary,
+    [data-theme="modern"] button[aria-selected="true"],
+    [data-theme="modern"] .btn.active,
+    [data-theme="modern"] [role="tab"].active,
+    [data-theme="modern"] [role="tab"][aria-selected="true"]{
+      background:linear-gradient(135deg,#137f9b 0%,#2f8be6 100%)!important;
+      color:#fff!important;
+      border-color:#3a9fe9!important;
+      box-shadow:0 6px 18px rgba(47,139,230,.18)!important;
+    }
+    [data-theme="modern"] :where(.notice,.system-stat,.edp-badge,.alert-item,.gantt-wrap,.contract-tabs,.prev-view-tab){
+      background:#111c28!important;
+      color:#dce8f4!important;
+      border-color:#2c4055!important;
+    }
+    [data-theme="modern"] :where(th,.v1520-table th,.admin-table th){
+      background:#162231!important;
+      color:#c8d6e5!important;
+      border-color:#2d4156!important;
+    }
+    [data-theme="modern"] td{border-color:#26394c!important}
+    [data-theme="modern"] .status.ok,
+    [data-theme="modern"] .tag.ok{background:rgba(24,185,129,.16)!important;color:#48dca8!important;border-color:rgba(24,185,129,.38)!important}
+    [data-theme="modern"] .status.warn,
+    [data-theme="modern"] .tag.warn{background:rgba(240,184,75,.15)!important;color:#ffd278!important;border-color:rgba(240,184,75,.36)!important}
+    [data-theme="modern"] .status.bad,
+    [data-theme="modern"] .tag.bad{background:rgba(229,83,104,.16)!important;color:#ff8a9b!important;border-color:rgba(229,83,104,.36)!important}
+    [data-theme="modern"] ::selection{background:rgba(25,167,160,.42);color:#fff}
     [data-theme="light"] body{background:radial-gradient(circle at 10% 0%,#fff 0,#f3f6fa 38%);color:var(--text)}
     [data-theme="light"] .sidebar,[data-theme="light"] .sidebar-bottom{background:#fff}
     [data-theme="light"] .nav button,[data-theme="light"] .logout,[data-theme="light"] .btn{color:#1d2939}
@@ -444,16 +518,22 @@
     .v157-user-menu .stainher-theme-toggle{margin:0;text-align:left;justify-content:flex-start}
     @media(max-width:760px){.userbox>.stainher-theme-toggle{width:auto;min-width:150px}}
   `;
-  function preference(){try{const v=localStorage.getItem(KEY);if(v===DARK||v===LIGHT)return v}catch(_){ }return matchMedia?.('(prefers-color-scheme: light)').matches?LIGHT:DARK}
+  function preference(){try{const v=localStorage.getItem(KEY);if(v===DARK||v===LIGHT||v===MODERN)return v}catch(_){ }return matchMedia?.('(prefers-color-scheme: light)').matches?LIGHT:DARK}
   function refreshCharts(value){
     if(!window.Chart)return;
-    const light=value===LIGHT;
-    const textColor=light?'#475467':'#c7d2df';
-    const gridColor=light?'rgba(71,84,103,.16)':'rgba(184,200,218,.14)';
+    const light=value===LIGHT,modern=value===MODERN;
+    const textColor=light?'#475467':modern?'#b9c8d8':'#c7d2df';
+    const gridColor=light?'rgba(71,84,103,.16)':modern?'rgba(93,121,149,.20)':'rgba(184,200,218,.14)';
     const pastel=light
       ?['rgba(111,155,196,.72)','rgba(104,174,157,.72)','rgba(204,165,108,.72)','rgba(155,137,190,.70)','rgba(194,132,150,.68)']
-      :['rgba(137,179,216,.70)','rgba(127,195,174,.68)','rgba(220,185,125,.68)','rgba(180,159,213,.68)','rgba(213,153,172,.66)'];
-    const borders=light?['#557fa7','#4c9582','#a97b3e','#7965a0','#9e6074']:['#a9cbea','#9dd8c6','#efd29b','#c8b4e7','#e7afc0'];
+      :modern
+        ?['rgba(47,139,230,.78)','rgba(25,167,160,.78)','rgba(255,122,47,.76)','rgba(111,83,218,.74)','rgba(229,83,104,.72)']
+        :['rgba(137,179,216,.70)','rgba(127,195,174,.68)','rgba(220,185,125,.68)','rgba(180,159,213,.68)','rgba(213,153,172,.66)'];
+    const borders=light
+      ?['#557fa7','#4c9582','#a97b3e','#7965a0','#9e6074']
+      :modern
+        ?['#55a8f2','#39c4bb','#ff985e','#9b82ef','#ff7c8e']
+        :['#a9cbea','#9dd8c6','#efd29b','#c8b4e7','#e7afc0'];
     Chart.defaults.color=textColor;Chart.defaults.borderColor=gridColor;
     const charts=new Set([...Object.values(window.state?.charts||{}),...Object.values(Chart.instances||{})]);
     for(const chart of charts)try{
@@ -492,8 +572,8 @@
     const update=()=>{let current=host.isConnected?host:null;if(!current&&hostId)current=document.getElementById(hostId);if(!current&&page?.id&&hostClass)current=document.querySelector(`#${CSS.escape(page.id)} .${CSS.escape(hostClass)}`);if(!current&&hostClass)current=document.querySelector(`.${CSS.escape(hostClass)}`);if(!current)return;const buttons=[...current.querySelectorAll('button,[role="tab"]')],selected=buttons.find(x=>tabIdentity(x)===identity);if(!selected)return;buttons.forEach(x=>{const active=x===selected;x.classList.toggle('active',active);if(x.matches('[role="tab"],.contract-tab,.prev-view-tab,.btn'))x.setAttribute('aria-selected',String(active))})};
     update();queueMicrotask(update);requestAnimationFrame(()=>requestAnimationFrame(update));setTimeout(update,80)
   }
-  function apply(theme,persist=false){const value=theme===LIGHT?LIGHT:DARK;document.documentElement.dataset.theme=value;if(persist)try{localStorage.setItem(KEY,value)}catch(_){ }document.querySelectorAll('[data-stainher-theme-toggle]').forEach(b=>{b.innerHTML=value===DARK?'☀ Tema claro':'☾ Tema oscuro';b.setAttribute('aria-label',value===DARK?'Activar tema claro':'Activar tema oscuro');b.setAttribute('aria-pressed',String(value===LIGHT))});refreshCharts(value);window.dispatchEvent(new CustomEvent('stainher:theme-change',{detail:{theme:value}}));}
-  function ensureToggle(){const accountMenu=document.getElementById('v157UserMenu'),host=accountMenu||document.querySelector('.userbox');if(!host||host.querySelector('[data-stainher-theme-toggle]'))return;const b=document.createElement('button');b.type='button';b.className=accountMenu?'stainher-theme-toggle':'logout stainher-theme-toggle';b.dataset.stainherThemeToggle='1';b.onclick=()=>apply(document.documentElement.dataset.theme===DARK?LIGHT:DARK,true);if(accountMenu)host.insertBefore(b,host.querySelector('.danger'));else host.insertBefore(b,document.getElementById('logoutBtn'));apply(document.documentElement.dataset.theme||preference())}
+  function apply(theme,persist=false){const value=[DARK,LIGHT,MODERN].includes(theme)?theme:DARK;document.documentElement.dataset.theme=value;if(persist)try{localStorage.setItem(KEY,value)}catch(_){ }document.querySelectorAll('[data-stainher-theme-toggle]').forEach(b=>{const next=value===DARK?MODERN:value===MODERN?LIGHT:DARK;b.innerHTML=value===DARK?'◈ Tema moderno':value===MODERN?'☀ Tema claro':'☾ Tema oscuro';b.setAttribute('aria-label','Cambiar a '+(next===MODERN?'tema moderno':next===LIGHT?'tema claro':'tema oscuro'));b.setAttribute('aria-pressed',String(value!==DARK))});refreshCharts(value);window.dispatchEvent(new CustomEvent('stainher:theme-change',{detail:{theme:value}}));}
+  function ensureToggle(){const accountMenu=document.getElementById('v157UserMenu'),host=accountMenu||document.querySelector('.userbox');if(!host||host.querySelector('[data-stainher-theme-toggle]'))return;const b=document.createElement('button');b.type='button';b.className=accountMenu?'stainher-theme-toggle':'logout stainher-theme-toggle';b.dataset.stainherThemeToggle='1';b.onclick=()=>{const current=document.documentElement.dataset.theme||DARK;apply(current===DARK?MODERN:current===MODERN?LIGHT:DARK,true)};if(accountMenu)host.insertBefore(b,host.querySelector('.danger'));else host.insertBefore(b,document.getElementById('logoutBtn'));apply(document.documentElement.dataset.theme||preference())}
   function install(){if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;let chartRefreshTimer;new MutationObserver(()=>{ensureToggle();clearTimeout(chartRefreshTimer);chartRefreshTimer=setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),120)}).observe(root,{childList:true,subtree:true});document.addEventListener('click',event=>{const button=event.target.closest?.('button,[role="tab"]');if(button?.closest(TAB_HOSTS)){syncActiveTab(button);setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),160)}},true);apply(document.documentElement.dataset.theme||preference())}
   apply(preference());if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   window.StainherTheme=Object.freeze({set:t=>apply(t,true),get:()=>document.documentElement.dataset.theme});
