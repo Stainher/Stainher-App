@@ -881,7 +881,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(['stainher-v1524-home-layout.js','stainher-v1524-navigation-stability.js'].includes(file)?'20260909-r24-devengo-al-consultar-home-final':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(['stainher-v1524-home-layout.js','stainher-v1524-navigation-stability.js'].includes(file)?'20261022-r203-home-no-flash':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
