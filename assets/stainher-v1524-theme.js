@@ -805,6 +805,35 @@
       -webkit-text-fill-color:inherit!important;
     }
 
+    /* R198 · Fondo de columna continuo e independiente del alto del sidebar.
+       Se dibuja en el viewport: no cambia position de la barra ni la grilla. */
+    @media(min-width:761px){
+      html:is([data-theme="light"],[data-theme="modern"]) body::before{
+        content:"";
+        position:fixed;
+        top:0;
+        bottom:0;
+        left:0;
+        width:var(--stainher-r198-sidebar-width, 200px);
+        pointer-events:none;
+        z-index:0;
+      }
+      html[data-theme="light"] body::before{background:#fff}
+      html[data-theme="modern"] body::before{background:#102337}
+      html:is([data-theme="light"],[data-theme="modern"]) body .sidebar{
+        z-index:2!important;
+      }
+    }
+    /* R198 · Etiquetas descriptivas sobre tarjetas de alerta oscuras. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlertsR94 .stainher-contract-alert-r94 :where(p,small,.muted){
+      color:#d4e5f3!important;
+      -webkit-text-fill-color:#d4e5f3!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlertsR94 .stainher-contract-alert-r94 :where(p b,p strong,h4){
+      color:#fff!important;
+      -webkit-text-fill-color:#fff!important;
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
@@ -903,7 +932,13 @@
   }
   function apply(theme,persist=false){const value=[DARK,LIGHT,MODERN].includes(theme)?theme:DARK;document.documentElement.dataset.theme=value;if(persist)try{localStorage.setItem(KEY,value)}catch(_){ }document.querySelectorAll('[data-stainher-theme-toggle]').forEach(b=>{const next=value===DARK?MODERN:value===MODERN?LIGHT:DARK;b.innerHTML=value===DARK?'◈ Tema moderno':value===MODERN?'☀ Tema claro':'☾ Tema oscuro';b.setAttribute('aria-label','Cambiar a '+(next===MODERN?'tema moderno':next===LIGHT?'tema claro':'tema oscuro'));b.setAttribute('aria-pressed',String(value!==DARK))});refreshCharts(value);window.dispatchEvent(new CustomEvent('stainher:theme-change',{detail:{theme:value}}));requestAnimationFrame(recoverCurrentPage);}
   function ensureToggle(){const accountMenu=document.getElementById('v157UserMenu'),host=accountMenu||document.querySelector('.userbox');if(!host||host.querySelector('[data-stainher-theme-toggle]'))return;const b=document.createElement('button');b.type='button';b.className=accountMenu?'stainher-theme-toggle':'logout stainher-theme-toggle';b.dataset.stainherThemeToggle='1';b.onclick=()=>{const current=document.documentElement.dataset.theme||DARK;apply(current===DARK?MODERN:current===MODERN?LIGHT:DARK,true)};if(accountMenu)host.insertBefore(b,host.querySelector('.danger'));else host.insertBefore(b,document.getElementById('logoutBtn'));apply(document.documentElement.dataset.theme||preference())}
-  function install(){if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;let chartRefreshTimer;new MutationObserver(()=>{ensureToggle();clearTimeout(chartRefreshTimer);chartRefreshTimer=setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),120)}).observe(root,{childList:true,subtree:true});document.addEventListener('click',event=>{const button=event.target.closest?.('button,[role="tab"]');if(button?.closest(TAB_HOSTS)){syncActiveTab(button);setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),160)}},true);apply(document.documentElement.dataset.theme||preference())}
+  function syncSidebarBackdropWidth(){
+    const sidebar=document.querySelector('.sidebar');
+    if(!sidebar)return;
+    const width=Math.round(sidebar.getBoundingClientRect().width);
+    if(width>0)document.documentElement.style.setProperty('--stainher-r198-sidebar-width',width+'px');
+  }
+  function install(){syncSidebarBackdropWidth();window.addEventListener('resize',syncSidebarBackdropWidth,{passive:true});if(typeof ResizeObserver==='function'){const sidebar=document.querySelector('.sidebar');if(sidebar)new ResizeObserver(syncSidebarBackdropWidth).observe(sidebar)}if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;let chartRefreshTimer;new MutationObserver(()=>{ensureToggle();clearTimeout(chartRefreshTimer);chartRefreshTimer=setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),120)}).observe(root,{childList:true,subtree:true});document.addEventListener('click',event=>{const button=event.target.closest?.('button,[role="tab"]');if(button?.closest(TAB_HOSTS)){syncActiveTab(button);setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),160)}},true);apply(document.documentElement.dataset.theme||preference())}
   apply(preference());if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   window.StainherTheme=Object.freeze({set:t=>apply(t,true),get:()=>document.documentElement.dataset.theme});
 })();
