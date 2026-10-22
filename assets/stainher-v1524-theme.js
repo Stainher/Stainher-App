@@ -770,7 +770,24 @@
     const update=()=>{let current=host.isConnected?host:null;if(!current&&hostId)current=document.getElementById(hostId);if(!current&&page?.id&&hostClass)current=document.querySelector(`#${CSS.escape(page.id)} .${CSS.escape(hostClass)}`);if(!current&&hostClass)current=document.querySelector(`.${CSS.escape(hostClass)}`);if(!current)return;const buttons=[...current.querySelectorAll('button,[role="tab"]')],selected=buttons.find(x=>tabIdentity(x)===identity);if(!selected)return;buttons.forEach(x=>{const active=x===selected;x.classList.toggle('active',active);if(x.matches('[role="tab"],.contract-tab,.prev-view-tab,.btn'))x.setAttribute('aria-selected',String(active))})};
     update();queueMicrotask(update);requestAnimationFrame(()=>requestAnimationFrame(update));setTimeout(update,80)
   }
-  function apply(theme,persist=false){const value=[DARK,LIGHT,MODERN].includes(theme)?theme:DARK;document.documentElement.dataset.theme=value;if(persist)try{localStorage.setItem(KEY,value)}catch(_){ }document.querySelectorAll('[data-stainher-theme-toggle]').forEach(b=>{const next=value===DARK?MODERN:value===MODERN?LIGHT:DARK;b.innerHTML=value===DARK?'◈ Tema moderno':value===MODERN?'☀ Tema claro':'☾ Tema oscuro';b.setAttribute('aria-label','Cambiar a '+(next===MODERN?'tema moderno':next===LIGHT?'tema claro':'tema oscuro'));b.setAttribute('aria-pressed',String(value!==DARK))});refreshCharts(value);window.dispatchEvent(new CustomEvent('stainher:theme-change',{detail:{theme:value}}));}
+  /* R196: preservar la vista activa durante el cambio de paleta.
+     Solo corrige un panel oculto; nunca cambia de módulo ni altera sus datos. */
+  function recoverCurrentPage(){
+    const active=document.querySelector('.sidebar .nav button.active[data-page],.nav button.active[data-page]');
+    const id=active?.dataset.page;
+    const page=id&&document.getElementById('page-'+id);
+    if(!page)return;
+    if(page.hidden||page.classList.contains('hidden')){
+      page.hidden=false;page.classList.remove('hidden');page.setAttribute('aria-hidden','false');
+    }
+    if(getComputedStyle(page).display==='none'){
+      console.warn('[Stainher R196] Página activa oculta después de cambiar tema',id);
+      page.style.setProperty('display','block','important');
+    }else if(page.style.getPropertyValue('display')==='block'){
+      page.style.removeProperty('display');
+    }
+  }
+  function apply(theme,persist=false){const value=[DARK,LIGHT,MODERN].includes(theme)?theme:DARK;document.documentElement.dataset.theme=value;if(persist)try{localStorage.setItem(KEY,value)}catch(_){ }document.querySelectorAll('[data-stainher-theme-toggle]').forEach(b=>{const next=value===DARK?MODERN:value===MODERN?LIGHT:DARK;b.innerHTML=value===DARK?'◈ Tema moderno':value===MODERN?'☀ Tema claro':'☾ Tema oscuro';b.setAttribute('aria-label','Cambiar a '+(next===MODERN?'tema moderno':next===LIGHT?'tema claro':'tema oscuro'));b.setAttribute('aria-pressed',String(value!==DARK))});refreshCharts(value);window.dispatchEvent(new CustomEvent('stainher:theme-change',{detail:{theme:value}}));requestAnimationFrame(recoverCurrentPage);}
   function ensureToggle(){const accountMenu=document.getElementById('v157UserMenu'),host=accountMenu||document.querySelector('.userbox');if(!host||host.querySelector('[data-stainher-theme-toggle]'))return;const b=document.createElement('button');b.type='button';b.className=accountMenu?'stainher-theme-toggle':'logout stainher-theme-toggle';b.dataset.stainherThemeToggle='1';b.onclick=()=>{const current=document.documentElement.dataset.theme||DARK;apply(current===DARK?MODERN:current===MODERN?LIGHT:DARK,true)};if(accountMenu)host.insertBefore(b,host.querySelector('.danger'));else host.insertBefore(b,document.getElementById('logoutBtn'));apply(document.documentElement.dataset.theme||preference())}
   function install(){if(!document.getElementById('stainher-theme-style')){const s=document.createElement('style');s.id='stainher-theme-style';s.textContent=css;document.head.appendChild(s)}ensureToggle();const root=document.getElementById('appView')||document.body;let chartRefreshTimer;new MutationObserver(()=>{ensureToggle();clearTimeout(chartRefreshTimer);chartRefreshTimer=setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),120)}).observe(root,{childList:true,subtree:true});document.addEventListener('click',event=>{const button=event.target.closest?.('button,[role="tab"]');if(button?.closest(TAB_HOSTS)){syncActiveTab(button);setTimeout(()=>refreshCharts(document.documentElement.dataset.theme||preference()),160)}},true);apply(document.documentElement.dataset.theme||preference())}
   apply(preference());if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
