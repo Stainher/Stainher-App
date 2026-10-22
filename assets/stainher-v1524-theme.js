@@ -1065,39 +1065,32 @@
 (()=>{
   const source=document.currentScript?.src||location.href;
   /* R215 · reparación independiente de los estilos de Liderazgo y revisión visible. */
-  function syncLeadershipR215(){
-    const theme=document.documentElement.getAttribute('data-theme');
-    const light=theme==='light'||theme==='modern';
-    const page=document.getElementById('page-liderazgo');
-    if(!page)return;
-    const set=(el,props)=>{if(!el)return;for(const [k,v] of Object.entries(props))if(el.style.getPropertyValue(k)!==v)el.style.setProperty(k,v,'important')};
-    if(light){
-      [...page.querySelectorAll('div,section,aside,article')].forEach(el=>{
-        const t=(el.textContent||'').trim().replace(/\\s+/g,' ');
-        if(t.length<100&&/^Período analizado\\s*:/i.test(t)&&el.children.length<5){
-          set(el,{'background-color':'#e7f0f8','color':'#173956','border-color':'#b1c8dc'});
-          el.querySelectorAll('span,b,strong').forEach(c=>set(c,{'color':'#173956'}));
-        }
-        if(t.length<95&&/^(PROGRAMADOS|REALIZADOS|PENDIENTES|VENCIDOS|CUMPLIMIENTO|EJECUCIONES LIBRES)\\b/i.test(t)&&el.children.length<7){
-          set(el,{'background-color':'#f4f9fd','color':'#173956','border-color':'#adc5da'});
-          el.querySelectorAll('span,b,strong,small').forEach(c=>set(c,{'color':'#173956'}));
-        }
-      });
-    }
-    page.querySelectorAll('span,small,.meta-chip,.version-chip').forEach(el=>{
-      const t=(el.textContent||'').trim();
-      if(/^Stainher App\\s*[·-]\\s*V15\\.\\d+/i.test(t)){
-        const next='Stainher App · V15.24 · R215';
-        if(t!==next)el.textContent=next;
+  /* R218: normaliza las superficies KPI reales, independientemente de su clase histórica. */
+  function syncLeadershipR218(){
+    const page=document.getElementById('page-liderazgo');if(!page)return;
+    const mode=document.documentElement.getAttribute('data-theme');
+    const light=mode==='light'||mode==='modern';if(!light)return;
+    const put=(el,k,v)=>{if(el&&el.style.getPropertyValue(k)!==v)el.style.setProperty(k,v,'important')};
+    const items=[...page.querySelectorAll('div,article,section,aside')];
+    const labels=/^(PROGRAMADOS|REALIZADOS|PENDIENTES|VENCIDOS|CUMPLIMIENTO|EJECUCIONES LIBRES)$/i;
+    for(const el of items){
+      const own=(el.textContent||'').trim().replace(/\s+/g,' ');
+      const direct=[...el.children].map(c=>(c.textContent||'').trim());
+      const isKpi=own.length<110&&direct.some(x=>labels.test(x))&&el.children.length<=6;
+      if(isKpi){
+        put(el,'background-color','#f3f8fd');put(el,'color','#173651');put(el,'border-color','#b7cadc');
+        el.querySelectorAll('*').forEach(child=>{if(child.children.length===0||/^(SPAN|STRONG|SMALL|B|DIV)$/i.test(child.tagName)){put(child,'color','#173651');put(child,'-webkit-text-fill-color','#173651')}});
       }
-    });
+      if(own.length<110&&/^Período analizado\s*:/i.test(own)&&el.children.length<6){
+        put(el,'background-color','#e7f0f8');put(el,'color','#173651');put(el,'border-color','#b7cadc');
+        el.querySelectorAll('*').forEach(child=>{put(child,'color','#173651');put(child,'-webkit-text-fill-color','#173651')});
+      }
+    }
   }
-  let r215Queued=false;
-  const queueR215=()=>{if(r215Queued)return;r215Queued=true;requestAnimationFrame(()=>{r215Queued=false;syncLeadershipR215()})};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
-    queueR215();new MutationObserver(queueR215).observe(document.getElementById('page-liderazgo')||document.body,{childList:true,subtree:true,characterData:true});
-  },{once:true});
-  else {queueR215();new MutationObserver(queueR215).observe(document.getElementById('page-liderazgo')||document.body,{childList:true,subtree:true,characterData:true})}
+  let r218Queued=false;
+  const queueR218=()=>{if(r218Queued)return;r218Queued=true;requestAnimationFrame(()=>{r218Queued=false;syncLeadershipR218()})};
+  const installR218=()=>{queueR218();new MutationObserver(queueR218).observe(document.getElementById('page-liderazgo')||document.body,{childList:true,subtree:true,characterData:true})};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installR218,{once:true});else installR218();
   const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
@@ -1107,7 +1100,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r216-turn-detail-contrast':'20261022-r216-module-cache-refresh');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r218-leadership-kpi':'20261022-r218-module-cache');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
