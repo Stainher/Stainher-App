@@ -1052,6 +1052,40 @@
 /* V15.24 · carga coordinada de correcciones globales publicadas el 03-09-2026. */
 (()=>{
   const source=document.currentScript?.src||location.href;
+  /* R215 · reparación independiente de los estilos de Liderazgo y revisión visible. */
+  function syncLeadershipR215(){
+    const theme=document.documentElement.getAttribute('data-theme');
+    const light=theme==='light'||theme==='modern';
+    const page=document.getElementById('page-liderazgo');
+    if(!page)return;
+    const set=(el,props)=>{if(!el)return;for(const [k,v] of Object.entries(props))if(el.style.getPropertyValue(k)!==v)el.style.setProperty(k,v,'important')};
+    if(light){
+      [...page.querySelectorAll('div,section,aside,article')].forEach(el=>{
+        const t=(el.textContent||'').trim().replace(/\\s+/g,' ');
+        if(t.length<100&&/^Período analizado\\s*:/i.test(t)&&el.children.length<5){
+          set(el,{'background-color':'#e7f0f8','color':'#173956','border-color':'#b1c8dc'});
+          el.querySelectorAll('span,b,strong').forEach(c=>set(c,{'color':'#173956'}));
+        }
+        if(t.length<95&&/^(PROGRAMADOS|REALIZADOS|PENDIENTES|VENCIDOS|CUMPLIMIENTO|EJECUCIONES LIBRES)\\b/i.test(t)&&el.children.length<7){
+          set(el,{'background-color':'#f4f9fd','color':'#173956','border-color':'#adc5da'});
+          el.querySelectorAll('span,b,strong,small').forEach(c=>set(c,{'color':'#173956'}));
+        }
+      });
+    }
+    page.querySelectorAll('span,small,.meta-chip,.version-chip').forEach(el=>{
+      const t=(el.textContent||'').trim();
+      if(/^Stainher App\\s*[·-]\\s*V15\\.\\d+/i.test(t)){
+        const next='Stainher App · V15.24 · R215';
+        if(t!==next)el.textContent=next;
+      }
+    });
+  }
+  let r215Queued=false;
+  const queueR215=()=>{if(r215Queued)return;r215Queued=true;requestAnimationFrame(()=>{r215Queued=false;syncLeadershipR215()})};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
+    queueR215();new MutationObserver(queueR215).observe(document.getElementById('page-liderazgo')||document.body,{childList:true,subtree:true,characterData:true});
+  },{once:true});
+  else {queueR215();new MutationObserver(queueR215).observe(document.getElementById('page-liderazgo')||document.body,{childList:true,subtree:true,characterData:true})}
   const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
@@ -1061,7 +1095,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r214-visible-and-actions':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r215-leadership-version':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
