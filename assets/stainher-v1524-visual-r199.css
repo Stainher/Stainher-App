@@ -33,7 +33,7 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
     width:var(--stainher-r198-sidebar-width,250px)!important;
     max-width:100vw!important;
     margin:0!important;
-    padding:12px 14px 16px!important;
+    padding:12px 14px max(16px,env(safe-area-inset-bottom))!important;
     box-sizing:border-box!important;
     z-index:1010!important;
   }
@@ -43,9 +43,7 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
   html[data-theme="modern"] body .sidebar>.sidebar-bottom{
     background:#102337!important;
   }
-  html[data-theme="dark"] body .sidebar>.sidebar-bottom{
-    background:#0c1118!important;
-  }
+  /* Tema Oscuro conserva su color de fondo original. */
   html body .sidebar>.nav{
     padding-bottom:110px!important;
   }
