@@ -747,6 +747,35 @@
       }
     }
 
+    /* R197: legibilidad de acciones en Claro y Moderno.
+       Botones apagados conservan apariencia deshabilitada, con texto visible.
+       Excluye acciones primarias para preservar su contraste blanco/azul. */
+    html[data-theme="light"] body button:disabled,
+    html[data-theme="light"] body button[disabled],
+    html[data-theme="light"] body .btn:disabled,
+    html[data-theme="modern"] body button:disabled,
+    html[data-theme="modern"] body button[disabled],
+    html[data-theme="modern"] body .btn:disabled{
+      color:#596b7d!important;
+      -webkit-text-fill-color:#596b7d!important;
+      background:#e7edf3!important;
+      border-color:#bac8d6!important;
+      opacity:1!important;
+      text-shadow:none!important;
+    }
+    html[data-theme="light"] body button:disabled *,
+    html[data-theme="modern"] body button:disabled *,
+    html[data-theme="light"] body button[disabled] *,
+    html[data-theme="modern"] body button[disabled] *{
+      color:inherit!important;
+      -webkit-text-fill-color:inherit!important;
+    }
+    html[data-theme="light"] body .btn:not(.primary):not(.danger):not(.active):not(:disabled):not([disabled]),
+    html[data-theme="modern"] body .btn:not(.primary):not(.danger):not(.active):not(:disabled):not([disabled]){
+      color:#183149!important;
+      -webkit-text-fill-color:#183149!important;
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
