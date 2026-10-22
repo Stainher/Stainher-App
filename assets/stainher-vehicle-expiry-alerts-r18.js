@@ -6,8 +6,8 @@
  */
 (function installVehicleExpiryAlertsR109(){
   'use strict';
-  if(window.__STAINHER_VEHICLE_EXPIRY_VERSION__==='R109')return;
-  window.__STAINHER_VEHICLE_EXPIRY_VERSION__='R109';
+  if(window.__STAINHER_VEHICLE_EXPIRY_VERSION__==='R186')return;
+  window.__STAINHER_VEHICLE_EXPIRY_VERSION__='R186';
   window.__STAINHER_VEHICLE_EXPIRY_ALERTS_R18__=true;
 
   const EXPIRIES=[
@@ -152,6 +152,28 @@
     return out.sort((a,b)=>(a.days??99999)-(b.days??99999));
   }
 
+  async function loadEmployeeDocumentAlerts(){
+    if(!window.sb)return [];
+    const q=await window.sb.from('alertas_contrato_v1524')
+      .select('id,source_key,source_ref,titulo,cambio,proximo_paso,prioridad,estado,responsable,fecha_limite,detectada_at')
+      .eq('categoria','Dotación')
+      .like('source_key','gmail-doc-%')
+      .neq('estado','cerrada')
+      .order('fecha_limite',{ascending:true,nullsFirst:false});
+    if(q.error){console.warn('[R186 documentos personal]',q.error);return []}
+    return (q.data||[]).map(row=>({
+      employeeDocument:true,
+      id:row.id,
+      title:row.titulo,
+      detail:row.cambio,
+      next:row.proximo_paso,
+      priority:row.prioridad,
+      date:row.fecha_limite,
+      days:daysUntil(row.fecha_limite),
+      sourceRef:row.source_ref
+    }));
+  }
+
   function removeVehicleAlertDom(){
     document.querySelectorAll('#homeAlertsV95 [data-r18-vehicle-alert]').forEach(n=>n.remove());
   }
@@ -160,23 +182,26 @@
     const token=++alertSeq;
     removeVehicleAlertDom();
     const filter=String(window.v152AlertFilter||'todas').toLowerCase();
-    if(filter!=='todas'&&filter!=='recordatorios')return;
+    if(filter!=='todas'&&filter!=='recordatorios'&&filter!=='documentos_vencidos')return;
     const list=document.querySelector('#homeAlertsV95 .v152-alert-list');
     if(!list)return;
-    const items=await loadVehicleAlerts();if(token!==alertSeq)return;
+    const [items,employeeDocs]=await Promise.all([loadVehicleAlerts(),filter==='documentos_vencidos'?loadEmployeeDocumentAlerts():Promise.resolve([])]);if(token!==alertSeq)return;
     const now=new Date(),year=now.getFullYear(),month=now.getMonth();
-    const visible=filter==='recordatorios'?items:items.filter(item=>{
+    const visible=filter==='documentos_vencidos'?items.filter(item=>item.days!=null&&item.days<=30):filter==='recordatorios'?items:items.filter(item=>{
       if(item.days!=null&&item.days<0)return true;
       const d=new Date(String(item.date).slice(0,10)+'T12:00:00');
       return d.getFullYear()===year&&d.getMonth()===month;
     });
-    if(!visible.length)return;
+    const employeeVisible=filter==='documentos_vencidos'?employeeDocs.filter(item=>item.days==null||item.days<=60):[];
+    if(!visible.length&&!employeeVisible.length)return;
 
-    const heading=document.createElement('div');
-    heading.className='r18-vehicle-alert-heading';
-    heading.dataset.r18VehicleAlert='1';
-    heading.textContent=`Vencimientos de vehículos · ${visible.length}`;
-    list.appendChild(heading);
+    if(visible.length){
+      const heading=document.createElement('div');
+      heading.className='r18-vehicle-alert-heading';
+      heading.dataset.r18VehicleAlert='1';
+      heading.textContent=`Documentos de vehículos · ${visible.length}`;
+      list.appendChild(heading);
+    }
 
     for(const item of visible){
       const card=document.createElement('div');
@@ -188,6 +213,25 @@
       card.innerHTML=`<div class="v152-alert-icon">${item.icon}</div><div class="v152-alert-main"><b>Vencimiento vehículo · ${esc(item.label)}</b><small>${esc(item.patente||'')} · ${esc(item.modelo||'Vehículo')} · ${expired?'venció':'vence'} ${esc(fmtDate(item.date))}</small></div>${wd?`<div class="v1518-weekday">${esc(wd)}</div>`:''}<div class="v152-alert-days"><b>${item.days==null?'—':Math.abs(item.days)}</b><small>${expired?'días vencido':'días'}</small></div>`;
       list.appendChild(card);
     }
+
+    if(employeeVisible.length){
+      const heading=document.createElement('div');
+      heading.className='r18-vehicle-alert-heading';
+      heading.dataset.r18VehicleAlert='1';
+      heading.textContent=`Documentos de personal · ${employeeVisible.length}`;
+      list.appendChild(heading);
+      for(const item of employeeVisible){
+        const card=document.createElement('div');
+        card.className=`v152-alert-card ${alertLevel(item.days)} r18-vehicle-expiry`;
+        card.dataset.r18VehicleAlert='1';
+        card.dataset.overdue=item.days!=null&&item.days<0?'1':'0';
+        const expired=item.days!=null&&item.days<0;
+        card.innerHTML=`<div class="v152-alert-icon">📄</div><div class="v152-alert-main"><b>${esc(item.title||'Documento de personal')}</b><small>${esc(item.detail||'')} ${item.date?'· '+(expired?'venció ':'vence ')+esc(fmtDate(item.date)):''}</small></div><div class="v152-alert-days"><b>${item.days==null?'—':Math.abs(item.days)}</b><small>${item.days==null?'sin fecha':expired?'días vencido':'días'}</small></div>`;
+        list.appendChild(card);
+      }
+    }
+    const tab=document.querySelector('[data-alert-filter="documentos_vencidos"]');
+    if(tab)tab.textContent=`Documentos vencidos (${visible.length+employeeVisible.length})`;
   }
 
   function wrapHomeAlerts(){
@@ -230,6 +274,7 @@
   }
 
   window.StainherVehicleExpiryR109=Object.freeze({install,decorateVehicleCards,renderVehicleAlerts});
+  window.StainherVehicleExpiryR186=window.StainherVehicleExpiryR109;
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

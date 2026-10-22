@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R185 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R186 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R185')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R186')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R185';
+  window.__STAINHER_HP_LOADER_VERSION__='R186';
 
-  const BUILD='20261022-r185-solicitudes-consolidadas';
+  const BUILD='20261022-r186-alertas-documentos-vencidos';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -178,13 +178,16 @@
 
   async function refreshVehicleExpiryR109(){
     try{
-      if(window.__STAINHER_VEHICLE_EXPIRY_VERSION__!=='R109'){
-        await load('stainher-vehicle-expiry-runtime-r109','stainher-vehicle-expiry-alerts-r18.js');
-      }
+      window.__STAINHER_HOME_TABS_DESKTOP_R15__=false;
+      await load('stainher-home-tabs-desktop-runtime-r186','stainher-home-tabs-desktop-r15.js');
+      await load('stainher-vehicle-expiry-runtime-r186','stainher-vehicle-expiry-alerts-r18.js');
+      window.StainherVehicleExpiryR186?.install?.();
       window.StainherVehicleExpiryR109?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:vehicle-expiry-r109-ready'));
+      window.dispatchEvent(new CustomEvent('stainher:vehicle-expiry-r186-ready'));
+      setTimeout(()=>window.StainherVehicleExpiryR186?.renderVehicleAlerts?.(),120);
     }catch(error){
-      console.error('[Stainher Vehículos R109]',error);
+      console.error('[Stainher Vehículos/Documentos R186]',error);
     }
   }
 
@@ -398,6 +401,7 @@
   window.StainherHPR183=api;
   window.StainherHPR184=api;
   window.StainherHPR185=api;
+  window.StainherHPR186=api;
 
   async function bootstrapR135(){
     // Solicitudes primero: evita mostrar temporalmente el render antiguo.
@@ -458,6 +462,7 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r183-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r184-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r185-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r186-ready'));
   }
   api.bootstrapR112=bootstrapR135;
   api.bootstrapR115=bootstrapR135;
@@ -497,5 +502,6 @@
   api.bootstrapR183=bootstrapR135;
   api.bootstrapR184=bootstrapR135;
   api.bootstrapR185=bootstrapR135;
+  api.bootstrapR186=bootstrapR135;
   bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();

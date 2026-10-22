@@ -4,11 +4,11 @@
   if(window.__STAINHER_HOME_TABS_DESKTOP_R15__)return;
   window.__STAINHER_HOME_TABS_DESKTOP_R15__=true;
 
-  const KEYS=new Set(['todas','dotacion','cumpleanos','feriados','recordatorios']);
+  const KEYS=new Set(['todas','dotacion','cumpleanos','feriados','recordatorios','documentos_vencidos']);
   const LABELS={
     'todas':'todas','dotacion':'dotacion','dotación':'dotacion',
     'cumpleanos':'cumpleanos','cumpleaños':'cumpleanos',
-    'feriados':'feriados','recordatorios':'recordatorios'
+    'feriados':'feriados','recordatorios':'recordatorios','documentos vencidos':'documentos_vencidos'
   };
   const BAR_SELECTOR='#homeImpactAlerts .v152-alert-filterbar,#homeAlertsV95 .v152-alert-filterbar';
   const BUTTON_SELECTOR=BAR_SELECTOR.split(',').map(x=>x+' button').join(',');
@@ -50,7 +50,14 @@
     `;
     document.head.appendChild(style);
   }
+  function ensureExpiryTab(){
+    document.querySelectorAll(BAR_SELECTOR).forEach(bar=>{
+      if(bar.querySelector('[data-alert-filter="documentos_vencidos"]'))return;
+      const button=document.createElement('button');button.type='button';button.className='btn';button.dataset.alertFilter='documentos_vencidos';button.textContent='Documentos vencidos';bar.appendChild(button);
+    });
+  }
   function syncButtons(){
+    ensureExpiryTab();
     const active=normalize(window.v152AlertFilter||'todas');
     document.querySelectorAll(BUTTON_SELECTOR).forEach(button=>{
       const key=keyOf(button);if(!key)return;
@@ -100,7 +107,7 @@
     return true;
   }
   function boot(){
-    mountStyle();patchGlobals();syncButtons();
+    mountStyle();ensureExpiryTab();patchGlobals();syncButtons();
     /* El mouse de escritorio se resuelve en pointerup antes de cualquier onclick heredado. */
     window.addEventListener('pointerup',event=>{
       if(event.pointerType==='mouse'||event.pointerType==='pen'){
