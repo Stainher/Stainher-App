@@ -785,6 +785,16 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is(.shift-a,.turno-a,.shift-c,.turno-c,.shift-l,.turno-l){
       font-weight:700!important;
     }
+    /* R208: formularios de novedades en superficies claras, con contraste. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v1524-base-card,.v1524-event-card,.v1524-existing-event,.v1524-rule-box,.v1524-day-modal) {
+      background:#f7fafc!important;color:#17344d!important;border-color:#b8ccdd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v1524-base-card,.v1524-event-card,.v1524-existing-event,.v1524-rule-box,.v1524-day-modal) :is(h2,h3,h4,p,span,small,label,.muted,.empty){
+      color:#284761!important;-webkit-text-fill-color:#284761!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v1524-base-card,.v1524-event-card,.v1524-existing-event,.v1524-rule-box) :is(input,select,textarea){
+      background:#fff!important;color:#172b42!important;border-color:#b8ccdd!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
