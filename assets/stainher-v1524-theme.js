@@ -3,6 +3,30 @@
   'use strict';
   const KEY='stainher-theme-v1',DARK='dark',LIGHT='light',MODERN='modern';
   const css=`
+    /* R222: navegación legible y cuadrícula operativa de turnos (solo presentación). */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.r18-turn-tabs,.v1512-turn-tabs,.v1520-turn-tabs) :is(button,.btn,[role="tab"]){
+      background:#f6faff!important;color:#173651!important;-webkit-text-fill-color:#173651!important;
+      border:1px solid #b6c9dc!important;text-shadow:none!important;opacity:1!important;
+      font-weight:600!important;min-height:40px!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.r18-turn-tabs,.v1512-turn-tabs,.v1520-turn-tabs) :is(button,.btn,[role="tab"]):is(.active,[aria-selected="true"]){
+      background:#176fc1!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+      border-color:#176fc1!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .v1512-turn-wrap{background:#f7fafc!important;border-color:#b9ccdf!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .v1512-turn-table :is(th,td){
+      border-color:#c3d3e0!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .v1512-turn-table tbody tr:nth-child(even) td{background-color:#f1f6fc}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .v1512-turn-table :is(thead th,.person,td:first-child){
+      background:#e2edf6!important;color:#173651!important;-webkit-text-fill-color:#173651!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .v1512-turn-table .person{
+      position:sticky!important;left:0!important;z-index:3!important;min-width:160px!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.r18-turn-legend,.v1512-turn-legend,.v1524-compact-legend){
+      background:#f6faff!important;color:#213c56!important;font-size:11px!important;
+    }
     /* R220 · estructura REAL de Liderazgo: .v1512-mini-kpi (index.html). */
     html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .v1512-mini-kpi{
       background:#f3f8fd!important;background-image:none!important;color:#173651!important;
@@ -1129,7 +1153,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r220-leadership-real-selector':'20261022-r219-module-cache');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r222-turn-legibility':'20261022-r219-module-cache');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
