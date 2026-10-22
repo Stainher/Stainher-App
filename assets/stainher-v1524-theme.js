@@ -3,6 +3,23 @@
   'use strict';
   const KEY='stainher-theme-v1',DARK='dark',LIGHT='light',MODERN='modern';
   const css=`
+    /* R220 · estructura REAL de Liderazgo: .v1512-mini-kpi (index.html). */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .v1512-mini-kpi{
+      background:#f3f8fd!important;background-image:none!important;color:#173651!important;
+      border:1px solid #b7cadc!important;box-shadow:0 2px 10px rgba(24,55,81,.05)!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .v1512-mini-kpi :is(span,b,strong,small){
+      color:#173651!important;-webkit-text-fill-color:#173651!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .v1512-mini-kpi .v1512-overdue{
+      color:#b42342!important;-webkit-text-fill-color:#b42342!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .v1519-period-summary{
+      background:#e7f0f8!important;background-image:none!important;color:#173651!important;border-color:#b7cadc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .v1519-period-summary *{
+      color:#173651!important;-webkit-text-fill-color:#173651!important;
+    }
     /* Tipografía transversal: títulos consistentes, sin negrita. */
     html body,html body :where(button,input,select,textarea){font-family:Inter,Arial,sans-serif}
     html body :where(p,small,label,li,td,th,dt,dd,input,select,textarea,button,.btn,.muted,.tag,.status){font-weight:400!important}
@@ -1112,7 +1129,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r219-leadership-card':'20261022-r219-module-cache');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r220-leadership-real-selector':'20261022-r219-module-cache');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
