@@ -648,14 +648,16 @@
       border-color:#b8c9d8!important;
     }
 
-    /* R192 · Sidebar continuo en temas claros/modernos. */
+    /* R195 · Mantener sidebar en el flujo del layout: fixed desalineaba
+       el contenedor principal en Claro/Moderno. Sticky preserva el espacio
+       de la columna, igual que Oscuro, sin afectar el scroll interno. */
     html[data-theme="light"] body .sidebar,
     html[data-theme="modern"] body .sidebar{
       min-height:100vh!important;
       height:100vh!important;
-      position:fixed!important;
+      position:sticky!important;
       top:0!important;
-      bottom:0!important;
+      bottom:auto!important;
       display:flex!important;
       flex-direction:column!important;
       overflow:hidden!important;
