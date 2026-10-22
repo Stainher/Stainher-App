@@ -19,6 +19,18 @@
   ];
   const norm=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');
 
+  if(!document.getElementById('stainher-system-r190-style')){
+    const style=document.createElement('style');
+    style.id='stainher-system-r190-style';
+    style.textContent=`
+      #page-sistema:not(.stainher-system-r190-ready) details.panel:first-of-type,
+      #page-sistema:not(.stainher-system-r190-ready) section.panel:first-of-type{
+        visibility:hidden!important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function matchesPanel(panel){
     const head=panel.querySelector(':scope > summary,:scope > h1,:scope > h2,:scope > h3,:scope > h4');
     const headText=norm(head?.textContent||'');
