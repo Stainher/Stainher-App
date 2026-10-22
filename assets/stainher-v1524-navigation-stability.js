@@ -4,7 +4,7 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION='R219';
+  const REVISION='R220';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function ensureBrandChips(){
