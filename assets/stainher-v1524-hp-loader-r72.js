@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R184 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R185 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R184')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R185')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R184';
+  window.__STAINHER_HP_LOADER_VERSION__='R185';
 
-  const BUILD='20261022-r184-solicitudes-sin-flash';
+  const BUILD='20261022-r185-solicitudes-consolidadas';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -397,6 +397,7 @@
   window.StainherHPR182=api;
   window.StainherHPR183=api;
   window.StainherHPR184=api;
+  window.StainherHPR185=api;
 
   async function bootstrapR135(){
     // Solicitudes primero: evita mostrar temporalmente el render antiguo.
@@ -456,6 +457,7 @@
     window.dispatchEvent(new CustomEvent('stainher:runtime-r182-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r183-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r184-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:runtime-r185-ready'));
   }
   api.bootstrapR112=bootstrapR135;
   api.bootstrapR115=bootstrapR135;
@@ -494,5 +496,6 @@
   api.bootstrapR182=bootstrapR135;
   api.bootstrapR183=bootstrapR135;
   api.bootstrapR184=bootstrapR135;
+  api.bootstrapR185=bootstrapR135;
   bootstrapR135().catch(error=>console.error('[Stainher Runtime R135]',error));
 })();
