@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R190 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R194 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R190')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R194')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R190';
+  window.__STAINHER_HP_LOADER_VERSION__='R194';
 
-  const BUILD='20261022-r190-sistema-sin-dotacion';
+  const BUILD='20261022-r194-system-godzilla';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -75,9 +75,13 @@
   async function refreshSystem(){
     try{
       await load('stainher-system-cleanup-runtime-r93','stainher-v1524-system-cleanup-r89.js');
+      await load('stainher-system-game-runtime-r194','stainher-v1524-system-game-r194.js');
       window.StainherSystemCleanupR190?.install?.();
       window.StainherSystemCleanupR190?.cleanup?.();
+      window.StainherSystemGameR194?.install?.();
+      window.StainherSystemGameR194?.mount?.();
       window.dispatchEvent(new CustomEvent('stainher:system-r190-ready'));
+      window.dispatchEvent(new CustomEvent('stainher:system-game-r194-ready'));
     }catch(error){
       console.error('[Stainher Sistema R89]',error);
     }
