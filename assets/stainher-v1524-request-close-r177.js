@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261022-r183-alineacion-cuadricula-solicitudes';
+  const BUILD='20261022-r184-solicitudes-sin-flash';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -32,6 +32,10 @@
         gap:10px!important;
         width:100%!important;
         box-sizing:border-box!important;
+      }
+      #page-solicitudes [data-r181-state-tabs][hidden],
+      #page-solicitudes [data-r181-state-tabs].r184-state-tabs-hidden{
+        display:none!important;
       }
       #page-solicitudes [data-r178-tabs]{
         margin-left:0!important;
@@ -180,7 +184,10 @@
     const selected=window.state?.r178SolicitudesTab||'activas',typeSelected=window.state.r179SolicitudesType,rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
     const useStateFilter=typeSelected==='otras';
     const stateTabs=page.querySelector('[data-r181-state-tabs]');
-    if(stateTabs)stateTabs.hidden=!useStateFilter;
+    if(stateTabs){
+      stateTabs.hidden=!useStateFilter;
+      stateTabs.classList.toggle('r184-state-tabs-hidden',!useStateFilter);
+    }
     let visibleCount=0;
     cards.forEach((card,index)=>{
       const row=rows[index];
@@ -238,6 +245,8 @@
 
   function install(){
     mountFilterStyle();wrapStatus();wrapRender();decorate();
+    document.documentElement.classList.remove('stainher-r184-request-loading');
+    document.documentElement.classList.add('stainher-r184-request-ready');
     window.addEventListener('stainher:solicitudes-view-r133-ready',()=>{wrapStatus();wrapRender();decorate()});
     window.addEventListener('stainher:request-approver-r135-ready',()=>{wrapStatus();wrapRender();decorate()});
     window.addEventListener('stainher:approved-reroute-r138-ready',()=>{wrapStatus();wrapRender();decorate()});
