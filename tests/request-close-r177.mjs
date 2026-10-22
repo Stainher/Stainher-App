@@ -59,3 +59,9 @@ assert.doesNotMatch(moduleSrc,/data-r179-type="todas"/,'No debe existir pestaña
 assert.match(moduleSrc,/r179SolicitudesType='vacaciones'/,'Vacaciones debe ser la categoría inicial');
 assert.match(moduleSrc,/const typeMatch=category===typeSelected/,'Cada solicitud debe pertenecer solo a su categoría');
 assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R182'/,'Loader debe forzar versión R182');
+
+assert.match(moduleSrc,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/,'Vacaciones, Permisos y Otras deben ocupar 3 columnas iguales');
+assert.match(moduleSrc,/data-r179-type="otras"\]\{\s*grid-column:1\/-1!important/s,'Otras debe ocupar ancho completo en móvil');
+assert.match(moduleSrc,/\[data-r178-tabs\][\s\S]*box-sizing:border-box!important/,'Panel de filtros debe respetar la misma caja de la cuadrícula');
+assert.match(moduleSrc,/\.v152-request-card\{[\s\S]*width:100%!important[\s\S]*box-sizing:border-box!important/,'Tarjetas deben usar ancho completo y misma retícula');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R183'/,'Loader debe forzar versión R183');
