@@ -864,6 +864,29 @@
       background:transparent!important;
       background-image:none!important;
     }
+    /* R212: contraste definitivo en los componentes que siguen oscuros. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v1524-day-modal :is(.v1524-rule-box,.v1524-base-card,.v1524-event-card){
+      background:#eaf2f9!important;border-color:#b5cadc!important;color:#18344d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v1524-day-modal :is(.v1524-rule-box,.v1524-base-card,.v1524-event-card) :is(b,strong,span,small,label,p){
+      color:#18344d!important;-webkit-text-fill-color:#18344d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi{
+      background:#f5f9fd!important;border-color:#adc7dd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :is(strong,b,span){
+      color:#173b5a!important;-webkit-text-fill-color:#173b5a!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo [class*="control-card"] :is(small,.muted,[class*="frequency"]){
+      color:#476784!important;-webkit-text-fill-color:#476784!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio .v152-alert-card .v152-alert-days,
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio .v152-alert-days{
+      background:#dceaf5!important;color:#173b5a!important;border-color:#adc7dd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio .v152-alert-days *{
+      color:#173b5a!important;-webkit-text-fill-color:#173b5a!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
