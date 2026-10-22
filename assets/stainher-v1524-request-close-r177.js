@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261022-r182-solicitudes-solo-por-tipo';
+  const BUILD='20261022-r183-alineacion-cuadricula-solicitudes';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
