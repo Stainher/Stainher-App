@@ -127,7 +127,19 @@
   function install(){
     if(typeof window.renderInicio==='function'&&!window.renderInicio.__stainherHomeLayout){
       const base=window.renderInicio;
-      const wrapped=async function(...args){const result=await base.apply(this,args);arrangeHome();requestAnimationFrame(arrangeHome);return result};
+      const wrapped=async function(...args){
+        const page=document.getElementById('page-inicio');
+        page?.classList.add('stainher-home-rendering-r203');
+        try{
+          const result=await base.apply(this,args);
+          arrangeHome();
+          return result;
+        }finally{
+          arrangeHome();
+          // Keep the intermediate legacy layout hidden until the next paint.
+          requestAnimationFrame(()=>page?.classList.remove('stainher-home-rendering-r203'));
+        }
+      };
       wrapped.__stainherHomeLayout=true;window.renderInicio=wrapped;
     }
     if(typeof window.v157OpenAccount==='function'&&!window.v157OpenAccount.__stainherBalance){
@@ -140,6 +152,8 @@
   function mountStyle(){
     if(document.getElementById('stainher-home-layout-style'))return;
     const style=document.createElement('style');style.id='stainher-home-layout-style';style.textContent=`
+      /* R203: no mostrar el render anterior antes de ordenar Inicio. */
+      #page-inicio.stainher-home-rendering-r203 > :where(details,.panel){visibility:hidden!important}
       .stainher-account-vacation{display:grid;gap:6px;margin:10px 0 0!important}
       .stainher-account-vacation strong{font-size:28px;line-height:1.15;color:var(--text,#fff)}
       .stainher-account-vacation span{font-size:12px}
