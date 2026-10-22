@@ -4,7 +4,7 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION='R204';
+  const REVISION='R206';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function normalizeVersion(root=document){
@@ -13,6 +13,23 @@
       let after=before.replace(/V15\.\d+(?:\.\d+)*/gi,VERSION).replace(/\bR(?:19\d|20[0-3])\b/g,REVISION);
       if(/V15\.24/.test(after)&&!new RegExp('\\b'+REVISION+'\\b').test(after)&&node.closest('.global-meta,.v1514-global-meta,.v1513-version-meta'))after+=' · '+REVISION;
       if(after!==before)node.textContent=after;
+    });
+    // R206: los metadatos heredados pueden no usar las clases históricas.
+    // Detectar solamente etiquetas cortas en la cabecera de cada módulo.
+    root.querySelectorAll?.('.page[id^="page-"]').forEach(page=>{
+      const candidates=page.querySelectorAll(':scope > :is(header,.page-header,.page-title,.global-meta,.v1514-global-meta),:scope > :is(header,.page-header) :is(span,small,.meta-chip),:scope > :is(.global-meta,.v1514-global-meta) :is(span,small,.meta-chip)');
+      candidates.forEach(node=>{
+        if(node.children.length && node.matches('.page-header,header,.global-meta,.v1514-global-meta'))return;
+        const value=String(node.textContent||'').trim();
+        if(value.length>85)return;
+        if(/^Stainher App\\s*[·-]\\s*V15\\.\\d+/i.test(value)){
+          const next='Stainher App · '+VERSION+' · '+REVISION;
+          if(node.textContent!==next)node.textContent=next;
+          node.classList.add('stainher-brand-chip-r206');
+        }else if(/^\\d{2}[-/]\\d{2}[-/]20\\d{2}$/.test(value)){
+          node.classList.add('stainher-brand-chip-r206');
+        }
+      });
     });
     document.title=`Stainher App ${VERSION}`;
   }
