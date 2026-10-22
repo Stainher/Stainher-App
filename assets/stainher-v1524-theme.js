@@ -787,6 +787,71 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo :is(.kpi,[class*="kpi"],[class*="stat"]) :is(small,span,label,[class*="label"]){
       color:#486782!important;-webkit-text-fill-color:#486782!important;
     }
+    /* R208: textos legibles en celdas de turnos A, C y L sin perder tonos pastel. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="A"],[data-shift="C"],[data-shift="L"],[data-turno="A"],[data-turno="C"],[data-turno="L"]){
+      font-weight:700!important;
+      text-shadow:none!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="A"],[data-turno="A"]){color:#1855a6!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="C"],[data-turno="C"]){color:#08774c!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="L"],[data-turno="L"]){color:#596b82!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is(.shift-a,.turno-a,.shift-c,.turno-c,.shift-l,.turno-l){
+      font-weight:700!important;
+    }
+    /* R208: formularios de novedades en superficies claras, con contraste. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v1524-base-card,.v1524-event-card,.v1524-existing-event,.v1524-rule-box,.v1524-day-modal) {
+      background:#f7fafc!important;color:#17344d!important;border-color:#b8ccdd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v1524-base-card,.v1524-event-card,.v1524-existing-event,.v1524-rule-box,.v1524-day-modal) :is(h2,h3,h4,p,span,small,label,.muted,.empty){
+      color:#284761!important;-webkit-text-fill-color:#284761!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v1524-base-card,.v1524-event-card,.v1524-existing-event,.v1524-rule-box) :is(input,select,textarea){
+      background:#fff!important;color:#172b42!important;border-color:#b8ccdd!important;
+    }
+    /* R208: contraste en KPI y tarjetas de Controles Stainher. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi{
+      background:#f7fafc!important;color:#17344d!important;border-color:#b8ccdd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :is(b,strong,span,[class*="value"],[class*="number"]){
+      color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :is(small,label,[class*="label"]){
+      color:#486782!important;-webkit-text-fill-color:#486782!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :is(.control-card-v95,.leadership-card,[class*="control-card"],[class*="leadership-card"]){
+      background:#f7fafc!important;color:#17344d!important;border-color:#b8ccdd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :is(.control-card-v95,.leadership-card,[class*="control-card"],[class*="leadership-card"]) :is(h3,h4,strong,b,p,small,span){
+      color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+    }
+    /* R208: pestañas activas legibles en Administración del Contrato. */
+    html:is([data-theme="light"],[data-theme="modern"]) body :is(#page-contrato,#page-administracion) :is(.contract-tab.active,.btn.active,[role="tab"].active,button[aria-selected="true"]){
+      background:#1769c2!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+      border-color:#14549b!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body :is(#page-contrato,#page-administracion) :is(.contract-tab.active,.btn.active,[role="tab"].active,button[aria-selected="true"]) *{
+      color:#fff!important;-webkit-text-fill-color:#fff!important;
+    }
+    /* R208: Forecast y métricas Supabase, superficies visibles en temas claros. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is([class*="forecast-equipment"],[class*="forecast-filter"],[class*="forecast-selector"],[class*="forecast-scope"]){
+      background:#f3f8fc!important;color:#183149!important;border-color:#b8cbdc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is([class*="forecast-equipment"],[class*="forecast-filter"],[class*="forecast-selector"],[class*="forecast-scope"]) :is(h2,h3,h4,p,small,span,label){
+      color:#27445d!important;-webkit-text-fill-color:#27445d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-sistema :is(.storage-card,[class*="storage-card"],[class*="usage-card"],[class*="usage-stat"],[class*="supabase-stat"]){
+      background:#f4f8fc!important;color:#183149!important;border-color:#b8cbdc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-sistema :is(.storage-card,[class*="storage-card"],[class*="usage-card"],[class*="usage-stat"],[class*="supabase-stat"]) :is(h3,h4,p,small,span,b,strong){
+      color:#24445f!important;-webkit-text-fill-color:#24445f!important;
+    }
+    /* R208: recordatorios y feriados de Inicio con tarjeta clara. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :is(.v152-alert-card,.home-alert-card,[class*="holiday-card"],[class*="reminder-card"]){
+      background:#f3f8fc!important;color:#19364e!important;border-color:#b8cbdc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :is(.v152-alert-card,.home-alert-card,[class*="holiday-card"],[class*="reminder-card"]) :is(span,small,p,strong,b,[class*="days"]){
+      color:#19364e!important;-webkit-text-fill-color:#19364e!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{

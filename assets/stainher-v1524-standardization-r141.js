@@ -485,9 +485,14 @@
   function fixPageTitle(){
     const page=document.getElementById('page-estandarizacion');
     if(!page)return false;
-    const heading=page.querySelector(':scope > h1,:scope > .page-header h1,:scope > header h1,h1');
-    if(heading)heading.textContent='Estandarización';
-    return !!heading;
+    // El título visible es un h2 dentro de .topbar; la búsqueda anterior
+    // solo contemplaba h1 y dejaba la versión sin tilde en pantalla.
+    const headings=page.querySelectorAll(':scope > .topbar h1,:scope > .topbar h2,:scope > .page-header h1,:scope > .page-header h2,:scope > header h1,:scope > header h2,:scope > h1,:scope > h2');
+    headings.forEach(heading=>{
+      if(/^estandarizaci[oó]n$/i.test(heading.textContent.trim()) && heading.textContent!=='Estandarización')
+        heading.textContent='Estandarización';
+    });
+    return headings.length>0;
   }
 
   function install(){
