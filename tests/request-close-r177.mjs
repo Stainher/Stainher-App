@@ -65,3 +65,9 @@ assert.match(moduleSrc,/data-r179-type="otras"\]\{\s*grid-column:1\/-1!important
 assert.match(moduleSrc,/\[data-r178-tabs\][\s\S]*box-sizing:border-box!important/,'Panel de filtros debe respetar la misma caja de la cuadrícula');
 assert.match(moduleSrc,/\.v152-request-card\{[\s\S]*width:100%!important[\s\S]*box-sizing:border-box!important/,'Tarjetas deben usar ancho completo y misma retícula');
 assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R183'/,'Loader debe forzar versión R183');
+
+assert.match(moduleSrc,/\[data-r181-state-tabs\]\[hidden\][\s\S]*display:none!important/,'Activas/Finalizadas debe ocultarse realmente fuera de Otras');
+assert.match(moduleSrc,/r184-state-tabs-hidden/,'Debe usar clase robusta para ocultar filtros de estado');
+assert.match(loader,/stainher-r184-request-loading/,'Loader debe ocultar temporalmente el listado antiguo');
+assert.match(loader,/Solicitudes primero: evita mostrar temporalmente el render antiguo/,'Solicitudes debe inicializarse antes de módulos pesados');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R184'/,'Loader debe forzar versión R184');
