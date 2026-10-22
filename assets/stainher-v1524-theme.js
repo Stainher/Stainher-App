@@ -648,6 +648,47 @@
       border-color:#b8c9d8!important;
     }
 
+    /* R192 · Sidebar continuo en temas claros/modernos. */
+    html[data-theme="light"] body .sidebar,
+    html[data-theme="modern"] body .sidebar{
+      min-height:100vh!important;
+      height:100vh!important;
+      position:fixed!important;
+      top:0!important;
+      bottom:0!important;
+      display:flex!important;
+      flex-direction:column!important;
+      overflow:hidden!important;
+    }
+    html[data-theme="light"] body .sidebar .nav,
+    html[data-theme="modern"] body .sidebar .nav{
+      flex:1 1 auto!important;
+      min-height:0!important;
+      overflow-y:auto!important;
+    }
+    html[data-theme="light"] body .sidebar-bottom,
+    html[data-theme="modern"] body .sidebar-bottom{
+      margin-top:auto!important;
+      position:relative!important;
+      left:auto!important;
+      right:auto!important;
+      bottom:auto!important;
+      width:100%!important;
+      flex:0 0 auto!important;
+      background:inherit!important;
+      border-top-color:rgba(255,255,255,.08)!important;
+    }
+    html[data-theme="light"] body .sidebar::after,
+    html[data-theme="modern"] body .sidebar::after{
+      content:"";
+      position:absolute;
+      inset:auto 0 0 0;
+      height:120px;
+      background:inherit;
+      z-index:-1;
+      pointer-events:none;
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
