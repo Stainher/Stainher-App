@@ -4,7 +4,7 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION='R215';
+  const REVISION='R216';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function ensureBrandChips(){
@@ -121,6 +121,18 @@
       }
     });
   }
+  function normalizeTurnEventTables(){
+    const page=document.getElementById('page-turnos');
+    if(!page)return;
+    page.querySelectorAll('table').forEach(table=>{
+      const headings=[...table.querySelectorAll('thead th')].map(x=>(x.textContent||'').trim().toLowerCase());
+      if(headings.some(x=>x.includes('evento'))&&headings.some(x=>x.includes('detalle')||x.includes('motivo'))&&headings.some(x=>x.includes('fecha'))){
+        table.classList.add('stainher-event-detail-table-r216');
+        const group=table.closest('section,article,.panel,details')||table.parentElement;
+        group?.classList.add('stainher-event-detail-group-r216');
+      }
+    });
+  }
   function normalizeMobileTitle(){
     const title=document.getElementById('v151MobileTitle')||document.querySelector('.v151-mobile-title strong');
     if(!title)return;
@@ -186,7 +198,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -204,7 +216,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
