@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R194 · cargador único y secuencial para módulos autenticados.
+/* Stainher V15.24 · R199 · cargador único y secuencial para módulos autenticados.
  * Mantiene HP R78 y Presupuestos R85. Fuerza carga fresca del correo,
  * PDF, eliminación de programación, acciones DOM, correo post-guardado R88,
  * limpieza visual de Sistema R89, firma personal R90, expansión móvil R91,
@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R194')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R199')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R194';
+  window.__STAINHER_HP_LOADER_VERSION__='R199';
 
-  const BUILD='20261022-r194-system-godzilla';
+  const BUILD='20261022-r199-visual-cache-refresh';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -25,6 +25,21 @@
     document.head.appendChild(style);
   }
   const fresh=src=>`${src}${src.includes('?')?'&':'?'}build=${encodeURIComponent(`${BUILD}-${Date.now()}`)}`;
+  /* R199: load a versioned stylesheet after the existing theme rules.
+   * Cache-busting is scoped to this file; session and navigation are untouched. */
+  function refreshVisualCSS(){
+    const old=document.getElementById('stainher-visual-r199-css');
+    old?.remove();
+    const link=document.createElement('link');
+    link.id='stainher-visual-r199-css';
+    link.rel='stylesheet';
+    link.href=fresh('stainher-v1524-visual-r199.css');
+    document.head.appendChild(link);
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',refreshVisualCSS,{once:true});
+  }else refreshVisualCSS();
+
   const load=(id,src)=>new Promise((resolve,reject)=>{
     document.getElementById(id)?.remove();
     const s=document.createElement('script');
