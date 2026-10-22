@@ -7,7 +7,24 @@
   const REVISION='R206';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
+  function ensureBrandChips(){
+    if(document.getElementById('stainher-brand-chips-r206'))return;
+    const style=document.createElement('style');
+    style.id='stainher-brand-chips-r206';
+    style.textContent=`
+      html body .page .stainher-brand-chip-r206{
+        display:inline-flex!important;align-items:center!important;
+        background:linear-gradient(135deg,#e85d21,#bd360b)!important;
+        color:#fff!important;-webkit-text-fill-color:#fff!important;
+        border:1px solid #f48b54!important;border-radius:999px!important;
+        padding:4px 10px!important;box-shadow:0 2px 6px rgba(164,55,16,.17)!important
+      }
+      html body .page .stainher-brand-chip-r206 *{color:#fff!important;-webkit-text-fill-color:#fff!important}
+    `;
+    document.head.appendChild(style);
+  }
   function normalizeVersion(root=document){
+    ensureBrandChips();
     root.querySelectorAll?.('.v151-mobile-title small,.v1514-global-meta span:first-child,.global-meta .meta-chip:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child,[data-stainher-version]').forEach(node=>{
       const before=String(node.textContent||'');
       let after=before.replace(/V15\.\d+(?:\.\d+)*/gi,VERSION).replace(/\bR(?:19\d|20[0-3])\b/g,REVISION);
@@ -17,7 +34,7 @@
     // R206: los metadatos heredados pueden no usar las clases históricas.
     // Detectar solamente etiquetas cortas en la cabecera de cada módulo.
     root.querySelectorAll?.('.page[id^="page-"]').forEach(page=>{
-      const candidates=page.querySelectorAll(':scope > :is(header,.page-header,.page-title,.global-meta,.v1514-global-meta),:scope > :is(header,.page-header) :is(span,small,.meta-chip),:scope > :is(.global-meta,.v1514-global-meta) :is(span,small,.meta-chip)');
+      const candidates=[...page.children].slice(0,5).flatMap(section=>[section,...section.querySelectorAll('span,small,.meta-chip,.version-chip')]);
       candidates.forEach(node=>{
         if(node.children.length && node.matches('.page-header,header,.global-meta,.v1514-global-meta'))return;
         const value=String(node.textContent||'').trim();
