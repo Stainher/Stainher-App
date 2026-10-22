@@ -691,6 +691,52 @@
       pointer-events:none;
     }
 
+    /* R197 · El color del sidebar cubre todo el alto sin cambiar su geometría.
+       El menú se desplaza dentro de la barra y la cuenta queda anclada abajo. */
+    @media(min-width:761px){
+      html[data-theme="light"] body .sidebar,
+      html[data-theme="modern"] body .sidebar{
+        position:sticky!important;
+        top:0!important;
+        height:100vh!important;
+        height:100dvh!important;
+        min-height:100vh!important;
+        min-height:100dvh!important;
+        overflow:hidden!important;
+        isolation:isolate;
+      }
+      html[data-theme="light"] body .sidebar::before,
+      html[data-theme="modern"] body .sidebar::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:inherit;
+        z-index:-1;
+        pointer-events:none;
+      }
+      html[data-theme="light"] body .sidebar::after,
+      html[data-theme="modern"] body .sidebar::after{display:none!important}
+      html[data-theme="light"] body .sidebar>.nav,
+      html[data-theme="modern"] body .sidebar>.nav{
+        flex:1 1 auto!important;
+        min-height:0!important;
+        overflow-y:auto!important;
+        padding-bottom:16px!important;
+      }
+      html[data-theme="light"] body .sidebar>.sidebar-bottom,
+      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
+        position:relative!important;
+        top:auto!important;
+        bottom:auto!important;
+        left:auto!important;
+        right:auto!important;
+        margin-top:auto!important;
+        width:100%!important;
+        flex:0 0 auto!important;
+        z-index:2!important;
+      }
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
