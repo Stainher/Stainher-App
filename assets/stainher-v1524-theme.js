@@ -795,6 +795,22 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v1524-base-card,.v1524-event-card,.v1524-existing-event,.v1524-rule-box) :is(input,select,textarea){
       background:#fff!important;color:#172b42!important;border-color:#b8ccdd!important;
     }
+    /* R208: contraste en KPI y tarjetas de Controles Stainher. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi{
+      background:#f7fafc!important;color:#17344d!important;border-color:#b8ccdd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :is(b,strong,span,[class*="value"],[class*="number"]){
+      color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :is(small,label,[class*="label"]){
+      color:#486782!important;-webkit-text-fill-color:#486782!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :is(.control-card-v95,.leadership-card,[class*="control-card"],[class*="leadership-card"]){
+      background:#f7fafc!important;color:#17344d!important;border-color:#b8ccdd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :is(.control-card-v95,.leadership-card,[class*="control-card"],[class*="leadership-card"]) :is(h3,h4,strong,b,p,small,span){
+      color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
