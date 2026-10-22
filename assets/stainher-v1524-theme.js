@@ -774,6 +774,19 @@
     html body :is(.version-chip,.v15-version-chip,.v1513-version-meta) *{
       color:#fff!important;
     }
+    /* R207: contraste coherente en Preventivo para temas Claro y Moderno. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo :is(.v1523-prev-period-note,.v1519-period-summary,.edp-period-note){
+      background:#eaf2f9!important;color:#17344d!important;border:1px solid #b8ccdd!important;box-shadow:none!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo :is(.v1523-prev-period-note,.v1519-period-summary,.edp-period-note) :is(span,strong,b,small){
+      color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo :is(.kpi,[class*="kpi"],[class*="stat"]) :is(strong,b,[class*="value"],[class*="number"]){
+      color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo :is(.kpi,[class*="kpi"],[class*="stat"]) :is(small,span,label,[class*="label"]){
+      color:#486782!important;-webkit-text-fill-color:#486782!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
