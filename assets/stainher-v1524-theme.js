@@ -898,6 +898,48 @@
     }
     html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn)[aria-selected="true"] *,
     html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo :is(button,.btn).active *{color:#fff!important;-webkit-text-fill-color:#fff!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body .stainher-actions-surface-r214{background:transparent!important;background-image:none!important;box-shadow:none!important}
+    /* R214: corregir las superficies reales de Correctivo, no tarjetas ajenas. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-period-r214{
+      background:#e8f2fa!important;color:#163751!important;border:1px solid #b2c9dc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-period-r214 *{
+      color:#163751!important;-webkit-text-fill-color:#163751!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-tab-r214{
+      background:#f5f9fd!important;color:#163751!important;-webkit-text-fill-color:#163751!important;
+      border-color:#b2c9dc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-tab-r214.active,
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-correctivo .stainher-correctivo-tab-r214[aria-selected="true"]{
+      background:#176fc1!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .stainher-report-choice-r214{
+      background:#edf4fa!important;color:#163751!important;-webkit-text-fill-color:#163751!important;
+      border:1px solid #b2c9dc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .stainher-report-choice-r214 *{
+      color:#163751!important;-webkit-text-fill-color:#163751!important;
+    }
+    /* R214: superficies del modal de turnos y el KPI de liderazgo detectados en DOM. */
+    html:is([data-theme="light"],[data-theme="modern"]) body .stainher-turn-worker-r214{
+      background:#eef5fb!important;border:1px solid #b6ccdf!important;color:#183751!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .stainher-turn-worker-r214 :is(label,span,small,strong){
+      color:#183751!important;-webkit-text-fill-color:#183751!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-leadership-kpi-r214{
+      background:#f4f9fd!important;border:1px solid #adc5da!important;color:#173956!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-leadership-kpi-r214 :is(strong,b,span,small){
+      color:#173956!important;-webkit-text-fill-color:#173956!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-period-surface-r214{
+      background:#e7f0f8!important;border:1px solid #b1c8dc!important;color:#173956!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .stainher-period-surface-r214 *{
+      color:#173956!important;-webkit-text-fill-color:#173956!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
@@ -1019,7 +1061,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r213-visible-version':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r214-visible-and-actions':'20260907-d20-r19-restauracion-funcional-integral');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
