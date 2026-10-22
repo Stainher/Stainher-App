@@ -15,6 +15,45 @@
     style.id='stainher-request-filter-r180-style';
     style.textContent=`
       #page-solicitudes .v152-request-card.r180-filter-hidden{display:none!important}
+      #page-solicitudes [data-r179-type-tabs]{
+        display:grid!important;
+        grid-template-columns:repeat(4,minmax(0,1fr))!important;
+        gap:10px!important;
+        width:100%!important;
+      }
+      #page-solicitudes [data-r181-state-tabs]{
+        display:grid!important;
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        gap:10px!important;
+        width:100%!important;
+      }
+      #page-solicitudes [data-r179-type-tabs] .btn,
+      #page-solicitudes [data-r181-state-tabs] .btn{
+        width:100%!important;
+        min-width:0!important;
+        min-height:42px!important;
+        height:42px!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        padding:8px 12px!important;
+        text-align:center!important;
+        white-space:nowrap!important;
+      }
+      @media(max-width:680px){
+        #page-solicitudes [data-r179-type-tabs]{
+          grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        }
+        #page-solicitudes [data-r181-state-tabs]{
+          grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        }
+        #page-solicitudes [data-r179-type-tabs] .btn,
+        #page-solicitudes [data-r181-state-tabs] .btn{
+          min-height:46px!important;
+          height:46px!important;
+          font-size:15px!important;
+        }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -87,7 +126,7 @@
     let tabs=page.querySelector('[data-r178-tabs]');
     if(!tabs){
       tabs=document.createElement('div');tabs.dataset.r178Tabs='1';tabs.className='panel';tabs.style.marginBottom='12px';
-      tabs.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Solicitudes</b><div class="muted">Agrupa las solicitudes por tipo. En Otras puedes separar gestiones activas de finalizadas.</div></div></div><div class="actions" style="margin-top:10px;flex-wrap:wrap" data-r179-type-tabs><button class="btn primary" type="button" data-r179-type="todas">Todas</button><button class="btn" type="button" data-r179-type="vacaciones">Vacaciones</button><button class="btn" type="button" data-r179-type="permisos">Permisos</button><button class="btn" type="button" data-r179-type="otras">Otras</button></div><div class="actions" style="margin-top:10px;flex-wrap:wrap" data-r181-state-tabs hidden><button class="btn primary" type="button" data-r178-tab="activas">Activas</button><button class="btn" type="button" data-r178-tab="finalizadas">Finalizadas <span data-r178-final-count></span></button></div>`;
+      tabs.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Solicitudes</b><div class="muted">Agrupa las solicitudes por tipo. En Otras puedes separar gestiones activas de finalizadas.</div></div></div><div style="margin-top:10px" data-r179-type-tabs><button class="btn primary" type="button" data-r179-type="todas">Todas</button><button class="btn" type="button" data-r179-type="vacaciones">Vacaciones</button><button class="btn" type="button" data-r179-type="permisos">Permisos</button><button class="btn" type="button" data-r179-type="otras">Otras</button></div><div style="margin-top:10px" data-r181-state-tabs hidden><button class="btn primary" type="button" data-r178-tab="activas">Activas</button><button class="btn" type="button" data-r178-tab="finalizadas">Finalizadas <span data-r178-final-count></span></button></div>`;
       grid.insertAdjacentElement('beforebegin',tabs);
       tabs.querySelectorAll('[data-r178-tab]').forEach(button=>button.addEventListener('click',()=>{
         window.state=window.state||{};window.state.r178SolicitudesTab=button.dataset.r178Tab;
