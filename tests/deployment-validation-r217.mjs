@@ -13,7 +13,7 @@ test('Required runtime files and entrypoint exist',()=>{
 test('Version synchronizer covers all revision numbers',()=>{
   assert.match(nav,/const REVISION='R\d+';/);
   assert.match(nav,/normalizeVersion\(\)/);
-  assert.match(nav,/\\bR\\d\{2,4\}\\b/);
+  assert.ok(nav.includes('\\bR\\d{2,4}\\b'),'Version normalizer must cover R206+');
 });
 test('The navigation and theme loaders use a revision cache key',()=>{
   assert.match(theme,/stainher-v1524-navigation-stability\.js/);
