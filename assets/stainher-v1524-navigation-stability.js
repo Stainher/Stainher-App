@@ -4,11 +4,12 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
+  const REVISION='R204';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function normalizeVersion(root=document){
-    root.querySelectorAll?.('.v151-mobile-title small,.v1514-global-meta span:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child,[data-stainher-version]').forEach(node=>{
-      const before=String(node.textContent||''),after=before.replace(/V15\.\d+(?:\.\d+)*/g,VERSION);
+    root.querySelectorAll?.('.v151-mobile-title small,.v1514-global-meta span:first-child,.global-meta .meta-chip:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child,[data-stainher-version]').forEach(node=>{
+      const before=String(node.textContent||''),after=before.replace(/V15\.\d+(?:\.\d+)*/gi,VERSION).replace(/\bR(?:19\d|20[0-3])\b/g,REVISION);
       if(after!==before)node.textContent=after;
     });
     document.title=`Stainher App ${VERSION}`;
