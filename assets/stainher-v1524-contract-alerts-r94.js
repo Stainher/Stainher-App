@@ -44,7 +44,7 @@
       <p><b>Por qué importa:</b> ${esc(a.impacto||'—')}</p>
       <p><b>Próximo paso:</b> ${esc(a.proximo_paso||'—')}</p>
       <div class="stainher-contract-alert-r94-meta"><span>${esc(a.prioridad||'media')}</span>${a.responsable?'<span>Responsable: '+esc(a.responsable)+'</span>':''}${deadline?'<span>'+deadline.slice(3)+'</span>':''}</div>
-      ${canManage()?`<div class="stainher-contract-alert-r94-actions"><button class="btn" data-alert-state="en_gestion" data-id="${esc(a.id)}">Marcar en gestión</button><button class="btn" data-alert-state="cerrada" data-id="${esc(a.id)}">Cerrar alerta</button></div>`:''}
+      ${canManage()?`<div class="stainher-contract-alert-r94-actions">${a.estado==='en_gestion'?'':`<button class="btn" data-alert-state="en_gestion" data-id="${esc(a.id)}">Marcar en gestión</button>`}<button class="btn" data-alert-state="cerrada" data-id="${esc(a.id)}">Cerrar alerta</button></div>`:''}
     </article>`;
   }
   async function setState(id,estado){
