@@ -819,6 +819,19 @@
     html:is([data-theme="light"],[data-theme="modern"]) body :is(#page-contrato,#page-administracion) :is(.contract-tab.active,.btn.active,[role="tab"].active,button[aria-selected="true"]) *{
       color:#fff!important;-webkit-text-fill-color:#fff!important;
     }
+    /* R208: Forecast y métricas Supabase, superficies visibles en temas claros. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is([class*="forecast-equipment"],[class*="forecast-filter"],[class*="forecast-selector"],[class*="forecast-scope"]){
+      background:#f3f8fc!important;color:#183149!important;border-color:#b8cbdc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is([class*="forecast-equipment"],[class*="forecast-filter"],[class*="forecast-selector"],[class*="forecast-scope"]) :is(h2,h3,h4,p,small,span,label){
+      color:#27445d!important;-webkit-text-fill-color:#27445d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-sistema :is(.storage-card,[class*="storage-card"],[class*="usage-card"],[class*="usage-stat"],[class*="supabase-stat"]){
+      background:#f4f8fc!important;color:#183149!important;border-color:#b8cbdc!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-sistema :is(.storage-card,[class*="storage-card"],[class*="usage-card"],[class*="usage-stat"],[class*="supabase-stat"]) :is(h3,h4,p,small,span,b,strong){
+      color:#24445f!important;-webkit-text-fill-color:#24445f!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
