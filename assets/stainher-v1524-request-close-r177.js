@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261022-r181-estado-solo-otras';
+  const BUILD='20261022-r182-solicitudes-solo-por-tipo';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -126,7 +126,7 @@
     let tabs=page.querySelector('[data-r178-tabs]');
     if(!tabs){
       tabs=document.createElement('div');tabs.dataset.r178Tabs='1';tabs.className='panel';tabs.style.marginBottom='12px';
-      tabs.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Solicitudes</b><div class="muted">Agrupa las solicitudes por tipo. En Otras puedes separar gestiones activas de finalizadas.</div></div></div><div style="margin-top:10px" data-r179-type-tabs><button class="btn primary" type="button" data-r179-type="todas">Todas</button><button class="btn" type="button" data-r179-type="vacaciones">Vacaciones</button><button class="btn" type="button" data-r179-type="permisos">Permisos</button><button class="btn" type="button" data-r179-type="otras">Otras</button></div><div style="margin-top:10px" data-r181-state-tabs hidden><button class="btn primary" type="button" data-r178-tab="activas">Activas</button><button class="btn" type="button" data-r178-tab="finalizadas">Finalizadas <span data-r178-final-count></span></button></div>`;
+      tabs.innerHTML=`<div class="row-between" style="gap:10px;flex-wrap:wrap"><div><b>Solicitudes</b><div class="muted">Cada solicitud se muestra únicamente dentro de su tipo. En Otras puedes separar gestiones activas de finalizadas.</div></div></div><div style="margin-top:10px" data-r179-type-tabs><button class="btn" type="button" data-r179-type="vacaciones">Vacaciones</button><button class="btn" type="button" data-r179-type="permisos">Permisos</button><button class="btn" type="button" data-r179-type="otras">Otras</button></div><div style="margin-top:10px" data-r181-state-tabs hidden><button class="btn primary" type="button" data-r178-tab="activas">Activas</button><button class="btn" type="button" data-r178-tab="finalizadas">Finalizadas <span data-r178-final-count></span></button></div>`;
       grid.insertAdjacentElement('beforebegin',tabs);
       tabs.querySelectorAll('[data-r178-tab]').forEach(button=>button.addEventListener('click',()=>{
         window.state=window.state||{};window.state.r178SolicitudesTab=button.dataset.r178Tab;
@@ -150,7 +150,9 @@
   }
   function applyTab(page){
     mountFilterStyle();
-    const selected=window.state?.r178SolicitudesTab||'activas',typeSelected=window.state?.r179SolicitudesType||'todas',rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
+    window.state=window.state||{};
+    if(!['vacaciones','permisos','otras'].includes(window.state.r179SolicitudesType))window.state.r179SolicitudesType='vacaciones';
+    const selected=window.state?.r178SolicitudesTab||'activas',typeSelected=window.state.r179SolicitudesType,rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
     const useStateFilter=typeSelected==='otras';
     const stateTabs=page.querySelector('[data-r181-state-tabs]');
     if(stateTabs)stateTabs.hidden=!useStateFilter;
@@ -160,7 +162,7 @@
       if(!row){card.classList.add('r180-filter-hidden');return}
       const isFinal=String(row.estado||'')==='finalizada';
       const category=requestCategory(row.tipo);
-      const typeMatch=typeSelected==='todas'||category===typeSelected;
+      const typeMatch=category===typeSelected;
       const stateMatch=!useStateFilter||(selected==='finalizadas'?isFinal:!isFinal);
       const show=typeMatch&&stateMatch;
       card.dataset.r180RequestId=String(row.id||'');
@@ -178,7 +180,7 @@
       if(typeSelected==='otras')empty.textContent=selected==='finalizadas'?'No hay otras solicitudes finalizadas.':'No hay otras solicitudes activas.';
       else if(typeSelected==='vacaciones')empty.textContent='No hay vacaciones registradas.';
       else if(typeSelected==='permisos')empty.textContent='No hay permisos registrados.';
-      else empty.textContent='No hay solicitudes registradas.';
+      else empty.textContent='No hay solicitudes en esta categoría.';
     }else empty?.remove();
   }
 
