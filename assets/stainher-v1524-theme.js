@@ -691,6 +691,120 @@
       pointer-events:none;
     }
 
+    /* R197 · El color del sidebar cubre todo el alto sin cambiar su geometría.
+       El menú se desplaza dentro de la barra y la cuenta queda anclada abajo. */
+    @media(min-width:761px){
+      html[data-theme="light"] body .sidebar,
+      html[data-theme="modern"] body .sidebar{
+        position:sticky!important;
+        top:0!important;
+        height:100vh!important;
+        height:100dvh!important;
+        min-height:100vh!important;
+        min-height:100dvh!important;
+        overflow:hidden!important;
+      }
+      html[data-theme="light"] body .sidebar{
+        background:#fff!important;
+      }
+      html[data-theme="modern"] body .sidebar{
+        background:linear-gradient(180deg,#142c43 0%,#102337 100%)!important;
+      }
+      html[data-theme="light"] body .sidebar::before,
+      html[data-theme="modern"] body .sidebar::before{
+        display:none!important;
+      }
+      html[data-theme="light"] body .sidebar::after,
+      html[data-theme="modern"] body .sidebar::after{display:none!important}
+      html[data-theme="light"] body .sidebar>.nav,
+      html[data-theme="modern"] body .sidebar>.nav{
+        flex:1 1 auto!important;
+        min-height:0!important;
+        overflow-y:auto!important;
+        padding-bottom:16px!important;
+      }
+      html[data-theme="light"] body .sidebar>.sidebar-bottom,
+      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
+        position:relative!important;
+        top:auto!important;
+        bottom:auto!important;
+        left:auto!important;
+        right:auto!important;
+        margin-top:auto!important;
+        width:100%!important;
+        flex:0 0 auto!important;
+        z-index:2!important;
+      }
+      /* El pie usa un color explícito: background:inherit copiaba capas
+         oscuras del contenedor de cuenta y producía el bloque negro. */
+      html[data-theme="light"] body .sidebar>.sidebar-bottom{
+        background:#fff!important;
+        border-color:#d7dee8!important;
+      }
+      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
+        background:#102337!important;
+        border-color:#29465f!important;
+      }
+    }
+
+    /* R197: legibilidad de acciones en Claro y Moderno.
+       Botones apagados conservan apariencia deshabilitada, con texto visible.
+       Excluye acciones primarias para preservar su contraste blanco/azul. */
+    html[data-theme="light"] body button:disabled,
+    html[data-theme="light"] body button[disabled],
+    html[data-theme="light"] body .btn:disabled,
+    html[data-theme="modern"] body button:disabled,
+    html[data-theme="modern"] body button[disabled],
+    html[data-theme="modern"] body .btn:disabled{
+      color:#596b7d!important;
+      -webkit-text-fill-color:#596b7d!important;
+      background:#e7edf3!important;
+      border-color:#bac8d6!important;
+      opacity:1!important;
+      text-shadow:none!important;
+    }
+    html[data-theme="light"] body button:disabled *,
+    html[data-theme="modern"] body button:disabled *,
+    html[data-theme="light"] body button[disabled] *,
+    html[data-theme="modern"] body button[disabled] *{
+      color:inherit!important;
+      -webkit-text-fill-color:inherit!important;
+    }
+    html[data-theme="light"] body .btn:not(.primary):not(.danger):not(.active):not(:disabled):not([disabled]),
+    html[data-theme="modern"] body .btn:not(.primary):not(.danger):not(.active):not(:disabled):not([disabled]){
+      color:#183149!important;
+      -webkit-text-fill-color:#183149!important;
+    }
+
+    /* R197: contraste en paneles oscuros que se conservan dentro de temas claros. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi{
+      background:#142230!important;
+      border-color:#344b60!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :where(strong,b,[class*="value"],[class*="number"]){
+      color:#f5f9ff!important;
+      -webkit-text-fill-color:#f5f9ff!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :where(small,label,span,.muted){
+      color:#b9d1e8!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .kpi :where(.bad,.danger,[class*="overdue"]){
+      color:#ff7186!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :where(.stainher-contract-alert-r94,.v152-alert-card) :where(.muted,small,[class*="meta"],[class*="subtitle"]){
+      color:#c8deed!important;
+      -webkit-text-fill-color:#c8deed!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :where(.btn.active,[role="tab"].active,button[aria-selected="true"]){
+      color:#ffffff!important;
+      -webkit-text-fill-color:#ffffff!important;
+      background:#176fc1!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :where(.btn.active,[role="tab"].active,button[aria-selected="true"]) *{
+      color:inherit!important;
+      -webkit-text-fill-color:inherit!important;
+    }
+
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
