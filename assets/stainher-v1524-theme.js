@@ -811,6 +811,14 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo :is(.control-card-v95,.leadership-card,[class*="control-card"],[class*="leadership-card"]) :is(h3,h4,strong,b,p,small,span){
       color:#17344d!important;-webkit-text-fill-color:#17344d!important;
     }
+    /* R208: pestañas activas legibles en Administración del Contrato. */
+    html:is([data-theme="light"],[data-theme="modern"]) body :is(#page-contrato,#page-administracion) :is(.contract-tab.active,.btn.active,[role="tab"].active,button[aria-selected="true"]){
+      background:#1769c2!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+      border-color:#14549b!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body :is(#page-contrato,#page-administracion) :is(.contract-tab.active,.btn.active,[role="tab"].active,button[aria-selected="true"]) *{
+      color:#fff!important;-webkit-text-fill-color:#fff!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
