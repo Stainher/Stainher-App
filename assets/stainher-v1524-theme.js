@@ -648,105 +648,6 @@
       border-color:#b8c9d8!important;
     }
 
-    /* R195 · Mantener sidebar en el flujo del layout: fixed desalineaba
-       el contenedor principal en Claro/Moderno. Sticky preserva el espacio
-       de la columna, igual que Oscuro, sin afectar el scroll interno. */
-    html[data-theme="light"] body .sidebar,
-    html[data-theme="modern"] body .sidebar{
-      min-height:100vh!important;
-      height:100vh!important;
-      position:sticky!important;
-      top:0!important;
-      bottom:auto!important;
-      display:flex!important;
-      flex-direction:column!important;
-      overflow:hidden!important;
-    }
-    html[data-theme="light"] body .sidebar .nav,
-    html[data-theme="modern"] body .sidebar .nav{
-      flex:1 1 auto!important;
-      min-height:0!important;
-      overflow-y:auto!important;
-    }
-    html[data-theme="light"] body .sidebar-bottom,
-    html[data-theme="modern"] body .sidebar-bottom{
-      margin-top:auto!important;
-      position:relative!important;
-      left:auto!important;
-      right:auto!important;
-      bottom:auto!important;
-      width:100%!important;
-      flex:0 0 auto!important;
-      background:inherit!important;
-      border-top-color:rgba(255,255,255,.08)!important;
-    }
-    html[data-theme="light"] body .sidebar::after,
-    html[data-theme="modern"] body .sidebar::after{
-      content:"";
-      position:absolute;
-      inset:auto 0 0 0;
-      height:120px;
-      background:inherit;
-      z-index:-1;
-      pointer-events:none;
-    }
-
-    /* R197 · El color del sidebar cubre todo el alto sin cambiar su geometría.
-       El menú se desplaza dentro de la barra y la cuenta queda anclada abajo. */
-    @media(min-width:761px){
-      html[data-theme="light"] body .sidebar,
-      html[data-theme="modern"] body .sidebar{
-        position:sticky!important;
-        top:0!important;
-        height:100vh!important;
-        height:100dvh!important;
-        min-height:100vh!important;
-        min-height:100dvh!important;
-        overflow:hidden!important;
-      }
-      html[data-theme="light"] body .sidebar{
-        background:#fff!important;
-      }
-      html[data-theme="modern"] body .sidebar{
-        background:linear-gradient(180deg,#142c43 0%,#102337 100%)!important;
-      }
-      html[data-theme="light"] body .sidebar::before,
-      html[data-theme="modern"] body .sidebar::before{
-        display:none!important;
-      }
-      html[data-theme="light"] body .sidebar::after,
-      html[data-theme="modern"] body .sidebar::after{display:none!important}
-      html[data-theme="light"] body .sidebar>.nav,
-      html[data-theme="modern"] body .sidebar>.nav{
-        flex:1 1 auto!important;
-        min-height:0!important;
-        overflow-y:auto!important;
-        padding-bottom:16px!important;
-      }
-      html[data-theme="light"] body .sidebar>.sidebar-bottom,
-      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
-        position:relative!important;
-        top:auto!important;
-        bottom:auto!important;
-        left:auto!important;
-        right:auto!important;
-        margin-top:auto!important;
-        width:100%!important;
-        flex:0 0 auto!important;
-        z-index:2!important;
-      }
-      /* El pie usa un color explícito: background:inherit copiaba capas
-         oscuras del contenedor de cuenta y producía el bloque negro. */
-      html[data-theme="light"] body .sidebar>.sidebar-bottom{
-        background:#fff!important;
-        border-color:#d7dee8!important;
-      }
-      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
-        background:#102337!important;
-        border-color:#29465f!important;
-      }
-    }
-
     /* R197: legibilidad de acciones en Claro y Moderno.
        Botones apagados conservan apariencia deshabilitada, con texto visible.
        Excluye acciones primarias para preservar su contraste blanco/azul. */
@@ -834,37 +735,31 @@
       -webkit-text-fill-color:#fff!important;
     }
 
-    /* R201 · Anclaje real de la cuenta dentro del sidebar sticky.
-       Sobrescribe las reglas R195/R197 de position:relative más específicas.
-       Absolute se referencia al sidebar de 100dvh, no al scroll de página. */
+    /* R202: un único modelo de layout. Sidebar sigue en la cuadrícula;
+       la cuenta se fija al viewport, NO al alto del contenido desplazable. */
     @media(min-width:761px){
-      html[data-theme="light"] body .sidebar,
-      html[data-theme="modern"] body .sidebar{
-        position:sticky!important;
-        height:100dvh!important;
-        min-height:100dvh!important;
-        max-height:100dvh!important;
-        top:0!important;
+      html body .sidebar{
+        position:sticky!important;top:0!important;
+        height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;
+        display:flex!important;flex-direction:column!important;overflow:hidden!important;
       }
-      html[data-theme="light"] body .sidebar>.sidebar-bottom,
-      html[data-theme="modern"] body .sidebar>.sidebar-bottom{
-        position:absolute!important;
-        left:0!important;
-        right:0!important;
-        top:auto!important;
-        bottom:0!important;
-        width:100%!important;
-        margin:0!important;
+      html body .sidebar>.nav{
+        flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;
+        overflow-x:hidden!important;padding-bottom:84px!important;
+      }
+      html body .sidebar>.sidebar-bottom{
+        position:fixed!important;top:auto!important;bottom:0!important;
+        left:0!important;right:auto!important;
+        width:var(--stainher-r198-sidebar-width,250px)!important;
+        box-sizing:border-box!important;margin:0!important;
         padding:12px 14px max(16px,env(safe-area-inset-bottom))!important;
-        box-sizing:border-box!important;
-        z-index:20!important;
+        z-index:1010!important;
       }
-      html[data-theme="light"] body .sidebar>.nav,
-      html[data-theme="modern"] body .sidebar>.nav{
-        padding-bottom:108px!important;
-      }
+      html[data-theme="light"] body .sidebar,
+      html[data-theme="light"] body .sidebar>.sidebar-bottom{background:#fff!important}
+      html[data-theme="modern"] body .sidebar,
+      html[data-theme="modern"] body .sidebar>.sidebar-bottom{background:#102337!important}
     }
-
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
