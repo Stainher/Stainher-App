@@ -63,6 +63,18 @@
       color:#142638!important;
       box-shadow:0 8px 24px rgba(32,64,91,.08)!important;
     }
+    [data-theme="modern"] :where(.v1524-home-kpi,.v1524-home-group,.v1524-home-person,.v152-alert-card,.stainher-contract-alert-r94,.v1518-weekday,.v152-alert-days){
+      background:linear-gradient(180deg,#27465a 0%,#203b4d 100%)!important;
+      border-color:#5f7f94!important;
+      color:#f4f8fb!important;
+      box-shadow:0 5px 14px rgba(32,64,91,.10)!important;
+    }
+    [data-theme="modern"] :where(.v1524-home-kpi,.v1524-home-group,.v1524-home-person,.v152-alert-card,.stainher-contract-alert-r94) :where(.muted,small){
+      color:#c0d2df!important;
+    }
+    [data-theme="modern"] :where(.v1524-home-group h4,.v1524-home-person strong,.v152-alert-card b,.stainher-contract-alert-r94 h4){
+      color:#ffffff!important;
+    }
     [data-theme="modern"] :where(.field,.inline-field,.inline-input,.inline-select,input,select,textarea){
       background:#ffffff!important;
       color:#142638!important;
