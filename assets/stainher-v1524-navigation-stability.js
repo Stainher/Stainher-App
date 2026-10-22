@@ -98,6 +98,29 @@
       }
     });
   }
+  function normalizeRemainingSurfaces(){
+    const leadership=document.getElementById('page-liderazgo');
+    if(leadership){
+      [...leadership.querySelectorAll('div,section,aside')].forEach(node=>{
+        const text=(node.textContent||'').trim();
+        if(node.children.length<5 && text.length<95 && /^Período analizado\s*:/i.test(text))
+          node.classList.add('stainher-period-surface-r214');
+      });
+      [...leadership.querySelectorAll('div,article,section')].forEach(node=>{
+        const text=(node.textContent||'').trim();
+        if(node.children.length<=5 && text.length<110 &&
+          /^(PROGRAMADOS|REALIZADOS|PENDIENTES|VENCIDOS|CUMPLIMIENTO|EJECUCIONES LIBRES)\b/i.test(text))
+          node.classList.add('stainher-leadership-kpi-r214');
+      });
+    }
+    const modal=document.getElementById('modalRoot')||document;
+    [...modal.querySelectorAll('label')].forEach(label=>{
+      if(/^Trabajador$/i.test((label.textContent||'').trim())){
+        const parent=label.parentElement;
+        if(parent&&parent.querySelector('select'))parent.classList.add('stainher-turn-worker-r214');
+      }
+    });
+  }
   function normalizeMobileTitle(){
     const title=document.getElementById('v151MobileTitle')||document.querySelector('.v151-mobile-title strong');
     if(!title)return;
@@ -163,7 +186,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -181,7 +204,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
