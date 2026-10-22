@@ -54,3 +54,8 @@ assert.match(moduleSrc,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/,'Cate
 assert.match(moduleSrc,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Filtros de estado deben quedar alineados en 2 columnas');
 assert.match(moduleSrc,/width:100%!important/,'Botones de filtros deben ocupar el ancho de su celda');
 assert.match(moduleSrc,/height:42px!important/,'Botones de filtros deben tener altura uniforme');
+
+assert.doesNotMatch(moduleSrc,/data-r179-type="todas"/,'No debe existir pestaña Todas');
+assert.match(moduleSrc,/r179SolicitudesType='vacaciones'/,'Vacaciones debe ser la categoría inicial');
+assert.match(moduleSrc,/const typeMatch=category===typeSelected/,'Cada solicitud debe pertenecer solo a su categoría');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R182'/,'Loader debe forzar versión R182');
