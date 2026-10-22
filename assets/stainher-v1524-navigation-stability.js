@@ -50,6 +50,29 @@
     });
     document.title=`Stainher App ${VERSION}`;
   }
+  function normalizeActionRows(){
+    // R214: localizar la barra REAL mediante los botones visibles, no clases heredadas.
+    const modules=[
+      ['page-preventivo',/^(?:↓\\s*)?Informe$/i,/Importar Plan Matriz/i],
+      ['page-equipos',/Nuevo equipo/i,null]
+    ];
+    modules.forEach(([id,primary,secondary])=>{
+      const page=document.getElementById(id);
+      if(!page)return;
+      const buttons=[...page.querySelectorAll('button')].filter(button=>primary.test((button.textContent||'').trim()));
+      buttons.forEach(button=>{
+        let parent=button.parentElement;
+        while(parent&&parent!==page){
+          const secondaryExists=!secondary||[...parent.querySelectorAll('button')].some(btn=>secondary.test(btn.textContent||''));
+          if(secondaryExists){
+            parent.classList.add('stainher-actions-surface-r214');
+            break;
+          }
+          parent=parent.parentElement;
+        }
+      });
+    });
+  }
   function normalizeMobileTitle(){
     const title=document.getElementById('v151MobileTitle')||document.querySelector('.v151-mobile-title strong');
     if(!title)return;
@@ -115,7 +138,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeActionRows();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -133,7 +156,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
