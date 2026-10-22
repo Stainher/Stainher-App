@@ -774,6 +774,17 @@
     html body :is(.version-chip,.v15-version-chip,.v1513-version-meta) *{
       color:#fff!important;
     }
+    /* R208: textos legibles en celdas de turnos A, C y L sin perder tonos pastel. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="A"],[data-shift="C"],[data-shift="L"],[data-turno="A"],[data-turno="C"],[data-turno="L"]){
+      font-weight:700!important;
+      text-shadow:none!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="A"],[data-turno="A"]){color:#1855a6!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="C"],[data-turno="C"]){color:#08774c!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is([data-shift="L"],[data-turno="L"]){color:#596b82!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.v1512-turn-cell,.v1520-turn-matrix td,.v1512-turn-grid td) :is(.shift-a,.turno-a,.shift-c,.turno-c,.shift-l,.turno-l){
+      font-weight:700!important;
+    }
     /* Montos extensos: prioriza mostrar el número completo dentro de cada tarjeta. */
     :is(#page-contrato,#page-administracion) .v1520-kpis>.v1520-kpi:nth-child(-n+2) b,
     :is(#page-contrato,#page-administracion) .v1524-contract-money-value{
