@@ -43,3 +43,9 @@ assert.match(moduleSrc,/card\.classList\.toggle\('r180-filter-hidden',!show\)/,'
 assert.match(moduleSrc,/visibleCount===0/,'Estado vacío debe calcularse con el filtro real');
 assert.match(moduleSrc,/data\.r180RequestCategory=category|dataset\.r180RequestCategory=category/,'Debe etiquetar categoría por tarjeta');
 assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R180'/,'Loader debe forzar versión R180');
+
+assert.match(moduleSrc,/data-r181-state-tabs hidden/,'Activas/Finalizadas debe estar oculto por defecto');
+assert.match(moduleSrc,/const useStateFilter=typeSelected==='otras'/,'Filtro de estado debe aplicar solo a Otras');
+assert.match(moduleSrc,/stateTabs\.hidden=!useStateFilter/,'Debe mostrar Activas/Finalizadas solo al seleccionar Otras');
+assert.match(moduleSrc,/window\.state\.r179SolicitudesType='otras'/,'Al finalizar debe llevar a Otras');
+assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R181'/,'Loader debe forzar versión R181');
