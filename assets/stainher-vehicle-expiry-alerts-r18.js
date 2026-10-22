@@ -160,12 +160,12 @@
     const token=++alertSeq;
     removeVehicleAlertDom();
     const filter=String(window.v152AlertFilter||'todas').toLowerCase();
-    if(filter!=='todas'&&filter!=='recordatorios')return;
+    if(filter!=='todas'&&filter!=='recordatorios'&&filter!=='documentos_vencidos')return;
     const list=document.querySelector('#homeAlertsV95 .v152-alert-list');
     if(!list)return;
     const items=await loadVehicleAlerts();if(token!==alertSeq)return;
     const now=new Date(),year=now.getFullYear(),month=now.getMonth();
-    const visible=filter==='recordatorios'?items:items.filter(item=>{
+    const visible=filter==='documentos_vencidos'?items.filter(item=>item.days!=null&&item.days<=30):filter==='recordatorios'?items:items.filter(item=>{
       if(item.days!=null&&item.days<0)return true;
       const d=new Date(String(item.date).slice(0,10)+'T12:00:00');
       return d.getFullYear()===year&&d.getMonth()===month;
