@@ -24,7 +24,7 @@ test('R239 release manifest, navigation and loader agree',()=>{
 test('Installed mobile shell exposes the current release',()=>{
   assert.match(html,/stainher-v1524-release-refresh-r231\.js/);
   assert.doesNotMatch(html,/stainher-v1524-release-refresh-r226\.js/);
-  assert.match(html,/stainher-r238-mobile-header-guarantee/);
+  assert.match(html,/stainher-r239-mobile-header-guarantee/);
   assert.match(html,/Stainher App · V15\.24 · R239/);
   assert.match(nav,/Stainher App · \$\{VERSION\} · \$\{REVISION\}/);
   assert.match(nav,/document\.title=`Stainher App \$\{VERSION\} \$\{REVISION\}`/);
