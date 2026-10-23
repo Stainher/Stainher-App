@@ -9,7 +9,7 @@ assert.match(moduleSrc,/Marcar como finalizada/,'Debe ofrecer cierre operacional
 assert.match(moduleSrc,/data-r178-tab="activas"/,'Debe incorporar pestaña Activas');
 assert.match(moduleSrc,/data-r178-tab="finalizadas"/,'Debe incorporar pestaña Finalizadas');
 assert.match(moduleSrc,/data-r178-final-count/,'Debe mostrar contador de solicitudes finalizadas');
-assert.match(moduleSrc,/No hay solicitudes finalizadas/,'Debe mostrar estado vacío para finalizadas');
+assert.match(moduleSrc,/No hay otras solicitudes finalizadas\./,'El estado vacío debe respetar categoría Otras');
 assert.match(moduleSrc,/finalizar_solicitud_operacional_r177/,'Debe usar RPC específica');
 assert.match(moduleSrc,/finalizacion_observacion/,'Debe mostrar observación de cierre');
 assert.match(moduleSrc,/Gestión finalizada/,'Debe destacar solicitudes finalizadas');
