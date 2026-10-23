@@ -327,6 +327,7 @@
   async function render(){
     const page=ensurePage();
     if(!page||!canView())return;
+    watchPageTitle();
     page.innerHTML='<div class="topbar"><div><h2>Estandarización</h2><p>Control de actividades de normalización por equipo.</p></div></div><div class="panel std-empty">Cargando control…</div>';
     try{
       await loadRows();
@@ -485,18 +486,31 @@
   function fixPageTitle(){
     const page=document.getElementById('page-estandarizacion');
     if(!page)return false;
-    // El título visible es un h2 dentro de .topbar; la búsqueda anterior
-    // solo contemplaba h1 y dejaba la versión sin tilde en pantalla.
-    const headings=page.querySelectorAll(':scope > .topbar h1,:scope > .topbar h2,:scope > .page-header h1,:scope > .page-header h2,:scope > header h1,:scope > header h2,:scope > h1,:scope > h2');
-    headings.forEach(heading=>{
-      if(/^estandarizaci[oó]n$/i.test(heading.textContent.trim()) && heading.textContent!=='Estandarización')
-        heading.textContent='Estandarización';
+    const candidates=page.querySelectorAll('.topbar h1,.topbar h2,.topbar [class*="title"],.page-header h1,.page-header h2,h1,h2');
+    let fixed=false;
+    candidates.forEach(heading=>{
+      if(heading.children.length)return;
+      const current=(heading.textContent||'').trim();
+      if(/^estandarizaci[oó]n$/i.test(current)&&current!=='Estandarización'){
+        heading.textContent='Estandarización';fixed=true;
+      }
     });
-    return headings.length>0;
+    return fixed;
+  }
+  let titleObserver=null,titleObservedPage=null;
+  function watchPageTitle(){
+    const page=ensurePage();
+    if(!page||titleObservedPage===page)return;
+    titleObserver?.disconnect();
+    titleObservedPage=page;
+    titleObserver=new MutationObserver(()=>fixPageTitle());
+    titleObserver.observe(page,{childList:true,subtree:true,characterData:true});
+    fixPageTitle();
   }
 
   function install(){
     fixPageTitle();
+    watchPageTitle();
     ensureStyles();
     ensurePage();
     ensureNav();
