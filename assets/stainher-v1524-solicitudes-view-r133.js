@@ -389,6 +389,7 @@
       wrapRender();
       if(tries>=60){clearInterval(wrapTimer);wrapTimer=null}
     },150);
+    window.addEventListener('resize',()=>{if(page()?.dataset.stainherSolicitudesView==='compact')requestAnimationFrame(()=>decorateCards())});
     window.addEventListener('stainher:modules-ready',()=>{wrapRender();enhance()});
     window.addEventListener('stainher:runtime-r133-ready',()=>{wrapRender();enhance()});
   }
