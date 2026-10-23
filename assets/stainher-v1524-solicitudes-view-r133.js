@@ -276,7 +276,7 @@
       if(!actions||!card.contains(actions))return;
       const important=(el,key,value)=>el.style.setProperty(key,value,'important');
       const width=card.getBoundingClientRect().width;
-      const narrow=width<760;
+      const narrow=width<940;
       const columns=narrow?'repeat(2,minmax(0,1fr))':
         'minmax(0,160px) minmax(0,160px) minmax(0,125px) minmax(0,180px) minmax(0,110px) max-content';
       important(card,'display','grid');
