@@ -20,7 +20,7 @@ assert.doesNotMatch(action,/preventivo_reprogramaciones.*insert/,'No debe falsea
 
 assert.match(state,/eliminar\\s\+programaci\[oó\]n/,'R137 debe mantener abierto el equipo al eliminar programación');
 
-assert.match(loader,/HP_LOADER_VERSION__='R141'/,'Loader debe quedar consolidado en R141');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 141, 'El cargador activo debe preservar R141 o una versión compatible posterior (preventivo-delete-schedule-r140)');
 assert.match(loader,/refreshPreventivoDeleteScheduleR140/,'Loader debe cargar R140');
 assert.match(loader,/stainher-v1524-preventivo-delete-schedule-r140\.js/,'Loader debe cargar el módulo R140');
 assert.match(loader,/StainherPreventivoDeleteScheduleR140\?\.install/,'Loader debe instalar R140');

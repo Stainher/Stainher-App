@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const moduleSrc=fs.readFileSync('assets/stainher-v1524-edp-quarterly-certification-r149.js','utf8');
 const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 
-assert.match(moduleSrc,/R149 · Certificación trimestral en EDP/,'Debe identificar R149');
+assert.match(moduleSrc,/Certificación trimestral en EDP/,'Debe mantener la certificación trimestral incluso después de R151');
 assert.match(moduleSrc,/ep_num\)===17/,'Debe limitar la corrección a EP17');
 assert.match(moduleSrc,/anio_edp\)===2026/,'Debe limitar a 2026');
 assert.match(moduleSrc,/mes_edp\)===10/,'Debe limitar a octubre');

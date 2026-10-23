@@ -18,7 +18,7 @@ assert.match(runtime,/renderContractForecastV8/,'Debe intervenir desde la entrad
 assert.match(runtime,/renderForecastBodyV9/,'Debe reparar después de renderizar');
 assert.match(runtime,/loadForecastV9/,'Debe reparar después de cargar datos');
 
-assert.match(loader,/HP_LOADER_VERSION__='R123'/,'El loader debe quedar consolidado como R123');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 123, 'El cargador activo debe conservar al menos R123 (forecast-runtime-r123)');
 assert.match(loader,/stainher-v1524-contract-forecast-r123\.js/,'El loader debe cargar R123');
 assert.match(loader,/StainherContractForecastR123\?\.install/,'El loader debe instalar R123');
 assert.match(loader,/stainher-v1524-edp-equipment-r122\.js/,'R122 debe mantenerse');

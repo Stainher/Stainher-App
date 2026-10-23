@@ -23,8 +23,8 @@ vm.runInNewContext(source,context);
 assert.equal(window.v1516ExportTurnReportPdf.__r111RuntimeStable,true,'una segunda carga debe recuperar R106 después de una sobreescritura antigua');
 
 assert.match(loader,/StainherTurnPdfR111\?\.install\?\.\(\)/,'el cargador debe reinstalar R111 explícitamente');
-assert.match(loader,/20260924-r112-loader-consolidation/,'el cargador debe renovar caché');
-assert.match(index,/file==='stainher-turn-pdf-final-r18\.js'\?'20260924-r112-loader-consolidation'/,'el punto de entrada debe renovar caché del PDF');
+assert.match(loader,/const fresh=src=>/,'La carga del PDF debe agregar una clave fresca por instancia');
+assert.match(index,/function runtimeUrl\(source\)/,'El entrypoint debe aplicar invalidación centralizada a todos los módulos, incluido el PDF');
 
 const detailPosition=source.indexOf('drawDetailGroup(selected[0]');
 const calendarPosition=source.indexOf('drawPersonalCalendar(doc,r,selected[0]');

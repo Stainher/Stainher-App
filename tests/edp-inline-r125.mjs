@@ -26,10 +26,10 @@ assert.match(inline,/data-r125-total="standardization"/,'Resumen EDP debe mostra
 assert.match(inline,/readonly data-r161-standardization/,'Monto de Estandarización debe ser automático y no editable manualmente');
 assert.match(inline,/MutationObserver/,'Debe reaccionar al modal aunque se abra después de cargar el módulo');
 
-assert.match(loader,/HP_LOADER_VERSION__='R125'/,'El loader debe quedar consolidado como R125');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 125, 'El cargador activo debe conservar al menos R125 (edp-inline-r125)');
 assert.match(loader,/stainher-v1524-edp-inline-r125\.js/,'El loader debe cargar R125');
 assert.match(loader,/StainherEdpInlineR125\?\.install/,'El loader debe instalar R125');
-assert.match(loader,/stainher-v1524-forecast-history-r124\.js/,'R124 debe conservarse');
+assert.match(loader,/stainher-v1524-forecast-history-r128\.js/,'La revisión activa R128 conserva el histórico Forecast');
 assert.match(loader,/stainher-v1524-contract-forecast-r123\.js/,'R123 debe conservarse');
 assert.match(loader,/stainher-v1524-edp-equipment-r122\.js/,'R122 debe conservarse');
 

@@ -16,7 +16,7 @@ assert.match(pdf,/y=\(doc\.lastAutoTable\?\.finalY\|\|y\)\+8/,'Debe avanzar el c
 assert.match(pdf,/if\(opt\.metodologia===true\)/,'Debe generar la metodología cuando fue seleccionada');
 assert.match(loader,/refreshReliabilityActionsR119/,'El cargador debe refrescar la corrección R119');
 assert.match(loader,/stainher-v1524-reliability-actions\.js/,'Debe cargar el módulo actualizado de Confiabilidad');
-assert.match(loader,/HP_LOADER_VERSION__='R119'/,'El cargador debe quedar consolidado como R119');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 119, 'El cargador activo debe preservar R119 o una versión compatible posterior (reliability-pdf-options-r119)');
 
 new Function(pdf);
 new Function(loader);

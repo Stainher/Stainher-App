@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const core=fs.readFileSync('assets/stainher-presupuestos-r80.js','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261019165000_sync_presupuestos_edp_r166.sql','utf8');
 
-assert.match(core,/20261019-r166-sync-presupuestos-edp/,'Presupuestos debe cargar versión R166');
+assert.ok(Number(core.match(/const BUILD='\d+-r(\d+)-/)?.[1])>=166,'Presupuestos debe mantener versión R166 o una posterior');
 assert.match(core,/async function refreshAssignedContractData\(row\)/,'Debe refrescar el EDP local tras editar');
 assert.match(core,/from\('estados_pago'\).*eq\('id',row\.estado_pago_id\)/s,'Debe refrescar Estado de Pago vinculado');
 assert.match(core,/from\('gastos_reembolsables'\).*eq\('id',row\.gasto_reembolsable_id\)/s,'Debe refrescar GGRR vinculado');

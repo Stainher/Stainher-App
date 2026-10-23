@@ -14,13 +14,13 @@ assert.match(view,/function proxyActions\(card\)/,'La vista Lista debe reutiliza
 assert.match(view,/function buildActionGroup\(buttons\)/,'Las acciones deben agruparse visualmente sin cambiar sus handlers');
 assert.match(view,/button\.click\(\)/,'Las acciones de Lista deben delegar en la ficha original para conservar CRUD y permisos');
 assert.match(view,/window\.state\?\.equipos/,'La lista debe usar los datos de Equipos cargados');
-assert.match(view,/Plan\s\+preventivo/,'La lista debe conservar el indicador del plan preventivo');
+assert.match(view,/Plan\s+preventivo/,'La lista debe conservar el indicador del plan preventivo');
 assert.match(view,/Fabricante s\/i/,'Debe manejar equipos sin fabricante');
 assert.match(view,/grid-template-columns/,'La lista debe alinear sus columnas');
 assert.match(view,/@media\(max-width:760px\)/,'Debe existir adaptación móvil');
 assert.match(view,/if\(installed\)return;installed=true/,'El módulo no debe instalar observadores duplicados');
 
-assert.match(loader,/HP_LOADER_VERSION__='R135'/,'El cargador R135 debe conservar Lista/Fichas de Equipos R132');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 135, 'El cargador activo debe conservar al menos R135 (equipment-view-r120)');
 assert.match(loader,/refreshEquipmentViewR132/,'El bootstrap debe cargar la vista optimizada de Equipos');
 assert.match(loader,/stainher-v1524-equipment-view-r120\.js/,'El cargador debe cargar el módulo R120');
 assert.match(loader,/refreshReliabilityActionsR119/,'R119 debe conservarse');

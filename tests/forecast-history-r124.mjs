@@ -14,9 +14,9 @@ assert.match(history,/data-r124-month/,'Debe mantener selector mensual');
 assert.match(history,/Resumen histórico por equipo/,'Debe mostrar tabla por equipo');
 assert.match(history,/Resumen histórico por partida/,'Debe mostrar tabla por partida');
 
-assert.match(loader,/HP_LOADER_VERSION__='R124'/,'El loader debe quedar consolidado como R124');
-assert.match(loader,/stainher-v1524-forecast-history-r124\.js/,'El loader debe cargar R124');
-assert.match(loader,/StainherForecastHistoryR124\?\.install/,'El loader debe instalar R124');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 124, 'El cargador activo debe conservar al menos R124 (forecast-history-r124)');
+assert.match(loader,/stainher-v1524-forecast-history-r128\.js/,'R128 sustituye R124 manteniendo histórico');
+assert.match(loader,/StainherForecastHistoryR128\?\.install/,'El loader debe instalar el sucesor R128');
 assert.match(loader,/stainher-v1524-contract-forecast-r123\.js/,'R123 debe conservarse');
 assert.match(loader,/stainher-v1524-edp-equipment-r122\.js/,'R122 debe conservarse');
 

@@ -26,7 +26,7 @@ jobs:
         run: node --test tests/deployment-validation-r217.mjs tests/mobile-release-r228.mjs
       - name: Visual QA - real leadership KPI markup
         run: |
-          npm install --no-save playwright@1.56.1
+          npm install --no-save playwright@1.56.1 @electric-sql/pglite
           npx playwright install --with-deps chromium
           node tests/leadership-visual-r220.mjs
           node tests/mobile-contrast-r226.mjs
@@ -39,9 +39,8 @@ jobs:
           name: stainher-visual-evidence-r228
           path: artifacts/
           if-no-files-found: warn
-      - name: Run existing regression tests (historical audit)
+      - name: Run complete regression suite (blocking)
         id: legacy
-        continue-on-error: true
         run: |
           node --test --test-reporter=tap tests/*.mjs > legacy-test-results.tap 2>&1
       - name: Publish historical failure report

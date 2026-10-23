@@ -16,7 +16,7 @@ assert.match(app,/const sig=String\(signer\.imagen_png/);
 assert.doesNotMatch(app,/__STAINHER_SAVED_SIGNATURE__\|\|await signature/);
 assert.match(app,/window\.renderContractTab\.__r110/);
 assert.match(loader,/stainher-presupuestos-runtime-r110/);
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R112'/);
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 112, 'El cargador activo debe conservar al menos R112 (budgets-reliability-r110)');
 assert.match(loader,/StainherHPR110/);
 assert.match(router,/R110 · Integración nativa de Presupuestos/);
 assert.match(router,/\['administrador','confiabilidad'\]\.includes\(role\(\)\)/);

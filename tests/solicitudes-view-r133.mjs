@@ -17,7 +17,7 @@ assert.match(view,/v154-request-actions/,'Debe mantener las acciones existentes'
 assert.match(view,/renderSolicitudesV15=wrapped/,'Debe reaplicar el modo tras recargar solicitudes');
 assert.match(view,/@media\(max-width:680px\)/,'Debe conservar adaptación móvil');
 
-assert.match(loader,/HP_LOADER_VERSION__='R142'/,'Loader debe quedar consolidado en R142');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 142, 'El cargador activo debe preservar al menos R142 (solicitudes-view-r133)');
 assert.match(loader,/refreshSolicitudesViewR133/,'Loader debe cargar la vista de Solicitudes');
 assert.match(loader,/stainher-v1524-solicitudes-view-r133\.js/,'Loader debe cargar el módulo R133');
 assert.match(loader,/StainherSolicitudesViewR133\?\.install/,'Loader debe instalar R133');
