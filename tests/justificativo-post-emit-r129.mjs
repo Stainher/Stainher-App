@@ -5,7 +5,8 @@ const just=fs.readFileSync('stainher-justificativos-r19.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
 const migration=fs.readFileSync('supabase/migrations/20260928150000_justificativo_edit_post_emit_r129.sql','utf8');
 
-assert.match(just,/20260928-r129-justificativo-post-emit-edit/,'Debe cargar build R129');
+const currentBuild=just.match(/const BUILD='([^']+)'/)?.[1];
+assert.ok(Number(currentBuild?.match(/-r(\d+)-/)?.[1])>=129,'La implementación debe conservar la edición post-emisión de R129');
 assert.match(just,/canEditIssuedJustification/,'Debe validar permiso de edición post emisión');
 assert.match(just,/r==='administrador'/,'Administrador debe poder editar justificativos emitidos');
 assert.match(just,/r!=='recursos_humanos'/,'RR.HH. debe ser el otro perfil habilitado');
@@ -17,7 +18,7 @@ assert.match(just,/editar_justificativo_emitido_v1524/,'Debe usar RPC específic
 assert.match(just,/La próxima descarga utilizará la versión corregida/,'Debe confirmar uso de nueva versión');
 assert.match(just,/postEmitEdit:true/,'Debe marcar funcionalidad activa');
 
-assert.match(index,/stainher-justificativos-r19\.js\?build=20260928-r129-justificativo-post-emit-edit/,'Index debe invalidar cache del módulo');
+assert.ok(index.includes('stainher-justificativos-r19.js?build='+currentBuild),'El entrypoint debe cargar el build activo del módulo, no una copia obsoleta');
 
 assert.match(migration,/justificativo_editado_at/,'Debe registrar fecha de edición');
 assert.match(migration,/justificativo_editado_por/,'Debe registrar autor de edición');
