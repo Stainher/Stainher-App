@@ -6,11 +6,11 @@ const migration=fs.readFileSync('supabase/migrations/20260929163000_reassign_app
 const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 
 assert.match(route,/APPROVED_REROUTE_R138__===BUILD/,'R138 debe quedar activo');
-assert.match(route,/estado\|\|'\)!=='aprobada'/,'Solo debe habilitarse sobre solicitudes aprobadas');
+assert.match(route,/estado\|\|''\)!=='aprobada'/,'Solo debe habilitarse sobre solicitudes aprobadas');
 assert.match(route,/Reasignar a Cristian Lagos/,'Debe mostrar la nueva acción');
 assert.match(route,/v135RerouteRequest/,'Debe reemplazar la acción R135 en solicitudes aprobadas para evitar botones duplicados');
 assert.match(route,/role\(\)!=='administrador'/,'Solo Administrador debe ver la acción');
-assert.match(route,/tipo\|\|'\)==='justificativo'/,'Justificativos deben quedar excluidos');
+assert.match(route,/tipo\|\|''\)==='justificativo'/,'Justificativos deben quedar excluidos');
 assert.match(route,/isFinalVacation/,'Vacaciones finalizadas por RR.HH. deben quedar excluidas');
 assert.match(route,/reasignar_solicitud_aprobada_cristian_r138/,'Debe usar la RPC específica R138');
 assert.match(route,/v1517SendRequestApprovalEmail/,'Debe notificar por correo a Cristian Lagos');
