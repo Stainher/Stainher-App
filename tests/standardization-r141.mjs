@@ -36,7 +36,7 @@ assert.equal((migration.match(/"estado":"EN PROCESO"/g)||[]).length,13,'Debe con
 assert.equal((migration.match(/"estado":"NO REALIZADO"/g)||[]).length,16,'Debe conservar 16 no realizadas');
 assert.match(migration,/"equipo":"NODO 3700"/,'Debe unificar NODO3700 como NODO 3700');
 
-assert.match(loader,/HP_LOADER_VERSION__='R141'/,'Loader debe quedar consolidado en R141');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 141, 'El cargador activo debe preservar R141 o una versión compatible posterior (standardization-r141)');
 assert.match(loader,/refreshStandardizationR141/,'Loader debe cargar R141');
 assert.match(loader,/stainher-v1524-standardization-r141\.js/,'Loader debe cargar el módulo R141');
 assert.match(loader,/StainherStandardizationR141\?\.install/,'Loader debe instalar R141');
