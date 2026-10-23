@@ -80,7 +80,7 @@
       }
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
         display:grid!important;
-        grid-template-columns:minmax(145px,.85fr) minmax(165px,1fr) minmax(150px,.9fr) minmax(150px,.9fr) minmax(88px,.55fr) minmax(220px,auto)!important;
+        grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,.85fr) minmax(0,1fr) minmax(0,.65fr) max-content!important;
         gap:7px 14px!important;
         align-items:center!important;
         min-height:0!important;
@@ -120,7 +120,7 @@
         justify-content:flex-end!important;
         flex-wrap:nowrap!important;
         gap:6px!important;
-        min-width:220px!important;
+        min-width:0!important;max-width:100%!important;
         margin:0!important;
       }
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions .btn{
@@ -132,6 +132,16 @@
         padding:6px 9px!important;
         font-size:11px!important;
         white-space:nowrap!important;
+      }
+
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+        width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v154-request-actions{
+        max-width:100%!important;box-sizing:border-box!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
+        overflow-wrap:anywhere!important;
       }
 
       #${PAGE_ID}[data-stainher-solicitudes-view="expanded"] .v152-request-card{
@@ -152,7 +162,7 @@
 
       @media(max-width:1320px){
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:minmax(140px,1fr) minmax(160px,1fr) minmax(145px,.9fr) minmax(90px,.6fr) minmax(220px,1.2fr)!important;
+          grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,.7fr) max-content!important;
         }
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{display:none!important}
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:4!important}
@@ -160,13 +170,13 @@
       }
       @media(max-width:900px){
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:minmax(130px,1fr) minmax(150px,1fr) minmax(120px,.8fr) minmax(190px,1.2fr)!important;
+          grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) max-content!important;
         }
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{display:none!important}
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:3!important}
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
           grid-column:4!important;
-          min-width:190px!important;
+          min-width:0!important;max-width:100%!important;
         }
       }
       @media(max-width:680px){
