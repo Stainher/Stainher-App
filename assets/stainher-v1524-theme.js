@@ -1039,22 +1039,31 @@
     .stainher-theme-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin:8px 0 0;min-height:40px}
     .v157-user-menu .stainher-theme-toggle{margin:0;text-align:left;justify-content:flex-start}
     @media(max-width:760px){.userbox>.stainher-theme-toggle{width:auto;min-width:150px}}
-    /* Desarrollo 21 · compactación segura de la barra móvil. */
+    /* R227 · dock móvil sobre la zona segura real: no colorear 34px de gesto iOS.
+       El estilo legado #v151MobileBottom de index.html lo fija a bottom:0 y pinta
+       el safe-area de negro. Aquí restablecemos margen inferior con prioridad real. */
     @media(max-width:780px){
       html body #v151MobileBottom,
       html body .v151-mobile-bottom{
+        position:fixed!important;
+        left:6px!important;right:6px!important;
+        bottom:calc(6px + var(--stainher-mobile-safe-bottom,env(safe-area-inset-bottom,0px)))!important;
+        width:auto!important;max-width:calc(100vw - 12px)!important;
         height:auto!important;min-height:0!important;max-height:none!important;
-        padding:4px 6px max(6px,env(safe-area-inset-bottom,0px))!important;
-        box-sizing:border-box!important;align-content:start!important;
+        padding:4px 6px!important;
+        margin:0!important;box-sizing:border-box!important;
+        border-radius:14px!important;
+        align-content:start!important;
       }
       html body #v151MobileBottom > button,
       html body .v151-mobile-bottom > button{
+        min-width:0!important;
         min-height:48px!important;height:48px!important;max-height:48px!important;
         padding:3px 2px!important;box-sizing:border-box!important;
         line-height:1.18!important;
       }
     }
-    /* R225: última regla, por encima de overrides antiguos de tema Claro. */
+        /* R225: última regla, por encima de overrides antiguos de tema Claro. */
     @media (max-width:780px){
       html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead,
       html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileBottom{
@@ -1212,7 +1221,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261023-r226-mobile-release-consistency':'20261023-r226-mobile-release-consistency');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261023-r227-ios-safearea-floating-dock':'20261023-r227-ios-safearea-floating-dock');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
