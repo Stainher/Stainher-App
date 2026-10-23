@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261023-r245-rollback-compact';
+  const BUILD='20261023-r246-responsive-actions-only';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -245,6 +245,34 @@
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:2!important;grid-row:auto!important}
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important;grid-row:auto!important}
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{grid-column:2!important;grid-row:auto!important;flex-wrap:wrap!important}
+      }
+      /* R246: actions only — preserve every field, filter and view renderer. */
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+        grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        justify-content:stretch!important;
+        max-width:100%!important;
+        overflow:hidden!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+        grid-column:1/-1!important;grid-row:auto!important;
+        width:100%!important;min-width:0!important;max-width:100%!important;
+        display:flex!important;justify-content:flex-start!important;
+        flex-wrap:wrap!important;gap:6px!important;
+        position:static!important;inset:auto!important;transform:none!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions > :is(button,.btn,a){
+        max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;
+      }
+      @media(max-width:1050px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        }
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
+          grid-column:auto!important;grid-row:auto!important;
+        }
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+          grid-column:1/-1!important;
+        }
       }
     `;
     document.head.appendChild(style);
