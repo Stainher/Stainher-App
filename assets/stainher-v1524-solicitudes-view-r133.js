@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20260928-r133-solicitudes-compact-expanded';
+  const BUILD='20261023-r242-compact-actions';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -218,6 +218,33 @@
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important}
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important}
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important}
+      }
+      /* R242: avoid excessive spacing and keep actions beside status. */
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+        grid-template-columns:minmax(120px,180px) minmax(120px,180px) minmax(105px,145px) minmax(140px,195px) minmax(90px,120px) max-content!important;
+        column-gap:12px!important;justify-content:start!important;overflow:visible!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+        grid-column:6!important;grid-row:1!important;width:auto!important;
+        justify-content:flex-start!important;position:static!important;inset:auto!important;transform:none!important;
+      }
+      @media(max-width:1250px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:minmax(0,180px) minmax(0,180px) minmax(0,150px) minmax(0,190px)!important;
+        }
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important;display:block!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important;display:block!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:3!important;display:block!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:4!important;display:block!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important;grid-row:2!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{grid-column:2/4!important;grid-row:2!important}
+      }
+      @media(max-width:700px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:1!important;grid-row:auto!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:2!important;grid-row:auto!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important;grid-row:auto!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{grid-column:2!important;grid-row:auto!important;flex-wrap:wrap!important}
       }
     `;
     document.head.appendChild(style);
