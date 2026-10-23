@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R239",
-  "build": "20261023-r239-standardization-heading",
+  "revision": "R240",
+  "build": "20261023-r240-standardization-title",
   "path": "./",
   "publishedAt": "2026-10-23"
 }
