@@ -19,7 +19,7 @@ assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)
 assert.match(loader,/stainher-turn-report-hotfix-runtime-r126/,'Loader debe recargar la corrección R126');
 assert.match(loader,/stainher:turn-report-r126-ready/,'Debe emitir evento R126');
 assert.match(loader,/stainher-v1524-edp-inline-r125\.js/,'R125 debe conservarse');
-assert.match(loader,/stainher-v1524-forecast-history-r124\.js/,'R124 debe conservarse');
+assert.match(loader,/stainher-v1524-forecast-history-r128\.js/,'El histórico Forecast R128 no debe perderse al actualizar Turnos');
 
 new Function(report);
 new Function(loader);
