@@ -18,7 +18,9 @@ assert.ok([or,og,ob].every(Number.isFinite)&&or>og&&og>ob,'El tema Moderno conse
 
 assert.match(src,/current===DARK\?MODERN:current===MODERN\?LIGHT:DARK/,'Selector debe ciclar Oscuro → Moderno → Claro');
 assert.match(src,/v===DARK\|\|v===LIGHT\|\|v===MODERN/,'Tema moderno debe persistir');
-const chartTextHex=src.match(/const textColor=light\\?'#[0-9a-f]{6}':modern\\?'(#[0-9a-f]{6})'/i)?.[1];
+const chartBranch=src.split("const textColor=light?")[1]?.split(';')[0]||'';
+const chartColors=chartBranch.match(/#[0-9a-f]{6}/gi)||[];
+const chartTextHex=chartColors[1];
 assert.ok(chartTextHex,'Los gráficos deben adaptar el texto al tema Moderno');
 const channel=x=>{const v=x/255;return v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4};
 const [cr,cg,cb]=rgb(chartTextHex.slice(1));
