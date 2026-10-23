@@ -5,7 +5,9 @@ const src=fs.readFileSync('assets/stainher-v1524-theme.js','utf8');
 
 assert.match(src,/MODERN='modern'/,'Debe declarar tercer tema moderno');
 assert.match(src,/:root\[data-theme="modern"\]/,'Debe definir variables del tema moderno');
-const modernCss=src.match(/:root\\[data-theme="modern"\\]\\{([^}]+)\\}/)?.[1]||'';
+const modernStart=src.indexOf(':root[data-theme="modern"]{');
+assert.ok(modernStart>=0,'Variables Moderno presentes');
+const modernCss=src.slice(modernStart,src.indexOf('}',modernStart));
 const accentHex=modernCss.match(/--accent:#([0-9a-f]{6})/i)?.[1];
 const orangeHex=modernCss.match(/--accent2:#([0-9a-f]{6})/i)?.[1];
 const rgb=hex=>hex?.match(/../g).map(v=>parseInt(v,16))||[];
