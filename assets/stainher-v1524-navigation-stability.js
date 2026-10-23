@@ -53,7 +53,8 @@
         }
       });
     });
-    document.title=`Stainher App ${VERSION} ${REVISION}`;
+    const canonicalTitle=`Stainher App ${VERSION} ${REVISION}`;
+    if(document.title!==canonicalTitle)document.title=canonicalTitle;
   }
   function normalizeActionRows(){
     // R214: localizar la barra REAL mediante los botones visibles, no clases heredadas.
@@ -231,6 +232,14 @@
       if(!page||page==='__more')return;
       event.preventDefault();event.stopImmediatePropagation();navigate(page);
     },true);
+    // Restore the canonical browser title when legacy modules overwrite it.
+    // Observing <title> directly avoids running the full page normalizer for title changes.
+    const browserTitle=document.querySelector('head > title');
+    if(browserTitle){
+      const canonicalTitle=`Stainher App ${VERSION} ${REVISION}`;
+      new MutationObserver(()=>{if(document.title!==canonicalTitle)document.title=canonicalTitle})
+        .observe(browserTitle,{childList:true,characterData:true,subtree:true});
+    }
     new MutationObserver(records=>{if(records.some(record=>record.addedNodes.length||record.type==='characterData'))schedule()}).observe(document.body,{childList:true,subtree:true,characterData:true});
     window.addEventListener('stainher:modules-ready',()=>{installNavigation();normalizeMenuOrder();enforcePage(activePage)});
   }
