@@ -198,6 +198,27 @@
           min-width:0!important;
         }
       }
+      /* Zoom-safe compact rows: actions must never occupy an overflowing implicit column. */
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+        grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        grid-auto-flow:row!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:3!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:4!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:5!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+        grid-column:1/-1!important;grid-row:auto!important;
+        min-width:0!important;width:100%!important;max-width:100%!important;
+        justify-content:flex-end!important;flex-wrap:wrap!important;
+      }
+      @media(max-width:900px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important}
+      }
     `;
     document.head.appendChild(style);
   }
