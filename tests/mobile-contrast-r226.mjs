@@ -4,7 +4,7 @@ import {readFileSync,mkdirSync} from 'node:fs';
 const source=readFileSync('assets/stainher-v1524-theme.js','utf8');
 const css=source.match(/const css=`([\s\S]*?)`;/)?.[1];
 assert.ok(css,'No se encontró CSS de tema');
-assert.match(css,/max\(6px,env\(safe-area-inset-bottom,0px\)\)/,'Debe conservar el espacio seguro de iOS');
+assert.match(css,/--stainher-mobile-safe-bottom,env\(safe-area-inset-bottom,0px\)/,'La barra debe ubicarse sobre la zona segura de iOS');
 mkdirSync('artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true});
 try{
@@ -44,7 +44,7 @@ try{
   });
   assert.ok(navSize.height>=54&&navSize.height<=75,theme+' bottom navigation must fit controls without oversized blank region: '+JSON.stringify(navSize));
   assert.equal(navSize.buttonHeight,48,theme+' button remains touch accessible');
-  assert.ok(navSize.bottomPadding>=6,theme+' bottom safe padding must be retained');
+  assert.ok(navSize.bottomPadding>=4&&navSize.bottomPadding<=6,theme+' dock has compact internal padding');
   assert.ok(navSize.width<=390,theme+' dock fits viewport');
   await page.screenshot({path:`artifacts/mobile-navigation-${theme}-r226.png`});
   console.log('PASS mobile nav contrast '+theme);
