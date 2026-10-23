@@ -74,10 +74,13 @@
   function normalizeEstandarizacionHeading(){
     const page=document.getElementById('page-estandarizacion');
     if(!page)return;
-    const heading=page.querySelector(':scope > h1, :scope > header h1, :scope > .page-header h1, h1');
-    if(heading && /^estandarizaci[oó]n$/i.test(heading.textContent.trim()) && heading.textContent!=='Estandarización'){
-      heading.textContent='Estandarización';
-    }
+    // Header markup varies across legacy renderers: title may be h2 or a custom title element.
+    const candidates=page.querySelectorAll('h1,h2,h3,.page-title,.module-title,.section-title,[class*="page-heading"]');
+    candidates.forEach(heading=>{
+      if(heading.children.length) return;
+      if(/^estandarizaci[oó]n$/i.test((heading.textContent||'').trim()) &&
+         heading.textContent!=='Estandarización') heading.textContent='Estandarización';
+    });
   }
   function normalizeActionRows(){
     // R214: localizar la barra REAL mediante los botones visibles, no clases heredadas.
