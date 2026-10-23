@@ -55,6 +55,30 @@
     });
     document.title=`Stainher App ${VERSION} ${REVISION}`;
   }
+  // R232: identify compact module command rows without changing their buttons or layout.
+  function normalizeTopActionSurfaces(){
+    document.querySelectorAll('.page[id^="page-"]').forEach(page=>{
+      [...page.children].slice(0,10).forEach(panel=>{
+        if(!panel.matches?.('div,section,nav,header'))return;
+        if(panel.querySelector('table,form,input,textarea,canvas,svg'))return;
+        const buttons=[...panel.querySelectorAll('button')];
+        if(!buttons.length||buttons.length>7)return;
+        const otherText=(panel.textContent||'').trim();
+        if(otherText.length>200)return;
+        const className=String(panel.className||'');
+        if(/card|panel|modal|filter|stat|kpi|summary|header/i.test(className))return;
+        panel.classList.add('stainher-top-action-surface-r232');
+      });
+    });
+  }
+  function normalizeEstandarizacionHeading(){
+    const page=document.getElementById('page-estandarizacion');
+    if(!page)return;
+    const heading=page.querySelector(':scope > h1, :scope > header h1, :scope > .page-header h1, h1');
+    if(heading && /^estandarizaci[oó]n$/i.test(heading.textContent.trim()) && heading.textContent!=='Estandarización'){
+      heading.textContent='Estandarización';
+    }
+  }
   function normalizeActionRows(){
     // R214: localizar la barra REAL mediante los botones visibles, no clases heredadas.
     const modules=[
@@ -203,7 +227,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -221,7 +245,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
@@ -231,6 +255,14 @@
       if(!page||page==='__more')return;
       event.preventDefault();event.stopImmediatePropagation();navigate(page);
     },true);
+    // Restore the canonical browser title when legacy modules overwrite it.
+    // Observing <title> directly avoids running the full page normalizer for title changes.
+    const browserTitle=document.querySelector('head > title');
+    if(browserTitle){
+      const canonicalTitle=`Stainher App ${VERSION} ${REVISION}`;
+      new MutationObserver(()=>{if(document.title!==canonicalTitle)document.title=canonicalTitle})
+        .observe(browserTitle,{childList:true,characterData:true,subtree:true});
+    }
     new MutationObserver(records=>{if(records.some(record=>record.addedNodes.length||record.type==='characterData'))schedule()}).observe(document.body,{childList:true,subtree:true,characterData:true});
     window.addEventListener('stainher:modules-ready',()=>{installNavigation();normalizeMenuOrder();enforcePage(activePage)});
   }
