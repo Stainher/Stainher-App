@@ -50,7 +50,7 @@ assert.match(moduleSrc,/stateTabs\.hidden=!useStateFilter/,'Debe mostrar Activas
 assert.match(moduleSrc,/window\.state\.r179SolicitudesType='otras'/,'Al finalizar debe llevar a Otras');
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 181, 'El cargador activo debe preservar al menos R181 (request-close-r177)');
 
-assert.match(moduleSrc,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/,'Categorías deben quedar en cuadrícula alineada de 4 columnas en escritorio');
+assert.match(moduleSrc,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/,'Las tres categorías actuales deben distribuirse en tres columnas');
 assert.match(moduleSrc,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Filtros de estado deben quedar alineados en 2 columnas');
 assert.match(moduleSrc,/width:100%!important/,'Botones de filtros deben ocupar el ancho de su celda');
 assert.match(moduleSrc,/height:42px!important/,'Botones de filtros deben tener altura uniforme');
