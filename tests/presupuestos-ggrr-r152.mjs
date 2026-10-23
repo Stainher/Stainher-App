@@ -9,7 +9,7 @@ const migration=fs.readFileSync('supabase/migrations/20261019153500_presupuestos
 
 assert.doesNotMatch(core,/<th>Estado<\/th>/,'Histórico no debe mostrar columna Estado');
 assert.doesNotMatch(core,/>Venta neta<\/th>/,'Histórico no debe mostrar Venta neta');
-assert.match(core,/Total \(Iva Incluido\)/,'Debe conservar Total IVA incluido');
+assert.match(core,/<th style="text-align:right">Total neto<\/th>/,'Histórico debe mostrar Total neto según decisión vigente');
 assert.match(core,/colspan="6"/,'Histórico vacío debe usar seis columnas');
 
 assert.doesNotMatch(history,/btn\.textContent='Detalle'/,'No debe restaurar acción Detalle');
