@@ -412,11 +412,20 @@
     if(disclosure&&!disclosure.open)disclosure.open=true;
   }
   function isExcludeKpiControl(node){
-    const input=node?.closest?.('input[type="checkbox"]');
-    if(!input)return false;
-    const text=[input.id,input.name,input.getAttribute('aria-label'),input.closest('label')?.textContent,
-      input.closest('tr')?.textContent?.slice(0,300)].filter(Boolean).join(' ');
+    const control=node?.closest?.('input,select,button');
+    if(!control||!page()?.contains(control))return false;
+    const text=[control.id,control.name,control.getAttribute('aria-label'),
+      control.closest('label')?.textContent,control.closest('td')?.cellIndex>=0
+        ?control.closest('table')?.querySelectorAll('thead th')?.[control.closest('td').cellIndex]?.textContent:'',
+      control.closest('tr')?.querySelector('th')?.textContent].filter(Boolean).join(' ');
     return /exclu.{0,30}kpi|kpi.{0,30}exclu/i.test(text);
+  }
+  function keepHistoryVisible(){
+    preserveHistoryOpen=true;
+    restoreHistoryOpen();
+    requestAnimationFrame(restoreHistoryOpen);
+    setTimeout(restoreHistoryOpen,0);
+    setTimeout(restoreHistoryOpen,200);
   }
   let busy=false,pending=false,installed=false;
   function enhance(){
@@ -443,10 +452,11 @@
     installStyle();modal();enhance();
     const host=page()||document.getElementById('appView')||document.body;
     new MutationObserver(()=>{if(!busy){restoreHistoryOpen();schedule()}}).observe(host,{childList:true,subtree:true});
+    host.addEventListener('click',event=>{if(isExcludeKpiControl(event.target))keepHistoryVisible()},true);
+    host.addEventListener('input',event=>{if(isExcludeKpiControl(event.target))keepHistoryVisible()},true);
     host.addEventListener('change',event=>{
       if(isExcludeKpiControl(event.target)){
-        preserveHistoryOpen=true;
-        restoreHistoryOpen();
+        keepHistoryVisible();
       }
     },true);
     host.addEventListener('click',event=>{
