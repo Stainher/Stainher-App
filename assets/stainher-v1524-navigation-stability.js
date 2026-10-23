@@ -4,7 +4,7 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION='R239';
+  const REVISION='R240';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function ensureBrandChips(){
@@ -72,14 +72,12 @@
     });
   }
   function normalizeEstandarizacionHeading(){
-    const page=document.getElementById('page-estandarizacion');
-    if(!page)return;
-    // Header markup varies across legacy renderers: title may be h2 or a custom title element.
-    const candidates=page.querySelectorAll('h1,h2,h3,.page-title,.module-title,.section-title,[class*="page-heading"]');
-    candidates.forEach(heading=>{
-      if(heading.children.length) return;
-      if(/^estandarizaci[oó]n$/i.test((heading.textContent||'').trim()) &&
-         heading.textContent!=='Estandarización') heading.textContent='Estandarización';
+    // Renderers can create the heading outside #page-estandarizacion.
+    // Restrict to headings with exact text; never rewrite names inside cards or forms.
+    document.querySelectorAll('main h1,main h2,.main h1,.main h2,.page h1,.page h2,.topbar h1,.topbar h2').forEach(heading=>{
+      if(heading.children.length)return;
+      if(/^estandarizaci[oó]n$/i.test((heading.textContent||'').trim())&&heading.textContent!=='Estandarización')
+        heading.textContent='Estandarización';
     });
   }
   function normalizeActionRows(){
