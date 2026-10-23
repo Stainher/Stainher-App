@@ -915,6 +915,14 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :is(.v152-alert-card,.home-alert-card,[class*="holiday-card"],[class*="reminder-card"]) :is(span,small,p,strong,b,[class*="days"]){
       color:#19364e!important;-webkit-text-fill-color:#19364e!important;
     }
+    /* R237: numeración de controles en Liderazgo, legible en temas claros. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-liderazgo .control-number-v95{
+      background:#d9ebfb!important;
+      color:#17476b!important;
+      -webkit-text-fill-color:#17476b!important;
+      border:1px solid #9cc4e5!important;
+      box-shadow:none!important;
+    }
     /* R235: retain information at browser zoom, rather than clipping the contract dashboard. */
     #page-contrato .v1520-kpis{
       display:grid!important;
