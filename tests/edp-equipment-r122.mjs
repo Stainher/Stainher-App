@@ -31,7 +31,7 @@ assert.equal(
 assert.match(forecast,/__r122Projectable/,'R121 debe usar el proyectable real corregido para la serie histórica');
 assert.match(loader,/stainher-v1524-edp-equipment-r122\.js/,'El loader debe cargar R122');
 assert.match(loader,/StainherEdpEquipmentR122\?\.install/,'El loader debe instalar R122');
-assert.match(loader,/HP_LOADER_VERSION__='R122'/,'El loader debe quedar consolidado como R122');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 122, 'El cargador activo debe conservar al menos R122 (edp-equipment-r122)');
 
 assert.match(migration,/create table if not exists public\.edp_mantenimiento_equipos_v1524/,'Debe crear tabla de desglose EDP');
 assert.match(migration,/lower\(coalesce\(p\.rol,''\)\) in \('administrador','confiabilidad'\)/,'Administrador y Confiabilidad deben poder gestionar el desglose');
