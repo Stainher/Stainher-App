@@ -37,7 +37,29 @@
       #page-turnos .r18-kpi small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
       #page-turnos .r18-kpis-secondary{grid-template-columns:repeat(3,minmax(0,1fr))}
       #page-turnos .r18-turn-tabs{display:flex;gap:8px;margin:12px 0}
-      #page-turnos .r18-matrix{width:100%;max-width:100%;overflow:auto;border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c)}
+      /* R226 mobile tab fix: equal tracks for Malla, Eventos and optional HP report.
+         The real three-button tab set is wider than viewport under old flex rules. */
+      @media(max-width:780px){
+        html body #page-turnos .r18-turn-tabs{
+          display:grid!important;grid-auto-flow:column!important;
+          grid-auto-columns:minmax(0,1fr)!important;grid-template-columns:none!important;
+          align-items:stretch!important;justify-content:stretch!important;gap:6px!important;
+          width:100%!important;max-width:100%!important;min-width:0!important;
+          box-sizing:border-box!important;margin:12px 0!important;
+          padding:0!important;overflow:visible!important;transform:none!important
+        }
+        html body #page-turnos .r18-turn-tabs > :is(button,.btn,[role="tab"]),
+        html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos .r18-turn-tabs > :is(button,.btn,[role="tab"]){
+          display:flex!important;align-items:center!important;justify-content:center!important;
+          flex:none!important;min-width:0!important;max-width:100%!important;width:100%!important;
+          min-height:64px!important;height:auto!important;box-sizing:border-box!important;
+          padding:8px 3px!important;font-size:clamp(11px,2.9vw,13px)!important;
+          line-height:1.2!important;text-align:center!important;white-space:normal!important;
+          overflow-wrap:normal!important;word-break:normal!important;hyphens:none!important;
+          overflow:visible!important;text-overflow:clip!important;transform:none!important
+        }
+      }
+            #page-turnos .r18-matrix{width:100%;max-width:100%;overflow:auto;border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c)}
       #page-turnos .r18-matrix table{border-collapse:collapse;min-width:1180px;width:100%;table-layout:fixed}
       #page-turnos .r18-matrix th,#page-turnos .r18-matrix td{border:1px solid var(--line);padding:4px;text-align:center;height:38px;font-size:9px;box-sizing:border-box}
       #page-turnos .r18-matrix th{background:var(--panel2,#151f2a);color:var(--muted);position:sticky;top:0;z-index:2}
