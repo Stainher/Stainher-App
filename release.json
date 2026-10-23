@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R228",
-  "build": "20261023-r228-ios-dock-lower",
+  "revision": "R230",
+  "build": "20261023-r230-cross-module-contrast",
   "path": "./",
   "publishedAt": "2026-10-23"
 }
