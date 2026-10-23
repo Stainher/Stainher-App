@@ -29,7 +29,7 @@ assert.match(inline,/MutationObserver/,'Debe reaccionar al modal aunque se abra 
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 125, 'El cargador activo debe conservar al menos R125 (edp-inline-r125)');
 assert.match(loader,/stainher-v1524-edp-inline-r125\.js/,'El loader debe cargar R125');
 assert.match(loader,/StainherEdpInlineR125\?\.install/,'El loader debe instalar R125');
-assert.match(loader,/stainher-v1524-forecast-history-r124\.js/,'R124 debe conservarse');
+assert.match(loader,/stainher-v1524-forecast-history-r128\.js/,'La revisión activa R128 conserva el histórico Forecast');
 assert.match(loader,/stainher-v1524-contract-forecast-r123\.js/,'R123 debe conservarse');
 assert.match(loader,/stainher-v1524-edp-equipment-r122\.js/,'R122 debe conservarse');
 
