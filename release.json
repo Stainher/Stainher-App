@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R226",
-  "build": "20261023-r226-mobile-release-consistency",
+  "revision": "R227",
+  "build": "20261023-r227-ios-safearea-floating-dock",
   "path": "./",
   "publishedAt": "2026-10-23"
 }

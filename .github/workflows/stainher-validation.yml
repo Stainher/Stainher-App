@@ -23,19 +23,20 @@ jobs:
           find assets -type f -name '*.js' -print0 | xargs -0 -n1 node --check
           find tests -type f -name '*.mjs' -print0 | xargs -0 -n1 node --check
       - name: Validate runtime, cache, versions, and design regressions
-        run: node --test tests/deployment-validation-r217.mjs tests/mobile-release-r226.mjs
+        run: node --test tests/deployment-validation-r217.mjs tests/mobile-release-r227.mjs
       - name: Visual QA - real leadership KPI markup
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
           node tests/leadership-visual-r220.mjs
           node tests/mobile-contrast-r226.mjs
+          node tests/iphone-safearea-dock-r227.mjs
           node tests/turnos-mobile-visual-r226-hotfix.mjs
       - name: Store visual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: stainher-visual-evidence-r226
+          name: stainher-visual-evidence-r227
           path: artifacts/
           if-no-files-found: warn
       - name: Run existing regression tests (historical audit)
