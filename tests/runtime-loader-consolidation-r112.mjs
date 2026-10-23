@@ -16,8 +16,8 @@ assert.doesNotMatch(audit,/load\([^\n]+stainher-v1524-leadership-mail\.js/,'runt
 assert.doesNotMatch(audit,/load\([^\n]+stainher-v1524-leadership-record-pdf-r86\.js/,'runtime-audit no debe duplicar el PDF de Liderazgo');
 
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 112, 'El cargador activo debe preservar al menos R112 (runtime-loader-consolidation-r112)');
-assert.match(loader,/load\('stainher-weekly-hp-runtime-r78','stainher-v1524-weekly-hp-report\.js'\)/,'el cargador autenticado debe conservar HP');
-assert.match(loader,/async function bootstrapR112\(\)/);
+assert.match(loader,/load\('stainher-weekly-hp-runtime-r117','stainher-v1524-weekly-hp-report\.js'\)/,'El cargador autenticado conserva HP R117');
+assert.match(loader,/async function bootstrapR\d+\(\)/,'El cargador conserva el bootstrap autenticado');
 assert.match(loader,/window\.StainherHPR112=api/);
 const ordered=[
   'await refreshAccessR107()',
@@ -39,8 +39,10 @@ for(const call of ordered){
 }
 
 assert.doesNotMatch(index,/"stainher-v1524-turn-report-onepage\.js"/,'el exportador antiguo no debe cargarse');
-assert.match(index,/stainher-v1524-runtime-audit\.js\?build=20260924-r112-loader-consolidation/);
-assert.match(index,/stainher-v1524-ux-runtime\.js\?build=20260924-r112-loader-consolidation/);
-assert.match(index,/revision:'r112',build:'20260924-r112-loader-consolidation'/);
+assert.match(index,/stainher-v1524-runtime-audit\.js/,'El runtime audit continúa en el entrypoint');
+assert.match(index,/stainher-v1524-ux-runtime\.js/,'El runtime UX continúa en el entrypoint');
+const release=JSON.parse(fs.readFileSync(new URL('../release.json',import.meta.url),'utf8'));
+assert.match(index,new RegExp("revision:'"+release.revision+"'"),'La versión del entrypoint coincide con el manifiesto actual');
+assert.match(index,/function runtimeUrl\(source\)/,'El cargador debe prevenir archivos antiguos en la caché');
 
 console.log('runtime-loader-consolidation-r112: ok');
