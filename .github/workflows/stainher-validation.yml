@@ -30,6 +30,7 @@ jobs:
           npx playwright install --with-deps chromium
           node tests/leadership-visual-r220.mjs
           node tests/mobile-contrast-r226.mjs
+          node tests/turnos-mobile-visual-r226-hotfix.mjs
       - name: Store visual evidence
         if: always()
         uses: actions/upload-artifact@v4
