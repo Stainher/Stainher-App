@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261023-r242-compact-actions';
+  const BUILD='20261023-r243-actions-inline-layout';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -270,6 +270,44 @@
         if(kind)node.dataset.r133Field=kind;
         if(node.classList.contains('wide')||node.classList.contains('v1524-just-detail'))node.dataset.r133Field='detail';
       });
+      // Legacy styles create an implicit actions column beyond the card border.
+      // Set an explicit grid directly on each card, overriding conflicting late CSS.
+      const actions=card.querySelector('.v154-request-actions');
+      if(!actions||!card.contains(actions))return;
+      const important=(el,key,value)=>el.style.setProperty(key,value,'important');
+      const width=card.getBoundingClientRect().width;
+      const narrow=width<760;
+      const columns=narrow?'repeat(2,minmax(0,1fr))':
+        'minmax(0,160px) minmax(0,160px) minmax(0,125px) minmax(0,180px) minmax(0,110px) max-content';
+      important(card,'display','grid');
+      important(card,'grid-template-columns',columns);
+      important(card,'column-gap','10px');
+      important(card,'justify-content','start');
+      important(card,'box-sizing','border-box');
+      important(card,'min-width','0');
+      important(card,'max-width','100%');
+      important(card,'overflow','hidden');
+      for(const [field,col] of [['period',1],['person',2],['type',3],['approval',4],['status',5]]){
+        const node=card.querySelector('[data-r133-field="'+field+'"]');
+        if(!node)continue;
+        important(node,'grid-column',String(narrow?(field==='status'?1:field==='approval'?2:field==='type'?1:col):col));
+        important(node,'grid-row',narrow?'auto':'1');
+        important(node,'min-width','0');
+      }
+      important(actions,'grid-column',narrow?'2':'6');
+      important(actions,'grid-row',narrow?'auto':'1');
+      important(actions,'position','static');
+      important(actions,'inset','auto');
+      important(actions,'right','auto');
+      important(actions,'left','auto');
+      important(actions,'transform','none');
+      important(actions,'margin','0');
+      important(actions,'width','max-content');
+      important(actions,'max-width','100%');
+      important(actions,'min-width','0');
+      important(actions,'display','flex');
+      important(actions,'justify-content','flex-start');
+      important(actions,'flex-wrap','wrap');
     });
   }
 
