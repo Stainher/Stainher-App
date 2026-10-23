@@ -18,7 +18,7 @@ assert.match(history,/Resumen histórico por partida/,'Debe mantener tabla por p
 assert.match(history,/requestAnimationFrame/,'Debe renderizar sin bloqueos visibles');
 
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 127, 'El cargador activo debe conservar al menos R127 (forecast-history-r127)');
-assert.match(loader,/stainher-v1524-forecast-history-r127\.js/,'Loader debe cargar R127');
+assert.match(loader,/stainher-v1524-forecast-history-r128\.js/,'La corrección R128 debe sustituir al histórico R127');
 assert.doesNotMatch(loader,/stainher-v1524-forecast-history-r124\.js/,'Loader no debe reactivar el observer problemático de R124');
 assert.match(loader,/stainher-turn-report-hotfix-runtime-r126/,'R126 de suspendidos debe conservarse');
 assert.match(loader,/stainher-v1524-edp-inline-r125\.js/,'R125 debe conservarse');
