@@ -5,7 +5,7 @@ const feature=fs.readFileSync(new URL('../assets/stainher-vehicle-expiry-alerts-
 const loader=fs.readFileSync(new URL('../assets/stainher-v1524-hp-loader-r72.js',import.meta.url),'utf8');
 const index=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 
-assert.match(feature,/__STAINHER_VEHICLE_EXPIRY_VERSION__==='R109'/);
+assert.ok(Number(feature.match(/window\.__STAINHER_VEHICLE_EXPIRY_VERSION__='R(\d+)'/)?.[1])>=109,'Control de gases conserva R109 y las mejoras R186');
 assert.match(feature,/function wrapStandaloneVehicleRenderer\(\)/);
 assert.match(feature,/window\.renderStandaloneVehiculos=wrapped/);
 assert.match(feature,/const byPlate=new Map/);
@@ -17,7 +17,7 @@ assert.match(feature,/StainherVehicleExpiryR109/);
 
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 112, 'El cargador activo debe preservar al menos R112 (vehicle-control-gases-r109)');
 assert.match(loader,/function refreshVehicleExpiryR109\(\)/);
-assert.match(loader,/__STAINHER_VEHICLE_EXPIRY_VERSION__!=='R109'/);
+assert.match(loader,/stainher-vehicle-expiry-runtime-r186/,'El cargador debe mantener la revisión actual R186');
 assert.match(loader,/stainher-vehicle-expiry-alerts-r18\.js/);
 assert.match(loader,/StainherVehicleExpiryR109\?\.install\?\.\(\)/);
 assert.match(loader,/stainher:vehicle-expiry-r109-ready/);
