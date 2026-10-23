@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R230",
-  "build": "20261023-r230-cross-module-contrast",
+  "revision": "R231",
+  "build": "20261023-r231-turnos-navigation",
   "path": "./",
   "publishedAt": "2026-10-23"
 }
