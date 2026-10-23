@@ -39,9 +39,8 @@ jobs:
           name: stainher-visual-evidence-r228
           path: artifacts/
           if-no-files-found: warn
-      - name: Run existing regression tests (historical audit)
+      - name: Run complete regression suite (blocking)
         id: legacy
-        continue-on-error: true
         run: |
           node --test --test-reporter=tap tests/*.mjs > legacy-test-results.tap 2>&1
       - name: Publish historical failure report
