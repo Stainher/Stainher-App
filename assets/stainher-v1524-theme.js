@@ -1039,6 +1039,21 @@
     .stainher-theme-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin:8px 0 0;min-height:40px}
     .v157-user-menu .stainher-theme-toggle{margin:0;text-align:left;justify-content:flex-start}
     @media(max-width:760px){.userbox>.stainher-theme-toggle{width:auto;min-width:150px}}
+    /* Desarrollo 21 · compactación segura de la barra móvil. */
+    @media(max-width:780px){
+      html body #v151MobileBottom,
+      html body .v151-mobile-bottom{
+        height:auto!important;min-height:0!important;max-height:none!important;
+        padding:4px 6px max(6px,env(safe-area-inset-bottom,0px))!important;
+        box-sizing:border-box!important;align-content:start!important;
+      }
+      html body #v151MobileBottom > button,
+      html body .v151-mobile-bottom > button{
+        min-height:48px!important;height:48px!important;max-height:48px!important;
+        padding:3px 2px!important;box-sizing:border-box!important;
+        line-height:1.18!important;
+      }
+    }
     /* R225: última regla, por encima de overrides antiguos de tema Claro. */
     @media (max-width:780px){
       html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead,
