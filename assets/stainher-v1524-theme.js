@@ -915,6 +915,13 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :is(.v152-alert-card,.home-alert-card,[class*="holiday-card"],[class*="reminder-card"]) :is(span,small,p,strong,b,[class*="days"]){
       color:#19364e!important;-webkit-text-fill-color:#19364e!important;
     }
+    /* R232: command strips share the page canvas rather than rendering white bands. */
+    html:is([data-theme="light"],[data-theme="modern"]) body .page[id^="page-"] .stainher-top-action-surface-r232{
+      background:transparent!important;
+      background-color:transparent!important;
+      background-image:none!important;
+      box-shadow:none!important;
+    }
     /* R211 · Filas de acciones: sin franja blanca distinta del lienzo.
        Solo superficies de barra directa, no tarjetas, formularios ni botones. */
     html[data-theme="light"] body :is(.page[id^="page-"] > .v1524-toolbar,.page[id^="page-"] > .page-actions,.page[id^="page-"] > .action-bar,.page[id^="page-"] > .toolbar),
