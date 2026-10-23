@@ -1039,6 +1039,28 @@
     .stainher-theme-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin:8px 0 0;min-height:40px}
     .v157-user-menu .stainher-theme-toggle{margin:0;text-align:left;justify-content:flex-start}
     @media(max-width:760px){.userbox>.stainher-theme-toggle{width:auto;min-width:150px}}
+    /* R225: última regla, por encima de overrides antiguos de tema Claro. */
+    @media (max-width:780px){
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead,
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileBottom{
+        background:#101a24!important;border-color:#667d91!important;color:#f2f8ff!important;
+      }
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead .v151-mobile-title,
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead .v151-mobile-title strong,
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead .v151-mobile-title small,
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead .v151-mobile-title span{
+        color:#f2f8ff!important;-webkit-text-fill-color:#f2f8ff!important;opacity:1!important;
+      }
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileBottom button,
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileBottom button *,
+      html:is([data-theme="light"],[data-theme="modern"]) body .v151-mobile-bottom button,
+      html:is([data-theme="light"],[data-theme="modern"]) body .v151-mobile-bottom button *{
+        color:#edf6ff!important;-webkit-text-fill-color:#edf6ff!important;opacity:1!important;
+      }
+      html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileBottom button:is(.active,[aria-current="page"]){
+        background:#174d70!important;color:#fff!important;
+      }
+    }
   `;
   function preference(){try{const v=localStorage.getItem(KEY);if(v===DARK||v===LIGHT||v===MODERN)return v}catch(_){ }return matchMedia?.('(prefers-color-scheme: light)').matches?LIGHT:DARK}
   function refreshCharts(value){
@@ -1175,7 +1197,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r224-pwa-cache-refresh':'20261022-r224-pwa-cache-refresh');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r225-mobile-priority':'20261022-r225-mobile-priority');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
