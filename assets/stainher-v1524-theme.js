@@ -915,6 +915,21 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :is(.v152-alert-card,.home-alert-card,[class*="holiday-card"],[class*="reminder-card"]) :is(span,small,p,strong,b,[class*="days"]){
       color:#19364e!important;-webkit-text-fill-color:#19364e!important;
     }
+    /* R235: contract section tab scroller is transparent; keep individual tab surfaces. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs){
+      background:transparent!important;
+      background-image:none!important;
+      box-shadow:none!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs) > :is(button,.btn,[role="tab"]){
+      background:#f5f9fd!important;
+      color:#19344c!important;
+      border-color:#b7cbdd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs) > :is(button,.btn,[role="tab"]).active,
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs) > :is(button,.btn,[role="tab"])[aria-selected="true"]{
+      background:#1769c2!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+    }
     /* R232: command strips share the page canvas rather than rendering white bands. */
     html:is([data-theme="light"],[data-theme="modern"]) body .page[id^="page-"] .stainher-top-action-surface-r232{
       background:transparent!important;
