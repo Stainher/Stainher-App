@@ -62,7 +62,7 @@ assert.match(moduleSrc,/document\.querySelector\('#modalRoot form'\)/,'Debe tene
 assert.match(moduleSrc,/event\.stopImmediatePropagation\(\)/,'Permisos legales deben interceptar el submit productivo');
 assert.match(moduleSrc,/const data=await createLegalRequest\(o\)/,'Formulario productivo debe usar RPC de permisos legales');
 assert.match(moduleSrc,/MutationObserver/,'Debe reinyectar opciones si el modal es reemplazado por otro runtime');
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R172'/,'Loader debe forzar versión R172');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 172, 'El cargador activo debe preservar al menos R172 (marriage-leave-r171)');
 
 assert.match(moduleSrc,/Desde el mismo día del fallecimiento/,'Debe indicar inicio efectivo para fallecimiento directo');
 assert.match(moduleSrc,/Desde el momento en que se acredita la muerte mediante certificado de defunción fetal/,'Debe indicar inicio efectivo de defunción fetal');
@@ -83,7 +83,7 @@ assert.match(moduleSrc,/Fecha del hecho/,'Comprobante debe incluir fecha del eve
 assert.match(moduleSrc,/Duración/,'Comprobante debe incluir duración');
 assert.match(moduleSrc,/await window\.v175DownloadPermitReceipt\?\.\(data\.id\)/,'Debe generar comprobante automáticamente al crear permiso legal');
 assert.match(moduleSrc,/RECEIPT_TYPES=new Set\(\['permiso'/,'Debe incluir también permiso no remunerado en comprobantes');
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R175'/,'Loader debe forzar versión R175');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 175, 'El cargador activo debe preservar al menos R175 (marriage-leave-r171)');
 
 assert.match(moduleSrc,/data-r176-permit-receipt/,'Debe marcar el botón único de comprobante');
 assert.match(moduleSrc,/replace\(\/<button\[\^>\]\*onclick="v175DownloadPermitReceipt/,'Debe limpiar botones de comprobante heredados antes de renderizar');
