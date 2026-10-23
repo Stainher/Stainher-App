@@ -37,6 +37,24 @@
       #page-turnos .r18-kpi small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
       #page-turnos .r18-kpis-secondary{grid-template-columns:repeat(3,minmax(0,1fr))}
       #page-turnos .r18-turn-tabs{display:flex;gap:8px;margin:12px 0}
+      /* R226 mobile tab fix: the third HP report tab is injected by another module.
+         Keep 2 or 3 real controls within the viewport without losing their event listeners. */
+      @media(max-width:780px){
+        #page-turnos .r18-turn-tabs{
+          display:flex!important;flex-wrap:nowrap!important;justify-content:stretch!important;
+          align-items:stretch!important;gap:6px!important;width:100%!important;
+          max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
+          margin:12px 0!important;overflow:visible!important;transform:none!important
+        }
+        #page-turnos .r18-turn-tabs > :is(button,.btn,[role="tab"]){
+          flex:1 1 0!important;width:0!important;max-width:none!important;min-width:0!important;
+          min-height:56px!important;height:auto!important;box-sizing:border-box!important;
+          padding:8px 4px!important;font-size:clamp(11px,2.9vw,13px)!important;
+          line-height:1.18!important;text-align:center!important;white-space:normal!important;
+          overflow-wrap:break-word!important;word-break:normal!important;text-overflow:clip!important;
+          transform:none!important
+        }
+      }
       #page-turnos .r18-matrix{width:100%;max-width:100%;overflow:auto;border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c)}
       #page-turnos .r18-matrix table{border-collapse:collapse;min-width:1180px;width:100%;table-layout:fixed}
       #page-turnos .r18-matrix th,#page-turnos .r18-matrix td{border:1px solid var(--line);padding:4px;text-align:center;height:38px;font-size:9px;box-sizing:border-box}
