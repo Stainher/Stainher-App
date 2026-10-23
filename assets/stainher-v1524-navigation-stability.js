@@ -72,6 +72,14 @@
       });
     });
   }
+  function normalizeEstandarizacionHeading(){
+    const page=document.getElementById('page-estandarizacion');
+    if(!page)return;
+    const heading=page.querySelector(':scope > h1, :scope > header h1, :scope > .page-header h1, h1');
+    if(heading && /^estandarizaci[oó]n$/i.test(heading.textContent.trim()) && heading.textContent!=='Estandarización'){
+      heading.textContent='Estandarización';
+    }
+  }
   function normalizeActionRows(){
     // R214: localizar la barra REAL mediante los botones visibles, no clases heredadas.
     const modules=[
@@ -220,7 +228,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -238,7 +246,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
