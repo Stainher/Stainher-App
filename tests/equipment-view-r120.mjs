@@ -20,7 +20,7 @@ assert.match(view,/grid-template-columns/,'La lista debe alinear sus columnas');
 assert.match(view,/@media\(max-width:760px\)/,'Debe existir adaptación móvil');
 assert.match(view,/if\(installed\)return;installed=true/,'El módulo no debe instalar observadores duplicados');
 
-assert.match(loader,/HP_LOADER_VERSION__='R135'/,'El cargador R135 debe conservar Lista/Fichas de Equipos R132');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 135, 'El cargador activo debe conservar al menos R135 (equipment-view-r120)');
 assert.match(loader,/refreshEquipmentViewR132/,'El bootstrap debe cargar la vista optimizada de Equipos');
 assert.match(loader,/stainher-v1524-equipment-view-r120\.js/,'El cargador debe cargar el módulo R120');
 assert.match(loader,/refreshReliabilityActionsR119/,'R119 debe conservarse');
