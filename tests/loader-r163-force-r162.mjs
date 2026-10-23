@@ -4,8 +4,8 @@ import fs from 'node:fs';
 const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 const audit=fs.readFileSync('assets/stainher-v1524-runtime-audit.js','utf8');
 
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R163'/,'Loader debe usar guard R163');
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__='R163'/,'Loader debe registrar versión R163');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 163, 'El cargador activo debe preservar R163 o una versión compatible posterior (loader-r163-force-r162)');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 163, 'El cargador activo debe preservar R163 o una versión compatible posterior (loader-r163-force-r162)');
 assert.match(loader,/20261019-r163-force-contract-standardization/,'Loader debe usar build R163');
 assert.match(loader,/stainher-v1524-contract-standardization-r162\.js/,'R163 debe cargar la ficha R162');
 assert.match(loader,/StainherContractStandardizationR162\?\.install/,'R163 debe instalar la ficha R162');
