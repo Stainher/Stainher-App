@@ -915,6 +915,27 @@
     html:is([data-theme="light"],[data-theme="modern"]) body #page-inicio :is(.v152-alert-card,.home-alert-card,[class*="holiday-card"],[class*="reminder-card"]) :is(span,small,p,strong,b,[class*="days"]){
       color:#19364e!important;-webkit-text-fill-color:#19364e!important;
     }
+    /* R235: retain information at browser zoom, rather than clipping the contract dashboard. */
+    #page-contrato .v1520-kpis{
+      display:grid!important;
+      grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))!important;
+      width:100%!important;max-width:100%!important;min-width:0!important;
+    }
+    #page-contrato .v1520-kpis > .v1520-kpi{
+      min-width:0!important;max-width:100%!important;
+    }
+    #page-contrato .v1520-kpis > .v1520-kpi b,
+    #page-contrato .v1524-contract-money-value{
+      white-space:normal!important;overflow-wrap:anywhere!important;
+    }
+    #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs){
+      max-width:100%!important;min-width:0!important;
+      overflow-x:auto!important;overflow-y:hidden!important;
+      -webkit-overflow-scrolling:touch!important;
+    }
+    #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs) > :is(button,.btn,[role="tab"]){
+      flex-shrink:0!important;white-space:nowrap!important;
+    }
     /* R235: contract section tab scroller is transparent; keep individual tab surfaces. */
     html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs){
       background:transparent!important;
