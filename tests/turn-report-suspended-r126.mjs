@@ -15,7 +15,7 @@ assert.match(report,/code:'SE'/,'Tarjetas operativas deben incluir SE');
 assert.match(report,/repeat\(6,minmax\(0,1fr\)\)/,'La grilla debe admitir seis totales operativos');
 assert.match(report,/foot\.children\[idx\].*total/s,'TOTAL SELECCIÓN debe alinear el total suspendido');
 
-assert.match(loader,/HP_LOADER_VERSION__='R127'/,'Loader consolidado debe conservar R126 dentro de R127');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 127, 'El cargador activo debe preservar al menos R127 (turn-report-suspended-r126)');
 assert.match(loader,/stainher-turn-report-hotfix-runtime-r126/,'Loader debe recargar la corrección R126');
 assert.match(loader,/stainher:turn-report-r126-ready/,'Debe emitir evento R126');
 assert.match(loader,/stainher-v1524-edp-inline-r125\.js/,'R125 debe conservarse');
