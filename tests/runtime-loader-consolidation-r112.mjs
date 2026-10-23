@@ -15,7 +15,7 @@ assert.doesNotMatch(audit,/load\([^\n]+stainher-presupuestos-r80\.js/,'runtime-a
 assert.doesNotMatch(audit,/load\([^\n]+stainher-v1524-leadership-mail\.js/,'runtime-audit no debe duplicar Liderazgo');
 assert.doesNotMatch(audit,/load\([^\n]+stainher-v1524-leadership-record-pdf-r86\.js/,'runtime-audit no debe duplicar el PDF de Liderazgo');
 
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__==='R112'/);
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 112, 'El cargador activo debe preservar al menos R112 (runtime-loader-consolidation-r112)');
 assert.match(loader,/load\('stainher-weekly-hp-runtime-r78','stainher-v1524-weekly-hp-report\.js'\)/,'el cargador autenticado debe conservar HP');
 assert.match(loader,/async function bootstrapR112\(\)/);
 assert.match(loader,/window\.StainherHPR112=api/);
