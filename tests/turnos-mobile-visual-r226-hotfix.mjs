@@ -5,6 +5,9 @@ import { readFileSync, mkdirSync } from 'node:fs';
 const read = path => readFileSync(path, 'utf8');
 const direct = read('assets/stainher-turnos-direct-r18.js');
 const legacy = read('assets/stainher-turnos-light-contrast-r18.js');
+const themeSource = read('assets/stainher-v1524-theme.js');
+const themeCss = themeSource.match(/const css=`([\\s\\S]*?)`;/)?.[1];
+assert.ok(themeCss, 'CSS real de Claro/Moderno');
 const directCss = direct.match(/s\.textContent=`([\s\S]*?)`;document\.head\.appendChild\(s\);/)?.[1];
 const lightCss = [...legacy.matchAll(/style\.textContent=`([\s\S]*?)`;/g)]
   .map(match => match[1].replace(/\$\{eventCss\}/g, ''));
@@ -41,6 +44,7 @@ try {
       <small class="r18-person-role">Supervisor</small>
       <div class="r18-mobile-days">${days}</div></article></div>
     </section></body></html>`);
+    await page.addStyleTag({ content: themeCss });
     await page.addStyleTag({ content: directCss });
     for (const css of lightCss) await page.addStyleTag({ content: css });
     const layout = await page.evaluate(() => {
