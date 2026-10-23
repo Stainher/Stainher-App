@@ -7,8 +7,8 @@
   <meta http-equiv="Expires" content="0">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <script defer src="stainher-v1524-release-refresh-r225.js?build=20261022-r225-mobile-priority"></script>
-  <style id="stainher-r225-mobile-header-guarantee">
+  <script defer src="stainher-v1524-release-refresh-r226.js?build=20261023-r226-mobile-release-consistency"></script>
+  <style id="stainher-r226-mobile-header-guarantee">
     @media(max-width:780px){
       html body #v151MobileHead .v151-mobile-title,html body #v151MobileHead .v151-mobile-title *,
       html body #v151MobileBottom button,html body #v151MobileBottom button *{
@@ -19,7 +19,7 @@
     }
   </style>
   <!-- Stainher App V15.24 r19 · revisión modular 02-09-2026 · Desarrollado por Ismael Gálvez -->
-  <title>Stainher App V15.24 R225</title>
+  <title>Stainher App V15.24 R226</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -168,7 +168,7 @@ window.STAINHER_BUILD = '20260907-d20-r19-restauracion-funcional-integral';
       {id:'stainher-v1524-reliability-actions-d20-script',src:'stainher-v1524-reliability-actions.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'confiabilidad'},
       {id:'stainher-v1524-admin-crud-d20-script',src:'stainher-v1524-admin-crud.js?build=20260909-r24-devengo-al-consultar-home-final',domain:'administracion'},
       {id:'stainher-v1524-fixed-monday-thursday-d20-script',src:'stainher-v1524-fixed-monday-thursday.js?build=20260909-r29-data-only',domain:'turnos'},
-      {id:'stainher-v1524-theme-d20-script',src:'stainher-v1524-theme.js?build=20261022-r225-mobile-priority',domain:'tema'},
+      {id:'stainher-v1524-theme-d20-script',src:'stainher-v1524-theme.js?build=20261023-r226-mobile-release-consistency',domain:'tema'},
       {id:'stainher-v1524-runtime-audit-d20-script',src:'stainher-v1524-runtime-audit.js?build=20260924-r112-loader-consolidation',domain:'diagnostico'},
       {id:'stainher-reliability-charts-dark-r19-d20-script',src:'stainher-reliability-charts-dark-r19.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'confiabilidad-graficos'},
       {id:'stainher-v1524-signature-upload-d20-script',src:'stainher-v1524-signature-upload.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'firmas'},
@@ -181,7 +181,7 @@ window.STAINHER_BUILD = '20260907-d20-r19-restauracion-funcional-integral';
     try{if(!window.state&&typeof state!=='undefined')window.state=state}catch(_){ }
     try{if(!window.sb&&typeof sb!=='undefined')window.sb=sb}catch(_){ }
   }
-  const RUNTIME_BUILD='20261022-r225-mobile-priority';
+  const RUNTIME_BUILD='20261023-r226-mobile-release-consistency';
   function runtimeUrl(source){
     const url=new URL(source,document.baseURI);
     if(url.origin===location.origin)url.searchParams.set('app_build',RUNTIME_BUILD);
@@ -1927,7 +1927,7 @@ generateTerrainPdfV95=async function(e){
 
 // Reaplicar visibilidad después de cada render global.
 const _renderAllV10=renderAll;renderAll=function(){_renderAllV10();applyRoleVisibilityV10();setTimeout(cleanInicioV10,0)};
-/* Arranque diferido V10 retirado: la capa V15.23 aplica visibilidad una sola vez. */
+/* Arranque diferido V10 retirado: la capa V15.24 aplica visibilidad una sola vez. */
 </script>
 
 <style id="v11-style">
@@ -2364,7 +2364,7 @@ openLeadershipGoalV95=function(){
 // Aplicar correcciones al cargar/renderizar.
 const _applyPermissionsV11Fix=applyPermissionsV11;
 applyPermissionsV11=function(){_applyPermissionsV11Fix();sanitizeMetaV11Fix();cleanHomeV11()};
-/* Inicialización heredada desactivada: V15.23 aplica permisos una sola vez. */
+/* Inicialización heredada desactivada: V15.24 aplica permisos una sola vez. */
 </script>
 
 <!-- ================================================================== -->
@@ -3132,7 +3132,7 @@ function v15InstallPasswordRecovery(){
 }
 async function v15ForgotPassword(){const email=document.getElementById('email')?.value?.trim();if(!email)return toast('Ingresa tu correo primero.','error');const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)return toast(error.message,'error');toast('Supabase envió el enlace de recuperación al correo indicado.','success')}
 function v15OpenPasswordChange(){document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between"><h3>Nueva contraseña</h3><button class="btn" onclick="closeModal()">Cerrar</button></div><form id="v15PassForm" class="form-grid"><label class="full">Nueva contraseña<input class="field" name="p1" type="password" minlength="8" required></label><label class="full">Repetir contraseña<input class="field" name="p2" type="password" minlength="8" required></label><div class="full notice">La contraseña no se muestra ni se almacena en el dashboard. Se actualiza directamente en Supabase Auth.</div><div class="full"><button class="btn primary">Actualizar contraseña</button></div></form></div></div>`;document.getElementById('v15PassForm').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));if(f.p1!==f.p2)return toast('Las contraseñas no coinciden.','error');const {error}=await sb.auth.updateUser({password:f.p1});if(error)return toast(error.message,'error');try{await sb.from('perfiles').update({debe_cambiar_password:false}).eq('id',state.session.user.id)}catch(_){ }closeModal();toast('Contraseña actualizada','success')}}
-/* El listener de recuperación se instala una sola vez en el núcleo de arranque V15.23. */
+/* El listener de recuperación se instala una sola vez en el núcleo de arranque V15.24. */
 
 // ----------- Centro de notificaciones -----------
 function v15InstallBell(){if(document.getElementById('v15NotifyBtn'))return;const b=document.createElement('button');b.id='v15NotifyBtn';b.className='v15-notify-btn hidden';b.innerHTML='🔔<span id="v15NotifyCount" class="v15-notify-count hidden">0</span>';b.onclick=v15OpenNotifications;document.body.appendChild(b)}
@@ -3203,7 +3203,7 @@ openSyncProfileModal=function(uid,email){_openSyncProfileModalV15Base(uid,email)
 async function v15AdminSendRecovery(email){if(!isAdmin())return;const ok=confirm(`¿Enviar enlace de recuperación de contraseña a ${email}?`);if(!ok)return;const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)return toast(error.message,'error');await v15Notify('Recuperación de contraseña solicitada',`Se envió un enlace de recuperación a ${email}`,'normal',null);toast('Correo de recuperación solicitado a Supabase','success')}
 const _loadUsersV15Base=loadUsers;
 loadUsers=async function(){await _loadUsersV15Base();if(!isAdmin())return;document.querySelectorAll('#usersTable tbody tr').forEach(tr=>{const email=tr.children?.[1]?.textContent?.trim();const cell=tr.lastElementChild;if(!email||!cell||cell.querySelector('.v15-reset-pass'))return;const b=document.createElement('button');b.className='btn v15-reset-pass';b.style.marginLeft='6px';b.textContent='Restablecer contraseña';b.onclick=()=>v15AdminSendRecovery(email);cell.appendChild(b)})};
-/* Instalación diferida heredada desactivada; showApp V15.23 la realiza una vez. */
+/* Instalación diferida heredada desactivada; showApp V15.24 la realiza una vez. */
 </script>
 
 
@@ -3306,7 +3306,7 @@ function v151InstallMobileNav(){
     const ov=document.createElement('div');ov.id='v151DrawerOverlay';ov.className='v151-drawer-overlay';ov.onclick=v151CloseDrawer;document.body.appendChild(ov);
   }
   if(!document.getElementById('v151MobileHead')){
-    const h=document.createElement('div');h.id='v151MobileHead';h.className='v151-mobile-head';h.innerHTML=`<button class="v151-menu-btn" onclick="v151OpenDrawer()">☰</button><div class="v151-mobile-title"><strong id="v151MobileTitle">Inicio</strong><small>Stainher App · V15.9</small></div>`;document.body.appendChild(h);
+    const h=document.createElement('div');h.id='v151MobileHead';h.className='v151-mobile-head';h.innerHTML=`<button class="v151-menu-btn" onclick="v151OpenDrawer()">☰</button><div class="v151-mobile-title"><strong id="v151MobileTitle">Inicio</strong><small>Stainher App · V15.24 · R226</small></div>`;document.body.appendChild(h);
   }
   if(!document.getElementById('v151MobileBottom')){
     const bar=document.createElement('div');bar.id='v151MobileBottom';bar.className='v151-mobile-bottom';
@@ -3444,7 +3444,7 @@ const _renderAllV151Base=renderAll;
 renderAll=function(){_renderAllV151Base();setTimeout(()=>{v151InstallMobileNav();v151UpdateMobileNav();v151RemoveWrongMeta(document.getElementById('page-turnos'));v151RemoveWrongMeta(document.getElementById('page-solicitudes'))},80)};
 const _showAppV151Base=showApp;
 showApp=function(){_showAppV151Base();setTimeout(v151InstallMobileNav,80)};
-/* Inicialización móvil heredada desactivada; applyPermissions V15.23 la centraliza. */
+/* Inicialización móvil heredada desactivada; applyPermissions V15.24 la centraliza. */
 </script>
 
 
@@ -9984,7 +9984,7 @@ v1517Version=v1518Version;v1516Version=v1518Version;v1515Version=v1518Version;v1
 
 /* Render final, idempotente. */
 const _v1518RenderAllBase=renderAll;renderAll=function(){_v1518RenderAllBase();applyPermissionsV11();v1518Version();v1518DecorateSidebar();v1518BuildMobileNav();v1517CleanTurnActions?.();v1518ArrangeCorrectivo();v1514SetGlobalHeader?.(v1514ActivePage())};
-/* Bootstrap V15.18 desactivado; V15.23 es el único bootstrap visual. */
+/* Bootstrap V15.18 desactivado; V15.24 es el único bootstrap visual. */
 
 
 
@@ -10069,7 +10069,7 @@ const _v1518ContractEdpFinal=renderContractEdp;renderContractEdp=function(){_v15
 @media(max-width:760px){.v1519-filter-grid{grid-template-columns:1fr}.v1519-prev-actions{justify-content:stretch}.v1519-prev-actions>.btn,.v1519-prev-actions>details{width:100%}.v1519-action-menu>summary{width:100%}.v1519-action-pop{position:static;margin-top:6px}.v1519-contract-head{display:grid}.v1519-contract-refresh{justify-content:flex-start}.v13-doc-row{grid-template-columns:1fr!important}.v13-doc-row strong,.v13-doc-row small{text-align:left!important}.v1519-inventory-row{grid-template-columns:1fr}.v158-review-actions .btn{flex:1 1 100%}}
 </style>
 <script id="v1519-script">
-const V1519_VERSION='V15.23';
+const V1519_VERSION='V15.24';
 const V1519_DATE='30-08-2026';
 
 /* Desactiva observadores históricos que corregían el DOM después del render. */
@@ -10280,7 +10280,7 @@ const V1519_CHANGES=[['Preventivo','Rango Desde/Hasta único, Gantt sincronizada
 const _v1519SystemChangesBase=renderSistema;renderSistema=function(){_v1519SystemChangesBase();const p=document.getElementById('page-sistema');if(!p)return;p.querySelectorAll('.v1513-changes,.v1514-changes,.v1515-changes,.v1516-changes,.v1517-changes,.v1518-changes,.v1519-changes').forEach(x=>x.remove());[...p.querySelectorAll('.panel')].forEach(x=>{if(/Últimas modificaciones/i.test(x.textContent||''))x.remove()});const d=document.createElement('details');d.className='panel v1513-changes v1519-changes';d.innerHTML=`<summary>Últimas modificaciones · ${V1519_VERSION}</summary><div class="v1513-changes-body"><div class="v1513-version-meta"><span>Versión actual: ${V1519_VERSION}</span><span>Actualización: ${V1519_DATE}</span></div>${V1519_CHANGES.map(([g,t])=>`<div class="v1513-change-group"><b>${esc(g)}</b><small>${esc(t)}</small></div>`).join('')}</div>`;p.prepend(d);v1519Version()};
 
 /* Un solo bootstrap final; todo lo anterior queda como librería histórica inactiva. */
-/* Bootstrap V15.19 desactivado; V15.23 es el único bootstrap visual. */
+/* Bootstrap V15.19 desactivado; V15.24 es el único bootstrap visual. */
 </script>
 
 <style id="v1520-clean-styles">
@@ -10304,7 +10304,7 @@ const _v1519SystemChangesBase=renderSistema;renderSistema=function(){_v1519Syste
    Solicitudes y Notificaciones. Las capas históricas quedan como helpers,
    pero estos módulos no delegan sus renderizadores a versiones anteriores.
 ===================================================================== */
-const V1520_VERSION='V15.23',V1520_DATE='30-08-2026';
+const V1520_VERSION='V15.24',V1520_DATE='30-08-2026';
 function v1520Version(){
   document.title=`Stainher App ${V1520_VERSION}`;
   document.querySelectorAll('.v15-version-chip').forEach(x=>x.textContent=V1520_VERSION);
@@ -10408,7 +10408,7 @@ const _v1520SystemRenderer=renderSistema;renderSistema=async function(){await _v
 
 /* Dispatcher final: un único punto activo para los módulos recompilados. */
 v1519RenderModule=function(pg){if(pg==='inicio')renderInicio?.();else if(pg==='preventivo')renderPreventivo();else if(pg==='correctivo')renderCorrectivoShell?.();else if(pg==='equipos')renderEquipos?.();else if(pg==='vehiculos')renderStandaloneVehiculos?.();else if(pg==='dotacion')renderStandaloneDotacion?.();else if(pg==='turnos')renderTurnosV15();else if(pg==='solicitudes')renderSolicitudesV15();else if(pg==='liderazgo')renderLiderazgoV95?.();else if(pg==='contrato')renderContrato();else if(pg==='sistema')renderSistema?.();else if(pg==='usuarios')renderUsuarios?.()};
-/* Bootstrap V15.20 desactivado; V15.23 es el único bootstrap visual. */
+/* Bootstrap V15.20 desactivado; V15.24 es el único bootstrap visual. */
 </script>
 
 
@@ -10433,7 +10433,7 @@ openPersonModal=function(id=''){
    V15.21 · SISTEMA + MODO PRUEBA SEGURO
    Renderer independiente: NO hereda capas históricas.
 ========================================================= */
-const V15201_VERSION='V15.23',V15201_DATE='30-08-2026';
+const V15201_VERSION='V15.24',V15201_DATE='30-08-2026';
 function v15201Version(){
   document.title=`Stainher App ${V15201_VERSION}`;
   document.querySelectorAll('.brand h1').forEach(x=>x.textContent='STAINHER APP');
@@ -10495,7 +10495,7 @@ renderSistema=async function(){
 </script>
 
 <script id="v1520-bootstrap">
-/* El arranque se difiere hasta que el núcleo consolidado V15.23 esté instalado. */
+/* El arranque se difiere hasta que el núcleo consolidado V15.24 esté instalado. */
 </script>
 
 
@@ -10525,7 +10525,7 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(orientation:landscape) and (max-height:600px){.v1520-turn-matrix th:first-child,.v1520-turn-matrix td:first-child{min-width:120px!important;width:120px!important;max-width:120px!important}.v1520-turn-matrix th:not(:first-child),.v1520-turn-matrix td:not(:first-child){min-width:42px!important;width:42px!important}.mobile-bottom-nav{opacity:.96}}
 </style>
 <script id="v1521-final">
-const V1521_VERSION='V15.23',V1521_DATE='30-08-2026';
+const V1521_VERSION='V15.24',V1521_DATE='30-08-2026';
 function v1521Version(){document.title=`Stainher App ${V1521_VERSION}`;document.querySelectorAll('.v151-mobile-title small').forEach(x=>x.textContent=`Stainher App · ${V1521_VERSION}`);document.querySelectorAll('.version-chip,.v15-version-chip,.v1513-version-meta span:first-child').forEach(x=>{if(/V15\./.test(x.textContent||''))x.textContent=(x.textContent||'').replace(/V15\.\d+(?:\.\d+)*/g,V1521_VERSION)})}
 v1520Version=v1521Version;v1519Version=v1521Version;
 
@@ -10670,7 +10670,7 @@ const _v1522Dispatch=v1519RenderModule;v1519RenderModule=function(pg){const out=
 @media(max-width:760px){.v1523-prev-view-head{display:grid}.v1523-prev-view-badge{width:max-content}.v1523-history-head{display:grid;grid-template-columns:1fr}.v1523-history-filter{width:100%;min-width:0}.v1523-reemb-grid-head{display:none}.v1523-reemb-grid{border:0;gap:9px;overflow:visible}.v1523-reemb-grid-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"meta action" "detail detail" "amount-label amount";gap:8px 10px;border:1px solid var(--line)!important;border-radius:11px;padding:11px}.v1523-reemb-date,.v1523-reemb-code,.v1523-reemb-equipment{display:none}.v1523-reemb-mobile-meta{display:flex;grid-area:meta;gap:6px;flex-wrap:wrap;color:var(--muted);font-size:11px}.v1523-reemb-detail{grid-area:detail}.v1523-reemb-amount-label{display:block;grid-area:amount-label;color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:800}.v1523-reemb-amount{grid-area:amount;align-self:center}.v1523-reemb-action{grid-area:action}.v1523-turn-day-groups{grid-template-columns:1fr}}
 </style>
 <script id="v1523-profile-audit-core">
-const V1523_VERSION='V15.23',V1523_DATE='30-08-2026';
+const V1523_VERSION='V15.24',V1523_DATE='30-08-2026';
 const V1523_MODULES=['inicio','preventivo','correctivo','equipos','vehiculos','dotacion','turnos','solicitudes','liderazgo','contrato','sistema','usuarios'];
 const V1523_DEFAULTS={
  administrador:{inicio:'editar',preventivo:'editar',correctivo:'editar',equipos:'editar',vehiculos:'editar',dotacion:'editar',turnos:'editar',solicitudes:'editar',liderazgo:'editar',contrato:'editar',sistema:'editar',usuarios:'editar'},
@@ -10788,8 +10788,8 @@ function v1523RunProfileAudit(){
   const tests=[],add=(name,ok,detail)=>tests.push({name,ok:!!ok,detail});
   for(const [role,perms] of Object.entries(V1523_DEFAULTS))add(`${v1519RoleLabel(role)} · matriz completa`,V1523_MODULES.every(m=>['ninguno','ver','editar'].includes(perms[m])),`Los ${V1523_MODULES.length} módulos tienen un nivel válido.`);
   add('Núcleo · arranque único',!!window.__v1523BootPromise&&state.v1523LegacyObserversDisabled===true,'La sesión inicia después del núcleo final y sin observadores heredados activos.');
-  add('Renderizadores · cobertura total',typeof V1523_DIRECT_RENDERERS!=='undefined'&&V1523_MODULES.every(m=>V1523_DIRECT_RENDERERS.has(m)),'Los 12 módulos usan el despacho consolidado V15.23.');
-  add('Versión visible · uniforme',[V1519_VERSION,V1520_VERSION,V15201_VERSION,V1521_VERSION].every(v=>v===V1523_VERSION)&&v1523VisibleLegacyVersionCount()===0,'Encabezados, pestañas, fichas y modales muestran V15.23; no queda una versión heredada visible.');
+  add('Renderizadores · cobertura total',typeof V1523_DIRECT_RENDERERS!=='undefined'&&V1523_MODULES.every(m=>V1523_DIRECT_RENDERERS.has(m)),'Los 12 módulos usan el despacho consolidado V15.24.');
+  add('Versión visible · uniforme',[V1519_VERSION,V1520_VERSION,V15201_VERSION,V1521_VERSION].every(v=>v===V1523_VERSION)&&v1523VisibleLegacyVersionCount()===0,'Encabezados, pestañas, fichas y modales muestran V15.24; no queda una versión heredada visible.');
   const notificationButton=document.getElementById('v15NotifyBtn');add('Notificaciones · centro persistente',typeof v1523EnsureNotificationCenter==='function'&&typeof v15OpenNotifications==='function'&&!!notificationButton&&!notificationButton.classList.contains('hidden'),'La campana permanece visible, integrada en el encabezado móvil y accesible aunque no existan avisos.');
   add('Preventivo · vistas independientes',typeof v1523SetPreventiveView==='function'&&typeof v1523RenderPreventiveContent==='function'&&v1523PreventiveMode('lista')!==v1523PreventiveMode('gantt'),'Listado usa tabla detallada y Carta Gantt usa matriz temporal; el cambio es inmediato.');
   add('Solicitudes · recuperación sin duplicar',typeof v1523AssignManagerModal==='function'&&typeof v1523RetryHR==='function'&&typeof v1523RequestLock==='function','Gerente y RR.HH. se reasignan sobre el mismo registro con aviso único.');
@@ -10818,7 +10818,7 @@ const V1523_CHANGES=[
  ['Preventivo','Listado detallado y Carta Gantt temporal con cambio inmediato y renderizado independiente.'],
  ['Contrato','Gastos reembolsables en cuadrícula fija y orden cronológico seleccionable en el historial de pagos.'],
  ['Cuenta','Mi cuenta, cambio de contraseña y cierre de sesión reunidos en un único menú desplegable.'],
- ['Versión','V15.23 sincronizada en encabezados, pestañas, fichas, modales y componentes heredados activos.'],
+ ['Versión','V15.24 sincronizada en encabezados, pestañas, fichas, modales y componentes heredados activos.'],
  ['Notificaciones','Centro restaurado y persistente; campana visible en escritorio y dentro del encabezado móvil.'],
  ['Seguridad','Las acciones sensibles vuelven a comprobar el permiso efectivo antes de escribir.'],
  ['Estabilidad','Control de carreras, bloqueo de reenvíos, avisos sin difusión y diagnóstico de errores/promesas.'],
@@ -11197,7 +11197,7 @@ v1523DisableLegacyObservers();v1523InstallDefaults();v1523Version();
 </script>
 <script>
 /* =========================================================
-   V15.23 · CORRECCIÓN OPERATIVA DEL NÚCLEO DE CORREO
+   V15.24 · CORRECCIÓN OPERATIVA DEL NÚCLEO DE CORREO
    Un solo Edge Function, trazabilidad del servidor e idempotencia.
 ========================================================= */
 const V1523_EMAIL_CORE='v1523-email-core-20260830';
@@ -11285,7 +11285,7 @@ v1523StartOnce();
 </script>
 <style id="v1523-responsive-grid-core">
 /* ================================================================
-   V15.23 · CUADRÍCULA RESPONSIVE AUTORITATIVA
+   V15.24 · CUADRÍCULA RESPONSIVE AUTORITATIVA
    Esta capa es deliberadamente la última: contiene las reglas visuales
    heredadas sin alterar los renderizadores ni el versionado funcional.
 ================================================================ */
@@ -11575,7 +11575,7 @@ table th,table td{overflow-wrap:anywhere}
 }
 </style>
 <style id="v1523-mobile-grid-bottom-fix">
-/* V15.23 · ajuste final de filtros de fecha y navegación inferior móvil. */
+/* V15.24 · ajuste final de filtros de fecha y navegación inferior móvil. */
 @media(max-width:900px){
   html,body{max-width:100%;overflow-x:hidden}
   .main{
@@ -11659,7 +11659,7 @@ v1523InstallResponsiveCore();
 }
 </style>
 <script id="v1523-leadership-record-actions-script">
-/* V15.23 · Prevención/Administrador pueden corregir o eliminar controles realizados. */
+/* V15.24 · Prevención/Administrador pueden corregir o eliminar controles realizados. */
 function v1523LeadershipRecordIsIncomplete(row){
   const name=String(row?.ejecutado_por_nombre||row?.supervisor_nombre||'').trim().toLowerCase();
   return !row?.ejecutado_por_user_id||!name||name==='seleccionar supervisor'||name==='usuario no identificado';
@@ -11731,7 +11731,7 @@ v12Register=async function(control,date,selectedId,turno=''){
 @media(max-width:700px){.v1523-prev-day-grid .equipment{width:155px;min-width:155px;max-width:155px}.v1523-prev-day-grid th,.v1523-prev-day-grid td{min-width:46px}.v1523-prev-unplanned-row{grid-template-columns:1fr}.v1523-prev-unplanned-row .btn{width:100%}}
 </style>
 <script id="v1523-preventive-equipment-grid-script">
-/* V15.23 · Preventivo agrupado por equipo en Listado y Carta Gantt diaria. */
+/* V15.24 · Preventivo agrupado por equipo en Listado y Carta Gantt diaria. */
 function v1523PreventiveEquipmentGroups(rows){
   const groups=new Map();
   (rows||[]).forEach(row=>{const name=String(row.equipos?.nombre||'Equipo sin nombre').trim()||'Equipo sin nombre',key=name.toLocaleLowerCase('es-CL');if(!groups.has(key))groups.set(key,{name,rows:[]});groups.get(key).rows.push(row)});
@@ -11777,7 +11777,7 @@ v1523RenderPreventiveContent=function(){
 @media(max-width:760px){.v1523-prev-period-toolbar{grid-template-columns:1fr!important}}
 </style>
 <style id="v1523-mobile-filter-containment-style">
-/* V15.23 · Contiene los controles nativos date/month/select dentro de la pantalla móvil. */
+/* V15.24 · Contiene los controles nativos date/month/select dentro de la pantalla móvil. */
 @media(max-width:900px){
   #page-preventivo,#page-correctivo{
     inline-size:100%!important;max-inline-size:100%!important;min-inline-size:0!important;
@@ -11815,7 +11815,7 @@ v1523RenderPreventiveContent=function(){
 }
 </style>
 <script id="v1523-preventive-edp-period-script">
-/* V15.23 · Preventivo usa un único mes EDP: 21 del mes anterior al 20 del mes seleccionado. */
+/* V15.24 · Preventivo usa un único mes EDP: 21 del mes anterior al 20 del mes seleccionado. */
 function v1523PreventiveEdpPeriod(){
   if(!state.v1523PrevEdpYear||!state.v1523PrevEdpMonth){const current=currentEdp();state.v1523PrevEdpYear=current.year;state.v1523PrevEdpMonth=current.month}
   const year=Number(state.v1523PrevEdpYear),month=Number(state.v1523PrevEdpMonth),range=edpRange(year,month);state.prevYear=year;state.prevMonth=month;state.v1520PrevFrom=range.start;state.v1520PrevTo=range.end;return {year,month,range,key:`${year}-${String(month).padStart(2,'0')}`};
@@ -11852,6 +11852,6 @@ openPlanModal=async function(){
   document.getElementById('planForm').onsubmit=async event=>{event.preventDefault();const values=Object.fromEntries(new FormData(event.target));if(!dateInEdp(values.fecha_programada,period.year,period.month))return toast(`La fecha debe quedar entre ${fmtDateCL(range.start)} y ${fmtDateCL(range.end)}.`,'error');values.anio=period.year;values.mes=period.month;const query=await sb.from('programacion_preventiva').insert(values);if(query.error)return toast(query.error.message,'error');state.v1519PlanCatalogLoaded=false;closeModal();await renderPreventivo();toast('Actividad programada dentro del período contractual','success')};
 };
 </script>
-<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'R225',build:'20261022-r225-mobile-priority'};const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');const build=file==='stainher-turnos-direct-r18.js'?'20260909-r29-calendar-groups':file==='stainher-turn-pdf-final-r18.js'?'20260924-r112-loader-consolidation':file==='stainher-vehicle-expiry-alerts-r18.js'?'20260924-r109-vehicle-control-gases' :'20261022-r225-mobile-priority';s.src=file+'?build='+build+'&app_build=R224';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.catch(error=>console.error('[r112]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
+<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'R226',build:'20261023-r226-mobile-release-consistency'};const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');const build=file==='stainher-turnos-direct-r18.js'?'20260909-r29-calendar-groups':file==='stainher-turn-pdf-final-r18.js'?'20260924-r112-loader-consolidation':file==='stainher-vehicle-expiry-alerts-r18.js'?'20260924-r109-vehicle-control-gases' :'20261023-r226-mobile-release-consistency';s.src=file+'?build='+build+'&app_build=R226';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.catch(error=>console.error('[r112]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
 </body>
 </html>

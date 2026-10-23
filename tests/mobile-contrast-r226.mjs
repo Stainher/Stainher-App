@@ -15,7 +15,7 @@ try{
     html[data-theme="light"] body #v151MobileBottom button{color:#102030!important}
     #v151MobileHead,#v151MobileBottom{background:#111b25!important}
   </style></head><body>
-    <div id="v151MobileHead" class="v151-mobile-head"><div class="v151-mobile-title"><strong>Inicio</strong><small>Stainher App · V15.24 R225</small></div></div>
+    <div id="v151MobileHead" class="v151-mobile-head"><div class="v151-mobile-title"><strong>Inicio</strong><small>Stainher App · V15.24 R226</small></div></div>
     <div id="v151MobileBottom" class="v151-mobile-bottom">
       <button class="active" aria-current="page"><b>⌂</b><span>Inicio</span></button>
       <button><b>✓</b><span>Preventivo</span></button>
@@ -33,7 +33,7 @@ try{
     assert.equal(rgb.length,3,sel+' = '+color);
     assert.ok(rgb.every(x=>x>=200),theme+' '+sel+' must remain legible, got '+color);
   }
-  await page.screenshot({path:`artifacts/mobile-navigation-${theme}-r225.png`});
+  await page.screenshot({path:`artifacts/mobile-navigation-${theme}-r226.png`});
   console.log('PASS mobile nav contrast '+theme);
   await page.close();
  }
