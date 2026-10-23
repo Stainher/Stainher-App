@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R231",
-  "build": "20261023-r231-turnos-navigation",
+  "revision": "R238",
+  "build": "20261023-r238-release-sync",
   "path": "./",
   "publishedAt": "2026-10-23"
 }
