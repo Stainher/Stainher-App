@@ -3,6 +3,28 @@
   'use strict';
   const KEY='stainher-theme-v1',DARK='dark',LIGHT='light',MODERN='modern';
   const css=`
+    /* R223: barras móviles oscuras con textos claros, sin afectar escritorio. */
+    @media(max-width:780px){
+      html body #v151MobileHead,html body .v151-mobile-head{
+        background:#101a24!important;color:#f5f9ff!important;border-bottom:1px solid #62798e!important
+      }
+      html body #v151MobileHead .v151-mobile-title,
+      html body #v151MobileHead .v151-mobile-title :is(strong,small,span),
+      html body .v151-mobile-head .v151-mobile-title :is(strong,small,span){
+        color:#f5f9ff!important;-webkit-text-fill-color:#f5f9ff!important;opacity:1!important
+      }
+      html body #v151MobileBottom,html body .v151-mobile-bottom{
+        background:#101a24!important;color:#edf5ff!important;border-top:1px solid #62798e!important
+      }
+      html body #v151MobileBottom button,html body #v151MobileBottom button *,
+      html body .v151-mobile-bottom button,html body .v151-mobile-bottom button *{
+        color:#eaf4ff!important;-webkit-text-fill-color:#eaf4ff!important;opacity:1!important
+      }
+      html body #v151MobileBottom button:is(.active,[aria-current="page"]),
+      html body .v151-mobile-bottom button:is(.active,[aria-current="page"]){
+        background:#174d70!important;color:#fff!important
+      }
+    }
     /* R222: navegación legible y cuadrícula operativa de turnos (solo presentación). */
     html:is([data-theme="light"],[data-theme="modern"]) body #page-turnos :is(.r18-turn-tabs,.v1512-turn-tabs,.v1520-turn-tabs) :is(button,.btn,[role="tab"]){
       background:#f6faff!important;color:#173651!important;-webkit-text-fill-color:#173651!important;
@@ -1153,7 +1175,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r222-turn-legibility':'20261022-r219-module-cache');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261022-r223-mobile-bars':'20261022-r219-module-cache');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
