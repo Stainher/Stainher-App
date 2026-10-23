@@ -183,7 +183,7 @@
     page.querySelector('[data-r18-import]')?.addEventListener('click',()=>window.v1514OpenTurnImport?.());
     page.querySelector('[data-r18-new]')?.addEventListener('click',()=>window.v1520OpenTurnEvent?.());
     page.querySelector('[data-r18-report]')?.addEventListener('click',()=>{if(typeof window.v1516OpenTurnMonthlyReport==='function')window.v1516OpenTurnMonthlyReport();else window.v1520TurnReport?.()});
-    page.querySelector('[data-r18-publish]')?.addEventListener('click',()=>window.v1524PublishTurns?.());
+    page.querySelector('[data-r18-refresh]')?.addEventListener('click',()=>directRender());
     page.querySelectorAll('[data-r18-edit-event]').forEach(b=>b.addEventListener('click',()=>window.v1520OpenTurnEvent?.(b.dataset.r18EditEvent)));
     page.querySelectorAll('[data-r18-delete-event]').forEach(b=>b.addEventListener('click',()=>window.v1520DeleteTurnEvent?.(b.dataset.r18DeleteEvent)));
   }
@@ -211,7 +211,7 @@
       const content=tab==='malla'?matrixHtml(d,idx,y,m,edit):eventsHtml(d,idx,edit);
       const html=`<div class="topbar"><div><h2>Turnos y Novedades</h2><p>Planifica y consulta la malla A/C/L y los eventos reales de la dotación.</p></div></div>
         <div class="r18-turn-meta"><span class="status ok">Turnos directos · r18</span><span>${(d.people||[]).length} colaborador(es) · ${loadMs} ms datos</span></div>
-        <div class="r18-turn-actions">${edit?'<button class="btn" data-r18-template>↓ Plantilla anual</button><button class="btn" data-r18-import>↑ Importar Excel</button><button class="btn primary" data-r18-new>+ Nuevo evento</button>':''}<button class="btn" data-r18-report>↓ Informe</button>${edit?'<button class="btn" data-r18-publish>Publicar turnos</button>':''}</div>
+        <div class="r18-turn-actions">${edit?'<button class="btn" data-r18-template>↓ Plantilla anual</button><button class="btn" data-r18-import>↑ Importar Excel</button><button class="btn primary" data-r18-new>+ Nuevo evento</button>':''}<button class="btn" data-r18-report>↓ Informe</button>${edit?'<button class="btn" data-r18-refresh>↻ Actualizar vista</button>':''}</div>
         <div class="r18-turn-toolbar"><button class="btn" data-r18-prev>‹</button><div class="r18-month">${esc(monthName(m))} ${y}</div><button class="btn" data-r18-next>›</button><label>Grupo<select class="field" data-r18-group><option value="">Todos</option>${groupOptions}</select></label></div>
         <div class="r18-kpis"><div class="r18-kpi"><span>Programados · ${esc(fmtDate(ref))}</span><b>${cov.scheduled}</b></div><div class="r18-kpi"><span>Disponibles efectivos</span><b>${cov.available}</b></div><div class="r18-kpi"><span>Ausentes programados</span><b>${cov.absent}</b></div><div class="r18-kpi"><span>Días adicionales · mes</span><b>${idx.additional.size}</b><small>Acumulado del mes seleccionado</small></div><div class="r18-kpi"><span>Cobertura operativa</span><b>${cov.pct.toFixed(1)}%</b><small>No utiliza dotación contractual</small></div></div>
         <div class="r18-kpis r18-kpis-secondary"><div class="r18-kpi"><span>Encierro dentro de turno</span><b>${idx.inside.size}</b></div><div class="r18-kpi"><span>Encierro fuera de turno</span><b>${idx.outside.size}</b></div><div class="r18-kpi"><span>Suspendido por encierro</span><b>${idx.suspended.size}</b></div></div>
@@ -228,7 +228,7 @@
     mountStyle();
     window.renderTurnosV15=directRender;
     window.v1520TurnStep=step;window.v1520TurnToday=today;
-    if(typeof window.v1523Renderer==='function'&&!window.v1523Renderer.__r18){const base=window.v1523Renderer;const fn=pg=>pg==='turnos'?directRender:base(pg);fn.__r18=true;fn.__base=base;window.v1523Renderer=fn}
+    if(typeof window.v1523Renderer==='function'&&!window.v1523Renderer.__r18){const base=window.v1523Renderer;const fn=pg=>pg==='turnos'?directRender():base(pg);fn.__r18=true;fn.__base=base;window.v1523Renderer=fn}
     if(typeof window.v1519RenderModule==='function'&&!window.v1519RenderModule.__r18){const base=window.v1519RenderModule;const fn=pg=>pg==='turnos'?directRender():base(pg);fn.__r18=true;fn.__base=base;window.v1519RenderModule=fn}
     document.documentElement.dataset.stainherTurnosRenderer='r18-direct';
   }
