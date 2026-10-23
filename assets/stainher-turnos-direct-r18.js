@@ -65,7 +65,25 @@
       #page-turnos .r18-mobile-date{display:flex;align-items:baseline;justify-content:center;gap:3px;line-height:1}
       #page-turnos .r18-mobile-weekday{color:var(--muted);font-size:7px;font-weight:500}
       @media(max-width:900px){#page-turnos .r18-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#page-turnos .r18-kpis-secondary{grid-template-columns:1fr 1fr 1fr}#page-turnos .r18-turn-toolbar{grid-template-columns:44px 1fr 44px}#page-turnos .r18-turn-toolbar label{grid-column:1/-1}#page-turnos .r18-event-row{grid-template-columns:1fr 1fr}#page-turnos .r18-event-row>*:nth-child(5){grid-column:1/-1}.r18-event-row .actions{grid-column:1/-1}.r18-desktop{display:none!important}#page-turnos .r18-mobile{display:block}}
-      @media(max-width:520px){#page-turnos .r18-kpis,#page-turnos .r18-kpis-secondary{grid-template-columns:1fr 1fr}#page-turnos .r18-turn-actions .btn{width:100%}}
+      @media(max-width:520px){
+        #page-turnos .r18-kpis,#page-turnos .r18-kpis-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}
+        /* Mobile R226 hotfix: actions stay accessible without filling five separate rows. */
+        #page-turnos .r18-turn-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin:10px 0 12px!important}
+        #page-turnos .r18-turn-actions .btn{width:100%!important;min-width:0!important;min-height:44px!important;padding:9px 6px!important;font-size:13px!important;line-height:1.2!important;white-space:normal!important;overflow-wrap:anywhere!important}
+        #page-turnos .r18-turn-actions [data-r18-new]{grid-column:1/-1}
+        /* Diagnostic timing is available on desktop, not presented as a mobile control. */
+        #page-turnos .r18-turn-meta{display:none!important}
+        /* Keep all seven weekdays visible; use readable badges and touch-size day cells. */
+        #page-turnos .r18-mobile-person{padding:9px!important;min-width:0;max-width:100%;box-sizing:border-box}
+        #page-turnos .r18-mobile-days{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+        #page-turnos .r18-mobile-day{min-width:0;min-height:62px!important;padding:4px 1px!important;box-sizing:border-box;overflow:visible}
+        #page-turnos .r18-mobile-date{gap:2px;flex-wrap:wrap;align-items:center;line-height:1.2}
+        #page-turnos .r18-mobile-weekday{font-size:9px!important}
+        #page-turnos .r18-mobile-date b{font-size:10px}
+        #page-turnos .r18-mobile-day .r18-shift{min-width:24px!important;min-height:24px!important;font-size:11px!important}
+        #page-turnos .r18-mobile-day .r18-cell-events{gap:2px 1px;margin-top:4px}
+        #page-turnos .r18-mobile-day .r18-event-code{font-size:9px!important;line-height:1.15!important;min-width:0;max-width:100%;padding:2px 2px!important;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box}
+      }
     `;document.head.appendChild(s);
   }
 
