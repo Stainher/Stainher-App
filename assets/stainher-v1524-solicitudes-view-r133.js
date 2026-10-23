@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261023-r243-actions-inline-layout';
+  const BUILD='20261023-r244-actions-contained';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -308,6 +308,24 @@
       important(actions,'display','flex');
       important(actions,'justify-content','flex-start');
       important(actions,'flex-wrap','wrap');
+      // Apply the layout to the entire action subtree, including legacy wrappers.
+      actions.querySelectorAll('button,.btn').forEach(button=>{
+        important(button,'position','static');
+        important(button,'inset','auto');
+        important(button,'transform','none');
+        important(button,'max-width','100%');
+        important(button,'margin','0');
+      });
+      // Place action immediately after status for compact readability.
+      const status=card.querySelector('[data-r133-field="status"]');
+      if(status&&actions.previousElementSibling!==status)status.after(actions);
+      // No implicit tracks: use a second row if the available space is tight.
+      if(width<1150){
+        important(card,'grid-template-columns','repeat(2,minmax(0,1fr))');
+        important(actions,'grid-column','2');
+        important(actions,'grid-row','auto');
+      }
+
     });
   }
 

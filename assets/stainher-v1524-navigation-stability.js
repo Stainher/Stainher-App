@@ -226,6 +226,10 @@
       ||candidates.find(panel=>/Personal de turno hoy|Dotación en turno hoy|Ver programación|Cargando programación|Turno A|Turno C/i.test(clean(panel)))
       ||candidates.find(panel=>/^Detalles$/i.test(clean(panel.querySelector(':scope>summary .stainher-disclosure-title,:scope>summary'))))
       ||(candidates.length===1?candidates[0]:null);
+    // Retire obsolete shortcut while keeping the staffing summary and all other actions.
+    page.querySelectorAll('button,a,[role="button"]').forEach(control=>{
+      if((control.textContent||'').trim()==='Ver programación')control.remove();
+    });
     if(staffingPanel){
       if(staffingPanel.tagName==='DETAILS')staffingPanel.classList.remove('v1521-home-turn');
       else staffingPanel.classList.add('v1521-home-turn');
