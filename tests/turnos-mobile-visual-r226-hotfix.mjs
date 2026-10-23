@@ -70,7 +70,7 @@ try {
     assert.ok(layout.day.height >= 62, 'Celdas diarias legibles');
     assert.equal(layout.tabs.length, 3, 'El tercer reporte HP está presente');
     assert.ok(layout.tabs.every(t => t.left >= 0 && t.right <= layout.viewportWidth + 1), 'Ninguna pestaña recortada horizontalmente');
-    assert.ok(layout.tabs.every(t => t.height >= 54 && t.whiteSpace === 'normal'), 'Todas las pestañas muestran sus títulos en varias líneas');
+    assert.ok(layout.tabs.every(t => t.height >= 54 && t.whiteSpace === 'normal'), 'Todas las pestañas muestran sus títulos en varias líneas: '+JSON.stringify(layout.tabs));
     assert.ok(Math.abs(layout.tabs[0].y-layout.tabs[2].y) < 2, 'Las tres pestañas comparten una fila');
     assert.ok(layout.tabs[2].right > layout.tabs[1].right && layout.tabs[0].left < layout.tabs[1].left, 'Las pestañas se mantienen ordenadas');
     assert.equal(layout.metaDisplay, 'none', 'Telemetría no ocupa espacio móvil');
