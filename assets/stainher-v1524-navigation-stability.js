@@ -53,8 +53,7 @@
         }
       });
     });
-    const canonicalTitle=`Stainher App ${VERSION} ${REVISION}`;
-    if(document.title!==canonicalTitle)document.title=canonicalTitle;
+    document.title=`Stainher App ${VERSION} ${REVISION}`;
   }
   // R232: identify compact module command rows without changing their buttons or layout.
   function normalizeTopActionSurfaces(){
