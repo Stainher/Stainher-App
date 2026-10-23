@@ -17,7 +17,7 @@ assert.match(history,/grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/,'La
 assert.doesNotMatch(history,/new MutationObserver/,'No debe reintroducir el observer problemático');
 assert.match(history,/data-r128-month/,'Debe conservar selector mensual estable');
 
-assert.match(loader,/HP_LOADER_VERSION__='R128'/,'Loader debe quedar en R128');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 128, 'El cargador activo debe conservar al menos R128 (forecast-history-r128)');
 assert.match(loader,/stainher-v1524-forecast-history-r128\.js/,'Loader debe cargar R128');
 assert.doesNotMatch(loader,/stainher-v1524-forecast-history-r127\.js/,'Loader no debe cargar simultáneamente R127');
 assert.match(loader,/stainher-turn-report-hotfix-runtime-r126/,'R126 de suspendidos debe conservarse');
