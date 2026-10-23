@@ -9,17 +9,29 @@
 
   function lockBrowserTitle(){
     const canonical=`Stainher App ${VERSION} ${REVISION}`;
-    const descriptor=Object.getOwnPropertyDescriptor(Document.prototype,'title') ||
-      Object.getOwnPropertyDescriptor(HTMLDocument.prototype,'title');
-    if(!descriptor?.get||!descriptor?.set)return;
-    if(Object.getOwnPropertyDescriptor(document,'title')?.get?.__stainherLocked)return;
-    const getter=function(){return descriptor.get.call(document)};
+    // The title descriptor is not guaranteed to live directly on Document.prototype.
+    // Walk the real document prototype chain, otherwise the previous guard silently skipped.
+    let proto=document,descriptor=null;
+    while((proto=Object.getPrototypeOf(proto))){
+      descriptor=Object.getOwnPropertyDescriptor(proto,'title');
+      if(descriptor?.get&&descriptor?.set)break;
+    }
+    if(!descriptor?.get||!descriptor?.set)return false;
+    const old=Object.getOwnPropertyDescriptor(document,'title');
+    if(old?.get?.__stainherLocked)return true;
+    const getter=function(){return canonical};
     getter.__stainherLocked=true;
-    Object.defineProperty(document,'title',{
-      configurable:true,enumerable:true,get:getter,
-      set(value){descriptor.set.call(document,canonical)}
-    });
-    document.title=canonical;
+    try{
+      Object.defineProperty(document,'title',{
+        configurable:true,enumerable:true,get:getter,
+        set(){if(descriptor.get.call(document)!==canonical)descriptor.set.call(document,canonical)}
+      });
+      descriptor.set.call(document,canonical);
+      return true;
+    }catch(error){
+      console.warn('[Stainher title guard]',error);
+      return false;
+    }
   }
   function ensureBrandChips(){
     if(document.getElementById('stainher-brand-chips-r206'))return;
