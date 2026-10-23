@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R224",
-  "build": "20261022-r224-pwa-cache-refresh",
+  "revision": "R225",
+  "build": "20261022-r225-mobile-priority",
   "path": "./",
   "publishedAt": "2026-10-22"
 }
