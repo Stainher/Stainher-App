@@ -23,7 +23,7 @@ assert.match(loader,/stainher-v1524-contract-forecast-r121\.js/,'El loader debe 
 assert.match(loader,/StainherContractForecastR121\?\.install/,'El loader debe instalar R121');
 assert.match(loader,/contract-forecast-r121-ready/,'Debe emitir evento de Forecast R121');
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 122, 'El cargador activo debe conservar al menos R122 (contract-forecast-r121)');
-assert.match(loader,/refreshEquipmentViewR120/,'La mejora R120 de Equipos debe conservarse');
+assert.match(loader,/refreshEquipmentViewR132/,'La vista Equipos continúa activa con mejoras R132');
 assert.match(loader,/refreshReliabilityActionsR119/,'R119 debe conservarse');
 assert.match(loader,/refreshCorrectivoHistoryR118/,'R118 debe conservarse');
 assert.match(loader,/stainher-weekly-hp-runtime-r117/,'R117 debe conservarse');
