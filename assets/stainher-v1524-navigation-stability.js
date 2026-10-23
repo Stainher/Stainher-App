@@ -7,6 +7,20 @@
   const REVISION='R240';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
+  function lockBrowserTitle(){
+    const canonical=`Stainher App ${VERSION} ${REVISION}`;
+    const descriptor=Object.getOwnPropertyDescriptor(Document.prototype,'title') ||
+      Object.getOwnPropertyDescriptor(HTMLDocument.prototype,'title');
+    if(!descriptor?.get||!descriptor?.set)return;
+    if(Object.getOwnPropertyDescriptor(document,'title')?.get?.__stainherLocked)return;
+    const getter=function(){return descriptor.get.call(document)};
+    getter.__stainherLocked=true;
+    Object.defineProperty(document,'title',{
+      configurable:true,enumerable:true,get:getter,
+      set(value){descriptor.set.call(document,canonical)}
+    });
+    document.title=canonical;
+  }
   function ensureBrandChips(){
     if(document.getElementById('stainher-brand-chips-r206'))return;
     const style=document.createElement('style');
@@ -249,7 +263,7 @@
     requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
-    installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
+    lockBrowserTitle();installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
     document.addEventListener('click',event=>{
       const button=event.target.closest?.('#v151MobileBottom button[data-v151-page],.nav button[data-page]');
       const page=button?.dataset.v151Page||button?.dataset.page;
