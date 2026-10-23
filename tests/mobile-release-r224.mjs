@@ -5,22 +5,22 @@ const read=p=>readFileSync(p,'utf8');
 const html=read('index.html'),theme=read('assets/stainher-v1524-theme.js');
 const nav=read('assets/stainher-v1524-navigation-stability.js');
 const release=JSON.parse(read('release.json'));
-const watcher=read('assets/stainher-v1524-release-refresh-r224.js');
-test('R224 release manifest and navigation agree',()=>{
+const watcher=read('assets/stainher-v1524-release-refresh-r225.js');
+test('R225 release manifest and navigation agree',()=>{
  assert.equal(release.version,'V15.24');
- assert.equal(release.revision,'R224');
- assert.match(nav,/const REVISION='R224'/);
- assert.match(html,/revision:'R224'/);
+ assert.equal(release.revision,'R225');
+ assert.match(nav,/const REVISION='R225'/);
+ assert.match(html,/revision:'R225'/);
 });
 test('Index refreshes stale module URLs and preloaded copies',()=>{
  assert.match(html,/function runtimeUrl\(source\)/);
  assert.match(html,/script\.src=runtimeUrl\(module\.src\)/);
  assert.match(html,/link\.href=runtimeUrl\(module\.src\)/);
- assert.match(html,/20261022-r224-pwa-cache-refresh/);
- assert.match(theme,/20261022-r224-pwa-cache-refresh/);
+ assert.match(html,/20261022-r225-pwa-cache-refresh/);
+ assert.match(theme,/20261022-r225-pwa-cache-refresh/);
 });
 test('Release watcher observes mobile return and avoids reload loops',()=>{
- assert.match(html,/stainher-v1524-release-refresh-r224\.js/);
+ assert.match(html,/stainher-v1524-release-refresh-r225\.js/);
  assert.match(watcher,/visibilitychange/);
  assert.match(watcher,/pageshow/);
  assert.match(watcher,/credentials:'same-origin'/);
@@ -28,11 +28,11 @@ test('Release watcher observes mobile return and avoids reload loops',()=>{
  assert.match(watcher,/location\.replace\(target\.href\)/);
 });
 test('Mobile header and bottom navigation remain legible',()=>{
- assert.match(html,/stainher-r224-mobile-header-guarantee/);
+ assert.match(html,/stainher-r225-mobile-header-guarantee/);
  assert.match(theme,/#v151MobileHead/);
  assert.match(theme,/#v151MobileBottom/);
 });
-test('Inline R224 loader syntax parses',()=>{
+test('Inline R225 loader syntax parses',()=>{
  const pattern=/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g;
  let seen=0;
  for(const match of html.matchAll(pattern)){
