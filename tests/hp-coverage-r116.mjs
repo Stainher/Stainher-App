@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 const hp=fs.readFileSync('assets/stainher-v1524-weekly-hp-report.js','utf8');
 
-assert.match(hp,/WEEKLY_HP_REPORT_VERSION__='R116'/,'R116 debe ser la implementación HP activa');
+assert.ok(Number(hp.match(/window\.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R(\d+)'/)?.[1])>=116,'La implementación HP activa debe conservar R116 y mejoras posteriores');
 assert.match(hp,/if\(td==='A'.*?oper\+=12;/s,'Turno A debe cargar 12 h');
 assert.match(hp,/if\(td==='C'.*?oper\+=4;/s,'Turno C debe cargar 4 h el día de inicio');
 assert.match(hp,/if\(prev==='C'.*?oper\+=8;/s,'Turno C debe cargar 8 h al día siguiente');
