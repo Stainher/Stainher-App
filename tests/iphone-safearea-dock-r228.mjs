@@ -20,7 +20,7 @@ try{
    await page.setContent(`<!doctype html><html data-theme="${skin}" style="--stainher-mobile-safe-bottom:34px"><head><style>
      html body #v151MobileBottom{height:180px!important;min-height:180px!important;padding:45px 6px!important;background:#101a24!important}
    </style></head><body style="margin:0;background:#d4e5f0;min-height:100vh">
-    <div id="v151MobileHead" class="v151-mobile-head"><div class="v151-mobile-title"><strong>Turnos y Novedades</strong><small>Stainher App · V15.24 · R227</small></div></div>
+    <div id="v151MobileHead" class="v151-mobile-head"><div class="v151-mobile-title"><strong>Turnos y Novedades</strong><small>Stainher App · V15.24 · R228</small></div></div>
     <nav id="v151MobileBottom" class="v151-mobile-bottom">
      <button class="active" aria-current="page"><b>⌂</b><span>Inicio</span></button>
      <button><b>✓</b><span>Preventivo</span></button>
@@ -40,14 +40,18 @@ try{
        labelColors:buttons.map(b=>getComputedStyle(b.querySelector('span')).color),
        width:r.width,right:r.right};
    });
-   assert.ok(result.bottom>=39&&result.bottom<=41,skin+' dock above 34px safe-area plus gap: '+JSON.stringify(result));
+   assert.ok(result.bottom>=15&&result.bottom<=17,skin+' dock lowered to 16px from bottom with 34px inset: '+JSON.stringify(result));
    assert.ok(result.height>=54&&result.height<=70,skin+' dock must not paint the entire safe-area: '+JSON.stringify(result));
    assert.ok(result.bottomPadding<=6,skin+' iOS inset must not be inside dark dock');
    assert.ok(result.buttonHeights.every(h=>h>=48&&h<=49),skin+' touch targets');
    assert.ok(result.labelColors.every(v=>{const a=(v.match(/\d+/g)||[]).slice(0,3).map(Number);return a.length===3&&a.every(n=>n>=200)}),skin+' navigation legibility');
    assert.ok(result.width<390&&result.right<390,skin+' floating horizontal margins');
-   await page.screenshot({path:`artifacts/iphone-safearea-dock-${skin}-r227.png`,fullPage:true});
-   console.log('PASS R227 iOS safe-area dock: '+skin,JSON.stringify(result));
+   const lowerViewport=await page.evaluate(()=>{document.documentElement.style.setProperty('--stainher-mobile-safe-bottom','0px');const d=document.querySelector('#v151MobileBottom');return {bottom:parseFloat(getComputedStyle(d).bottom),height:d.getBoundingClientRect().height}});
+   assert.ok(lowerViewport.bottom>=7&&lowerViewport.bottom<=9,skin+' 8px minimum if no notch');
+   assert.ok(lowerViewport.height>=54&&lowerViewport.height<=70,skin+' stable height without notch');
+   await page.evaluate(()=>document.documentElement.style.setProperty('--stainher-mobile-safe-bottom','34px'));
+   await page.screenshot({path:`artifacts/iphone-safearea-dock-${skin}-r228.png`,fullPage:true});
+   console.log('PASS R228 iOS safe-area dock: '+skin,JSON.stringify(result));
    await page.close();
  }
 }finally{await browser.close()}
