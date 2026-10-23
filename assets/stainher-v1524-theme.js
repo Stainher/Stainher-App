@@ -1063,7 +1063,71 @@
         line-height:1.18!important;
       }
     }
-        /* R225: última regla, por encima de overrides antiguos de tema Claro. */
+        /* R230: criterios WCAG AA para componentes contractuales y operativos.
+       Mantiene etiquetas de estado semánticas y NO altera el tema Oscuro. */
+    html:is([data-theme="light"],[data-theme="modern"]) body
+      :is(#page-contrato,#page-preventivo,#page-correctivo,#page-dotacion,#page-vehiculos,#page-sistema)
+      .v1520-status{
+      font-weight:600!important;-webkit-text-fill-color:currentColor!important;
+      text-shadow:none!important;opacity:1!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .v1520-status.ok{
+      background:#e4f5ed!important;color:#086243!important;
+      border-color:#74c1a4!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .v1520-status.warn{
+      background:#fff3d6!important;color:#805000!important;
+      border-color:#ddb36d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .v1520-status.bad{
+      background:#ffe9eb!important;color:#982839!important;
+      border-color:#e6a6ae!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .v1520-status.info{
+      background:#e7f2ff!important;color:#145b94!important;
+      border-color:#9ec7eb!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .v1520-error{
+      background:#fff0f1!important;color:#912b38!important;
+      border-color:#dda4ab!important;-webkit-text-fill-color:#912b38!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body .v1520-readonly{
+      background:#edf4fd!important;color:#214d75!important;
+      border-color:#a9c6df!important;-webkit-text-fill-color:#214d75!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-contrato .v1520-dl dt{
+      color:#38556e!important;-webkit-text-fill-color:#38556e!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo
+      :is(.v1523-prev-unplanned,.v1523-prev-unplanned-group){
+      background:#f7fbff!important;color:#1d3952!important;
+      border-color:#bdcddd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo
+      .v1523-prev-unplanned-group>header{
+      background:#e7f0f8!important;color:#183852!important;
+      border-color:#bdcddd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo
+      .v1523-prev-unplanned-group>header :is(h5,span,strong,b){
+      color:#183852!important;-webkit-text-fill-color:#183852!important;
+    }
+    /* R230: las pestañas modernas no deben heredar el fondo claro de
+       .btn:not(.primary):not(.danger), que tiene mayor especificidad. */
+    html[data-theme="modern"] body
+      :is(#page-preventivo,#page-correctivo,#page-equipos,#page-estandarizacion,#page-solicitudes,#page-sistema)
+      :is(button.btn.active:not(:disabled),button.btn[aria-selected="true"]:not(:disabled),[role="tab"].active:not([aria-disabled="true"])){
+      background:#1769b5!important;color:#fff!important;
+      -webkit-text-fill-color:#fff!important;border-color:#12528e!important;
+      opacity:1!important;text-shadow:none!important;
+    }
+    html[data-theme="modern"] body
+      :is(#page-preventivo,#page-correctivo,#page-equipos,#page-estandarizacion,#page-solicitudes,#page-sistema)
+      :is(button.btn.active,button.btn[aria-selected="true"],[role="tab"].active)
+      :is(span,b,strong,small){
+      color:inherit!important;-webkit-text-fill-color:inherit!important;
+    }
+    /* R225: última regla, por encima de overrides antiguos de tema Claro. */
     @media (max-width:780px){
       html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileHead,
       html:is([data-theme="light"],[data-theme="modern"]) body #v151MobileBottom{
@@ -1221,7 +1285,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261023-r228-ios-dock-lower':'20261023-r228-ios-dock-lower');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-home-layout.js'?'20261022-r205-home-no-flash':file==='stainher-v1524-navigation-stability.js'?'20261023-r230-cross-module-contrast':'20261023-r230-cross-module-contrast');script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);
