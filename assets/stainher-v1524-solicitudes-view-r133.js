@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261024-r247-actions-wrap';
+  const BUILD='20261024-r249-unified-requests-layout';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -74,76 +74,41 @@
         color:#fff!important;
       }
 
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-grid{
-        display:grid!important;
-        gap:6px!important;
-      }
+      /* R249: single authoritative compact layout. Actions always use a full second row. */
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-grid{display:grid!important;gap:6px!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-        display:grid!important;
-        grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,.85fr) minmax(0,1fr) minmax(0,.65fr) max-content!important;
-        gap:7px 14px!important;
-        align-items:center!important;
-        min-height:0!important;
-        padding:9px 11px!important;
-        border-radius:10px!important;
+        display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        grid-auto-flow:row!important;column-gap:12px!important;row-gap:8px!important;
+        width:100%!important;max-width:100%!important;min-width:0!important;
+        box-sizing:border-box!important;overflow:hidden!important;
+        align-items:center!important;padding:9px 11px!important;border-radius:10px!important;
       }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
-        min-width:0!important;
-        margin:0!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card small{
-        display:block!important;
-        margin:0 0 2px!important;
-        font-size:9px!important;
-        line-height:1.15!important;
-      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{min-width:0!important;margin:0!important;overflow-wrap:anywhere!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card small{display:block!important;margin:0 0 2px!important;font-size:9px!important;line-height:1.15!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card b,
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v152-request-type{
-        font-size:13px!important;
-        line-height:1.18!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="detail"],
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .wide,
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v1524-just-detail{
-        display:none!important;
-      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v152-request-type{font-size:13px!important;line-height:1.18!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card :is([data-r133-field="detail"],.wide,.v1524-just-detail){display:none!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:3!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:4!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:5!important}
       #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-        grid-column:6!important;
-        grid-row:1!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:flex-end!important;
-        flex-wrap:nowrap!important;
-        gap:6px!important;
-        min-width:0!important;max-width:100%!important;
-        margin:0!important;
+        grid-column:1/-1!important;grid-row:2!important;min-width:0!important;width:100%!important;
+        max-width:100%!important;box-sizing:border-box!important;display:flex!important;
+        position:static!important;inset:auto!important;transform:none!important;
+        justify-content:flex-start!important;flex-wrap:wrap!important;gap:6px!important;margin:0!important;
       }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions .btn{
-        min-height:32px!important;
-        height:32px!important;
-        width:auto!important;
-        min-width:max-content!important;
-        flex:0 0 auto!important;
-        padding:6px 9px!important;
-        font-size:11px!important;
-        white-space:nowrap!important;
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions :is(button,.btn,a){
+        position:static!important;inset:auto!important;transform:none!important;flex:0 1 auto!important;
+        max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;
+        min-height:32px!important;padding:6px 9px!important;font-size:11px!important;
       }
-
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-        width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
+      @media(max-width:900px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{grid-column:auto!important;grid-row:auto!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{grid-column:1/-1!important;grid-row:auto!important}
       }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v154-request-actions{
-        max-width:100%!important;box-sizing:border-box!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
-        overflow-wrap:anywhere!important;
-      }
-
       #${PAGE_ID}[data-stainher-solicitudes-view="expanded"] .v152-request-card{
         transition:none!important;
       }
@@ -196,116 +161,6 @@
           justify-content:flex-start!important;
           flex-wrap:wrap!important;
           min-width:0!important;
-        }
-      }
-      /* Zoom-safe compact rows: actions must never occupy an overflowing implicit column. */
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-        grid-template-columns:repeat(5,minmax(0,1fr))!important;
-        grid-auto-flow:row!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important}
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important}
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:3!important}
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:4!important}
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:5!important}
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-        grid-column:1/-1!important;grid-row:auto!important;
-        min-width:0!important;width:100%!important;max-width:100%!important;
-        justify-content:flex-end!important;flex-wrap:wrap!important;
-      }
-      @media(max-width:900px){
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important}
-      }
-      /* R242: avoid excessive spacing and keep actions beside status. */
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-        grid-template-columns:minmax(120px,180px) minmax(120px,180px) minmax(105px,145px) minmax(140px,195px) minmax(90px,120px) max-content!important;
-        column-gap:12px!important;justify-content:start!important;overflow:visible!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-        grid-column:6!important;grid-row:1!important;width:auto!important;
-        justify-content:flex-start!important;position:static!important;inset:auto!important;transform:none!important;
-      }
-      @media(max-width:1250px){
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:minmax(0,180px) minmax(0,180px) minmax(0,150px) minmax(0,190px)!important;
-        }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important;display:block!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important;display:block!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:3!important;display:block!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:4!important;display:block!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important;grid-row:2!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{grid-column:2/4!important;grid-row:2!important}
-      }
-      @media(max-width:700px){
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:1!important;grid-row:auto!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:2!important;grid-row:auto!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important;grid-row:auto!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{grid-column:2!important;grid-row:auto!important;flex-wrap:wrap!important}
-      }
-      /* R246: actions only — preserve every field, filter and view renderer. */
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-        grid-template-columns:repeat(5,minmax(0,1fr))!important;
-        justify-content:stretch!important;
-        max-width:100%!important;
-        overflow:hidden!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-        grid-column:1/-1!important;grid-row:auto!important;
-        width:100%!important;min-width:0!important;max-width:100%!important;
-        display:flex!important;justify-content:flex-start!important;
-        flex-wrap:wrap!important;gap:6px!important;
-        position:static!important;inset:auto!important;transform:none!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions > :is(button,.btn,a){
-        max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;
-      }
-      @media(max-width:1050px){
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:repeat(2,minmax(0,1fr))!important;
-        }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
-          grid-column:auto!important;grid-row:auto!important;
-        }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-          grid-column:1/-1!important;
-        }
-      }
-      /* R247: action container cannot sit in an implicit sixth grid column. */
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-        grid-template-columns:repeat(5,minmax(0,1fr))!important;
-        grid-auto-flow:row!important;
-        overflow:hidden!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-        grid-column:1/-1!important;
-        grid-row:auto!important;
-        justify-self:start!important;
-        width:auto!important;max-width:100%!important;
-        min-width:0!important;
-        display:flex!important;flex-wrap:wrap!important;
-        justify-content:flex-start!important;align-items:center!important;
-        position:static!important;right:auto!important;left:auto!important;
-        transform:none!important;margin:0!important;
-      }
-      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions :is(button,.btn,a){
-        flex:0 1 auto!important;max-width:100%!important;
-        white-space:normal!important;overflow-wrap:anywhere!important;
-        position:static!important;right:auto!important;left:auto!important;
-        transform:none!important;
-      }
-      @media(max-width:1050px){
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:repeat(2,minmax(0,1fr))!important;
-        }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
-          grid-column:auto!important;grid-row:auto!important;
-        }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-          grid-column:1/-1!important;grid-row:auto!important;
         }
       }
     `;
