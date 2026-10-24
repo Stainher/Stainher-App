@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261023-r246-responsive-actions-only';
+  const BUILD='20261024-r247-actions-wrap';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -272,6 +272,40 @@
         }
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
           grid-column:1/-1!important;
+        }
+      }
+      /* R247: action container cannot sit in an implicit sixth grid column. */
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+        grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        grid-auto-flow:row!important;
+        overflow:hidden!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+        grid-column:1/-1!important;
+        grid-row:auto!important;
+        justify-self:start!important;
+        width:auto!important;max-width:100%!important;
+        min-width:0!important;
+        display:flex!important;flex-wrap:wrap!important;
+        justify-content:flex-start!important;align-items:center!important;
+        position:static!important;right:auto!important;left:auto!important;
+        transform:none!important;margin:0!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions :is(button,.btn,a){
+        flex:0 1 auto!important;max-width:100%!important;
+        white-space:normal!important;overflow-wrap:anywhere!important;
+        position:static!important;right:auto!important;left:auto!important;
+        transform:none!important;
+      }
+      @media(max-width:1050px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        }
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
+          grid-column:auto!important;grid-row:auto!important;
+        }
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+          grid-column:1/-1!important;grid-row:auto!important;
         }
       }
     `;
