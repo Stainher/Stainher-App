@@ -258,7 +258,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -273,6 +273,45 @@
     const current=window.v1519Navigate;
     if(typeof current==='function'&&current!==navigate)baseNavigate=current;
     window.v1519Navigate=navigate;window.v1518Navigate=navigate;window.gotoPage=navigate;
+  }
+  function ensureModernSurfacePalette(){
+    if(document.getElementById('stainher-modern-surface-palette-r259'))return;
+    const style=document.createElement('style');
+    style.id='stainher-modern-surface-palette-r259';
+    style.textContent=`
+      /* R259 - cards/panels only, never navigation, buttons or semantic statuses. */
+      :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259,
+      :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259{
+        background:#e9f2fa!important;background-image:none!important;
+        color:#173753!important;-webkit-text-fill-color:#173753!important;
+        border-color:#b7d0e4!important;
+      }
+      :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259 :is(h1,h2,h3,h4,h5,h6,p,label,small,span,strong):not(.badge):not([class*="status"]){
+        color:#173753!important;-webkit-text-fill-color:#173753!important;
+      }
+      :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259 > :is(table,div,section) {border-color:#b7d0e4}
+    `;
+    document.head.appendChild(style);
+  }
+  function normalizeModernSurfaces(){
+    ensureModernSurfacePalette();
+    const root=document.documentElement,body=document.body;
+    const modern=[root,body].some(el=>el?.dataset?.theme==='modern'||/\\b(?:theme-modern|modern)\\b/.test(el?.className||''));
+    if(!modern)return;
+    const scopes=document.querySelectorAll('.page[id^="page-"],#modalRoot .modal,[role="dialog"]');
+    scopes.forEach(scope=>scope.querySelectorAll('section,article,aside,.panel,.card,.stat-card,.kpi-card,.summary-card').forEach(node=>{
+      if(node.classList.contains('stainher-modern-surface-r259'))return;
+      if(node.closest('nav,.nav,aside.sidebar,.sidebar,header,.modal-header,.v1524-operational-totals,.v1524-detail-group'))return;
+      if(node.matches('button,[role="button"],[class*="status"],[class*="badge"]'))return;
+      if(node.querySelector('canvas,svg')&&node.children.length<3)return;
+      const rect=node.getBoundingClientRect();
+      if(rect.width<110||rect.height<42)return;
+      const bg=getComputedStyle(node).backgroundColor.match(/^rgba?\\(([^)]+)\\)$/);
+      if(!bg)return;
+      const [red,green,blue,alpha=1]=bg[1].split(',').map(Number);
+      if(alpha<.85||Math.max(red,green,blue)>52||Math.min(red,green,blue)>44)return;
+      node.classList.add('stainher-modern-surface-r259');
+    }));
   }
   function normalizeTurnDayModalLabels(){
     // The selected-day summary uses dark navy panels but inherits a low-contrast label color.
@@ -289,7 +328,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     lockBrowserTitle();installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
