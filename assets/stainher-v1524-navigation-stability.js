@@ -258,7 +258,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -274,9 +274,22 @@
     if(typeof current==='function'&&current!==navigate)baseNavigate=current;
     window.v1519Navigate=navigate;window.v1518Navigate=navigate;window.gotoPage=navigate;
   }
+  function normalizeTurnDayModalLabels(){
+    // The selected-day summary uses dark navy panels but inherits a low-contrast label color.
+    document.querySelectorAll('#modalRoot .modal, [role="dialog"]').forEach(modal=>{
+      const labels=new Set(['TRABAJADOR SELECCIONADO','FECHA SELECCIONADA','TURNO BASE']);
+      const candidates=[...modal.querySelectorAll('small,label,span,div,p')].filter(node=>
+        node.children.length===0&&labels.has((node.textContent||'').trim().toUpperCase()));
+      if(!candidates.some(node=>(node.textContent||'').trim().toUpperCase()==='TRABAJADOR SELECCIONADO'))return;
+      for(const node of candidates){
+        node.style.setProperty('color','#c5dcf0','important');
+        node.style.setProperty('-webkit-text-fill-color','#c5dcf0','important');
+      }
+    });
+  }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     lockBrowserTitle();installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
