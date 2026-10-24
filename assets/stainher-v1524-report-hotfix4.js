@@ -81,6 +81,20 @@
         background:#192b3d!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:700!important;
       }
       #modalRoot .v1524-turn-report-readable table :is(th,td){border-color:#c6d6e3!important}
+      /* R260: explicit pale blue backgrounds, not dynamic dark-color detection. */
+      #modalRoot .v1524-operational-totals,
+      #modalRoot .v1524-operational-total,
+      #modalRoot .v1524-detail-group > :first-child:not(table),
+      #modalRoot .v1524-detail-group > header{
+        background:#e9f2fa!important;background-image:none!important;
+        color:#173753!important;-webkit-text-fill-color:#173753!important;
+        border-color:#b7d0e4!important;
+      }
+      #modalRoot .v1524-operational-totals :is(h5,b,small,span),
+      #modalRoot .v1524-operational-total :is(b,small,span),
+      #modalRoot .v1524-detail-group > :first-child:not(table) :is(h3,h4,h5,strong,span){
+        color:#173753!important;-webkit-text-fill-color:#173753!important;
+      }
       .v1524-operational-totals{margin-top:10px;padding:10px;border:1px solid #2d3c4c;border-radius:10px;background:#0d151e}
       .v1524-operational-totals h5{margin:0 0 8px;color:#dbeafe;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
       .v1524-operational-total-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
