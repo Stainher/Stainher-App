@@ -170,26 +170,56 @@
   function showPermitColumn(modal,r){
     const table=modal?.querySelector('.v1524-report-summary table');if(!table)return;
     const head=table.querySelector('thead tr');if(!head)return;
-    const faltasIndex=[...head.children].findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
-    if(faltasIndex<0)return;
-    let idx=[...head.children].findIndex(c=>/permisos/i.test(c.textContent||''));
-    if(idx<0){const th=document.createElement('th');th.textContent='Permisos';head.insertBefore(th,head.children[faltasIndex]);idx=faltasIndex;}
-    for(const [index,tr] of [...table.querySelectorAll('tbody tr')].entries()){
-      const row=r.rows.find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser))||r.rows.find(x=>String(x.nombre||'').trim()===String(tr.children[0]?.textContent||'').trim())||r.rows[index];if(!row)continue;
-      let cell=tr.querySelector('[data-r250-permits]');
-      if(!cell){cell=document.createElement('td');cell.dataset.r250Permits='1';tr.insertBefore(cell,tr.children[idx]||null)}
-      cell.textContent=String(row.permisos||0);
-      const cells=[...tr.children];const absentHead=[...head.children].findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
-      if(cells[absentHead])cells[absentHead].textContent=String(row.faltas||0);
+    let headers=[...head.children],absence=headers.findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
+    if(absence<0)return;
+    if(!headers.some(c=>/^permisos$/i.test((c.textContent||'').trim()))){
+      const th=document.createElement('th');th.textContent='Permisos';head.insertBefore(th,headers[absence]);
+    }
+    headers=[...head.children];
+    const permitIndex=headers.findIndex(c=>/^permisos$/i.test((c.textContent||'').trim()));
+    const absenceIndex=headers.findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
+    const nameKey=v=>String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase().replace(/\\s+/g,' ');
+    const byName=new Map((r.rows||[]).map(row=>[nameKey(row.nombre),row]));
+    function put(tr,index,value){
+      while(tr.children.length<=index)tr.appendChild(document.createElement('td'));
+      const cell=tr.children[index],desired=String(value||0);
+      if(cell.textContent!==desired)cell.textContent=desired;
+    }
+    for(const tr of table.querySelectorAll('tbody tr')){
+      const row=(r.rows||[]).find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser))
+        ||byName.get(nameKey(tr.children[0]?.textContent));if(!row)continue;
+      if(!tr.querySelector('[data-r252-permits],[data-r250-permits]')){
+        const cell=document.createElement('td');cell.dataset.r252Permits='1';
+        tr.insertBefore(cell,tr.children[permitIndex]||null);
+      }
+      put(tr,permitIndex,row.permisos);
+      put(tr,absenceIndex,row.faltas);
     }
     const foot=table.querySelector('tfoot tr');
     if(foot){
-      let cell=foot.querySelector('[data-r250-permits]');
-      if(!cell){cell=document.createElement('td');cell.dataset.r250Permits='1';foot.insertBefore(cell,foot.children[idx]||null)}
-      cell.textContent=String(r.total.permisos||0);
-      const absentHead=[...head.children].findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
-      if(foot.children[absentHead])foot.children[absentHead].textContent=String(r.total.faltas||0);
+      if(!foot.querySelector('[data-r252-permits],[data-r250-permits]')){
+        const cell=document.createElement('td');cell.dataset.r252Permits='1';
+        foot.insertBefore(cell,foot.children[permitIndex]||null);
+      }
+      put(foot,permitIndex,r.total.permisos);
+      put(foot,absenceIndex,r.total.faltas);
     }
+  }
+  let observedReport=null,reportRepairPending=false;
+  function observeReport(modal){
+    if(observedReport===modal)return;
+    observedReport=modal;
+    const summary=modal.querySelector('.v1524-report-summary');
+    if(!summary)return;
+    new MutationObserver(()=>{
+      if(reportRepairPending)return;
+      reportRepairPending=true;
+      queueMicrotask(()=>{
+        reportRepairPending=false;
+        const r=window.state?.v1516TurnReport;
+        if(r&&modal.isConnected){normalizePermitCounts(r);showPermitColumn(modal,r)}
+      });
+    }).observe(summary,{childList:true,subtree:true,characterData:true});
   }
   function enhanceModal(){
     const r=window.state?.v1516TurnReport;
@@ -201,6 +231,7 @@
     const summary=modal.querySelector('.v1524-report-summary');
     ensureSuspendedColumn(summary?.querySelector('table'),r);
     showPermitColumn(modal,r);
+    observeReport(modal);
     if(summary&&!modal.querySelector('.v1524-operational-totals')) summary.insertAdjacentHTML('afterend',operationalHtml(r));
   }
 
