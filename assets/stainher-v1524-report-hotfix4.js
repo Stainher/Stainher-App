@@ -63,6 +63,24 @@
       #modalRoot .v1524-readable-event-table tbody tr:nth-child(even) td{background:#edf4fa!important}
       #modalRoot .v1524-readable-event-table :is(th,thead tr,thead td){background:#dce9f3!important;color:#24445f!important;-webkit-text-fill-color:#24445f!important}
       #modalRoot .v1524-readable-event-table td{border-color:#c6d6e3!important}
+      /* R256: unificar contraste de todas las tablas del informe mensual. */
+      #modalRoot .v1524-turn-report-readable table tbody tr:not(.v1524-report-total-row) td,
+      #modalRoot .v1524-turn-report-readable table tbody tr:not(.v1524-report-total-row) th{
+        background:#f7fafc!important;color:#203a53!important;-webkit-text-fill-color:#203a53!important;
+      }
+      #modalRoot .v1524-turn-report-readable table tbody tr:not(.v1524-report-total-row):nth-child(even) > :is(td,th){
+        background:#edf4fa!important;
+      }
+      #modalRoot .v1524-turn-report-readable table tbody tr:not(.v1524-report-total-row) :is(td,th) *{
+        color:#203a53!important;-webkit-text-fill-color:#203a53!important;
+      }
+      #modalRoot .v1524-turn-report-readable table thead :is(th,td){
+        background:#dce9f3!important;color:#244660!important;-webkit-text-fill-color:#244660!important;
+      }
+      #modalRoot .v1524-turn-report-readable table .v1524-report-total-row > :is(th,td){
+        background:#192b3d!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:700!important;
+      }
+      #modalRoot .v1524-turn-report-readable table :is(th,td){border-color:#c6d6e3!important}
       .v1524-operational-totals{margin-top:10px;padding:10px;border:1px solid #2d3c4c;border-radius:10px;background:#0d151e}
       .v1524-operational-totals h5{margin:0 0 8px;color:#dbeafe;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
       .v1524-operational-total-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
@@ -276,6 +294,15 @@
     if(!heading)return;
     modal.querySelectorAll('table').forEach(table=>{if(heading.compareDocumentPosition(table)&Node.DOCUMENT_POSITION_FOLLOWING)table.classList.add('v1524-readable-event-table')});
   }
+  function markReportTables(modal){
+    if(!modal)return;
+    const summary=modal.querySelector('.v1524-report-summary');
+    if(summary)summary.classList.add('v1524-turn-report-readable');
+    modal.querySelectorAll('.v1524-detail-group').forEach(group=>group.classList.add('v1524-turn-report-readable'));
+    modal.querySelectorAll('.v1524-turn-report-readable table tbody tr').forEach(row=>{
+      if(/^total\s+(selecci[oó]n|general)/i.test((row.cells?.[0]?.textContent||'').trim()))row.classList.add('v1524-report-total-row');
+    });
+  }
   function enhanceModal(){
     const r=window.state?.v1516TurnReport;
     if(!r) return;
@@ -284,6 +311,7 @@
     normalizePermitCounts(r);
     patchReportNames(r,modal);
     markReadableEventTables(modal);
+    markReportTables(modal);
     const summary=modal.querySelector('.v1524-report-summary');
     ensureSuspendedColumn(summary?.querySelector('table'),r);
     showPermitColumn(modal,r);
