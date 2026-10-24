@@ -34,6 +34,7 @@ jobs:
           node tests/turnos-mobile-visual-r226-hotfix.mjs
           node tests/cross-module-contrast-r230.mjs
           node tests/turnos-functional-actions-r231.mjs
+          node tests/turnos-matrix-scroll-r264.mjs
       - name: Store visual evidence
         if: always()
         uses: actions/upload-artifact@v4
