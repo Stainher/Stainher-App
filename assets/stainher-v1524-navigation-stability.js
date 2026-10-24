@@ -282,12 +282,12 @@
       /* R259 - cards/panels only, never navigation, buttons or semantic statuses. */
       :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259,
       :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259{
-        background:#e9f2fa!important;background-image:none!important;
-        color:#173753!important;-webkit-text-fill-color:#173753!important;
+        background:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+        color:#fff!important;-webkit-text-fill-color:#fff!important;
         border-color:#b7d0e4!important;
       }
       :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259 :is(h1,h2,h3,h4,h5,h6,p,label,small,span,strong):not(.badge):not([class*="status"]){
-        color:#173753!important;-webkit-text-fill-color:#173753!important;
+        color:#fff!important;-webkit-text-fill-color:#fff!important;
       }
       :is(html[data-theme="modern"],body[data-theme="modern"],html.theme-modern,body.theme-modern,html.modern,body.modern) .stainher-modern-surface-r259 > :is(table,div,section) {border-color:#b7d0e4}
     `;
@@ -324,12 +324,12 @@
       for(let k=0;k<3&&panel;k++,panel=panel.parentElement){
         const content=(panel.textContent||'').toUpperCase();
         if(content.includes('FECHA SELECCIONADA')&&content.includes('TURNO BASE')&&panel!==modal){
-          panel.style.setProperty('background','#e9f2fa','important');
-          panel.style.setProperty('background-image','none','important');
+          panel.style.setProperty('background','linear-gradient(100deg,#078fa6 0%,#1977ca 100%)','important');
+          panel.style.setProperty('background-image','linear-gradient(100deg,#078fa6 0%,#1977ca 100%)','important');
           panel.style.setProperty('border-color','#b7d0e4','important');
           panel.querySelectorAll('small,label,span,div,p,strong,b').forEach(n=>{
-            n.style.setProperty('color','#173753','important');
-            n.style.setProperty('-webkit-text-fill-color','#173753','important');
+            n.style.setProperty('color','#fff','important');
+            n.style.setProperty('-webkit-text-fill-color','#fff','important');
           });
           break;
         }
