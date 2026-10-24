@@ -38,6 +38,25 @@
         color:#f4f8fc!important;-webkit-text-fill-color:#f4f8fc!important;
         background:#192b3d!important;font-weight:700!important;
       }
+      /* R255: light detail rows with readable foreground regardless of inherited dark theme. */
+      #modalRoot .v1524-detail-group table tbody tr,
+      #modalRoot .v1524-detail-group table tbody td{
+        background:#f7fafc!important;color:#203a53!important;
+        -webkit-text-fill-color:#203a53!important;
+      }
+      #modalRoot .v1524-detail-group table tbody tr:nth-child(even),
+      #modalRoot .v1524-detail-group table tbody tr:nth-child(even) td{
+        background:#edf4fa!important;color:#203a53!important;
+        -webkit-text-fill-color:#203a53!important;
+      }
+      #modalRoot .v1524-detail-group table tbody td,
+      #modalRoot .v1524-detail-group table tbody td *{
+        color:#203a53!important;-webkit-text-fill-color:#203a53!important;
+      }
+      #modalRoot .v1524-detail-group table thead th{
+        background:#dfeaf3!important;color:#244660!important;
+        -webkit-text-fill-color:#244660!important;
+      }
       .v1524-operational-totals{margin-top:10px;padding:10px;border:1px solid #2d3c4c;border-radius:10px;background:#0d151e}
       .v1524-operational-totals h5{margin:0 0 8px;color:#dbeafe;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
       .v1524-operational-total-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
