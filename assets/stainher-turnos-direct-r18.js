@@ -61,6 +61,23 @@
       }
             #page-turnos .r18-matrix{width:100%;max-width:100%;overflow:auto;border:1px solid var(--line);border-radius:11px;background:var(--panel,#0d141c)}
       #page-turnos .r18-matrix table{border-collapse:collapse;min-width:1180px;width:100%;table-layout:fixed}
+      /* R263: mobile scroll is isolated to the matrix; keep collaborator visible. */
+      @media(max-width:780px){
+        html body #page-turnos .r18-matrix{
+          width:100%!important;max-width:100%!important;min-width:0!important;
+          overflow-x:auto!important;overflow-y:auto!important;
+          overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+          scrollbar-gutter:stable;
+        }
+        html body #page-turnos .r18-matrix table{min-width:1180px!important;width:max(100%,1180px)!important}
+        html body #page-turnos .r18-matrix :is(th,td):first-child{
+          position:sticky!important;left:0!important;min-width:170px!important;width:170px!important;
+          box-shadow:2px 0 0 var(--line,#b7cbdc)!important;
+        }
+        html body #page-turnos .r18-matrix th:first-child{z-index:4!important}
+        html body #page-turnos .r18-matrix td:first-child{z-index:3!important}
+      }
+
       #page-turnos .r18-matrix th,#page-turnos .r18-matrix td{border:1px solid var(--line);padding:4px;text-align:center;height:38px;font-size:9px;box-sizing:border-box}
       #page-turnos .r18-matrix th{background:var(--panel2,#151f2a);color:var(--muted);position:sticky;top:0;z-index:2}
       #page-turnos .r18-matrix th:first-child,#page-turnos .r18-matrix td:first-child{position:sticky;left:0;width:170px;min-width:170px;text-align:left;background:var(--panel,#0d141c);z-index:3;padding:6px 8px}
