@@ -315,6 +315,26 @@
   }
   function normalizeTurnDayModalLabels(){
     // The selected-day summary uses dark navy panels but inherits a low-contrast label color.
+    // R260: override the dark selected-day summary card itself.
+    document.querySelectorAll('#modalRoot .modal, [role="dialog"]').forEach(modal=>{
+      const leaf=[...modal.querySelectorAll('small,label,span,div,p')]
+        .find(n=>n.children.length===0&&(n.textContent||'').trim().toUpperCase()==='TRABAJADOR SELECCIONADO');
+      if(!leaf)return;
+      let panel=leaf.parentElement;
+      for(let k=0;k<3&&panel;k++,panel=panel.parentElement){
+        const content=(panel.textContent||'').toUpperCase();
+        if(content.includes('FECHA SELECCIONADA')&&content.includes('TURNO BASE')&&panel!==modal){
+          panel.style.setProperty('background','#e9f2fa','important');
+          panel.style.setProperty('background-image','none','important');
+          panel.style.setProperty('border-color','#b7d0e4','important');
+          panel.querySelectorAll('small,label,span,div,p,strong,b').forEach(n=>{
+            n.style.setProperty('color','#173753','important');
+            n.style.setProperty('-webkit-text-fill-color','#173753','important');
+          });
+          break;
+        }
+      }
+    });
     document.querySelectorAll('#modalRoot .modal, [role="dialog"]').forEach(modal=>{
       const labels=new Set(['TRABAJADOR SELECCIONADO','FECHA SELECCIONADA','TURNO BASE']);
       const candidates=[...modal.querySelectorAll('small,label,span,div,p')].filter(node=>
