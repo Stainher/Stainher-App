@@ -144,29 +144,78 @@
     return true;
   }
 
+
+  function countPermitDays(ev,y,m){
+    const start=String(ev.fecha_inicio||'').slice(0,10),end=String(ev.fecha_fin||ev.fecha_inicio||'').slice(0,10);
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(start)||!/^\\d{4}-\\d{2}-\\d{2}$/.test(end))return 0;
+    const a=Date.parse(start+'T12:00:00Z'),b=Date.parse(end+'T12:00:00Z');
+    const from=Math.max(a,Date.UTC(y,m-1,1,12)),to=Math.min(b,Date.UTC(y,m,0,12));
+    return Math.max(0,Math.round((to-from)/86400000)+1);
+  }
+  function normalizePermitCounts(r){
+    if(!r?.rows?.length||r.__stainherPermitSeparated)return;
+    r.__stainherPermitSeparated=true;
+    for(const row of r.rows){
+      const events=row.eventos||[];
+      const permits=events.filter(e=>String(e.tipo||'').toLowerCase()==='permiso');
+      row.permisos=permits.reduce((n,e)=>n+countPermitDays(e,r.y,r.m),0);
+      const genuineAbsences=events.filter(e=>String(e.tipo||'').toLowerCase()==='falta')
+        .reduce((n,e)=>n+countPermitDays(e,r.y,r.m),0);
+      // Source eventos take precedence: permission days can never be treated as unjustified absences.
+      if(row.permisos>0)row.faltas=Math.max(genuineAbsences,Math.max(0,Number(row.faltas||0)-row.permisos));
+    }
+    r.total.permisos=r.rows.reduce((n,row)=>n+Number(row.permisos||0),0);
+    r.total.faltas=r.rows.reduce((n,row)=>n+Number(row.faltas||0),0);
+  }
+  function showPermitColumn(modal,r){
+    const table=modal?.querySelector('.v1524-report-summary table');if(!table)return;
+    const head=table.querySelector('thead tr');if(!head)return;
+    const faltasIndex=[...head.children].findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
+    if(faltasIndex<0)return;
+    let idx=[...head.children].findIndex(c=>/permisos/i.test(c.textContent||''));
+    if(idx<0){const th=document.createElement('th');th.textContent='Permisos';head.insertBefore(th,head.children[faltasIndex]);idx=faltasIndex;}
+    for(const tr of table.querySelectorAll('tbody tr[data-v1524-report-user]')){
+      const row=r.rows.find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser));if(!row)continue;
+      let cell=tr.querySelector('[data-r250-permits]');
+      if(!cell){cell=document.createElement('td');cell.dataset.r250Permits='1';tr.insertBefore(cell,tr.children[idx]||null)}
+      cell.textContent=String(row.permisos||0);
+      const cells=[...tr.children];const absentHead=[...head.children].findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
+      if(cells[absentHead])cells[absentHead].textContent=String(row.faltas||0);
+    }
+    const foot=table.querySelector('tfoot tr');
+    if(foot){
+      let cell=foot.querySelector('[data-r250-permits]');
+      if(!cell){cell=document.createElement('td');cell.dataset.r250Permits='1';foot.insertBefore(cell,foot.children[idx]||null)}
+      cell.textContent=String(r.total.permisos||0);
+      const absentHead=[...head.children].findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
+      if(foot.children[absentHead])foot.children[absentHead].textContent=String(r.total.faltas||0);
+    }
+  }
   function enhanceModal(){
     const r=window.state?.v1516TurnReport;
     if(!r) return;
     const modal=[...document.querySelectorAll('#modalRoot .modal')].find(x=>/Informe mensual/i.test(x.textContent||''));
     if(!modal) return;
+    normalizePermitCounts(r);
     patchReportNames(r,modal);
     const summary=modal.querySelector('.v1524-report-summary');
     ensureSuspendedColumn(summary?.querySelector('table'),r);
+    showPermitColumn(modal,r);
     if(summary&&!modal.querySelector('.v1524-operational-totals')) summary.insertAdjacentHTML('afterend',operationalHtml(r));
   }
 
   function exportExcel(){
-    const r=window.state?.v1516TurnReport;if(!r||!window.XLSX)return;
-    const summary=[...r.rows.map(x=>({'Colaborador':x.nombre,'Encierro dentro de turno':x.encDentro,'Encierro fuera de turno':x.encFuera,'Suspendido por encierro':x.suspendido,'Día extra (DA)':x.diasAdicionales,'Horas extra':x.he,'Horas feriado':x.hf,'Vacaciones':x.vacaciones,'Licencia médica':x.licencias,'Falta / ausencia':x.faltas,'Otros':x.otros})),{'Colaborador':'TOTAL GENERAL','Encierro dentro de turno':r.total.encDentro,'Encierro fuera de turno':r.total.encFuera,'Suspendido por encierro':r.total.suspendido,'Día extra (DA)':r.total.diasAdicionales,'Horas extra':r.total.he,'Horas feriado':r.total.hf,'Vacaciones':r.total.vacaciones,'Licencia médica':r.total.licencias,'Falta / ausencia':r.total.faltas,'Otros':r.total.otros}];
+    const r=window.state?.v1516TurnReport;if(!r||!window.XLSX)return;normalizePermitCounts(r);
+    const summary=[...r.rows.map(x=>({'Colaborador':x.nombre,'Encierro dentro de turno':x.encDentro,'Encierro fuera de turno':x.encFuera,'Suspendido por encierro':x.suspendido,'Día extra (DA)':x.diasAdicionales,'Horas extra':x.he,'Horas feriado':x.hf,'Vacaciones':x.vacaciones,'Licencia médica':x.licencias,'Permisos':x.permisos||0,'Falta / ausencia':x.faltas,'Otros':x.otros})),{'Colaborador':'TOTAL GENERAL','Encierro dentro de turno':r.total.encDentro,'Encierro fuera de turno':r.total.encFuera,'Suspendido por encierro':r.total.suspendido,'Día extra (DA)':r.total.diasAdicionales,'Horas extra':r.total.he,'Horas feriado':r.total.hf,'Vacaciones':r.total.vacaciones,'Licencia médica':r.total.licencias,'Permisos':r.total.permisos||0,'Falta / ausencia':r.total.faltas,'Otros':r.total.otros}];
     const ops=totals(r).map(x=>({'Código':x.code,'Evento':x.label,'Total':x.value,'Unidad':x.unit}));
     const detail=[];r.rows.forEach(g=>g.eventos.forEach(ev=>detail.push({'Colaborador':g.nombre,'Fecha / rango':evRange(ev),'Turno base':ev.turno_base||'','Tipo de evento':eventLabel(ev.tipo),'Cantidad':Number(ev.cantidad||0),'Unidad':ev.unidad||'','Hora inicio':String(ev.hora_inicio||'').slice(0,5),'Hora término':String(ev.hora_fin||'').slice(0,5),'Detalle / motivo':ev.motivo||ev.observacion||''})));
     const wb=window.XLSX.utils.book_new();window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(summary),'Resumen por colaborador');window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(ops),'Totales operativos');window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(detail),'Detalle agrupado');window.XLSX.writeFile(wb,`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}.xlsx`);
   }
 
   function exportPdf(){
-    const r=window.state?.v1516TurnReport,C=typeof window.ensurePdf==='function'?window.ensurePdf():null;if(!r||!C)return window.toast?.('No se pudo cargar el generador PDF.','error');
+    const r=window.state?.v1516TurnReport;normalizePermitCounts(r);const C=typeof window.ensurePdf==='function'?window.ensurePdf():null;if(!r||!C)return window.toast?.('No se pudo cargar el generador PDF.','error');
     const doc=new C({orientation:'landscape',unit:'mm',format:'a4'}),month=window.MONTHS_ES?.[r.m-1]||String(r.m);window.pdfHeader?.(doc,'Informe Mensual de Turnos y Novedades',`${month} ${r.y}`);doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
-    doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Día extra (DA)','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...r.rows.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,x.he.toFixed(1),x.hf.toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL GENERAL',r.total.encDentro,r.total.encFuera,r.total.suspendido,r.total.diasAdicionales,r.total.he.toFixed(1),r.total.hf.toFixed(1),r.total.vacaciones,r.total.licencias,r.total.faltas,r.total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
+    doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Día extra (DA)','H. extra','H. feriado','Vac.','Lic. med.','Permisos','Faltas','Otros']],body:[...r.rows.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,x.he.toFixed(1),x.hf.toFixed(1),x.vacaciones,x.licencias,x.permisos||0,x.faltas,x.otros]),['TOTAL GENERAL',r.total.encDentro,r.total.encFuera,r.total.suspendido,r.total.diasAdicionales,r.total.he.toFixed(1),r.total.hf.toFixed(1),r.total.vacaciones,r.total.licencias,r.total.permisos||0,r.total.faltas,r.total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
     let y=(doc.lastAutoTable?.finalY||70)+7;doc.setFontSize(9);doc.setFont(undefined,'bold');doc.text('Totales operativos del período',14,y);doc.setFont(undefined,'normal');doc.autoTable({startY:y+3,head:[['ET','EF','SE','Día extra (DA)','HE','HF']],body:[[r.total.encDentro,r.total.encFuera,r.total.suspendido,r.total.diasAdicionales,`${r.total.he.toFixed(1)} h`,`${r.total.hf.toFixed(1)} h`]],styles:{fontSize:8,cellPadding:2,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]}});
     doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${month} ${r.y}`);y=44;r.rows.forEach(g=>{if(y>175){doc.addPage();window.pdfHeader?.(doc,'Detalle de Turnos y Novedades',`${month} ${r.y}`);y=44}doc.setFontSize(9);doc.setFont(undefined,'bold');doc.text(g.nombre,14,y);doc.setFont(undefined,'normal');doc.autoTable({startY:y+3,head:[['Fecha','Turno','Evento','Cantidad','Horario','Detalle / motivo']],body:g.eventos.map(ev=>[evRange(ev),ev.turno_base||'—',eventLabel(ev.tipo),qty(ev),hours(ev),ev.motivo||ev.observacion||'Sin detalle']),styles:{fontSize:7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[49,61,74],textColor:[255,255,255]},columnStyles:{5:{cellWidth:96}}});y=(doc.lastAutoTable?.finalY||y+12)+7});doc.save(`Turnos_Novedades_${r.y}_${String(r.m).padStart(2,'0')}.pdf`);
   }
