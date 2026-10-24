@@ -203,16 +203,31 @@
     r.total.permisos=permitsTotal;
     r.total.faltas=absencesTotal;
     for(const totalRow of totalRows){
-      let permitCell=totalRow.querySelector('[data-r252-permits],[data-r250-permits]');
-      if(!permitCell){
-        permitCell=document.createElement('td');
-        permitCell.dataset.r252Permits='1';
-        totalRow.insertBefore(permitCell,totalRow.children[permitIndex]||null);
-      }else if(totalRow.children[permitIndex]!==permitCell){
-        totalRow.insertBefore(permitCell,totalRow.children[permitIndex]||null);
+      // R254: legacy totals can have a merged/missing cell; rebuild by header names,
+      // rather than assuming existing numeric cells correspond to column indices.
+      const totalsByHeader={
+        'enc. dentro turno':r.total.encDentro,'enc. fuera turno':r.total.encFuera,
+        'suspendido encierro':r.total.suspendido,'dias adicionales':r.total.diasAdicionales,
+        'horas extra':Number(r.total.he||0).toFixed(1)+' h',
+        'horas feriado':Number(r.total.hf||0).toFixed(1)+' h',
+        'vacaciones':r.total.vacaciones,'lic. medica':r.total.licencias,
+        'permisos':permitsTotal,'falta / ausencia':absencesTotal,'otros':r.total.otros
+      };
+      const values=headers.map((th,index)=>{
+        if(index===0)return 'TOTAL SELECCIÓN';
+        const key=nameKey(th.textContent);
+        if(key in totalsByHeader)return String(totalsByHeader[key]??0);
+        if(key.includes('enc.')&&key.includes('dentro'))return String(r.total.encDentro||0);
+        if(key.includes('enc.')&&key.includes('fuera'))return String(r.total.encFuera||0);
+        return String(totalRow.children[index]?.textContent||'0');
+      });
+      const same=totalRow.children.length===values.length&&
+        values.every((value,index)=>totalRow.children[index].textContent===value&&totalRow.children[index].colSpan===1);
+      if(!same){
+        totalRow.replaceChildren(...values.map(value=>{
+          const td=document.createElement('td');td.textContent=value;return td;
+        }));
       }
-      put(totalRow,permitIndex,permitsTotal);
-      put(totalRow,absenceIndex,absencesTotal);
     }
   }
   let observedReport=null,reportRepairPending=false;
