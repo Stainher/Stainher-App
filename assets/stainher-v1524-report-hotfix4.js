@@ -57,6 +57,12 @@
         background:#dfeaf3!important;color:#244660!important;
         -webkit-text-fill-color:#244660!important;
       }
+      /* R255: readable report detail tables. */
+      #modalRoot .v1524-readable-event-table{background:#f8fafc!important;color:#17324d!important}
+      #modalRoot .v1524-readable-event-table :is(tbody,tr,td){background:#f8fafc!important;color:#17324d!important;-webkit-text-fill-color:#17324d!important}
+      #modalRoot .v1524-readable-event-table tbody tr:nth-child(even) td{background:#edf4fa!important}
+      #modalRoot .v1524-readable-event-table :is(th,thead tr,thead td){background:#dce9f3!important;color:#24445f!important;-webkit-text-fill-color:#24445f!important}
+      #modalRoot .v1524-readable-event-table td{border-color:#c6d6e3!important}
       .v1524-operational-totals{margin-top:10px;padding:10px;border:1px solid #2d3c4c;border-radius:10px;background:#0d151e}
       .v1524-operational-totals h5{margin:0 0 8px;color:#dbeafe;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
       .v1524-operational-total-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
@@ -265,6 +271,11 @@
       });
     }).observe(summary,{childList:true,subtree:true,characterData:true});
   }
+  function markReadableEventTables(modal){
+    const heading=[...modal.querySelectorAll('h2,h3,h4,h5,h6,strong')].find(n=>/^listado de eventos con detalle$/i.test((n.textContent||'').trim()));
+    if(!heading)return;
+    modal.querySelectorAll('table').forEach(table=>{if(heading.compareDocumentPosition(table)&Node.DOCUMENT_POSITION_FOLLOWING)table.classList.add('v1524-readable-event-table')});
+  }
   function enhanceModal(){
     const r=window.state?.v1516TurnReport;
     if(!r) return;
@@ -272,6 +283,7 @@
     if(!modal) return;
     normalizePermitCounts(r);
     patchReportNames(r,modal);
+    markReadableEventTables(modal);
     const summary=modal.querySelector('.v1524-report-summary');
     ensureSuspendedColumn(summary?.querySelector('table'),r);
     showPermitColumn(modal,r);
