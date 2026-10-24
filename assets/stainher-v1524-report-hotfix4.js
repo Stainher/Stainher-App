@@ -195,14 +195,24 @@
       put(tr,permitIndex,row.permisos);
       put(tr,absenceIndex,row.faltas);
     }
-    const foot=table.querySelector('tfoot tr');
-    if(foot){
-      if(!foot.querySelector('[data-r252-permits],[data-r250-permits]')){
-        const cell=document.createElement('td');cell.dataset.r252Permits='1';
-        foot.insertBefore(cell,foot.children[permitIndex]||null);
+    // Some versions render TOTAL SELECCIÓN in tbody instead of tfoot.
+    const totalRows=[...table.querySelectorAll('tfoot tr,tbody tr')]
+      .filter(tr=>/TOTAL (SELECCI[OÓ]N|GENERAL)/i.test(tr.children[0]?.textContent||''));
+    const permitsTotal=(r.rows||[]).reduce((n,row)=>n+Number(row.permisos||0),0);
+    const absencesTotal=(r.rows||[]).reduce((n,row)=>n+Number(row.faltas||0),0);
+    r.total.permisos=permitsTotal;
+    r.total.faltas=absencesTotal;
+    for(const totalRow of totalRows){
+      let permitCell=totalRow.querySelector('[data-r252-permits],[data-r250-permits]');
+      if(!permitCell){
+        permitCell=document.createElement('td');
+        permitCell.dataset.r252Permits='1';
+        totalRow.insertBefore(permitCell,totalRow.children[permitIndex]||null);
+      }else if(totalRow.children[permitIndex]!==permitCell){
+        totalRow.insertBefore(permitCell,totalRow.children[permitIndex]||null);
       }
-      put(foot,permitIndex,r.total.permisos);
-      put(foot,absenceIndex,r.total.faltas);
+      put(totalRow,permitIndex,permitsTotal);
+      put(totalRow,absenceIndex,absencesTotal);
     }
   }
   let observedReport=null,reportRepairPending=false;
