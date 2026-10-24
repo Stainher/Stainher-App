@@ -86,20 +86,23 @@
       #modalRoot .v1524-operational-total,
       #modalRoot .v1524-detail-group > :first-child:not(table),
       #modalRoot .v1524-detail-group > header{
-        background:#e9f2fa!important;background-image:none!important;
-        color:#173753!important;-webkit-text-fill-color:#173753!important;
+        background:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+        color:#fff!important;-webkit-text-fill-color:#fff!important;
         border-color:#b7d0e4!important;
       }
       #modalRoot .v1524-operational-totals :is(h5,b,small,span),
       #modalRoot .v1524-operational-total :is(b,small,span),
       #modalRoot .v1524-detail-group > :first-child:not(table) :is(h3,h4,h5,strong,span){
-        color:#173753!important;-webkit-text-fill-color:#173753!important;
+        color:#fff!important;-webkit-text-fill-color:#fff!important;
       }
       .v1524-operational-totals{margin-top:10px;padding:10px;border:1px solid #2d3c4c;border-radius:10px;background:#0d151e}
       .v1524-operational-totals h5{margin:0 0 8px;color:#dbeafe;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
       .v1524-operational-total-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
       .v1524-operational-total{padding:8px;border:1px solid #2a3745;border-radius:8px;background:#111a24;min-width:0}
       .v1524-operational-total b{display:block;color:#fff;font-size:18px;line-height:1.1}.v1524-operational-total span{display:block;margin-top:3px;color:#9fb2c5;font-size:9px}.v1524-operational-total small{display:inline-block;margin-right:5px;color:#6ee7b7;font-weight:900}
+      /* R261: gradient overrides existing dark operational tile declarations. */
+      #modalRoot .v1524-operational-total{background:linear-gradient(100deg,#078fa6,#1977ca)!important;border-color:#60b9df!important}
+      #modalRoot .v1524-operational-total :is(b,span,small){color:#fff!important;-webkit-text-fill-color:#fff!important}
       @media(max-width:700px){.v1524-operational-total-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     `;document.head.appendChild(s);
   }
