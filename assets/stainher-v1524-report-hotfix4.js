@@ -28,6 +28,16 @@
   function mountStyle(){
     if(document.getElementById('stainher-v1524-report-hotfix4-style')) return;
     const s=document.createElement('style');s.id='stainher-v1524-report-hotfix4-style';s.textContent=`
+      /* R248: readable row headings and footer in light/modern themes. */
+      html:is([data-theme="light"],[data-theme="modern"]) body .v1524-report-summary table tbody tr > :first-child,
+      html:is([data-theme="light"],[data-theme="modern"]) body .v1524-report-summary table tfoot tr > :first-child{
+        color:#f4f8fc!important;-webkit-text-fill-color:#f4f8fc!important;
+        background:#192b3d!important;font-weight:600!important;
+      }
+      html:is([data-theme="light"],[data-theme="modern"]) body .v1524-report-summary table tfoot tr > *{
+        color:#f4f8fc!important;-webkit-text-fill-color:#f4f8fc!important;
+        background:#192b3d!important;font-weight:700!important;
+      }
       .v1524-operational-totals{margin-top:10px;padding:10px;border:1px solid #2d3c4c;border-radius:10px;background:#0d151e}
       .v1524-operational-totals h5{margin:0 0 8px;color:#dbeafe;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
       .v1524-operational-total-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
