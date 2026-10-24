@@ -147,7 +147,7 @@
 
   function countPermitDays(ev,y,m){
     const start=String(ev.fecha_inicio||'').slice(0,10),end=String(ev.fecha_fin||ev.fecha_inicio||'').slice(0,10);
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(start)||!/^\\d{4}-\\d{2}-\\d{2}$/.test(end))return 0;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end))return 0;
     const a=Date.parse(start+'T12:00:00Z'),b=Date.parse(end+'T12:00:00Z');
     const from=Math.max(a,Date.UTC(y,m-1,1,12)),to=Math.min(b,Date.UTC(y,m,0,12));
     return Math.max(0,Math.round((to-from)/86400000)+1);
@@ -162,7 +162,7 @@
       const genuineAbsences=events.filter(e=>String(e.tipo||'').toLowerCase()==='falta')
         .reduce((n,e)=>n+countPermitDays(e,r.y,r.m),0);
       // Source eventos take precedence: permission days can never be treated as unjustified absences.
-      if(row.permisos>0)row.faltas=Math.max(genuineAbsences,Math.max(0,Number(row.faltas||0)-row.permisos));
+      if(row.permisos>0)row.faltas=genuineAbsences;
     }
     r.total.permisos=r.rows.reduce((n,row)=>n+Number(row.permisos||0),0);
     r.total.faltas=r.rows.reduce((n,row)=>n+Number(row.faltas||0),0);
@@ -174,8 +174,8 @@
     if(faltasIndex<0)return;
     let idx=[...head.children].findIndex(c=>/permisos/i.test(c.textContent||''));
     if(idx<0){const th=document.createElement('th');th.textContent='Permisos';head.insertBefore(th,head.children[faltasIndex]);idx=faltasIndex;}
-    for(const tr of table.querySelectorAll('tbody tr[data-v1524-report-user]')){
-      const row=r.rows.find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser));if(!row)continue;
+    for(const [index,tr] of [...table.querySelectorAll('tbody tr')].entries()){
+      const row=r.rows.find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser))||r.rows.find(x=>String(x.nombre||'').trim()===String(tr.children[0]?.textContent||'').trim())||r.rows[index];if(!row)continue;
       let cell=tr.querySelector('[data-r250-permits]');
       if(!cell){cell=document.createElement('td');cell.dataset.r250Permits='1';tr.insertBefore(cell,tr.children[idx]||null)}
       cell.textContent=String(row.permisos||0);
