@@ -22,7 +22,7 @@
     {code:'SE',label:'Suspendido por encierro',value:r?.total?.suspendido||0,unit:'eventos'},
     {code:'DA',label:'Día extra (DA)',value:r?.total?.diasAdicionales||0,unit:'días'},
     {code:'HE',label:'Horas extra',value:r?.total?.he||0,unit:'h'},
-    {code:'HF',label:'Horas feriado',value:r?.total?.hf||0,unit:'h'}
+    {code:'HF',label:'Horas feriado',value:(r?.rows||[]).reduce((sum,row)=>sum+Number(row.hf||0),0),unit:'h'}
   ];}
 
   function mountStyle(){
@@ -316,7 +316,11 @@
     ensureSuspendedColumn(summary?.querySelector('table'),r);
     showPermitColumn(modal,r);
     observeReport(modal);
-    if(summary&&!modal.querySelector('.v1524-operational-totals')) summary.insertAdjacentHTML('afterend',operationalHtml(r));
+    if(summary){
+      const existing=modal.querySelector('.v1524-operational-totals');
+      if(!existing)summary.insertAdjacentHTML('afterend',operationalHtml(r));
+      else {const replacement=document.createElement('div');replacement.innerHTML=operationalHtml(r);existing.replaceWith(replacement.firstElementChild);}
+    }
   }
 
   function exportExcel(){
