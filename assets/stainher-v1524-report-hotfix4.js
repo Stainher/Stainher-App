@@ -188,7 +188,7 @@
     for(const tr of table.querySelectorAll('tbody tr')){
       const row=(r.rows||[]).find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser))
         ||byName.get(nameKey(tr.children[0]?.textContent));if(!row)continue;
-      if(!tr.querySelector('[data-r252-permits]')){
+      if(!tr.querySelector('[data-r252-permits],[data-r250-permits]')){
         const cell=document.createElement('td');cell.dataset.r252Permits='1';
         tr.insertBefore(cell,tr.children[permitIndex]||null);
       }
@@ -197,7 +197,7 @@
     }
     const foot=table.querySelector('tfoot tr');
     if(foot){
-      if(!foot.querySelector('[data-r252-permits]')){
+      if(!foot.querySelector('[data-r252-permits],[data-r250-permits]')){
         const cell=document.createElement('td');cell.dataset.r252Permits='1';
         foot.insertBefore(cell,foot.children[permitIndex]||null);
       }
