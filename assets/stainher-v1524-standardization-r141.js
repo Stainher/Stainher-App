@@ -76,7 +76,55 @@
       #page-estandarizacion .std-group-head strong{white-space:normal}
       #page-estandarizacion .std-group-meta{color:var(--muted);font-size:12px;white-space:nowrap}
       #page-estandarizacion .std-table-wrap{overflow:auto}
-      #page-estandarizacion .std-table{min-width:1120px;margin:0}
+      #page-estandarizacion .std-table{width:100%;min-width:0;margin:0;table-layout:fixed}
+      #page-estandarizacion .std-table :is(th,td){min-width:0;overflow-wrap:anywhere;word-break:normal;vertical-align:top}
+      #page-estandarizacion .std-table th:nth-child(1){width:19%}
+      #page-estandarizacion .std-table th:nth-child(2){width:18%}
+      #page-estandarizacion .std-table th:nth-child(3){width:17%}
+      #page-estandarizacion .std-table th:nth-child(4){width:10%}
+      #page-estandarizacion .std-table th:nth-child(5){width:11%}
+      #page-estandarizacion .std-table th:nth-child(6){width:17%}
+      #page-estandarizacion .std-table th:nth-child(7){width:8%}
+      #page-estandarizacion .std-table .std-activity,
+      #page-estandarizacion .std-table .std-scope,
+      #page-estandarizacion .std-table .std-observation,
+      #page-estandarizacion .std-table .std-detail{min-width:0}
+      #page-estandarizacion .std-table .std-actions{display:flex;flex-wrap:wrap;gap:5px}
+      #page-estandarizacion .std-table .std-actions .btn{max-width:100%;white-space:normal}
+      /* R273: cuando el zoom reduce el ancho útil, cada fila pasa a ficha completa;
+         no se oculta Acción ni ninguna otra columna. */
+      @media(max-width:1180px){
+        #page-estandarizacion .std-table-wrap{width:100%;min-width:0;overflow-x:hidden}
+        #page-estandarizacion .std-table,
+        #page-estandarizacion .std-table tbody{display:block;width:100%;min-width:0}
+        #page-estandarizacion .std-table thead{display:none}
+        #page-estandarizacion .std-table tbody tr{
+          display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;
+          margin:0 0 10px;border:1px solid var(--line,#c6d6e3);
+          border-radius:10px;overflow:hidden
+        }
+        #page-estandarizacion .std-table tbody td{
+          display:block;min-width:0;width:auto;padding:9px 11px!important;
+          border-right:1px solid var(--line,#c6d6e3);
+          border-bottom:1px solid var(--line,#c6d6e3);
+        }
+        #page-estandarizacion .std-table tbody td::before{
+          display:block;margin:0 0 4px;font-size:10px;font-weight:750;
+          color:var(--muted,#57708a);letter-spacing:.02em
+        }
+        #page-estandarizacion .std-table tbody td:nth-child(1)::before{content:'Actividad'}
+        #page-estandarizacion .std-table tbody td:nth-child(2)::before{content:'Alcance'}
+        #page-estandarizacion .std-table tbody td:nth-child(3)::before{content:'Observación'}
+        #page-estandarizacion .std-table tbody td:nth-child(4)::before{content:'Estado'}
+        #page-estandarizacion .std-table tbody td:nth-child(5)::before{content:'Fecha ejecución'}
+        #page-estandarizacion .std-table tbody td:nth-child(6)::before{content:'Responsable / detalle'}
+        #page-estandarizacion .std-table tbody td:nth-child(7)::before{content:'Acción'}
+        #page-estandarizacion .std-table tbody td:last-child:nth-child(odd){grid-column:1/-1}
+      }
+      @media(max-width:620px){
+        #page-estandarizacion .std-table tbody tr{grid-template-columns:minmax(0,1fr)}
+        #page-estandarizacion .std-table tbody td{grid-column:1/-1}
+      }
       #page-estandarizacion .std-table th{position:sticky;top:0;background:var(--panel);z-index:2}
       #page-estandarizacion .std-table td{line-height:1.4}
       #page-estandarizacion .std-table .std-activity{min-width:235px;font-weight:700}
