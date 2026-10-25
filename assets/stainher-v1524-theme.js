@@ -1327,6 +1327,50 @@
     }).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['data-theme']});
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installR219,{once:true});else installR219();
+  // R267: estado de implementos en las fichas de Vehículos.
+  // La clase se aplica únicamente al texto de estado contiguo al selector de implemento.
+  const vehicleStateStyleR267=document.createElement('style');
+  vehicleStateStyleR267.id='stainher-vehicle-implement-state-r267';
+  vehicleStateStyleR267.textContent=`
+    html[data-theme="modern"] #page-vehiculos .stainher-vehicle-operativo-r267,
+    html[data-theme="light"] #page-vehiculos .stainher-vehicle-operativo-r267,
+    body[data-theme="modern"] #page-vehiculos .stainher-vehicle-operativo-r267,
+    body[data-theme="light"] #page-vehiculos .stainher-vehicle-operativo-r267{
+      color:#075c3c!important;-webkit-text-fill-color:#075c3c!important;
+      background:#dff5e9!important;border:1px solid #8dcdae!important;
+      border-radius:6px!important;padding:3px 7px!important;
+      font-weight:750!important;opacity:1!important;text-shadow:none!important;
+      display:inline-flex!important;align-items:center!important;
+      letter-spacing:.02em!important;
+    }
+  `;
+  document.head.appendChild(vehicleStateStyleR267);
+  function syncVehicleImplementStatesR267(){
+    const page=document.getElementById('page-vehiculos');if(!page)return;
+    page.querySelectorAll('span,small,label,div,b,strong').forEach(node=>{
+      if(node.children.length||node.classList.contains('stainher-vehicle-operativo-r267'))return;
+      if((node.textContent||'').trim().toUpperCase()!=='OPERATIVO')return;
+      let row=node.parentElement,linked=false;
+      for(let depth=0;row&&row!==page&&depth<3;depth++,row=row.parentElement){
+        if(row.querySelector('select')){linked=true;break}
+      }
+      if(linked)node.classList.add('stainher-vehicle-operativo-r267');
+    });
+  }
+  let vehicleStateQueuedR267=false;
+  function queueVehicleStatesR267(){
+    if(vehicleStateQueuedR267)return;vehicleStateQueuedR267=true;
+    requestAnimationFrame(()=>{vehicleStateQueuedR267=false;syncVehicleImplementStatesR267()});
+  }
+  function installVehicleStatesR267(){
+    queueVehicleStatesR267();
+    const page=document.getElementById('page-vehiculos')||document.body;
+    new MutationObserver(records=>{
+      if(records.some(record=>record.type==='childList'||record.type==='characterData'))queueVehicleStatesR267();
+    }).observe(page,{subtree:true,childList:true,characterData:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installVehicleStatesR267,{once:true});else installVehicleStatesR267();
+
   const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
