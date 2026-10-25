@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261024-r249-unified-requests-layout';
+  const BUILD='20261025-r274-responsive-requests-zoom';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -125,42 +125,37 @@
         background:#1769c2!important;color:#fff!important;border-color:#1769c2!important;
       }
 
+      /* R274: zoom-safe layout. Keep all five fields and actions visible. */
+      #${PAGE_ID} .v152-request-grid,
+      #${PAGE_ID} .v152-request-card{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field]{
+        display:block!important;min-width:0!important;max-width:100%!important;
+        grid-row:auto!important;overflow-wrap:anywhere!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="detail"]{display:none!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+        grid-column:1/-1!important;grid-row:auto!important;width:100%!important;
+        justify-content:flex-start!important;flex-wrap:wrap!important;
+      }
       @media(max-width:1320px){
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,.7fr) max-content!important;
+          grid-template-columns:repeat(3,minmax(0,1fr))!important;
         }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{display:none!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:4!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{grid-column:5!important}
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{grid-column:auto!important}
       }
       @media(max-width:900px){
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) max-content!important;
-        }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{display:none!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:3!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-          grid-column:4!important;
-          min-width:0!important;max-width:100%!important;
+          grid-template-columns:repeat(2,minmax(0,1fr))!important;
         }
       }
       @media(max-width:680px){
         #${PAGE_ID} .${TOOLBAR}{align-items:stretch!important;flex-direction:column!important}
         #${PAGE_ID} .stainher-solicitudes-view-switch-r133{width:100%!important}
         #${PAGE_ID} .stainher-solicitudes-view-btn-r133{flex:1 1 0!important;min-width:0!important}
+      }
+      @media(max-width:440px){
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:1fr 1fr!important;
-          gap:7px 10px!important;
-        }
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:1!important}
-        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-          grid-column:1/-1!important;
-          grid-row:auto!important;
-          justify-content:flex-start!important;
-          flex-wrap:wrap!important;
-          min-width:0!important;
+          grid-template-columns:minmax(0,1fr)!important;
         }
       }
     `;
