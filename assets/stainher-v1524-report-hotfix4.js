@@ -233,20 +233,31 @@
     const from=Math.max(a,Date.UTC(y,m-1,1,12)),to=Math.min(b,Date.UTC(y,m,0,12));
     return Math.max(0,Math.round((to-from)/86400000)+1);
   }
+  // R269: permisos y faltas tienen orígenes separados. El cálculo se rehace
+  // incluso si no existen permisos, y evita contar dos veces fechas solapadas.
   function normalizePermitCounts(r){
-    if(!r?.rows?.length||r.__stainherPermitSeparated)return;
-    r.__stainherPermitSeparated=true;
+    if(!r?.rows?.length)return;
     for(const row of r.rows){
-      const events=row.eventos||[];
-      const permits=events.filter(e=>String(e.tipo||'').toLowerCase()==='permiso');
-      row.permisos=permits.reduce((n,e)=>n+countPermitDays(e,r.y,r.m),0);
-      const genuineAbsences=events.filter(e=>String(e.tipo||'').toLowerCase()==='falta')
-        .reduce((n,e)=>n+countPermitDays(e,r.y,r.m),0);
-      // Source eventos take precedence: permission days can never be treated as unjustified absences.
-      if(row.permisos>0)row.faltas=genuineAbsences;
+      const permits=new Set(),absences=new Set();
+      for(const ev of row.eventos||[]){
+        const tipo=String(ev.tipo||'').trim().toLowerCase();
+        if(tipo!=='permiso'&&tipo!=='falta')continue;
+        const a=String(ev.fecha_inicio||'').slice(0,10),b=String(ev.fecha_fin||ev.fecha_inicio||'').slice(0,10);
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(a)||!/^\d{4}-\d{2}-\d{2}$/.test(b))continue;
+        const first=new Date(a+'T12:00:00Z'),last=new Date(b+'T12:00:00Z');
+        const target=tipo==='permiso'?permits:absences;
+        for(let day=first;day<=last;day.setUTCDate(day.getUTCDate()+1)){
+          const date=day.toISOString().slice(0,10);
+          if(Number(date.slice(0,4))===Number(r.y)&&Number(date.slice(5,7))===Number(r.m))target.add(date);
+        }
+      }
+      // Si un mismo día aparece en ambas categorías, permiso prima sobre falta.
+      for(const date of permits)absences.delete(date);
+      row.permisos=permits.size;
+      row.faltas=absences.size;
     }
-    r.total.permisos=r.rows.reduce((n,row)=>n+Number(row.permisos||0),0);
-    r.total.faltas=r.rows.reduce((n,row)=>n+Number(row.faltas||0),0);
+    r.total.permisos=r.rows.reduce((n,row)=>n+row.permisos,0);
+    r.total.faltas=r.rows.reduce((n,row)=>n+row.faltas,0);
   }
   function showPermitColumn(modal,r){
     const table=modal?.querySelector('.v1524-report-summary table');if(!table)return;
@@ -291,7 +302,7 @@
         'horas extra':Number(selectedTotals.he||0).toFixed(1)+' h',
         'horas feriado':Number(selectedTotals.hf||0).toFixed(1)+' h',
         'vacaciones':selectedTotals.vacaciones,'lic. medica':selectedTotals.licencias,
-        'permisos':permitsTotal,'falta / ausencia':absencesTotal,'otros':r.total.otros
+        'permisos':permitsTotal,'falta / ausencia':absencesTotal,'otros':selectedTotals.otros
       };
       const values=headers.map((th,index)=>{
         if(index===0)return 'TOTAL SELECCIÓN';
