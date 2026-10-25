@@ -16,19 +16,40 @@
   const qty=ev=>{const n=Number(ev.cantidad||0);return n?`${fmt(n)} ${ev.unidad||''}`.trim():'—'};
   const hours=ev=>{const a=String(ev.hora_inicio||'').slice(0,5),b=String(ev.hora_fin||'').slice(0,5);return a||b?`${a||'—'} a ${b||'—'}`:'—'};
 
-  function totals(r){return [
-    {code:'ET',label:'Encierro dentro de turno',value:r?.total?.encDentro||0,unit:'eventos'},
-    {code:'EF',label:'Encierro fuera de turno',value:r?.total?.encFuera||0,unit:'eventos'},
-    {code:'SE',label:'Suspendido por encierro',value:r?.total?.suspendido||0,unit:'eventos'},
-    {code:'DA',label:'Día extra (DA)',value:r?.total?.diasAdicionales||0,unit:'días'},
-    {code:'HE',label:'Horas extra',value:r?.total?.he||0,unit:'h'},
-    {code:'HF',label:'Horas feriado',value:(r?.rows||[]).reduce((sum,row)=>sum+Number(row.hf||0),0),unit:'h'}
-  ];}
+  // R268: única fuente para los totales visibles: filas realmente seleccionadas.
+  const selectedReportRows=r=>{
+    const uid=String(window.state?.v1524TurnReportUser||'');
+    return uid?(r?.rows||[]).filter(row=>String(row.uid)===uid):(r?.rows||[]);
+  };
+  const sumRows=rows=>rows.reduce((total,row)=>{
+    for(const key of ['encDentro','encFuera','suspendido','diasAdicionales','he','hf','vacaciones','licencias','permisos','faltas','otros'])
+      total[key]+=Number(row[key]||0);
+    return total;
+  },{encDentro:0,encFuera:0,suspendido:0,diasAdicionales:0,he:0,hf:0,vacaciones:0,licencias:0,permisos:0,faltas:0,otros:0});
+  function totals(r){
+    const t=sumRows(selectedReportRows(r));
+    return [
+      {code:'ET',label:'Encierro dentro de turno',value:t.encDentro,unit:'eventos'},
+      {code:'EF',label:'Encierro fuera de turno',value:t.encFuera,unit:'eventos'},
+      {code:'SE',label:'Suspendido por encierro',value:t.suspendido,unit:'eventos'},
+      {code:'DA',label:'Día extra (DA)',value:t.diasAdicionales,unit:'días'},
+      {code:'HE',label:'Horas extra',value:t.he,unit:'h'},
+      {code:'HF',label:'Horas feriado',value:t.hf,unit:'h'}
+    ];
+  }
 
   function mountStyle(){
     if(document.getElementById('stainher-v1524-report-hotfix4-style')) return;
     const s=document.createElement('style');s.id='stainher-v1524-report-hotfix4-style';s.textContent=`
-      /* R248: readable row headings and footer in light/modern themes. */
+      /* R268: relleno turquesa-azul únicamente en TOTAL SELECCIÓN, sin oscurecer filas de personal. */
+      html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #v1524ReportSummaryTable tfoot tr > *,
+      html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v1524-report-summary table .v1524-report-total-row > *{
+        background:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+        background-image:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+        color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:750!important;
+        border-color:#60b9df!important;
+      }
+            /* R248: readable row headings and footer in light/modern themes. */
       html:is([data-theme="light"],[data-theme="modern"]) body .v1524-report-summary table tbody tr > :first-child,
       html:is([data-theme="light"],[data-theme="modern"]) body .v1524-report-summary table tfoot tr > :first-child{
         color:#f4f8fc!important;-webkit-text-fill-color:#f4f8fc!important;
@@ -258,27 +279,26 @@
     // Some versions render TOTAL SELECCIÓN in tbody instead of tfoot.
     const totalRows=[...table.querySelectorAll('tfoot tr,tbody tr')]
       .filter(tr=>/TOTAL (SELECCI[OÓ]N|GENERAL)/i.test(tr.children[0]?.textContent||''));
-    const permitsTotal=(r.rows||[]).reduce((n,row)=>n+Number(row.permisos||0),0);
-    const absencesTotal=(r.rows||[]).reduce((n,row)=>n+Number(row.faltas||0),0);
-    r.total.permisos=permitsTotal;
-    r.total.faltas=absencesTotal;
+    const selectedTotals=sumRows(selectedReportRows(r));
+    const permitsTotal=selectedTotals.permisos;
+    const absencesTotal=selectedTotals.faltas;
     for(const totalRow of totalRows){
       // R254: legacy totals can have a merged/missing cell; rebuild by header names,
       // rather than assuming existing numeric cells correspond to column indices.
       const totalsByHeader={
-        'enc. dentro turno':r.total.encDentro,'enc. fuera turno':r.total.encFuera,
-        'suspendido encierro':r.total.suspendido,'dias adicionales':r.total.diasAdicionales,
-        'horas extra':Number(r.total.he||0).toFixed(1)+' h',
-        'horas feriado':Number(r.total.hf||0).toFixed(1)+' h',
-        'vacaciones':r.total.vacaciones,'lic. medica':r.total.licencias,
+        'enc. dentro turno':selectedTotals.encDentro,'enc. fuera turno':selectedTotals.encFuera,
+        'suspendido encierro':selectedTotals.suspendido,'dias adicionales':selectedTotals.diasAdicionales,
+        'horas extra':Number(selectedTotals.he||0).toFixed(1)+' h',
+        'horas feriado':Number(selectedTotals.hf||0).toFixed(1)+' h',
+        'vacaciones':selectedTotals.vacaciones,'lic. medica':selectedTotals.licencias,
         'permisos':permitsTotal,'falta / ausencia':absencesTotal,'otros':r.total.otros
       };
       const values=headers.map((th,index)=>{
         if(index===0)return 'TOTAL SELECCIÓN';
         const key=nameKey(th.textContent);
         if(key in totalsByHeader)return String(totalsByHeader[key]??0);
-        if(key.includes('enc.')&&key.includes('dentro'))return String(r.total.encDentro||0);
-        if(key.includes('enc.')&&key.includes('fuera'))return String(r.total.encFuera||0);
+        if(key.includes('enc.')&&key.includes('dentro'))return String(selectedTotals.encDentro||0);
+        if(key.includes('enc.')&&key.includes('fuera'))return String(selectedTotals.encFuera||0);
         return String(totalRow.children[index]?.textContent||'0');
       });
       const same=totalRow.children.length===values.length&&
@@ -366,6 +386,22 @@
       wrapped.__v1524reportHotfixR126=true;
       window.v1516OpenTurnMonthlyReport=wrapped;
       window.v1520TurnReport=wrapped;
+    }
+    if(typeof window.v1524FilterTurnReport==='function'&&!window.v1524FilterTurnReport.__stainherR268){
+      const previousFilter=window.v1524FilterTurnReport;
+      const updatedFilter=function(){
+        const value=previousFilter.apply(this,arguments);
+        requestAnimationFrame(()=>{
+          const r=window.state?.v1516TurnReport;
+          const modal=document.querySelector('#modalRoot .v1524-report-summary');
+          if(r&&modal){normalizePermitCounts(r);showPermitColumn(modal.closest('.modal'),r);
+            const existing=modal.closest('.modal')?.querySelector('.v1524-operational-totals');
+            if(existing){const tmp=document.createElement('div');tmp.innerHTML=operationalHtml(r);existing.replaceWith(tmp.firstElementChild);}
+          }
+        });
+        return value;
+      };
+      updatedFilter.__stainherR268=true;window.v1524FilterTurnReport=updatedFilter;
     }
     window.v1524ExportVisibleReportExcel=exportExcel;window.v1524ExportVisibleReportPdf=exportPdf;
   }
