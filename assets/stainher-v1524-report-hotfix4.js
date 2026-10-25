@@ -243,7 +243,7 @@
         const tipo=String(ev.tipo||'').trim().toLowerCase();
         if(tipo!=='permiso'&&tipo!=='falta')continue;
         const a=String(ev.fecha_inicio||'').slice(0,10),b=String(ev.fecha_fin||ev.fecha_inicio||'').slice(0,10);
-        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(a)||!/^\\d{4}-\\d{2}-\\d{2}$/.test(b))continue;
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(a)||!/^\d{4}-\d{2}-\d{2}$/.test(b))continue;
         const first=new Date(a+'T12:00:00Z'),last=new Date(b+'T12:00:00Z');
         const target=tipo==='permiso'?permits:absences;
         for(let day=first;day<=last;day.setUTCDate(day.getUTCDate()+1)){
