@@ -39,6 +39,35 @@
       html[data-theme="light"] #page-turnos .r18-mobile-day[data-r18-holiday]>b:first-child,html[data-theme="light"] .v1524-calendar-day[data-r18-holiday] .v1524-calendar-day-number,html[data-theme="light"] .v1524-full-calendar th[data-r18-holiday]{color:#8a4b00!important}
       html[data-theme="light"] .r18-auto-holiday-note{background:#fff8e7;color:#3b2a12;border-color:#e0aa54}
       html[data-theme="light"] .r18-auto-holiday-note b{color:#8a4b00}
+      /* R270: holiday full-column translucent red; today blue outline. */
+      #page-turnos .r18-matrix thead th[data-r18-holiday],
+      #page-turnos .r18-matrix tbody td[data-r18-holiday],
+      #page-turnos .r18-turn-cell[data-r18-holiday],
+      #page-turnos .r18-mobile-day[data-r18-holiday]{
+        background:rgba(224,45,62,.13)!important;
+        box-shadow:inset 0 0 0 1px rgba(194,38,56,.24)!important;
+      }
+      #page-turnos .r18-matrix thead th[data-r18-holiday]{color:#962337!important;border-bottom:2px solid #c43e52!important}
+      #page-turnos .r18-matrix thead th[data-r18-holiday]::after{background:#c43e52!important;color:#fff!important}
+      #page-turnos .r18-matrix :is(th,td)[data-r270-today],
+      #page-turnos .r18-turn-cell[data-r270-today],
+      #page-turnos .r18-mobile-day[data-r270-today]{
+        outline:2px solid #078fa6!important;
+        outline-offset:-2px!important;
+        box-shadow:inset 0 0 0 2px rgba(7,143,166,.20)!important;
+      }
+      #page-turnos .r18-matrix thead th[data-r270-today]{
+        background:rgba(7,143,166,.20)!important;color:#065f78!important;
+        font-weight:850!important;
+      }
+      #page-turnos .r18-matrix thead th[data-r270-today]::before{
+        content:'HOY';display:block;font-size:8px;font-weight:900;letter-spacing:.05em;
+      }
+      #page-turnos .r18-matrix thead th[data-r18-holiday][data-r270-today]{
+        background:linear-gradient(135deg,rgba(224,45,62,.18),rgba(7,143,166,.20))!important;
+      }
+      html[data-theme="dark"] #page-turnos .r18-matrix thead th[data-r18-holiday]{color:#ffc1c9!important}
+      html[data-theme="dark"] #page-turnos .r18-matrix thead th[data-r270-today]{color:#9aebff!important}
     `;document.head.appendChild(s);
   }
 
@@ -56,15 +85,25 @@
     const page=document.getElementById('page-turnos');if(!page||!window.sb)return;
     const y=Number(window.state?.turnYearV1512||new Date().getFullYear()),m=Number(window.state?.turnMonthV1512||new Date().getMonth()+1),days=new Date(y,m,0).getDate();
     const start=iso(y,m,1),end=iso(y,m,days),holidays=await loadHolidays(start,end),map=new Map(holidays.map(h=>[h.fecha,h.nombre]));
+    const now=new Date(),today=iso(now.getFullYear(),now.getMonth()+1,now.getDate());
     page.querySelectorAll('[data-r18-date]').forEach(node=>{
-      const name=map.get(String(node.dataset.r18Date||''));
+      const date=String(node.dataset.r18Date||''),name=map.get(date);
       if(name){node.dataset.r18Holiday=name;node.title=name}else{delete node.dataset.r18Holiday;if(node.title&&holidays.some(h=>h.nombre===node.title))node.removeAttribute('title')}
+      if(date===today)node.dataset.r270Today='';else delete node.dataset.r270Today;
     });
-    const heads=page.querySelectorAll('.r18-matrix thead th');
-    heads.forEach((th,index)=>{
-      if(index===0)return;
-      const date=iso(y,m,index),name=map.get(date);
-      if(name){th.dataset.r18Holiday=name;th.title=name}else{delete th.dataset.r18Holiday;th.removeAttribute('title')}
+    page.querySelectorAll('.r18-matrix').forEach(table=>{
+      const heads=[...table.querySelectorAll('thead th')];
+      heads.forEach((th,index)=>{
+        if(index===0)return;
+        const date=iso(y,m,index),name=map.get(date);
+        if(name){th.dataset.r18Holiday=name;th.title=name}else{delete th.dataset.r18Holiday;th.removeAttribute('title')}
+        if(date===today)th.dataset.r270Today='';else delete th.dataset.r270Today;
+        table.querySelectorAll('tbody tr').forEach(tr=>{
+          const td=tr.children[index];if(!td)return;
+          if(name)td.dataset.r18Holiday=name;else delete td.dataset.r18Holiday;
+          if(date===today)td.dataset.r270Today='';else delete td.dataset.r270Today;
+        });
+      });
     });
   }
 
