@@ -53,3 +53,28 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
     outline-offset:-2px;
   }
 }
+
+/* R277 - Correctivo móvil: un solo contorno naranja en filtros Desde/Hasta.
+ * La envolvente .stainher-date-picker y el input nativo no deben volver a
+ * pintar los dos marcos blancos internos. Se preserva el fondo naranja del
+ * control y el botón funcional de calendario. */
+@media (max-width:900px){
+  html body #page-correctivo .v1519-filter-grid .stainher-date-picker:has(> #corrFromV1519),
+  html body #page-correctivo .v1519-filter-grid .stainher-date-picker:has(> #corrToV1519),
+  html body #page-correctivo .v1519-filter-grid .stainher-native-control-shell:has(> #corrFromV1519),
+  html body #page-correctivo .v1519-filter-grid .stainher-native-control-shell:has(> #corrToV1519){
+    border:0!important;
+    outline:0!important;
+    box-shadow:none!important;
+  }
+  html body #page-correctivo .v1519-filter-grid #corrFromV1519,
+  html body #page-correctivo .v1519-filter-grid #corrToV1519{
+    border:0!important;
+    outline:0!important;
+    box-shadow:none!important;
+  }
+  html body #page-correctivo .v1519-filter-grid .stainher-date-picker:focus-within:has(> :is(#corrFromV1519,#corrToV1519)){
+    outline:2px solid #1769c2!important;
+    outline-offset:2px!important;
+  }
+}
