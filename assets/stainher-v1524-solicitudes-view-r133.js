@@ -5,12 +5,12 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261025-r274-responsive-requests-zoom';
+  const BUILD='20261025-r275-request-style-refresh';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
   const PAGE_ID='page-solicitudes';
-  const STYLE_ID='stainher-solicitudes-view-r133-style';
+  const STYLE_ID='stainher-solicitudes-view-r275-style';
   const TOOLBAR='stainher-solicitudes-view-toolbar-r133';
   const STORAGE_KEY='stainher.solicitudes.view';
   let installed=false;
@@ -29,6 +29,7 @@
   }
 
   function mountStyle(){
+    document.getElementById('stainher-solicitudes-view-r133-style')?.remove();
     if(document.getElementById(STYLE_ID))return;
     const style=document.createElement('style');
     style.id=STYLE_ID;
