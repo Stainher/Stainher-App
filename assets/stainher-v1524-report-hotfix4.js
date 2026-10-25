@@ -259,67 +259,54 @@
     r.total.permisos=r.rows.reduce((n,row)=>n+row.permisos,0);
     r.total.faltas=r.rows.reduce((n,row)=>n+row.faltas,0);
   }
+  // R271: reconstrucción idempotente de 12 columnas basada en el modelo.
+  // Evita desalineaciones heredadas al insertar Permisos después de renderizar tfoot.
   function showPermitColumn(modal,r){
-    const table=modal?.querySelector('.v1524-report-summary table');if(!table)return;
+    const table=modal?.querySelector('.v1524-report-summary table');if(!table||!r)return;
     const head=table.querySelector('thead tr');if(!head)return;
-    let headers=[...head.children],absence=headers.findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
-    if(absence<0)return;
-    if(!headers.some(c=>/^permisos$/i.test((c.textContent||'').trim()))){
-      const th=document.createElement('th');th.textContent='Permisos';head.insertBefore(th,headers[absence]);
-    }
-    headers=[...head.children];
-    const permitIndex=headers.findIndex(c=>/^permisos$/i.test((c.textContent||'').trim()));
-    const absenceIndex=headers.findIndex(c=>/falta|ausencia/i.test(c.textContent||''));
-    const nameKey=v=>String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase().replace(/\\s+/g,' ');
-    const byName=new Map((r.rows||[]).map(row=>[nameKey(row.nombre),row]));
-    function put(tr,index,value){
-      while(tr.children.length<=index)tr.appendChild(document.createElement('td'));
-      const cell=tr.children[index],desired=String(value||0);
-      if(cell.textContent!==desired)cell.textContent=desired;
-    }
-    for(const tr of table.querySelectorAll('tbody tr')){
-      const row=(r.rows||[]).find(x=>String(x.uid)===String(tr.dataset.v1524ReportUser))
-        ||byName.get(nameKey(tr.children[0]?.textContent));if(!row)continue;
-      if(!tr.querySelector('[data-r252-permits],[data-r250-permits]')){
-        const cell=document.createElement('td');cell.dataset.r252Permits='1';
-        tr.insertBefore(cell,tr.children[permitIndex]||null);
-      }
-      put(tr,permitIndex,row.permisos);
-      put(tr,absenceIndex,row.faltas);
-    }
-    // Some versions render TOTAL SELECCIÓN in tbody instead of tfoot.
-    const totalRows=[...table.querySelectorAll('tfoot tr,tbody tr')]
-      .filter(tr=>/TOTAL (SELECCI[OÓ]N|GENERAL)/i.test(tr.children[0]?.textContent||''));
-    const selectedTotals=sumRows(selectedReportRows(r));
-    const permitsTotal=selectedTotals.permisos;
-    const absencesTotal=selectedTotals.faltas;
-    for(const totalRow of totalRows){
-      // R254: legacy totals can have a merged/missing cell; rebuild by header names,
-      // rather than assuming existing numeric cells correspond to column indices.
-      const totalsByHeader={
-        'enc. dentro turno':selectedTotals.encDentro,'enc. fuera turno':selectedTotals.encFuera,
-        'suspendido encierro':selectedTotals.suspendido,'dias adicionales':selectedTotals.diasAdicionales,
-        'horas extra':Number(selectedTotals.he||0).toFixed(1)+' h',
-        'horas feriado':Number(selectedTotals.hf||0).toFixed(1)+' h',
-        'vacaciones':selectedTotals.vacaciones,'lic. medica':selectedTotals.licencias,
-        'permisos':permitsTotal,'falta / ausencia':absencesTotal,'otros':selectedTotals.otros
-      };
-      const values=headers.map((th,index)=>{
-        if(index===0)return 'TOTAL SELECCIÓN';
-        const key=nameKey(th.textContent);
-        if(key in totalsByHeader)return String(totalsByHeader[key]??0);
-        if(key.includes('enc.')&&key.includes('dentro'))return String(selectedTotals.encDentro||0);
-        if(key.includes('enc.')&&key.includes('fuera'))return String(selectedTotals.encFuera||0);
-        return String(totalRow.children[index]?.textContent||'0');
-      });
-      const same=totalRow.children.length===values.length&&
-        values.every((value,index)=>totalRow.children[index].textContent===value&&totalRow.children[index].colSpan===1);
-      if(!same){
-        totalRow.replaceChildren(...values.map(value=>{
-          const td=document.createElement('td');td.textContent=value;return td;
-        }));
+    const columns=[
+      ['Colaborador','nombre'],['Enc. dentro turno','encDentro'],
+      ['Enc. fuera turno','encFuera'],['Suspendido encierro','suspendido'],
+      ['Días adicionales','diasAdicionales'],['Horas extra','he'],
+      ['Horas feriado','hf'],['Vacaciones','vacaciones'],
+      ['Lic. médica','licencias'],['Permisos','permisos'],
+      ['Falta / ausencia','faltas'],['Otros','otros']
+    ];
+    const labels=columns.map(([title])=>title);
+    const existingLabels=[...head.cells].map(cell=>cell.textContent.trim());
+    if(labels.some((label,i)=>label!==existingLabels[i])||existingLabels.length!==labels.length)
+      head.replaceChildren(...labels.map(label=>{const th=document.createElement('th');th.textContent=label;return th;}));
+    const fmtValue=(row,key)=>key==='nombre'?String(row.nombre||''):
+      (key==='he'||key==='hf')?Number(row[key]||0).toFixed(1)+' h':
+      String(Number(row[key]||0));
+    const selected=selectedReportRows(r);
+    const selectedIds=new Set(selected.map(row=>String(row.uid)));
+    const byId=new Map((r.rows||[]).map(row=>[String(row.uid),row]));
+    const body=table.querySelector('tbody');
+    if(body){
+      for(const tr of [...body.rows]){
+        const row=byId.get(String(tr.dataset.v1524ReportUser||''));
+        if(!row)continue;
+        const values=columns.map(([,key])=>fmtValue(row,key));
+        const same=tr.cells.length===values.length&&values.every((value,i)=>tr.cells[i].textContent===value&&tr.cells[i].colSpan===1);
+        if(!same)tr.replaceChildren(...values.map(value=>{const td=document.createElement('td');td.textContent=value;return td;}));
+        tr.hidden=!selectedIds.has(String(row.uid));
       }
     }
+    const totals=sumRows(selected);
+    const totalValues=columns.map(([,key],i)=>i===0?'TOTAL SELECCIÓN':fmtValue(totals,key));
+    let foot=table.querySelector('tfoot');
+    if(!foot){foot=document.createElement('tfoot');table.appendChild(foot);}
+    let totalRow=foot.querySelector('tr');
+    if(!totalRow){totalRow=document.createElement('tr');foot.appendChild(totalRow);}
+    totalRow.classList.add('v1524-report-total-row');
+    if(totalRow.cells.length!==totalValues.length||
+       totalValues.some((value,i)=>totalRow.cells[i].textContent!==value||totalRow.cells[i].colSpan!==1)){
+      totalRow.replaceChildren(...totalValues.map(value=>{const td=document.createElement('td');td.textContent=value;return td;}));
+    }
+    body?.querySelectorAll('tr').forEach(tr=>{
+      if(/^TOTAL (SELECCI[OÓ]N|GENERAL)/i.test(tr.cells[0]?.textContent||''))tr.remove();
+    });
   }
   let observedReport=null,reportRepairPending=false;
   function observeReport(modal){
