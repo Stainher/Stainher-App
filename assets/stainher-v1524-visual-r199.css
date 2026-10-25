@@ -27,8 +27,6 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
 @media (max-width:780px){
   html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo :is(input[type="month"],input[type="date"],select){
     color-scheme:light!important;
-    -webkit-appearance:none;
-    appearance:none;
     background:linear-gradient(180deg,#f9fcff 0%,#eaf2f9 100%)!important;
     background-color:#f3f8fd!important;
     color:#17344d!important;
