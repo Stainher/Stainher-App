@@ -19,6 +19,39 @@
   const ACTION_BAR='stainher-equipment-actionbar-r131';
   const SOURCE_ACTIONS='stainher-equipment-source-actions-r131';
 
+
+  // R266: identificar solo la etiqueta de tipo dentro de cada ficha real.
+  // No modificar .equipment-card ni los controles que contiene.
+  const EQUIPMENT_TYPES_R266=new Set(['ascensor','montaplatos','huinche','elevador','elevador vertical','ascensor / jaula']);
+  function normalizeEquipmentTypeLabelsR266(cards){
+    if(!document.getElementById('stainher-equipment-types-r266')){
+      const style=document.createElement('style');
+      style.id='stainher-equipment-types-r266';
+      style.textContent=`
+        html[data-theme="modern"] #page-equipos .equipment-card .stainher-equipment-type-r266,
+        body[data-theme="modern"] #page-equipos .equipment-card .stainher-equipment-type-r266{
+          background:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+          background-image:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+          border-color:#1586bd!important;
+          color:#fff!important;
+          -webkit-text-fill-color:#fff!important;
+        }
+        html[data-theme="modern"] #page-equipos .equipment-card .stainher-equipment-type-r266 *,
+        body[data-theme="modern"] #page-equipos .equipment-card .stainher-equipment-type-r266 *{
+          color:#fff!important;-webkit-text-fill-color:#fff!important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    cards.forEach(card=>{
+      card.querySelectorAll('span,small,div,p,strong,b').forEach(node=>{
+        if(node.children.length||node.closest('button,a,[role="button"],.stainher-equipment-actionbar-r131'))return;
+        const value=norm(node.textContent);
+        if(EQUIPMENT_TYPES_R266.has(value))node.classList.add('stainher-equipment-type-r266');
+      });
+    });
+  }
+
   const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
   const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -607,6 +640,7 @@
       grid.classList.add(GRID_MARKER);
       ensureToolbar(root,grid);
       cards.forEach(organizeCardActions);
+      normalizeEquipmentTypeLabelsR266(cards);
 
       const signature=cards.map(card=>[
         clean(card.querySelector('h1,h2,h3,h4')?.textContent||''),
