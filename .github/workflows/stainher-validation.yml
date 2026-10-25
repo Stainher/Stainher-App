@@ -31,6 +31,7 @@ jobs:
           node tests/leadership-visual-r220.mjs
           node tests/mobile-contrast-r226.mjs
           node tests/preventivo-mobile-visual-r276.mjs
+          node tests/correctivo-mobile-dates-r277.mjs
           node tests/iphone-safearea-dock-r228.mjs
           node tests/turnos-mobile-visual-r226-hotfix.mjs
           node tests/cross-module-contrast-r230.mjs
