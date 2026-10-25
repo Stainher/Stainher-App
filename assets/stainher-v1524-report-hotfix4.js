@@ -316,9 +316,9 @@
     const values=Array(11).fill(0);
     for(const tr of table.tBodies[0]?.rows||[]){
       if(tr.hidden||tr.cells.length!==12||/^TOTAL /i.test(tr.cells[0].textContent.trim()))continue;
-      for(let i=1;i<12;i++)values[i-1]+=Number((tr.cells[i].textContent||'').replace(/[^\\d.,-]/g,'').replace(',','.'))||0;
+      for(let i=1;i<12;i++)values[i-1]+=Number((tr.cells[i].textContent||'').replace(/[^\d.,-]/g,'').replace(',','.'))||0;
     }
-    const cells=['TOTAL SELECCIÓN',...values.map((value,i)=>i===5||i===6?value.toFixed(1)+' h':String(value))];
+    const cells=['TOTAL SELECCIÓN',...values.map((value,i)=>i===4||i===5?value.toFixed(1)+' h':String(value))];
     let footer=table.tFoot;
     if(!footer){footer=document.createElement('tfoot');table.appendChild(footer);}
     let row=footer.rows[0];
