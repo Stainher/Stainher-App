@@ -34,7 +34,7 @@
   const hoursLabel=ev=>{const a=String(ev.hora_inicio||'').slice(0,5),b=String(ev.hora_fin||'').slice(0,5);return a||b?`${a||'—'} a ${b||'—'}`:'—';};
   const selectedRows=r=>{const uid=String(window.state?.v1524TurnReportUser||'');return uid?(r.rows||[]).filter(row=>String(row.uid)===uid):(r.rows||[]);};
   const eventCodesOn=(row,date)=>[...new Set((row.eventos||[]).filter(ev=>String(ev.fecha_inicio||'')<=date&&String(ev.fecha_fin||ev.fecha_inicio||'')>=date).map(ev=>codeFor(ev.tipo)))];
-  const rowsTotal=rows=>rows.reduce((a,row)=>{for(const key of ['encDentro','encFuera','suspendido','diasAdicionales','he','hf','vacaciones','licencias','faltas','otros'])a[key]+=Number(row[key]||0);return a;},{encDentro:0,encFuera:0,suspendido:0,diasAdicionales:0,he:0,hf:0,vacaciones:0,licencias:0,faltas:0,otros:0});
+  const rowsTotal=rows=>rows.reduce((a,row)=>{for(const key of ['encDentro','encFuera','suspendido','diasAdicionales','he','hf','vacaciones','licencias','permisos','faltas','otros'])a[key]+=Number(row[key]||0);return a;},{encDentro:0,encFuera:0,suspendido:0,diasAdicionales:0,he:0,hf:0,vacaciones:0,licencias:0,permisos:0,faltas:0,otros:0});
 
   function calendarExportRows(r,row){
     const days=new Date(r.y,r.m,0).getDate(),out=[];
@@ -166,7 +166,37 @@
     const monthName=window.MONTHS_ES?.[r.m-1]||String(r.m),selectionLabel=selected.length===1?` · ${selected[0].nombre}`:'';
     window.pdfHeader?.(doc,'Informe Mensual de Turnos y Novedades',`${monthName} ${r.y}${selectionLabel}`);
     doc.setFontSize(10);doc.text('Resumen de eventos por colaborador',14,43);
-    doc.autoTable({startY:47,head:[['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adic.','H. extra','H. feriado','Vac.','Lic. med.','Faltas','Otros']],body:[...selected.map(x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,Number(x.he||0).toFixed(1),Number(x.hf||0).toFixed(1),x.vacaciones,x.licencias,x.faltas,x.otros]),['TOTAL SELECCIÓN',total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,total.he.toFixed(1),total.hf.toFixed(1),total.vacaciones,total.licencias,total.faltas,total.otros]],styles:{fontSize:6.7,cellPadding:1.8,textColor:[25,31,40]},headStyles:{fillColor:[35,43,54],textColor:[255,255,255]}});
+    // R268: usar las mismas 12 columnas y totales de la tabla visible.
+    const headers=['Colaborador','Enc. dentro','Enc. fuera','Suspendido','Días adicionales','Horas extra','Horas feriado','Vacaciones','Lic. médica','Permisos','Falta / ausencia','Otros'];
+    const values=x=>[x.nombre,x.encDentro,x.encFuera,x.suspendido,x.diasAdicionales,Number(x.he||0).toFixed(1)+' h',Number(x.hf||0).toFixed(1)+' h',x.vacaciones,x.licencias,x.permisos||0,x.faltas,x.otros];
+    const body=selected.map(values);
+    body.push(values({...total,nombre:'TOTAL SELECCIÓN'}));
+    doc.autoTable({
+      startY:47,head:[headers],body,
+      styles:{fontSize:6.25,cellPadding:1.6,textColor:[32,58,83],lineColor:[198,214,227],lineWidth:.12,overflow:'linebreak'},
+      headStyles:{fillColor:[220,233,243],textColor:[36,70,96],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[237,244,250]},
+      didParseCell:data=>{
+        if(data.section==='body'&&data.row.index===body.length-1){
+          data.cell.styles.fillColor=[7,143,166];
+          data.cell.styles.textColor=[255,255,255];
+          data.cell.styles.fontStyle='bold';
+        }
+      },
+      margin:{left:9,right:9}
+    });
+    // R268: reconciliar las seis métricas operativas contra el total seleccionado.
+    const opY=(doc.lastAutoTable?.finalY||60)+8;
+    doc.setFont(undefined,'bold');doc.setFontSize(9);doc.setTextColor(32,58,83);
+    doc.text('Totales operativos del período',9,opY);
+    doc.autoTable({
+      startY:opY+3,
+      head:[['ET · Enc. dentro','EF · Enc. fuera','SE · Suspendido','DA · Día adicional','HE · Horas extra','HF · Horas feriado']],
+      body:[[total.encDentro,total.encFuera,total.suspendido,total.diasAdicionales,Number(total.he||0).toFixed(1)+' h',Number(total.hf||0).toFixed(1)+' h']],
+      styles:{fontSize:7.3,cellPadding:2.2,textColor:[32,58,83]},
+      headStyles:{fillColor:[7,143,166],textColor:[255,255,255]},
+      margin:{left:9,right:9}
+    });
 
     if(selected.length===1)drawPersonalCalendar(doc,r,selected[0],monthName);
     else drawConsolidatedCalendarOnePage(doc,r,selected,monthName);
