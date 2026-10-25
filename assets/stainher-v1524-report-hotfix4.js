@@ -308,6 +308,43 @@
       if(/^TOTAL (SELECCI[OÓ]N|GENERAL)/i.test(tr.cells[0]?.textContent||''))tr.remove();
     });
   }
+  // R272: la última fila debe reflejar las doce celdas del propio tbody,
+  // independientemente de otros renderizadores antiguos que actualicen tfoot.
+  function reconcileVisibleFooterR272(modal){
+    const table=modal?.querySelector('#v1524ReportSummaryTable');
+    if(!table||table.tHead?.rows[0]?.cells.length!==12)return;
+    const values=Array(11).fill(0);
+    for(const tr of table.tBodies[0]?.rows||[]){
+      if(tr.hidden||tr.cells.length!==12||/^TOTAL /i.test(tr.cells[0].textContent.trim()))continue;
+      for(let i=1;i<12;i++)values[i-1]+=Number((tr.cells[i].textContent||'').replace(/[^\d.,-]/g,'').replace(',','.'))||0;
+    }
+    const cells=['TOTAL SELECCIÓN',...values.map((value,i)=>i===4||i===5?value.toFixed(1)+' h':String(value))];
+    let footer=table.tFoot;
+    if(!footer){footer=document.createElement('tfoot');table.appendChild(footer);}
+    let row=footer.rows[0];
+    if(!row){row=footer.insertRow();}
+    row.classList.add('v1524-report-total-row');
+    if(row.cells.length!==cells.length||cells.some((value,i)=>row.cells[i].textContent!==value)){
+      row.replaceChildren(...cells.map(value=>{const td=document.createElement('td');td.textContent=value;return td;}));
+    }
+  }
+  let r272Observer=null,r272Target=null,r272Pending=false;
+  function installFooterReconciliationR272(modal){
+    const table=modal?.querySelector('#v1524ReportSummaryTable');
+    if(!table)return;
+    if(r272Target!==table){
+      r272Observer?.disconnect();
+      r272Target=table;
+      r272Observer=new MutationObserver(()=>{
+        if(r272Pending)return;
+        r272Pending=true;
+        queueMicrotask(()=>{r272Pending=false;if(table.isConnected)reconcileVisibleFooterR272(modal)});
+      });
+      r272Observer.observe(table,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden']});
+    }
+    reconcileVisibleFooterR272(modal);
+  }
+
   let observedReport=null,reportRepairPending=false;
   function observeReport(modal){
     if(observedReport===modal)return;
@@ -350,6 +387,7 @@
     const summary=modal.querySelector('.v1524-report-summary');
     ensureSuspendedColumn(summary?.querySelector('table'),r);
     showPermitColumn(modal,r);
+    installFooterReconciliationR272(modal);
     observeReport(modal);
     if(summary){
       const existing=modal.querySelector('.v1524-operational-totals');
@@ -392,7 +430,7 @@
         requestAnimationFrame(()=>{
           const r=window.state?.v1516TurnReport;
           const modal=document.querySelector('#modalRoot .v1524-report-summary');
-          if(r&&modal){normalizePermitCounts(r);showPermitColumn(modal.closest('.modal'),r);
+          if(r&&modal){normalizePermitCounts(r);showPermitColumn(modal.closest('.modal'),r);installFooterReconciliationR272(modal.closest('.modal'));
             const existing=modal.closest('.modal')?.querySelector('.v1524-operational-totals');
             if(existing){const tmp=document.createElement('div');tmp.innerHTML=operationalHtml(r);existing.replaceWith(tmp.firstElementChild);}
           }
