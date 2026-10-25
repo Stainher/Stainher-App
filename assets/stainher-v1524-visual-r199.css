@@ -21,3 +21,37 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
  color:#fff!important;-webkit-text-fill-color:#fff!important;
 }
 
+/* R276 - Preventivo mobile: neutralize the legacy dark fill of native month/date filters.
+ * Limited to the light/modern themes and <= 780px: navigation, selected tabs,
+ * dark theme and status badges intentionally retain their semantic colors. */
+@media (max-width:780px){
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo :is(input[type="month"],input[type="date"],select){
+    color-scheme:light!important;
+    -webkit-appearance:none;
+    appearance:none;
+    background:linear-gradient(180deg,#f9fcff 0%,#eaf2f9 100%)!important;
+    background-color:#f3f8fd!important;
+    color:#17344d!important;
+    -webkit-text-fill-color:#17344d!important;
+    border:1px solid #b8ccdd!important;
+    border-radius:12px!important;
+    box-shadow:0 1px 3px rgba(23,52,77,.09)!important;
+    min-height:44px;
+    max-width:100%;
+    opacity:1!important;
+  }
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo input[type="month"]::-webkit-datetime-edit,
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo input[type="date"]::-webkit-datetime-edit{
+    color:#17344d!important;
+    -webkit-text-fill-color:#17344d!important;
+  }
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo .stainher-date-picker>.stainher-calendar-button{
+    color:#486782!important;
+    -webkit-text-fill-color:#486782!important;
+    background:transparent!important;
+  }
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo .stainher-date-picker>.stainher-calendar-button:focus-visible{
+    outline:2px solid #1769c2!important;
+    outline-offset:-2px;
+  }
+}
