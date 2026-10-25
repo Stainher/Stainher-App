@@ -78,3 +78,87 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
     outline-offset:2px!important;
   }
 }
+
+/* R278 - Gastos Reembolsables: acciones y EDP alineados en el eje central.
+ * Restringido a la vista real .v1523-reemb-grid; no altera otros paneles. */
+@media(max-width:780px){
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid){
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid) > .row-between{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:12px!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid) > .row-between > :first-child{
+    min-width:0!important;
+    width:100%!important;
+  }
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid) > .toolbar{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:12px!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0 0 16px!important;
+  }
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid) > .row-between > button.btn,
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid) > .toolbar > button.btn{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    align-self:center!important;
+    width:min(100%,360px)!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:44px!important;
+    margin:0 auto!important;
+    box-sizing:border-box!important;
+    white-space:normal!important;
+  }
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid) > .toolbar > label{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:center!important;
+    gap:6px!important;
+    width:min(100%,360px)!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    box-sizing:border-box!important;
+    text-align:left!important;
+  }
+  html body #page-contrato #contractContent:has(> .v1523-reemb-grid) > .toolbar > label > select.field{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:44px!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+  }
+  /* La barra de pestañas permanece desplazable; cada ficha centra su etiqueta. */
+  html body #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs){
+    display:flex!important;
+    align-items:center!important;
+    gap:8px!important;
+    scroll-padding-inline:16px!important;
+    scroll-snap-type:x proximity;
+  }
+  html body #page-contrato :is(.contract-tabs,.v1519-contract-tabs,.v1520-tabs) > :is(.contract-tab,button,[role="tab"]){
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    scroll-snap-align:center;
+  }
+}
