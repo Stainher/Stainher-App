@@ -73,8 +73,8 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
     outline:0!important;
     box-shadow:none!important;
   }
-  html body #page-correctivo .v1519-filter-grid :is(#corrFromV1519,#corrToV1519):focus-visible{
-    outline:2px solid #ffffff!important;
-    outline-offset:-2px!important;
+  html body #page-correctivo .v1519-filter-grid .stainher-date-picker:focus-within:has(> :is(#corrFromV1519,#corrToV1519)){
+    outline:2px solid #1769c2!important;
+    outline-offset:2px!important;
   }
 }
