@@ -258,7 +258,7 @@
       const selected=button.dataset.v151Page===page;
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
-    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeModernDarkFormPanels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -313,6 +313,42 @@
       node.classList.add('stainher-modern-surface-r259');
     }));
   }
+  function normalizeModernDarkFormPanels(){
+    const modern=document.documentElement.dataset.theme==='modern'||document.body.dataset.theme==='modern';
+    if(!modern)return;
+    if(!document.getElementById('stainher-modern-form-panels-r265')){
+      const style=document.createElement('style');style.id='stainher-modern-form-panels-r265';
+      style.textContent=`
+        html[data-theme="modern"] #modalRoot .stainher-modern-gradient-r265,
+        body[data-theme="modern"] #modalRoot .stainher-modern-gradient-r265{
+          background:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+          background-image:linear-gradient(100deg,#078fa6 0%,#1977ca 100%)!important;
+          border-color:#1586bd!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+        }
+        html[data-theme="modern"] #modalRoot .stainher-modern-gradient-r265 :is(label,small,span,strong,b),
+        body[data-theme="modern"] #modalRoot .stainher-modern-gradient-r265 :is(label,small,span,strong,b){
+          color:#fff!important;-webkit-text-fill-color:#fff!important;
+        }
+        html[data-theme="modern"] #modalRoot .stainher-modern-gradient-r265 :is(input:not([type="checkbox"]),select,textarea),
+        body[data-theme="modern"] #modalRoot .stainher-modern-gradient-r265 :is(input:not([type="checkbox"]),select,textarea){
+          background:#fff!important;color:#173753!important;-webkit-text-fill-color:#173753!important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    document.querySelectorAll('#modalRoot .modal, #modalRoot [role="dialog"]').forEach(modal=>{
+      const nodes=modal.querySelectorAll('.v14-license-options label, form label:has(> select[name="user_id"]), form label:has(> select[name="supervisor_user_id"]), form label:has(> select[name="supervisor_nombre"])');
+      nodes.forEach(n=>n.classList.add('stainher-modern-gradient-r265'));
+      // Other inherited black form tiles; never restyle buttons, navigation or status chips.
+      modal.querySelectorAll('form label, form fieldset').forEach(n=>{
+        if(n.classList.contains('stainher-modern-gradient-r265'))return;
+        const background=getComputedStyle(n).backgroundColor.match(/^rgba?\\(([^)]+)\\)$/);
+        if(!background)return;
+        const [r,g,b,a=1]=background[1].split(',').map(Number);
+        if(a>=.9&&Math.max(r,g,b)<52)n.classList.add('stainher-modern-gradient-r265');
+      });
+    });
+  }
   function normalizeTurnDayModalLabels(){
     // The selected-day summary uses dark navy panels but inherits a low-contrast label color.
     // R260: override the dark selected-day summary card itself.
@@ -348,7 +384,7 @@
   }
   function schedule(){
     if(queued)return;queued=true;
-    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
+    requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeModernDarkFormPanels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
     lockBrowserTitle();installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
