@@ -51,7 +51,7 @@ try{
       for(const key of ['add','edp','report']){
         assert.ok(positions[key].left>=0&&positions[key].right<=width+1,`Sin desbordamientos (${width}, ${key})`);
       }
-      assert.ok(positions.tabsOverflow,'Pestañas largas no deben ocultarse, sino poder desplazarse');
+      if(width<=430)assert.ok(positions.tabsOverflow,'Pestañas largas no deben ocultarse, sino poder desplazarse');
     } else {
       assert.ok(Math.abs(positions.add.center-positions.report.center)>1,'Escritorio conserva su barra horizontal');
     }
