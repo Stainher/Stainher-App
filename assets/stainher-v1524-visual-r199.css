@@ -312,3 +312,36 @@ html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval bu
  html body #modalRoot .v11-eval{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
  html body #modalRoot .v11-eval button{flex:1 1 110px!important;min-width:0!important}
 }
+
+/* R287 — Extintores: surface contrast and clearly distinguishable evaluations */
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 :is(.v157-ext-card,.v157-ext-body,.v157-ext-check){
+ background:#f3f8fd!important;background-image:none!important;color:#18364e!important;border-color:#b8ccdd!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 :is(.v157-ext-card summary,.v157-ext-grid label,.v157-ext-check>b,.v157-ext-check label){
+ color:#18364e!important;-webkit-text-fill-color:#18364e!important;text-shadow:none!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 .v157-ext-grid :is(input,select){
+ background:#fff!important;color:#18364e!important;-webkit-text-fill-color:#18364e!important;border-color:#a9c2d6!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 .v157-ext-check .v157-seg{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 .v157-ext-check .v157-seg label{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+ min-width:0!important;min-height:38px!important;padding:8px!important;
+ border:1px solid #bdd0df!important;border-radius:8px!important;
+ background:#fff!important;color:#18364e!important;-webkit-text-fill-color:#18364e!important;
+ cursor:pointer!important;box-sizing:border-box!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 .v157-ext-check .v157-seg label:has(input[value="Bueno"]:checked){
+ background:#177345!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#116039!important;font-weight:700!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 .v157-ext-check .v157-seg label:has(input[value="Malo"]:checked){
+ background:#b42336!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#931d2e!important;font-weight:700!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157 .v157-ext-check .v157-seg input[type="radio"]{
+ accent-color:#1769c2!important;width:17px!important;height:17px!important;flex:none!important;
+}
+@media(max-width:420px){
+ html body #modalRoot #extFormV157 .v157-ext-check .v157-seg{grid-template-columns:minmax(0,1fr)!important}
+}
