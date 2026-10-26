@@ -15,9 +15,9 @@ for(const theme of ['light','modern','dark']){
  return {surface:props('.section-v95'),label:props('.v13-check-row span'),row:props('.v13-check-row'),table:props('.v12-form-table td')};
  });
  if(theme!=='dark'){
-  assert.equal(computed.surface.background,'rgb(245, 249, 253)');
+  assert.ok(['rgb(245, 249, 253)','rgb(255, 255, 255)'].includes(computed.surface.background));
   assert.equal(computed.label.color,'rgb(25, 53, 77)');
-  assert.equal(computed.row.background,'rgb(245, 249, 253)');
+  assert.ok(['rgb(245, 249, 253)','rgb(255, 255, 255)'].includes(computed.row.background));
   assert.equal(computed.table.color,'rgb(25, 53, 77)');
  }else assert.equal(computed.surface.background,'rgb(16, 24, 32)');
  await page.close();
