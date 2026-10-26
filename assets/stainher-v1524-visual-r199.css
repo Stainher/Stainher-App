@@ -384,3 +384,23 @@ html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-
 html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group label:has(input[value="N/A"]){
  background:#fff0c3!important;color:#684a03!important;-webkit-text-fill-color:#684a03!important;
 }
+
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group .v154-check-choice{
+  background:#fff!important;color:#18354e!important;-webkit-text-fill-color:#18354e!important;
+  border:1px solid #b9cada!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group .v154-check-choice:has(input[value="Bueno"]){
+  background:#e1f4e9!important;color:#13613a!important;-webkit-text-fill-color:#13613a!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group .v154-check-choice:has(input[value="Malo"]){
+  background:#fee6e7!important;color:#922336!important;-webkit-text-fill-color:#922336!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group .v154-check-choice:has(input[value="N/A"]){
+  background:#fff0c3!important;color:#684a03!important;-webkit-text-fill-color:#684a03!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group .v154-check-choice:has(input:checked){
+  outline:2px solid #1769c2!important;outline-offset:-2px!important;font-weight:700!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-signature-box{
+  background:#f1f7fc!important;color:#18354e!important;border-color:#bbcede!important;
+}
