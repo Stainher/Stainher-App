@@ -38,7 +38,7 @@ assert.match(moduleSrc,/window\.state\.r178SolicitudesTab='finalizadas'/,'Al fin
 assert.match(moduleSrc,/Object\.assign\(local,/,'Debe actualizar el estado local inmediatamente después del cierre');
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 179, 'El cargador activo debe preservar al menos R179 (request-close-r177)');
 
-assert.match(moduleSrc,/\.v152-request-card\.r180-filter-hidden[\\s\\S]*?display:none!important/,'El filtro R281 debe prevalecer en vista reducida y maximizada');
+assert.match(moduleSrc,/\.v152-request-card\.r180-filter-hidden[\s\S]*?display:none!important/,'El filtro R281 debe prevalecer en vista reducida y maximizada');
 assert.match(moduleSrc,/card\.classList\.toggle\('r180-filter-hidden',!show\)/,'Debe ocultar mediante clase persistente');
 assert.match(moduleSrc,/visibleCount===0/,'Estado vacío debe calcularse con el filtro real');
 assert.match(moduleSrc,/data\.r180RequestCategory=category|dataset\.r180RequestCategory=category/,'Debe etiquetar categoría por tarjeta');
