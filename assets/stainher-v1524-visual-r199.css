@@ -162,3 +162,64 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
     scroll-snap-align:center;
   }
 }
+
+/* R279 - Mobile date/month fields: one visual shell, one calendar icon.
+ * Preserve the working native input and formatted value; no duplicate frames. */
+@media (max-width:900px) {
+  html body #page-correctivo .stainher-native-control-shell:has(> :is(#corrFromV1519,#corrToV1519)){
+    background:linear-gradient(112deg,#f56022 0%,#c63a0b 100%)!important;
+    border:0!important;
+    border-radius:999px!important;
+    outline:0!important;
+    box-shadow:none!important;
+    color:#fff!important;
+  }
+  html body #page-correctivo :is(.stainher-native-control-shell,.stainher-date-picker):has(> :is(#corrFromV1519,#corrToV1519)) > .stainher-native-control-shell__value{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+  }
+  html body #page-correctivo :is(.stainher-native-control-shell,.stainher-date-picker):has(> :is(#corrFromV1519,#corrToV1519)) > .stainher-calendar-button{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  html body #page-correctivo :is(.stainher-native-control-shell,.stainher-date-picker):has(> :is(#corrFromV1519,#corrToV1519))::after{
+    content:none!important;
+  }
+  html body #page-correctivo :is(.stainher-native-control-shell,.stainher-date-picker):has(> :is(#corrFromV1519,#corrToV1519)) > input{
+    border:0!important;
+    outline:0!important;
+    box-shadow:none!important;
+  }
+  html body #page-correctivo :is(.stainher-native-control-shell,.stainher-date-picker):has(> :is(#corrFromV1519,#corrToV1519)):focus-within{
+    outline:2px solid #1769c2!important;
+    outline-offset:2px!important;
+  }
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo
+    .stainher-native-control-shell:has(> #v1523PrevEdpMonth){
+    background:linear-gradient(180deg,#f9fcff 0%,#eaf2f9 100%)!important;
+    border:1px solid #b8ccdd!important;
+    border-radius:12px!important;
+    color:#17344d!important;
+    outline:0!important;
+    box-shadow:none!important;
+  }
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo
+    .stainher-native-control-shell:has(> #v1523PrevEdpMonth) > .stainher-native-control-shell__value{
+    color:#17344d!important;
+    -webkit-text-fill-color:#17344d!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  html:is([data-theme="light"],[data-theme="modern"]) body #page-preventivo
+    .stainher-native-control-shell:has(> #v1523PrevEdpMonth) > .stainher-calendar-button{
+    color:#486782!important;
+    -webkit-text-fill-color:#486782!important;
+  }
+  html body #page-preventivo
+    .stainher-native-control-shell:has(> #v1523PrevEdpMonth)::after{
+    content:none!important;
+  }
+}

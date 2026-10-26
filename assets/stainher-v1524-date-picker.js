@@ -121,11 +121,11 @@
     input.dataset.stainherCalendar = '1';
 
     let wrapper = input.parentElement;
+    // R279: Safari/iOS may already own a visual shell from the initial runtime.
+    // Keep that shell and its visible formatted value rather than remove it:
+    // doing so made the initial observer create another transparent date input.
     if (wrapper?.classList.contains('stainher-native-control-shell')) {
-      wrapper.querySelector(':scope > .stainher-native-control-shell__value')?.remove();
-      wrapper.className = 'stainher-date-picker';
-      input.classList.remove('stainher-native-control');
-      delete input.dataset.stainherNativeShell;
+      wrapper.classList.add('stainher-date-picker');
     }
     if (!wrapper || !wrapper.classList.contains('stainher-date-picker')) {
       wrapper = document.createElement('span');
@@ -133,6 +133,10 @@
       input.parentNode.insertBefore(wrapper, input);
       wrapper.appendChild(input);
     }
+
+    // The legacy native-shell observer must not wrap an already-enhanced input.
+    // This marker is intentionally retained even when no shell was necessary.
+    input.dataset.stainherNativeShell = '1';
 
     let button = wrapper.querySelector(':scope > .stainher-calendar-button');
     if (!button) {
