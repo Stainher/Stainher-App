@@ -36,6 +36,7 @@ jobs:
           node tests/mobile-date-shell-integration-r279.mjs
           node tests/solicitudes-zoom-created-r280.mjs
           node tests/solicitudes-filter-specificity-r281.mjs
+          node tests/control-stainher-contrast-r282.mjs
           node tests/iphone-safearea-dock-r228.mjs
           node tests/turnos-mobile-visual-r226-hotfix.mjs
           node tests/cross-module-contrast-r230.mjs
