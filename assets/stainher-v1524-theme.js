@@ -3,6 +3,14 @@
   'use strict';
   const KEY='stainher-theme-v1',DARK='dark',LIGHT='light',MODERN='modern';
   const css=`
+    /* R282 authoritative shared modal contrast: preserve dark theme and action colors. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.section-v95,.v157-card,.v157-group,.v13-check-section,.terrain-check-v95,.v12-form-table,.v13-fatigue-table,.v13-check-row){background:#f5f9fd!important;color:#19354d!important;border-color:#b9cddd!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.section-v95,.v157-card,.v157-group,.v13-check-section,.terrain-check-v95,.v12-form-table,.v13-fatigue-table,.v13-check-row) :is(label,h2,h3,h4,h5,legend,th,td,p,span,b,strong,small){color:#19354d!important;-webkit-text-fill-color:#19354d!important;text-shadow:none!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v12-form-table,.v13-fatigue-table,.terrain-check-v95,.v13-check-section) :is(tr,th,td){background:#f5f9fd!important;color:#19354d!important;border-color:#b9cddd!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.section-v95,.v157-card,.v157-group,.v13-check-section,.terrain-check-v95) :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]){background:#fff!important;color:#19354d!important;-webkit-text-fill-color:#19354d!important;border-color:#b9cddd!important;color-scheme:light!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v12-form-table,.v13-fatigue-table,.terrain-check-v95,.v13-check-section) :is(button,.btn,label):not(.primary):not(.active):not(.selected){color:#19354d!important;-webkit-text-fill-color:#19354d!important}
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.section-v95,.v157-card,.v157-group,.v13-check-section) :is(.primary,.active,.selected,[aria-pressed="true"]){color:#fff!important;-webkit-text-fill-color:#fff!important}
+
     /* R223: barras móviles oscuras con textos claros, sin afectar escritorio. */
     @media(max-width:780px){
       html body #v151MobileHead,html body .v151-mobile-head{
