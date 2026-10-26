@@ -270,3 +270,45 @@ html:is([data-theme="light"],[data-theme="modern"]) body #stainherContractAlerts
   #page-correctivo .corr-history-v8 tbody tr{grid-template-columns:minmax(0,1fr)!important}
   #page-correctivo .corr-history-v8 tbody td:nth-child(7){grid-column:auto!important}
 }
+
+/* R286: Real Control 4 & Terrain V11 selectors, applied after legacy styles.
+   Light/Modern surfaces and semantic evaluation buttons; dark theme untouched. */
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(
+  .v156-page-card,.v156-page,.v156-form-shell,.v151-control4-head,
+  .v11-group,.v11-group-title,.v11-observation-row,.v11-eval,
+  .v156-check-row,.v156-check-group,.v13-check-section,.v13-check-row
+){
+  background:#f3f8fd!important;background-image:none!important;
+  color:#19354d!important;border-color:#b8cadc!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(
+ .v156-page-card,.v156-form-shell,.v11-group,.v11-observation-row,.v11-group-title,
+ .v156-check-row,.v156-check-group,.v13-check-section,.v13-check-row
+) :is(h3,h4,h5,label,span,strong,b,p,small,legend){
+  color:#19354d!important;-webkit-text-fill-color:#19354d!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.v156-page-card,.v151-control4-head,.v11-group) :is(input,select,textarea):not([type="radio"]):not([type="checkbox"]){
+  background:#fff!important;color:#19354d!important;-webkit-text-fill-color:#19354d!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v]{
+  background:#f3f8fd!important;color:#19354d!important;-webkit-text-fill-color:#19354d!important;
+  border:1px solid #b8cadc!important;box-shadow:none!important;
+  padding:8px 10px!important;min-height:36px!important;
+  white-space:normal!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="Conducta segura"]{
+  background:#177345!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#116039!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="Conducta preocupante"]{
+  background:#b42336!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#931d2e!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="No aplica"]{
+  background:#f3be3e!important;color:#342602!important;-webkit-text-fill-color:#342602!important;border-color:#c89216!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v].active{
+  outline:3px solid #1680bd!important;outline-offset:1px!important;font-weight:700!important;
+}
+@media(max-width:740px){
+ html body #modalRoot .v11-eval{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
+ html body #modalRoot .v11-eval button{flex:1 1 110px!important;min-width:0!important}
+}
