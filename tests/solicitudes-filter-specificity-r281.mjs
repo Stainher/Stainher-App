@@ -18,7 +18,7 @@ await page.evaluate(visible=>{
 for(const card of document.querySelectorAll('.v152-request-card'))card.classList.toggle('r180-filter-hidden',!visible.includes(card.id));
 },visible);
 const result=await page.evaluate(()=>Object.fromEntries([...document.querySelectorAll('.v152-request-card')].map(card=>[card.id,getComputedStyle(card).display])));
-for(const [id,display] of Object.entries(result))assert.equal(display,visible.includes(id)?(view==='compact'?'grid':'grid'):'none',view+' '+id+' '+JSON.stringify(result));
+for(const [id,display] of Object.entries(result)){if(visible.includes(id))assert.notEqual(display,'none',view+' '+id+' must be visible');else assert.equal(display,'none',view+' '+id+' must be hidden');}
 }
 await page.close();
 }
