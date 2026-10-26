@@ -1435,7 +1435,8 @@
     if(!root||root.hidden||getComputedStyle(root).display==='none')return;
     const authorized=(typeof isAdmin==='function'&&isAdmin())
       ||(typeof v1520CanEdit==='function'&&v1520CanEdit('turnos'));
-    const actions=root.querySelector('.topbar .actions')
+    const actions=root.querySelector('.v1512-turn-toolbar .actions')
+      ||root.querySelector('.topbar .actions')
       ||[...root.querySelectorAll('.actions')].find(n=>n.querySelector('button[onclick*="v1520TurnReport"],button[onclick*="v1514OpenTurnImport"]'))
       ||[...root.querySelectorAll('button')].find(b=>/nuevo evento/i.test(b.textContent||''))?.parentElement;
     if(!actions||!authorized||typeof v1512PublishTurnMonth!=='function')return;
