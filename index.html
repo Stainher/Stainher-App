@@ -2631,7 +2631,34 @@ const _openPreventivoEquipoModalV13=openPreventivoEquipoModalV9;
 openPreventivoEquipoModalV9=function(equipoId,month=state.prevMonth){_openPreventivoEquipoModalV13(equipoId,month);if(!v13IsPlanner()){const m=document.querySelector('#modalRoot .modal');m?.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=true);m?.querySelectorAll('.action-mini').forEach(x=>x.remove());const d=m?.querySelector('.row-between .muted');if(d)d.textContent=(d.textContent||'').replace('edición en línea','solo lectura')}};
 
 // --------------------------- Correctivo -------------------------------
-updateCorrectivoExclusionV8=async function(id,checked){if(!canManageReliabilityV8())return;const {error}=await sb.from('averias').update({excluir_kpi:checked,motivo_exclusion:null}).eq('id',id);if(error)return toast(error.message,'error');await loadCorrectivo();toast(checked?'Evento excluido de indicadores; selecciona el motivo.':'Evento reincorporado a indicadores','success')};
+updateCorrectivoExclusionV8=async function(id,checked){
+  if(!canManageReliabilityV8())return;
+  const checkbox=[...document.querySelectorAll('#page-correctivo .corr-history-v8 input[type="checkbox"]')]
+    .find(el=>el.getAttribute('onchange')?.includes(String(id)));
+  const table=checkbox?.closest('.corr-history-v8'),row=checkbox?.closest('tr');
+  const scrollHost=table?.parentElement;
+  const previous={x:window.scrollX,y:window.scrollY,left:scrollHost?.scrollLeft||0,top:scrollHost?.scrollTop||0,
+    tab:typeof v153CorrTab!=='undefined'?v153CorrTab:null,
+    expanded:row?[...row.querySelectorAll('details')].map(el=>el.open):[]};
+  const {error}=await sb.from('averias').update({excluir_kpi:checked,motivo_exclusion:null}).eq('id',id);
+  if(error){if(checkbox)checkbox.checked=!checked;return toast(error.message,'error')}
+  await loadCorrectivo();
+  if(previous.tab!==null&&typeof v153CorrTab!=='undefined')v153CorrTab=previous.tab;
+  const updated=[...document.querySelectorAll('#page-correctivo .corr-history-v8 input[type="checkbox"]')]
+    .find(el=>el.getAttribute('onchange')?.includes(String(id)));
+  const updatedRow=updated?.closest('tr'),updatedHost=updated?.closest('table')?.parentElement;
+  updatedRow?.querySelectorAll('details').forEach((el,i)=>{el.open=!!previous.expanded[i]});
+  if(updatedHost){updatedHost.scrollLeft=previous.left;updatedHost.scrollTop=previous.top}
+  window.scrollTo({left:previous.x,top:previous.y,behavior:'instant'});
+  if(updatedRow){
+    updatedRow.dataset.r283Selected='1';
+    updated.setAttribute('aria-label','Excluir KPI: fila seleccionada');
+    updated.focus({preventScroll:true});
+    const rect=updatedRow.getBoundingClientRect();
+    if(rect.bottom>window.innerHeight-24||rect.top<0)updatedRow.scrollIntoView({block:'nearest',inline:'nearest'});
+  }
+  toast(checked?'Evento excluido de indicadores; selecciona el motivo.':'Evento reincorporado a indicadores','success');
+};
 function v13CorrectivoHelp(){
   const map={
     'atenciones':'Cantidad de eventos correctivos válidos del mes calendario. Los eventos excluidos por causa externa no se contabilizan.',

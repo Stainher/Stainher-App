@@ -36,6 +36,7 @@ jobs:
           node tests/mobile-date-shell-integration-r279.mjs
           node tests/solicitudes-zoom-created-r280.mjs
           node tests/solicitudes-filter-specificity-r281.mjs
+          node tests/correctivo-kpi-focus-zoom-r283.mjs
           node tests/iphone-safearea-dock-r228.mjs
           node tests/turnos-mobile-visual-r226-hotfix.mjs
           node tests/cross-module-contrast-r230.mjs
@@ -48,10 +49,12 @@ jobs:
           name: stainher-visual-evidence-r231
           path: artifacts/
           if-no-files-found: warn
+      - name: Diagnose request-close historical regression
+        run: node tests/request-close-r177.mjs
       - name: Run complete regression suite (blocking)
         id: legacy
         run: |
-          node --test --test-reporter=tap tests/*.mjs > legacy-test-results.tap 2>&1
+          node --test --test-reporter=tap tests/*.mjs > legacy-test-results.tap 2>&1 || { grep -A 28 '^not ok' legacy-test-results.tap | head -130; exit 1; }
       - name: Publish historical failure report
         if: always()
         run: |
