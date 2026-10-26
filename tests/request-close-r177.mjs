@@ -73,9 +73,9 @@ assert.match(loader,/Solicitudes primero: evita mostrar temporalmente el render 
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 184, 'El cargador activo debe preservar al menos R184 (request-close-r177)');
 
 // R280: replace obsolete six-column assertions with responsive container tests.
-assert.doesNotMatch(moduleSrc,/minmax\\(340px,1\\.65fr\\)/,'No debe volver la retícula rígida de seis columnas');
-assert.match(moduleSrc,/@container \\(max-width:1050px\\)/,'Debe adaptarse al ancho del listado');
-assert.match(moduleSrc,/grid-column:1\\/-1!important/,'Acciones deben ocupar fila completa');
-assert.match(moduleSrc,/row\\.created_at/,'Otras debe mostrar la fecha real de creación');
-assert.match(moduleSrc,/requestCategory\\(row\\.tipo\\)==='otras'/,'Solo Otras usa fecha de creación');
-assert.ok(Number(loader.match(/window\\.__STAINHER_HP_LOADER_VERSION__='R(\\d+)'/)?.[1]) >= 280,'Cargador debe refrescar R280');
+assert.doesNotMatch(moduleSrc,/minmax\(340px,1\.65fr\)/,'No debe volver la retícula rígida de seis columnas');
+assert.match(moduleSrc,/@container \(max-width:1050px\)/,'Debe adaptarse al ancho del listado');
+assert.match(moduleSrc,/grid-column:1\/-1!important/,'Acciones deben ocupar fila completa');
+assert.match(moduleSrc,/row\.created_at/,'Otras debe mostrar la fecha real de creación');
+assert.match(moduleSrc,/requestCategory\(row\.tipo\)==='otras'/,'Solo Otras usa fecha de creación');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 280,'Cargador debe refrescar R280');
