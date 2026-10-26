@@ -1208,7 +1208,23 @@
         background:#174d70!important;color:#fff!important;
       }
     }
-  `;
+  
+    /* R282 final override after historical theme rules: prevent inherited dark fill in Controls. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .section-v95,
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v157-card,
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v157-group,
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v13-check-section,
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v13-check-row,
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v12-form-table,
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v13-fatigue-table,
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .terrain-check-v95{
+      background:#f5f9fd!important;background-image:none!important;
+      color:#19354d!important;border-color:#b9cddd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot :is(.section-v95,.v157-card,.v157-group,.v13-check-section,.v13-check-row,.v12-form-table,.v13-fatigue-table,.terrain-check-v95) :is(span,label,h3,h4,h5,th,td,legend,strong,b,p){
+      color:#19354d!important;-webkit-text-fill-color:#19354d!important;text-shadow:none!important;
+    }
+`;
   function preference(){try{const v=localStorage.getItem(KEY);if(v===DARK||v===LIGHT||v===MODERN)return v}catch(_){ }return matchMedia?.('(prefers-color-scheme: light)').matches?LIGHT:DARK}
   function refreshCharts(value){
     if(!window.Chart)return;
