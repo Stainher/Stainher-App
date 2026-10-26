@@ -296,14 +296,17 @@ html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval bu
   padding:8px 10px!important;min-height:36px!important;
   white-space:normal!important;
 }
-html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="Conducta segura"].active{
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="Conducta segura"]{
   background:#177345!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#116039!important;
 }
-html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="Conducta preocupante"].active{
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="Conducta preocupante"]{
   background:#b42336!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#931d2e!important;
 }
-html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="No aplica"].active{
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v="No aplica"]{
   background:#f3be3e!important;color:#342602!important;-webkit-text-fill-color:#342602!important;border-color:#c89216!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-eval button[data-v].active{
+  outline:3px solid #1680bd!important;outline-offset:1px!important;font-weight:700!important;
 }
 @media(max-width:740px){
  html body #modalRoot .v11-eval{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
