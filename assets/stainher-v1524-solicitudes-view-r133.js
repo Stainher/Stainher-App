@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261025-r275-request-style-refresh';
+  const BUILD='20261026-r280-request-responsive';
   if(window.__STAINHER_SOLICITUDES_VIEW_R133__===BUILD)return;
   window.__STAINHER_SOLICITUDES_VIEW_R133__=BUILD;
 
@@ -153,6 +153,40 @@
         #${PAGE_ID} .${TOOLBAR}{align-items:stretch!important;flex-direction:column!important}
         #${PAGE_ID} .stainher-solicitudes-view-switch-r133{width:100%!important}
         #${PAGE_ID} .stainher-solicitudes-view-btn-r133{flex:1 1 0!important;min-width:0!important}
+      }
+      /* R280: zoom depends on the list's container, never only on viewport. */
+      #${PAGE_ID} .v152-request-grid{container-type:inline-size!important;min-width:0!important}
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+        grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        overflow:visible!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
+        grid-column:auto!important;grid-row:auto!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+        grid-column:1/-1!important;grid-row:auto!important;
+        width:100%!important;max-width:100%!important;min-width:0!important;
+        display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important;
+        position:static!important;
+      }
+      #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions :is(.btn,button){
+        min-width:0!important;max-width:100%!important;flex:0 1 auto!important;
+        white-space:normal!important;overflow-wrap:anywhere!important;
+      }
+      @container (max-width:1050px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:repeat(3,minmax(0,1fr))!important;
+        }
+      }
+      @container (max-width:640px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        }
+      }
+      @container (max-width:390px){
+        #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:minmax(0,1fr)!important;
+        }
       }
       @media(max-width:440px){
         #${PAGE_ID}[data-stainher-solicitudes-view="compact"] .v152-request-card{
