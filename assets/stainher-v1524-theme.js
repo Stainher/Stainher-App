@@ -1395,6 +1395,39 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installVehicleStatesR267,{once:true});else installVehicleStatesR267();
 
+  /* R285: Fatiga y Somnolencia no solicita Área / Equipo.
+     Mantiene el campo técnico oculto para compatibilidad con guardado y PDF históricos. */
+  function hideFatigueAreaR285(){
+    const root=document.getElementById('modalRoot');if(!root)return;
+    const modal=[...root.querySelectorAll('.modal,.modal-wide-v9,[role="dialog"]')]
+      .find(node=>/fatiga\s+y\s+somnolencia/i.test(node.querySelector('h2,h3,h1')?.textContent||''));
+    if(!modal)return;
+    for(const label of modal.querySelectorAll('label')){
+      const text=[...label.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE).map(n=>n.textContent).join(' ').trim();
+      if(!/^área\s*\/\s*equipo$/i.test(text))continue;
+      const input=label.querySelector('input,select,textarea');
+      if(input){
+        const hidden=document.createElement('input');
+        hidden.type='hidden';hidden.name=input.name||'area';hidden.value=input.value||'';
+        label.replaceWith(hidden);
+      }else label.remove();
+    }
+  }
+  let fatigueQueuedR285=false;
+  function queueFatigueR285(){
+    if(fatigueQueuedR285)return;fatigueQueuedR285=true;
+    requestAnimationFrame(()=>{fatigueQueuedR285=false;hideFatigueAreaR285()});
+  }
+  function mountFatigueR285(){
+    const root=document.getElementById('modalRoot');if(!root)return;
+    queueFatigueR285();
+    new MutationObserver(records=>{
+      if(records.some(r=>r.type==='childList'))queueFatigueR285();
+    }).observe(root,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountFatigueR285,{once:true});
+  else mountFatigueR285();
+
   const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
