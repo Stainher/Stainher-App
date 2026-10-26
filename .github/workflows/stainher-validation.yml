@@ -40,6 +40,7 @@ jobs:
           node tests/control-stainher-contrast-r282.mjs
           node tests/fatigue-no-area-r285.mjs
           node tests/control-real-contrast-r286.mjs
+          node tests/extintores-contrast-r287.mjs
           node tests/iphone-safearea-dock-r228.mjs
           node tests/turnos-mobile-visual-r226-hotfix.mjs
           node tests/cross-module-contrast-r230.mjs
