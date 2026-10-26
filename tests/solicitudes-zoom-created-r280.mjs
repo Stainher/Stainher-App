@@ -10,7 +10,7 @@ assert.match(close,/row\.created_at/);
 assert.match(close,/timeZone:'America\/Santiago'/);
 assert.match(view,/@container \(max-width:1050px\)/);
 assert.match(view,/@container \(max-width:640px\)/);
-assert.match(loader,/R280/);
+assert.match(loader,/R28[01]/);
 const browser=await chromium.launch({headless:true});
 try {
 for(const width of [390,760,1024,1440]){

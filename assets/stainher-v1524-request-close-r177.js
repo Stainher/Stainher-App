@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261026-r280-solicitudes-zoom-created-date';
+  const BUILD='20261026-r281-solicitudes-filter-specificity';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -15,6 +15,13 @@
     style.id='stainher-request-filter-r180-style';
     style.textContent=`
       #page-solicitudes .v152-request-card.r180-filter-hidden{display:none!important}
+      /* R281: the filter must outrank every compact/expanded grid display rule. */
+      html body #page-solicitudes .v152-request-grid > .v152-request-card.r180-filter-hidden,
+      html body #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-grid > .v152-request-card.r180-filter-hidden,
+      html body #page-solicitudes[data-stainher-solicitudes-view="expanded"] .v152-request-grid > .v152-request-card.r180-filter-hidden{
+        display:none!important;
+        visibility:hidden!important;
+      }
       #page-solicitudes [data-r178-tabs]{
         width:100%!important;
         box-sizing:border-box!important;
