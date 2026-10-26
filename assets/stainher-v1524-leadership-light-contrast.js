@@ -79,6 +79,54 @@
       color:var(--text)!important;
       border-color:var(--line)!important;
     }
+
+    /* R282: todo Control Stainher comparte una superficie clara y texto oscuro,
+       incluyendo cartillas, control en terreno y checklist vehicular. */
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot
+      :is(.section-v95,.v157-card,.v157-group,.v13-check-section,
+          .terrain-check-v95,.v12-form-table,.v13-fatigue-table,
+          .v13-check-row,.v157-step,.v157-page){
+      background:#f5f9fd!important;
+      color:#19354d!important;
+      border-color:#b9cddd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot
+      :is(.section-v95,.v157-card,.v157-group,.v13-check-section,
+          .terrain-check-v95,.v12-form-table,.v13-fatigue-table,
+          .v13-check-row,.v157-page)
+      :is(h2,h3,h4,h5,label,span,strong,b,small,th,td,p,legend){
+      color:#19354d!important;
+      -webkit-text-fill-color:#19354d!important;
+      text-shadow:none!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot
+      :is(.section-v95,.v157-card,.v157-group,.v13-check-section)
+      :is(input,textarea,select):not([type="checkbox"]):not([type="radio"]){
+      background:#fff!important;
+      color:#19354d!important;
+      -webkit-text-fill-color:#19354d!important;
+      border-color:#aac1d4!important;
+      color-scheme:light!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot
+      :is(.v12-form-table,.v13-fatigue-table,.v13-check-section,.terrain-check-v95)
+      :is(tr,td,th,.v13-check-row){
+      background:#f5f9fd!important;
+      color:#19354d!important;
+      border-color:#bbcedd!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot
+      :is(.v12-form-table,.v13-fatigue-table,.v13-check-section,.terrain-check-v95)
+      :is(button,.btn,label):not(.primary):not(.active):not(.selected){
+      color:#19354d!important;
+      -webkit-text-fill-color:#19354d!important;
+    }
+    html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot
+      :is(.section-v95,.v157-card,.v157-group,.v13-check-section)
+      :is(.primary,.active,.selected,[aria-pressed="true"]){
+      color:#fff!important;
+      -webkit-text-fill-color:#fff!important;
+    }
   `;
   document.head.appendChild(style);
 
