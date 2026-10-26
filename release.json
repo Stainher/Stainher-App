@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R262",
-  "build": "20261024-r262-mobile-release-sync",
+  "revision": "R279",
+  "build": "20261025-r279-mobile-calendar-sync",
   "path": "./",
-  "publishedAt": "2026-10-24"
+  "publishedAt": "2026-10-25"
 }
