@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {chromium} from 'playwright';
+const css=readFileSync('assets/stainher-v1524-visual-r199.css','utf8');
+const browser=await chromium.launch({headless:true});
+try{for(const theme of ['light','modern','dark']){const page=await browser.newPage({viewport:{width:950,height:750}});
+await page.setContent('<html data-theme="'+theme+'"><head><style>.v154-check-group,.v154-check-group h4,.v154-check-toolbar,.v154-check-choice,.v156-nav,.v11-terrain-head>div{background:#0b1117;color:#17354e}</style><style>'+css+'</style></head><body><div id="modalRoot"><div class="v156-nav">Anterior Siguiente</div><div class="v154-check-group"><h4>Sistemas de seguridad activos</h4><div class="v154-check-toolbar"><button>Marcar todo Bueno</button></div><div class="v154-check-row"><span>Sistema de Frenos</span><label class="v154-check-choice"><input type="checkbox" value="Bueno">Bueno</label><label class="v154-check-choice"><input type="checkbox" value="Malo">Malo</label><label class="v154-check-choice"><input type="checkbox" value="N/A">N/A</label></div></div><div class="v11-terrain-head"><div><small>Sistema integrado de gestión</small><b>Control preventivo en terreno</b></div></div></div></body></html>');
+const colors=await page.evaluate(()=>Object.fromEntries(['.v156-nav','.v154-check-group','.v154-check-group h4','.v154-check-toolbar','.v154-check-choice','.v11-terrain-head>div'].map(s=>[s,getComputedStyle(document.querySelector(s)).backgroundColor])));
+if(theme!=='dark'){for(const [name,color] of Object.entries(colors))assert.notEqual(color,'rgb(11, 17, 23)',theme+' '+name);
+assert.equal(await page.locator('.v154-check-choice:has(input[value="Bueno"])').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(225, 244, 233)');
+assert.equal(await page.locator('.v154-check-choice:has(input[value="Malo"])').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(254, 230, 231)');
+assert.equal(await page.locator('.v154-check-choice:has(input[value="N/A"])').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 240, 195)');
+}else assert.equal(colors['.v156-nav'],'rgb(11, 17, 23)');
+await page.close();}}finally{await browser.close()}console.log('R288 legacy wrappers contrast OK');
