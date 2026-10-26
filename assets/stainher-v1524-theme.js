@@ -1428,6 +1428,35 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountFatigueR285,{once:true});
   else mountFatigueR285();
 
+  /* R290: the direct-turns renderer replaces the toolbar after load.
+     Restore the publish action for authorized administrators, idempotently. */
+  function ensurePublishTurnButtonR290(){
+    const root=document.getElementById('page-turnos');
+    if(!root||root.hidden||getComputedStyle(root).display==='none')return;
+    const authorized=(typeof isAdmin==='function'&&isAdmin())
+      ||(typeof v1520CanEdit==='function'&&v1520CanEdit('turnos'));
+    const actions=root.querySelector('.topbar .actions')
+      ||[...root.querySelectorAll('.actions')].find(n=>n.querySelector('button[onclick*="v1520TurnReport"],button[onclick*="v1514OpenTurnImport"]'))
+      ||[...root.querySelectorAll('button')].find(b=>/nuevo evento/i.test(b.textContent||''))?.parentElement;
+    if(!actions||!authorized||typeof v1512PublishTurnMonth!=='function')return;
+    if(actions.querySelector('[data-r290-publish]'))return;
+    if([...actions.querySelectorAll('button')].some(b=>/publicar (turnos|malla)/i.test(b.textContent||'')))return;
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='btn primary';btn.dataset.r290Publish='1';
+    btn.textContent='Publicar turnos del mes';
+    btn.addEventListener('click',()=>v1512PublishTurnMonth());
+    actions.appendChild(btn);
+  }
+  function installTurnPublishR290(){
+    const root=document.getElementById('page-turnos');if(!root)return;
+    let pending=false;
+    const queue=()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;ensurePublishTurnButtonR290()})};
+    new MutationObserver(queue).observe(root,{childList:true,subtree:true});
+    queue();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installTurnPublishR290,{once:true});
+  else installTurnPublishR290();
+
   const modules=['stainher-v1524-collapsible.js','stainher-v1524-medical-leave.js','stainher-v1524-date-picker.js','stainher-v1524-home-layout.js','stainher-v1524-action-colors.js','stainher-v1524-number-fit.js','stainher-v1524-turn-legend.js','stainher-v1524-equipment-plan-assistant.js','stainher-v1524-navigation-stability.js','stainher-v1524-reliability-sync.js','stainher-v1524-corrective-actions.js'];
   async function load(file){
     const existing=document.querySelector(`script[data-stainher-module="${file}"]`);
