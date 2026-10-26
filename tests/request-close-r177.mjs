@@ -72,8 +72,10 @@ assert.match(loader,/stainher-r184-request-loading/,'Loader debe ocultar tempora
 assert.match(loader,/Solicitudes primero: evita mostrar temporalmente el render antiguo/,'Solicitudes debe inicializarse antes de módulos pesados');
 assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 184, 'El cargador activo debe preservar al menos R184 (request-close-r177)');
 
-assert.match(moduleSrc,/grid-template-columns:[\s\S]*minmax\(150px,1fr\)[\s\S]*minmax\(340px,1\.65fr\)/,'Vista compacta debe usar retícula fija de 6 columnas');
-assert.match(moduleSrc,/\[data-r133-field="period"\]\{grid-column:1!important;display:block!important\}/,'Período debe permanecer en columna 1');
-assert.match(moduleSrc,/\[data-r133-field="status"\]\{grid-column:5!important;display:block!important\}/,'Estado debe permanecer en columna 5');
-assert.match(moduleSrc,/\.v154-request-actions\{[\s\S]*grid-column:6!important[\s\S]*width:100%!important/,'Acciones deben permanecer alineadas en columna 6');
-assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 185, 'El cargador activo debe preservar al menos R185 (request-close-r177)');
+// R280: replace obsolete six-column assertions with responsive container tests.
+assert.doesNotMatch(moduleSrc,/minmax\(340px,1\.65fr\)/,'No debe volver la retícula rígida de seis columnas');
+assert.match(moduleSrc,/@container \(max-width:1050px\)/,'Debe adaptarse al ancho del listado');
+assert.match(moduleSrc,/grid-column:1\/-1!important/,'Acciones deben ocupar fila completa');
+assert.match(moduleSrc,/row\.created_at/,'Otras debe mostrar la fecha real de creación');
+assert.match(moduleSrc,/requestCategory\(row\.tipo\)==='otras'/,'Solo Otras usa fecha de creación');
+assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1]) >= 280,'Cargador debe refrescar R280');

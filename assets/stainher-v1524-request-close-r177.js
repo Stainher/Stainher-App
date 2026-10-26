@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R177 · cierre operacional de solicitudes. */
 (()=>{
   'use strict';
-  const BUILD='20261022-r185-solicitudes-consolidadas';
+  const BUILD='20261026-r280-solicitudes-zoom-created-date';
   if(window.__STAINHER_REQUEST_CLOSE_R177__===BUILD)return;
   window.__STAINHER_REQUEST_CLOSE_R177__=BUILD;
   const ELIGIBLE=new Set(['otro','permiso','cambio_turno']);
@@ -53,40 +53,46 @@
         margin-left:0!important;
         margin-right:0!important;
       }
-      @media(min-width:901px){
+      /* R280: the requests grid follows the actual content width at browser zoom. */
+      #page-solicitudes .v152-request-grid{container-type:inline-size!important;min-width:0!important}
+      #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card{
+        display:grid!important;
+        grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        grid-auto-flow:row!important;
+        gap:8px 12px!important;
+        min-width:0!important;max-width:100%!important;
+        overflow:visible!important;box-sizing:border-box!important;
+      }
+      #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card > [data-r133-field]{
+        grid-column:auto!important;grid-row:auto!important;min-width:0!important;
+        overflow-wrap:anywhere!important;
+      }
+      #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
+        grid-column:1/-1!important;grid-row:auto!important;
+        display:flex!important;flex-wrap:wrap!important;
+        justify-content:flex-start!important;align-items:center!important;
+        gap:6px!important;width:100%!important;min-width:0!important;max-width:100%!important;
+        padding-top:5px!important;box-sizing:border-box!important;
+      }
+      #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions .btn{
+        flex:0 1 auto!important;min-width:0!important;max-width:100%!important;
+        width:auto!important;height:auto!important;min-height:34px!important;
+        white-space:normal!important;overflow-wrap:anywhere!important;
+        box-sizing:border-box!important;margin:0!important;
+      }
+      @container (max-width:1050px){
         #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card{
-          grid-template-columns:
-            minmax(150px,1fr)
-            minmax(170px,1.05fr)
-            minmax(190px,1.15fr)
-            minmax(170px,1fr)
-            minmax(110px,.65fr)
-            minmax(340px,1.65fr)!important;
-          column-gap:16px!important;
-          align-items:center!important;
+          grid-template-columns:repeat(3,minmax(0,1fr))!important;
         }
-        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="period"]{grid-column:1!important;display:block!important}
-        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="person"]{grid-column:2!important;display:block!important}
-        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="type"]{grid-column:3!important;display:block!important}
-        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="approval"]{grid-column:4!important;display:block!important}
-        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card [data-r133-field="status"]{grid-column:5!important;display:block!important}
-        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions{
-          grid-column:6!important;
-          grid-row:1!important;
-          min-width:0!important;
-          width:100%!important;
-          display:flex!important;
-          justify-content:flex-end!important;
-          align-items:center!important;
-          flex-wrap:nowrap!important;
-          gap:8px!important;
+      }
+      @container (max-width:640px){
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:repeat(2,minmax(0,1fr))!important;
         }
-        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card .v154-request-actions .btn{
-          flex:0 0 auto!important;
-          min-width:max-content!important;
-          height:34px!important;
-          min-height:34px!important;
-          margin:0!important;
+      }
+      @container (max-width:390px){
+        #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-card{
+          grid-template-columns:minmax(0,1fr)!important;
         }
       }
       #page-solicitudes [data-r179-type-tabs] .btn,
@@ -258,6 +264,19 @@
     const rows=window.state?.v154Requests||[],cards=[...page.querySelectorAll('.v152-request-card')];
     cards.forEach((card,index)=>{
       const row=rows[index];if(!row)return;
+      // R280: creation date is informational only for Other requests.
+      const period=card.querySelector('[data-r133-field="period"]')
+        || [...card.children].find(node=>String(node.querySelector?.('small')?.textContent||'').trim().toLowerCase().startsWith('período'));
+      if(period&&requestCategory(row.tipo)==='otras'){
+        const label=period.querySelector('small');
+        const value=period.querySelector('b');
+        const date=row.created_at ? new Date(row.created_at) : null;
+        if(label)label.textContent='Fecha de creación';
+        if(value)value.textContent=date&&!Number.isNaN(date.getTime())
+          ? new Intl.DateTimeFormat('es-CL',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'America/Santiago'}).format(date)
+          : 'Fecha no registrada';
+        [...period.querySelectorAll('small')].slice(1).forEach(node=>node.remove());
+      }
       const actions=card.querySelector('.v154-request-actions')||card;
       actions.querySelectorAll('[data-r177-finalize]').forEach(x=>x.remove());
       card.querySelectorAll('[data-r177-final-info]').forEach(x=>x.remove());

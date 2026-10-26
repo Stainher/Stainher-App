@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R275')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R280')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R275';
+  window.__STAINHER_HP_LOADER_VERSION__='R280';
 
-  const BUILD='20261025-r275-request-loader-refresh';
+  const BUILD='20261026-r280-request-zoom-date';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
