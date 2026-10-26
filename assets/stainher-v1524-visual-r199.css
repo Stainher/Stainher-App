@@ -345,3 +345,42 @@ html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot #extFormV157
 @media(max-width:420px){
  html body #modalRoot #extFormV157 .v157-ext-check .v157-seg{grid-template-columns:minmax(0,1fr)!important}
 }
+
+/* R288: legacy wrappers actually used by Camioneta and SGI-ST-REG-018. */
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v156-nav,
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group,
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-toolbar,
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-terrain-head,
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-terrain-head > div {
+  background:#f1f7fc!important;background-image:none!important;
+  color:#18354e!important;border-color:#bbcede!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group :is(h3,h4,p,span,small,strong,b,label),
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v11-terrain-head :is(small,b,span),
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v156-nav :is(span,label){
+  color:#18354e!important;-webkit-text-fill-color:#18354e!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group :is(.v154-check-row,.v154-check-item,.v154-check-toolbar),
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group > h4{
+  background:#f1f7fc!important;background-image:none!important;
+  color:#18354e!important;border-color:#bbcede!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group :is(.v154-check-row,.v154-check-item) :is(label,span,b,strong){
+  color:#18354e!important;-webkit-text-fill-color:#18354e!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group label:has(input[type="checkbox"]){
+ background:#fff!important;color:#18354e!important;-webkit-text-fill-color:#18354e!important;
+ border:1px solid #b9cada!important;border-radius:8px!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group label:has(input[type="checkbox"]:checked){
+ outline:2px solid #1770ae!important;outline-offset:-2px!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group label:has(input[value="Bueno"]){
+ background:#e1f4e9!important;color:#13613a!important;-webkit-text-fill-color:#13613a!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group label:has(input[value="Malo"]){
+ background:#fee6e7!important;color:#922336!important;-webkit-text-fill-color:#922336!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group label:has(input[value="N/A"]){
+ background:#fff0c3!important;color:#684a03!important;-webkit-text-fill-color:#684a03!important;
+}
