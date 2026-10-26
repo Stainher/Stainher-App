@@ -49,6 +49,8 @@ jobs:
           name: stainher-visual-evidence-r231
           path: artifacts/
           if-no-files-found: warn
+      - name: Diagnose request-close historical regression
+        run: node tests/request-close-r177.mjs
       - name: Run complete regression suite (blocking)
         id: legacy
         run: |
