@@ -52,7 +52,7 @@ jobs:
       - name: Run complete regression suite (blocking)
         id: legacy
         run: |
-          node --test --test-reporter=tap tests/*.mjs > legacy-test-results.tap 2>&1
+          node --test --test-reporter=tap tests/*.mjs > legacy-test-results.tap 2>&1 || { grep -A 28 '^not ok' legacy-test-results.tap | head -130; exit 1; }
       - name: Publish historical failure report
         if: always()
         run: |
