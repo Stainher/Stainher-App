@@ -14,6 +14,7 @@
     const style=document.createElement('style');
     style.id='stainher-request-filter-r180-style';
     style.textContent=`
+      #page-solicitudes .v152-request-card.r180-filter-hidden{display:none!important}
       /* R281: the filter must outrank every compact/expanded grid display rule. */
       html body #page-solicitudes .v152-request-grid > .v152-request-card.r180-filter-hidden,
       html body #page-solicitudes[data-stainher-solicitudes-view="compact"] .v152-request-grid > .v152-request-card.r180-filter-hidden,
