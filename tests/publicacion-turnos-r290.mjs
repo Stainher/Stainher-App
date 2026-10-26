@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const html=readFileSync('index.html','utf8');
+assert.match(html,/Publicar turnos del mes/,'La opción debe estar en la cabecera de Turnos');
+assert.match(html,/onclick="v1512PublishTurnMonth\(\)"/,'Conserva publicación del período seleccionado');
+assert.match(html,/async function v1512PublishTurnMonth\(\)/,'La publicación utiliza el flujo administrativo existente');
+assert.match(html,/estado_publicacion:'publicado'/,'Las modificaciones deben permanecer publicadas');
+assert.doesNotMatch(html,/estado_publicacion:'borrador'/,'Nuevas programaciones no deben quedar en borrador');
+assert.match(html,/\$\{isAdmin\(\)\?'<button class="btn primary" onclick="v1512PublishTurnMonth\(\)"/,'El control solo se muestra al Administrador');
+console.log('R290: publishing action visible and new scheduling persists as published');
