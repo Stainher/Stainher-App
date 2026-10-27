@@ -1,82 +1,72 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {runInNewContext} from 'node:vm';
+import {chromium} from 'playwright';
 
-const source=readFileSync('assets/stainher-v1524-hp-history-r71.js','utf8');
-assert.match(source,/QUERY_LIMIT_MS=12000/);
-assert.match(source,/data-hp-history-retry/);
+const history=readFileSync('assets/stainher-v1524-hp-history-r71.js','utf8');
+const disclosure=readFileSync('assets/stainher-v1524-collapsible.js','utf8');
+assert.match(history,/HP_HISTORY_VERSION__='R294'/);
+assert.match(history,/data-no-collapse|noCollapse/);
+assert.match(history,/data-hp-history-body/);
+assert.match(history,/QUERY_LIMIT_MS=12000/);
 
-function fixture(hanging=false){
-  let calls=0;
-  const node=(type='div')=>({
-    type,id:'',className:'',isConnected:true,innerHTML:'',textContent:'',
-    _events:{},
-    addEventListener(name,handler){this._events[name]=handler},
-    querySelector(selector){
-      if(selector==='.hp-history-table')return this.innerHTML.includes('hp-history-table')?{}:null;
-      if(selector==='[data-hp-history-error]'&&this.innerHTML.includes('data-hp-history-error'))return errorNode;
-      if(selector==='[data-hp-history-retry]'&&this.innerHTML.includes('data-hp-history-retry'))return retryNode;
-      return null;
-    }
+const browser=await chromium.launch({headless:true});
+const html='<html><body><main id="appView"><section id="page-turnos" class="page"><section id="page-reporte-hp"><label>Mes <input id="hpMonth" type="month" value="2026-10"></label><div class="panel"><h3>Resumen Mensual</h3><table class="hp-summary"><tbody><tr><th>TOTAL HH EN FAENA</th><td>2576</td></tr><tr><th>Total FTE</th><td>14,1</td></tr></tbody></table></div></section></section></main></body></html>';
+async function setup(fail=false){
+  const page=await browser.newPage();
+  await page.setContent(html);
+  await page.addScriptTag({content:`
+    window.historyCalls=0;
+    window.sb={from(name){
+      window.historyCalls++;
+      const q={
+        select(){return this},not(){return this},gte(){return this},lte(){return this},eq(){return this},abortSignal(){return this},
+        then(resolve,reject){
+          return new Promise((ok,no)=>setTimeout(()=>{
+            if(${fail} && name==='turnos_malla_v1512')no(new Error('Falla de prueba'));
+            else ok({data: name==='dotacion_contrato'?[{user_id:'u1',nombre:'Colaborador',cargo:'Técnico',fecha_inicio_contrato:'2026-01-01'}]: name==='perfiles'?[{id:'u1',rol:'tecnico'}]: name==='turnos_malla_v1512'?[{user_id:'u1',fecha:'2026-09-01',turno_base:'A'}]:[],error:null});
+          },120)).then(resolve,reject);
+        }
+      };
+      return q;
+    }};
+  `});
+  await page.addScriptTag({content:history});
+  await page.addScriptTag({content:disclosure});
+  await page.evaluate(()=>{
+    const p=document.getElementById('page-reporte-hp');
+    window.StainherHPHistory.mount(p);
+    window.StainherHPHistory.mount(p);
   });
-  const errorNode=node('span'),retryNode=node('button');
-  const document={
-    head:{appendChild(){}},
-    getElementById(){return null},
-    createElement:()=>node()
-  };
-  const inputs={'#hpMonth':{value:'2026-10'}};
-  let host=null;
-  const page={
-    isConnected:true,dataset:{},_events:{},
-    querySelector(selector){return selector==='#hpHistoryR71'?host:inputs[selector]||null},
-    querySelectorAll(){return []},
-    appendChild(child){host=child},
-    addEventListener(name,fn){this._events[name]=fn}
-  };
-  const rows={
-    dotacion_contrato:[{user_id:'u1',nombre:'Ejemplo',cargo:'Técnico',estado:'activo',fecha_inicio_contrato:'2026-01-01'}],
-    perfiles:[{id:'u1',rol:'tecnico'}],
-    turnos_malla_v1512:[{user_id:'u1',fecha:'2026-09-01',turno_base:'A'}],
-    turnos_novedades_v15:[],
-    hp_ajustes_manuales:[]
-  };
-  const sb={from(table){
-    calls++;
-    const query={
-      select(){return this},not(){return this},gte(){return this},lte(){return this},eq(){return this},abortSignal(){return this},
-      then(ok,fail){
-        if(hanging&&table==='turnos_malla_v1512')return new Promise(()=>{}).then(ok,fail);
-        return Promise.resolve({data:rows[table],error:null}).then(ok,fail);
-      }
-    };
-    return query;
-  }};
-  const window={sb};
-  const context={window,document,Date,Intl,AbortController,Promise,Map,WeakMap,Set,Number,String,Object,Math,
-    setTimeout:(fn,ms)=>setTimeout(fn,ms>=12000?35:ms),clearTimeout};
-  runInNewContext(source,context);
-  return {window,page,inputs,getHost:()=>host,getCalls:()=>calls,errorNode,retryNode};
+  return page;
 }
-
-{
-  const f=fixture();
-  await Promise.all([f.window.StainherHPHistory.render(f.page),f.window.StainherHPHistory.render(f.page)]);
-  const html=f.getHost().innerHTML;
-  assert.match(html,/Julio-26/);
-  assert.match(html,/Agosto-26/);
-  assert.match(html,/Septiembre-26/);
-  assert.match(html,/hp-history-table/);
-  assert.match(html,/Principales variaciones/);
-  assert.equal(f.getCalls(),5,'Las consultas compartidas no se deben duplicar');
-  await f.window.StainherHPHistory.render(f.page);
-  assert.equal(f.getCalls(),5,'No reiniciar una comparación ya cargada');
-}
-{
-  const f=fixture(true);
-  await f.window.StainherHPHistory.render(f.page);
-  assert.match(f.getHost().innerHTML,/data-hp-history-retry/);
-  assert.match(f.errorNode.textContent,/Tiempo de espera agotado/);
-  assert.ok(typeof f.retryNode._events.click==='function','Permite reintentar');
-}
-console.log('R292: tres meses, consultas únicas y salida de carga ante timeout');
+try{
+  const page=await setup();
+  try{
+    await page.locator('#hpHistoryR71 .hp-history-table').waitFor({timeout:8000});
+    const panel=page.locator('#hpHistoryR71');
+    assert.equal(await panel.count(),1);
+    assert.equal(await panel.evaluate(el=>el.tagName),'DETAILS');
+    assert.equal(await panel.getAttribute('data-no-collapse'),'1');
+    assert.equal(await panel.getAttribute('data-hp-history-stable'),'1');
+    const summary=await panel.locator('summary').innerText();
+    assert.match(summary,/Comparación últimos 3 meses cerrados/);
+    const rendered=await panel.innerText();
+    for(const month of ['Julio-26','Agosto-26','Septiembre-26'])assert.match(rendered,new RegExp(month));
+    assert.match(rendered,/Principales variaciones/);
+    assert.equal(await page.evaluate(()=>window.historyCalls),5,'La carga se hace una sola vez aunque se monte dos veces');
+    await panel.locator('summary').click();
+    assert.equal(await panel.evaluate(el=>el.open),false,'Panel colapsable');
+    await panel.locator('summary').click();
+    assert.equal(await panel.evaluate(el=>el.open),true,'Panel expansible');
+    await page.evaluate(()=>window.StainherHPHistory.mount(document.getElementById('page-reporte-hp')));
+    assert.equal(await page.evaluate(()=>window.historyCalls),5,'No recalcula la misma tabla');
+  }finally{await page.close()}
+  const failing=await setup(true);
+  try{
+    const retry=failing.locator('#hpHistoryR71 [data-hp-history-retry]');
+    await retry.waitFor({timeout:8000});
+    assert.match(await failing.locator('#hpHistoryR71').innerText(),/Falla de prueba/);
+    assert.equal(await failing.locator('#hpHistoryR71').evaluate(el=>el.isConnected),true);
+  }finally{await failing.close()}
+}finally{await browser.close()}
+console.log('R294: panel nativo estable y tabla visible con transformaciones desplegables activas');
