@@ -5,7 +5,7 @@ const hp=fs.readFileSync('assets/stainher-v1524-weekly-hp-report.js','utf8');
 const history=fs.readFileSync('assets/stainher-v1524-hp-history-r71.js','utf8');
 
 assert.match(hp,/WEEKLY_HP_REPORT_VERSION__='R117'/,'R117 debe ser la implementación HP activa');
-assert.match(history,/HP_HISTORY_VERSION__='R292'/,'R292 mantiene los cierres oficiales históricos y controla la carga de la comparación');
+assert.match(history,/HP_HISTORY_VERSION__='R294'/,'R294 conserva los cierres oficiales y estabiliza el panel histórico');
 
 const match=hp.match(/const OFFICIAL_CLOSED_MONTHS=(\{[\s\S]*?\n  \});/);
 assert.ok(match,'Debe existir snapshot oficial de meses cerrados');
