@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R279",
-  "build": "20261025-r279-mobile-calendar-sync",
+  "revision": "R293",
+  "build": "20261027-r293-hp-history-mobile",
   "path": "./",
-  "publishedAt": "2026-10-25"
+  "publishedAt": "2026-10-27"
 }
