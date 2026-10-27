@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R292 · comparación histórica Reporte Semanal HP.
+/* Stainher V15.24 · R294 · comparación histórica Reporte Semanal HP.
  * Compara los tres meses cerrados anteriores al mes seleccionado.
  * Junio–agosto 2026 usan la línea base histórica entregada por administración;
  * meses posteriores se calculan desde malla, novedades y ajustes HP.
@@ -7,9 +7,9 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_HISTORY_VERSION__==='R292')return;
+  if(window.__STAINHER_HP_HISTORY_VERSION__==='R294')return;
   window.__STAINHER_HP_HISTORY_R73__=true;
-  window.__STAINHER_HP_HISTORY_VERSION__='R292';
+  window.__STAINHER_HP_HISTORY_VERSION__='R294';
 
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
@@ -192,39 +192,57 @@
     }
   }
 
+  /* R294: el convertidor transversal reemplazaba el nodo .panel por <details>.
+     La consulta asíncrona retenía el nodo desconectado y nunca mostraba el resultado.
+     Creamos un <details> estable desde el inicio: se conserva la vista desplegable
+     sin que el convertidor tenga que sustituir el nodo durante la consulta. */
+  function ensureHistoryHost(page){
+    let host=page.querySelector('#hpHistoryR71');
+    if(host?.tagName==='DETAILS'&&host.dataset.hpHistoryStable==='1')return host;
+    const stable=document.createElement('details');
+    stable.id='hpHistoryR71';
+    stable.className='panel hp-history-panel stainher-disclosure';
+    stable.dataset.noCollapse='1';
+    stable.dataset.stainherDisclosure='1';
+    stable.dataset.hpHistoryStable='1';
+    stable.open=host?.tagName==='DETAILS'?host.open:true;
+    stable.innerHTML='<summary class="stainher-disclosure-summary"><span class="stainher-disclosure-marker" aria-hidden="true"></span><span class="stainher-disclosure-title">Comparación últimos 3 meses cerrados</span></summary><div class="stainher-disclosure-content hp-history-content-r294" data-hp-history-body><div class="muted">Calculando tendencia histórica…</div></div>';
+    if(host?.isConnected)host.replaceWith(stable);
+    else page.appendChild(stable);
+    return stable;
+  }
+
   async function render(page,{force=false}={}){
     if(!page||!page.isConnected)return;
     patchMonthlyFte(page);
-    let host=page.querySelector('#hpHistoryR71');
-    if(!host){
-      host=document.createElement('div');host.id='hpHistoryR71';host.className='panel hp-history-panel';
-      page.appendChild(host);
-    }
+    const host=ensureHistoryHost(page);
+    const body=host.querySelector('[data-hp-history-body]');
+    if(!body)return;
     const input=page.querySelector('#hpMonth');
     const value=input?.value||`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
     const prior=renderState.get(page);
-    if(!force&&prior?.value===value){
-      if(prior.status==='loading'&&host.isConnected)return prior.promise;
-      if(prior.status==='ready'&&host.querySelector('.hp-history-table'))return prior.promise;
-      if(prior.status==='error'&&host.querySelector('[data-hp-history-retry]'))return prior.promise;
+    if(!force&&prior?.value===value&&prior.host===host){
+      if(prior.status==='loading')return prior.promise;
+      if(prior.status==='ready'&&body.querySelector('.hp-history-table'))return prior.promise;
+      if(prior.status==='error'&&body.querySelector('[data-hp-history-retry]'))return prior.promise;
     }
     const [year,month]=value.split('-').map(Number);
     const targets=previousMonths(year,month,3);
-    const current={value,status:'loading',promise:null};
+    const current={value,host,status:'loading',promise:null};
     renderState.set(page,current);
-    host.innerHTML='<h3>Comparación últimos 3 meses cerrados</h3><div class="muted">Calculando tendencia histórica…</div>';
+    body.innerHTML='<div class="muted">Calculando tendencia histórica…</div>';
     const work=(async()=>{
       try{
         const months=await Promise.all(targets.map(x=>calculateMonth(x.year,x.month)));
         if(renderState.get(page)!==current||!host.isConnected)return;
-        host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="muted hp-history-sub">Referencia previa al período seleccionado. Teletrabajo se descuenta de las HH en faena. FTE Codelco = Total HH en Faena / 182,7.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
+        body.innerHTML=`<div class="muted hp-history-sub">Referencia previa al período seleccionado. Teletrabajo se descuenta de las HH en faena. FTE Codelco = Total HH en Faena / 182,7.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
         current.status='ready';
       }catch(error){
         if(renderState.get(page)!==current||!host.isConnected)return;
         current.status='error';
-        host.innerHTML='<h3>Comparación últimos 3 meses cerrados</h3><div class="notice warn"><span data-hp-history-error></span> <button class="btn" type="button" data-hp-history-retry>Reintentar</button></div>';
-        host.querySelector('[data-hp-history-error]').textContent='No fue posible calcular la comparación histórica: '+String(error?.message||error||'Error desconocido');
-        host.querySelector('[data-hp-history-retry]').addEventListener('click',()=>render(page,{force:true}));
+        body.innerHTML='<div class="notice warn"><span data-hp-history-error></span> <button class="btn" type="button" data-hp-history-retry>Reintentar</button></div>';
+        body.querySelector('[data-hp-history-error]').textContent='No fue posible calcular la comparación histórica: '+String(error?.message||error||'Error desconocido');
+        body.querySelector('[data-hp-history-retry]').addEventListener('click',()=>render(page,{force:true}));
       }
     })();
     current.promise=work;
