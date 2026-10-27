@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R117 · comparación histórica Reporte Semanal HP.
+/* Stainher V15.24 · R292 · comparación histórica Reporte Semanal HP.
  * Compara los tres meses cerrados anteriores al mes seleccionado.
  * Junio–agosto 2026 usan la línea base histórica entregada por administración;
  * meses posteriores se calculan desde malla, novedades y ajustes HP.
@@ -7,9 +7,9 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_HISTORY_VERSION__==='R117')return;
+  if(window.__STAINHER_HP_HISTORY_VERSION__==='R292')return;
   window.__STAINHER_HP_HISTORY_R73__=true;
-  window.__STAINHER_HP_HISTORY_VERSION__='R117';
+  window.__STAINHER_HP_HISTORY_VERSION__='R292';
 
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
@@ -22,6 +22,23 @@
     '2026-08':{admin:460,oper:2104,spor:0,total:2564,fte:fteFromHours(2564),source:'historico'}
   };
   const cache=new Map();
+  const inflightMonths=new Map();
+  const renderState=new WeakMap();
+  const QUERY_LIMIT_MS=12000;
+  function boundedQuery(query,label){
+    const controller=new AbortController();
+    const request=typeof query.abortSignal==='function'?query.abortSignal(controller.signal):query;
+    let timeout;
+    return Promise.race([
+      Promise.resolve(request),
+      new Promise((_,reject)=>{
+        timeout=setTimeout(()=>{
+          controller.abort();
+          reject(new Error('Tiempo de espera agotado al consultar '+label+'. Reintenta la comparación.'));
+        },QUERY_LIMIT_MS);
+      })
+    ]).finally(()=>clearTimeout(timeout));
+  }
   const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
   const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const plusDays=(s,n)=>{const d=new Date(`${s}T12:00:00`);d.setDate(d.getDate()+n);return iso(d)};
@@ -63,7 +80,8 @@
     const key=monthKey(year,month);
     if(BASELINE[key])return {...BASELINE[key],year,month,key};
     if(cache.has(key))return cache.get(key);
-
+    if(inflightMonths.has(key))return inflightMonths.get(key);
+    const calculation=(async()=>{
     const start=`${key}-01`,last=new Date(year,month,0).getDate(),end=`${key}-${String(last).padStart(2,'0')}`;
     const [dot,prof,mal,nov,adj]=await Promise.all([
       window.sb.from('dotacion_contrato').select('user_id,nombre,cargo,estado,aplica_turnos,fecha_inicio_contrato').not('user_id','is',null),
@@ -71,7 +89,7 @@
       window.sb.from('turnos_malla_v1512').select('user_id,fecha,turno_base,estado_publicacion').gte('fecha',plusDays(start,-1)).lte('fecha',end).eq('estado_publicacion','publicado'),
       window.sb.from('turnos_novedades_v15').select('user_id,tipo,fecha_inicio,fecha_fin,turno_base,clasificacion_auto').lte('fecha_inicio',end).gte('fecha_fin',start),
       window.sb.from('hp_ajustes_manuales').select('user_id,fecha,tipo,horas').eq('tipo','terreno_administrativo').gte('fecha',start).lte('fecha',end)
-    ]);
+    ].map((query,index)=>boundedQuery(query,['Dotación','Perfiles','Malla de turnos','Novedades','Ajustes HP'][index])));
     if(dot.error||prof.error||mal.error||nov.error)throw dot.error||prof.error||mal.error||nov.error;
 
     const people=(dot.data||[]).filter(p=>p.user_id&&(!p.fecha_inicio_contrato||p.fecha_inicio_contrato<=end));
@@ -118,6 +136,9 @@
     result.fte=fteFromHours(result.total);
     cache.set(key,result);
     return result;
+    })();
+    inflightMonths.set(key,calculation);
+    try{return await calculation}finally{inflightMonths.delete(key)}
   }
 
   function insights(months){
@@ -171,8 +192,8 @@
     }
   }
 
-  async function render(page){
-    if(!page)return;
+  async function render(page,{force=false}={}){
+    if(!page||!page.isConnected)return;
     patchMonthlyFte(page);
     let host=page.querySelector('#hpHistoryR71');
     if(!host){
@@ -181,15 +202,33 @@
     }
     const input=page.querySelector('#hpMonth');
     const value=input?.value||`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+    const prior=renderState.get(page);
+    if(!force&&prior?.value===value){
+      if(prior.status==='loading'&&host.isConnected)return prior.promise;
+      if(prior.status==='ready'&&host.querySelector('.hp-history-table'))return prior.promise;
+      if(prior.status==='error'&&host.querySelector('[data-hp-history-retry]'))return prior.promise;
+    }
     const [year,month]=value.split('-').map(Number);
     const targets=previousMonths(year,month,3);
+    const current={value,status:'loading',promise:null};
+    renderState.set(page,current);
     host.innerHTML='<h3>Comparación últimos 3 meses cerrados</h3><div class="muted">Calculando tendencia histórica…</div>';
-    try{
-      const months=await Promise.all(targets.map(x=>calculateMonth(x.year,x.month)));
-      host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="muted hp-history-sub">Referencia previa al período seleccionado. Teletrabajo se descuenta de las HH en faena. FTE Codelco = Total HH en Faena / 182,7.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
-    }catch(error){
-      host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="notice warn">No fue posible calcular la comparación histórica: ${String(error?.message||error||'Error desconocido')}</div>`;
-    }
+    const work=(async()=>{
+      try{
+        const months=await Promise.all(targets.map(x=>calculateMonth(x.year,x.month)));
+        if(renderState.get(page)!==current||!host.isConnected)return;
+        host.innerHTML=`<h3>Comparación últimos 3 meses cerrados</h3><div class="muted hp-history-sub">Referencia previa al período seleccionado. Teletrabajo se descuenta de las HH en faena. FTE Codelco = Total HH en Faena / 182,7.</div>${tableHtml(months)}<div class="hp-history-analysis"><b>Principales variaciones</b><ul>${insights(months)}</ul></div>`;
+        current.status='ready';
+      }catch(error){
+        if(renderState.get(page)!==current||!host.isConnected)return;
+        current.status='error';
+        host.innerHTML='<h3>Comparación últimos 3 meses cerrados</h3><div class="notice warn"><span data-hp-history-error></span> <button class="btn" type="button" data-hp-history-retry>Reintentar</button></div>';
+        host.querySelector('[data-hp-history-error]').textContent='No fue posible calcular la comparación histórica: '+String(error?.message||error||'Error desconocido');
+        host.querySelector('[data-hp-history-retry]').addEventListener('click',()=>render(page,{force:true}));
+      }
+    })();
+    current.promise=work;
+    return work;
   }
 
   function renderWhenReady(page,expected,attempt=0){
