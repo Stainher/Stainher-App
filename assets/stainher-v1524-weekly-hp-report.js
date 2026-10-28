@@ -1,19 +1,19 @@
-/* Stainher V15.24 · R117 · Reporte Semanal HP dentro de Turnos y Novedades.
+/* Stainher V15.24 · R296 · Reporte Semanal HP dentro de Turnos y Novedades.
  * - Consolida la metodología histórica de reportabilidad HP.
  * - Turno A: 12 h. Turno C: 4 h al inicio + 8 h al día siguiente.
  * - Encierro dentro de turno no agrega horas esporádicas.
- * - Día adicional / encierro fuera de turno siempre conservan su naturaleza esporádica (12 h).
- * - Si una cobertura esporádica compensa una suspensión por encierro, la suspensión descuenta
- *   las horas base del trabajador suspendido y la cobertura permanece en Esporádicas.
+ * - Día adicional conserva 12 h esporádicas; encierro fuera de turno suma 12 HH operativas.
+ * - Si una cobertura adicional compensa una suspensión por encierro, la suspensión descuenta
+ *   las horas base del trabajador suspendido sin duplicar la cobertura.
  * - Horas extra quedan fuera del cálculo HP.
  * - Teletrabajo descuenta las horas correspondientes del cálculo HP en faena.
  * - FTE Codelco = Total HH en faena / 182,7.
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R117')return;
+  if(window.__STAINHER_WEEKLY_HP_REPORT_VERSION__==='R296')return;
   window.__STAINHER_WEEKLY_HP_REPORT__=true;
-  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R117';
+  window.__STAINHER_WEEKLY_HP_REPORT_VERSION__='R296';
 
   const PAGE_ID='reporte-hp';
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
@@ -221,6 +221,15 @@
     if(!isOperationalPerson(person))return 0;
     return novelties(uid,date).some(n=>coverageExtraNovelty(n,uid,date))?12:0;
   }
+  function operationalEncierroOutsideHours(uid,date){
+    const person=state.people.find(p=>String(p.user_id)===String(uid));
+    if(!isOperationalPerson(person))return 0;
+    return novelties(uid,date).some(n=>{
+      if(!coverageExtraNovelty(n,uid,date))return false;
+      const tipo=norm(n.tipo),cls=norm(n.clasificacion_auto);
+      return cls==='encierro_fuera_de_turno'||tipo==='encierro_no_planificado';
+    })?12:0;
+  }
   function manualAdmin(uid,a,b){
     return state.adjust.filter(x=>String(x.user_id)===String(uid)&&x.tipo==='terreno_administrativo'&&inRange(x.fecha,a,b)&&!telework(uid,x.fecha)).reduce((s,x)=>s+Number(x.horas||0),0);
   }
@@ -253,7 +262,9 @@
     }else{
       for(let d=p.fecha_inicio;d<=p.fecha_fin;d=dplus(d,1)){
         const uid=person.user_id,prevDate=dplus(d,-1),td=turn(uid,d),prev=turn(uid,prevDate);
-        spor+=sporadicOperationalHours(uid,d);
+        const encierroOperativo=operationalEncierroOutsideHours(uid,d);
+        spor+=Math.max(0,sporadicOperationalHours(uid,d)-encierroOperativo);
+        oper+=encierroOperativo;
 
         if(!blocked(uid,d)){
           const currentSuspensionBlocks=suspended(uid,d)&&suspensionTransferred(uid,d);
