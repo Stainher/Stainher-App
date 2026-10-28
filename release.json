@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R296",
-  "build": "20261028-r296-encierro-operativo-hp",
+  "revision": "R297",
+  "build": "20261028-r297-permiso-ausencia",
   "path": "./",
   "publishedAt": "2026-10-28"
 }
