@@ -4,7 +4,7 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION='R299';
+  const REVISION='R300';
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function lockBrowserTitle(){
