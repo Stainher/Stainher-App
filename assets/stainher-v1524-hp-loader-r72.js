@@ -11,7 +11,7 @@
   window.__STAINHER_HP_LOADER_R72__=true;
   window.__STAINHER_HP_LOADER_VERSION__='R281';
 
-  const BUILD='20261028-r298-permiso-visible';
+  const BUILD='20261028-r300-permiso-js-fixed';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
