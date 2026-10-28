@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R75 · Teletrabajo en Turnos y Novedades.
  * - Agrega Teletrabajo (TT) a los formularios existentes de novedades.
  * - Conserva el guardado nativo en turnos_novedades_v15 con tipo=teletrabajo.
- * - No instala MutationObserver ni captura global de clicks.
+ * - R297: añade Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.\n * - No instala MutationObserver ni captura global de clicks.
  */
 (()=>{
   'use strict';
@@ -25,12 +25,12 @@
   function enhanceModal(){
     const direct=document.getElementById('v1524EventForm');
     const range=document.getElementById('v1524RangeEventForm');
-    addOption(direct);addOption(range);
+    addOption(direct);addOption(range);\n    [direct,range].forEach(form=>{\n      const select=form?.querySelector('select[name="tipo"]');\n      if(!select)return;\n      let permission=select.querySelector('option[value="permiso"]');\n      if(!permission){\n        permission=document.createElement('option');\n        permission.value='permiso';\n        const other=select.querySelector('option[value="otro"]');\n        if(other)select.insertBefore(permission,other);else select.appendChild(permission);\n      }\n      permission.textContent='Permiso / ausencia';\n    });
     [direct,range].forEach(form=>{
       const box=form?.querySelector('.v1524-rule-box');
       if(box&&!box.dataset.teletrabajoR75){
         box.dataset.teletrabajoR75='1';
-        box.insertAdjacentHTML('beforeend',' <b>Teletrabajo:</b> registra trabajo fuera de faena y descuenta esas horas del cálculo HP en faena.');
+        box.insertAdjacentHTML('beforeend',' <b>Teletrabajo:</b> registra trabajo fuera de faena y descuenta esas horas del cálculo HP en faena. <b>Permiso / ausencia:</b> registra ausencia durante el turno; el día se excluye de HH en faena y FTE.');
       }
     });
   }
