@@ -1,7 +1,8 @@
 /* Stainher V15.24 · R75 · Teletrabajo en Turnos y Novedades.
  * - Agrega Teletrabajo (TT) a los formularios existentes de novedades.
  * - Conserva el guardado nativo en turnos_novedades_v15 con tipo=teletrabajo.
- * - R297: añade Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.\n * - No instala MutationObserver ni captura global de clicks.
+ * - R297: añade Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
+ * - No instala MutationObserver ni captura global de clicks.
  */
 (()=>{
   'use strict';
