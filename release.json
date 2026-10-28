@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R294",
-  "build": "20261027-r294-hp-history-disclosure",
+  "revision": "R295",
+  "build": "20261028-r295-encierro-operativo",
   "path": "./",
-  "publishedAt": "2026-10-27"
+  "publishedAt": "2026-10-28"
 }
