@@ -1,4 +1,4 @@
-/* Stainher V15.24 · R294 · comparación histórica Reporte Semanal HP.
+/* Stainher V15.24 · R295 · comparación histórica Reporte Semanal HP.
  * Compara los tres meses cerrados anteriores al mes seleccionado.
  * Junio–agosto 2026 usan la línea base histórica entregada por administración;
  * meses posteriores se calculan desde malla, novedades y ajustes HP.
@@ -7,9 +7,9 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_HISTORY_VERSION__==='R294')return;
+  if(window.__STAINHER_HP_HISTORY_VERSION__==='R295')return;
   window.__STAINHER_HP_HISTORY_R73__=true;
-  window.__STAINHER_HP_HISTORY_VERSION__='R294';
+  window.__STAINHER_HP_HISTORY_VERSION__='R295';
 
   const ABSENCE_TYPES=['vacaciones','licencia_medica','permiso_no_remunerado','permiso','falta'];
   const MANUAL_ADMIN_ROLES=new Set(['administrador','gerente','confiabilidad']);
@@ -103,6 +103,10 @@
       const tipo=norm(n.tipo),cls=norm(n.clasificacion_auto),tb=norm(n.turno_base);
       return tipo==='dia_adicional'||cls==='encierro_fuera_de_turno'||cls==='encierro_dentro_de_turno'||(tipo==='encierro_planificado'&&(tb==='a'||tb==='c'))||(tipo==='encierro_no_planificado'&&tb==='l');
     }).length*12;
+    const offTurnEncierroHours=(uid,date)=>novs(uid,date).filter(n=>{
+      const tipo=norm(n.tipo),cls=norm(n.clasificacion_auto),tb=norm(n.turno_base);
+      return cls==='encierro_fuera_de_turno'||(tipo==='encierro_no_planificado'&&tb==='l');
+    }).length*12;
     const turn=(uid,date)=>malla.find(r=>String(r.user_id)===String(uid)&&r.fecha===date)?.turno_base||'';
     const manualAdmin=uid=>adjust.filter(x=>String(x.user_id)===String(uid)&&!telework(uid,x.fecha)).reduce((s,x)=>s+Number(x.horas||0),0);
 
@@ -110,10 +114,14 @@
       let admin=0,oper=0,spor=0;
       if(isManualAdmin(person,profiles)){
         admin=manualAdmin(person.user_id);
-        for(let d=start;d<=end;d=plusDays(d,1))spor+=extra(person.user_id,d);
+        for(let d=start;d<=end;d=plusDays(d,1))const encierroOperativo=offTurnEncierroHours(person.user_id,d);
+          spor+=Math.max(0,extra(person.user_id,d)-encierroOperativo);
+          oper+=encierroOperativo;
       }else if(isAutoAdmin(person,profiles)){
         for(let d=start;d<=end;d=plusDays(d,1)){
-          spor+=extra(person.user_id,d);
+          const encierroOperativo=offTurnEncierroHours(person.user_id,d);
+          spor+=Math.max(0,extra(person.user_id,d)-encierroOperativo);
+          oper+=encierroOperativo;
           if(blocked(person.user_id,d)||suspended(person.user_id,d)||telework(person.user_id,d))continue;
           const t=turn(person.user_id,d);if(!t||t==='L')continue;
           const dow=new Date(`${d}T12:00:00`).getDay();
@@ -121,7 +129,9 @@
         }
       }else{
         for(let d=start;d<=end;d=plusDays(d,1)){
-          spor+=extra(person.user_id,d);
+          const encierroOperativo=offTurnEncierroHours(person.user_id,d);
+          spor+=Math.max(0,extra(person.user_id,d)-encierroOperativo);
+          oper+=encierroOperativo;
           if(blocked(person.user_id,d))continue;
           const prevDate=plusDays(d,-1),td=turn(person.user_id,d),prev=turn(person.user_id,prevDate);
           if(td==='A'&&!suspended(person.user_id,d)&&!telework(person.user_id,d))oper+=12;
