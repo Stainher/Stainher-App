@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R300",
-  "build": "20261028-r300-permiso-js-fixed",
+  "revision": "R301",
+  "build": "20261028-r301-permiso-selector",
   "path": "./",
   "publishedAt": "2026-10-28"
 }
