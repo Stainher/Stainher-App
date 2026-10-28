@@ -11,7 +11,7 @@
   window.__STAINHER_HP_LOADER_R72__=true;
   window.__STAINHER_HP_LOADER_VERSION__='R281';
 
-  const BUILD='20261028-r296-encierro-operativo-hp';
+  const BUILD='20261028-r298-permiso-visible';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -174,6 +174,7 @@
     try{
       await load('stainher-turn-pdf-final-runtime-r111','stainher-turn-pdf-final-r18.js');
       await load('stainher-turn-report-hotfix-runtime-r126','stainher-v1524-report-hotfix4.js');
+      await load('stainher-turn-permiso-runtime-r298','stainher-turnos-teletrabajo-r75.js');
       window.StainherTurnPdfR111?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:turn-report-r111-ready'));
       window.dispatchEvent(new CustomEvent('stainher:turn-report-r126-ready'));
