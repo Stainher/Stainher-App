@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R298",
-  "build": "20261028-r298-permiso-visible",
+  "revision": "R299",
+  "build": "20261028-r299-release-sync",
   "path": "./",
   "publishedAt": "2026-10-28"
 }
