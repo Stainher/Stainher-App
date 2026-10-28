@@ -11,7 +11,7 @@
   window.__STAINHER_HP_LOADER_R72__=true;
   window.__STAINHER_HP_LOADER_VERSION__='R281';
 
-  const BUILD='20261027-r294-hp-history-disclosure';
+  const BUILD='20261028-r295-encierro-operativo';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
