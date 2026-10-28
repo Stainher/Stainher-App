@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R75 · Teletrabajo en Turnos y Novedades.
  * - Agrega Teletrabajo (TT) a los formularios existentes de novedades.
  * - Conserva el guardado nativo en turnos_novedades_v15 con tipo=teletrabajo.
- * - R297: añade Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
+ * - R301: asegura Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
  * - No instala MutationObserver ni captura global de clicks.
  */
 (()=>{
@@ -23,22 +23,30 @@
     if(other)select.insertBefore(option,other);else select.appendChild(option);
   }
 
+  function installPermissionOption(){
+    const root=document.getElementById('modalRoot')||document;
+    const selects=[...root.querySelectorAll('select')];
+    for(const select of selects){
+      const options=[...select.options];
+      const hasTurnOptions=options.some(o=>/encierro/i.test(o.textContent||''))
+        &&options.some(o=>/falta\s*\/\s*ausencia/i.test(o.textContent||''));
+      if(!hasTurnOptions)continue;
+      let option=options.find(o=>o.value==='permiso');
+      if(!option){
+        option=document.createElement('option');
+        option.value='permiso';
+        const other=options.find(o=>o.value==='otro')||options.find(o=>/otra novedad/i.test(o.textContent||''));
+        if(other)select.insertBefore(option,other);else select.appendChild(option);
+      }
+      option.textContent='Permiso / ausencia';
+    }
+  }
+
   function enhanceModal(){
     const direct=document.getElementById('v1524EventForm');
     const range=document.getElementById('v1524RangeEventForm');
     addOption(direct);addOption(range);
-    [direct,range].forEach(form=>{
-      const select=form?.querySelector('select[name="tipo"]');
-      if(!select)return;
-      let permission=select.querySelector('option[value="permiso"]');
-      if(!permission){
-        permission=document.createElement('option');
-        permission.value='permiso';
-        const other=select.querySelector('option[value="otro"]');
-        if(other)select.insertBefore(permission,other);else select.appendChild(permission);
-      }
-      permission.textContent='Permiso / ausencia';
-    });
+    installPermissionOption();
     [direct,range].forEach(form=>{
       const box=form?.querySelector('.v1524-rule-box');
       if(box&&!box.dataset.teletrabajoR75){
@@ -94,6 +102,14 @@
     wrapModalFunction('v15OpenTurnEvent');
     wrapModalFunction('v1520OpenTurnEvent');
     enhanceModal();
+    document.addEventListener('focusin',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
+    document.addEventListener('pointerdown',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
+    const root=document.getElementById('modalRoot');
+    if(root&&!root.__stainherPermissionObserver){
+      root.__stainherPermissionObserver=true;
+      const observer=new MutationObserver(()=>installPermissionOption());
+      observer.observe(root,{childList:true,subtree:true});
+    }
   }
 
   const style=document.createElement('style');
