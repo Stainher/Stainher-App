@@ -26,7 +26,19 @@
   function enhanceModal(){
     const direct=document.getElementById('v1524EventForm');
     const range=document.getElementById('v1524RangeEventForm');
-    addOption(direct);addOption(range);\n    [direct,range].forEach(form=>{\n      const select=form?.querySelector('select[name="tipo"]');\n      if(!select)return;\n      let permission=select.querySelector('option[value="permiso"]');\n      if(!permission){\n        permission=document.createElement('option');\n        permission.value='permiso';\n        const other=select.querySelector('option[value="otro"]');\n        if(other)select.insertBefore(permission,other);else select.appendChild(permission);\n      }\n      permission.textContent='Permiso / ausencia';\n    });
+    addOption(direct);addOption(range);
+    [direct,range].forEach(form=>{
+      const select=form?.querySelector('select[name="tipo"]');
+      if(!select)return;
+      let permission=select.querySelector('option[value="permiso"]');
+      if(!permission){
+        permission=document.createElement('option');
+        permission.value='permiso';
+        const other=select.querySelector('option[value="otro"]');
+        if(other)select.insertBefore(permission,other);else select.appendChild(permission);
+      }
+      permission.textContent='Permiso / ausencia';
+    });
     [direct,range].forEach(form=>{
       const box=form?.querySelector('.v1524-rule-box');
       if(box&&!box.dataset.teletrabajoR75){
