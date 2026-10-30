@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R75 · Teletrabajo en Turnos y Novedades.
  * - Agrega Teletrabajo (TT) a los formularios existentes de novedades.
  * - Conserva el guardado nativo en turnos_novedades_v15 con tipo=teletrabajo.
- * - R302: elimina ciclo MutationObserver y mantiene Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
+ * - R303: corregir búsqueda global y sincronía del selector Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
  * - No instala MutationObserver ni captura global de clicks.
  */
 (()=>{
@@ -24,8 +24,7 @@
   }
 
   function installPermissionOption(){
-    const root=document.getElementById('modalRoot')||document;
-    const selects=[...root.querySelectorAll('select')];
+    const selects=[...document.querySelectorAll('select')];
     for(const select of selects){
       const options=[...select.options];
       const hasTurnOptions=options.some(o=>/encierro/i.test(o.textContent||''))
@@ -60,8 +59,11 @@
     const current=window[name];
     if(typeof current!=='function'||current.__stainherTeleworkR75)return false;
     const wrapped=async function(){
-      const out=await current.apply(this,arguments);
+      const out=current.apply(this,arguments);
       enhanceModal();
+      queueMicrotask(enhanceModal);
+      setTimeout(enhanceModal,60);
+      setTimeout(enhanceModal,240);
       return out;
     };
     wrapped.__stainherTeleworkR75=true;
@@ -102,6 +104,8 @@
     wrapModalFunction('v15OpenTurnEvent');
     wrapModalFunction('v1520OpenTurnEvent');
     enhanceModal();
+    if(window.__STAINHER_PERMISSION_LISTENER_R303__)return;
+    window.__STAINHER_PERMISSION_LISTENER_R303__=true;
     document.addEventListener('focusin',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
     document.addEventListener('pointerdown',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
 
