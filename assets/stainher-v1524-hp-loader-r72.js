@@ -11,7 +11,7 @@
   window.__STAINHER_HP_LOADER_R72__=true;
   window.__STAINHER_HP_LOADER_VERSION__='R281';
 
-  const BUILD='20261028-r301-permiso-selector';
+  const BUILD='20261030-r302-modal-freeze-fix';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
