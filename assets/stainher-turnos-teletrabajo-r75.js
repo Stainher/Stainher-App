@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R75 · Teletrabajo en Turnos y Novedades.
  * - Agrega Teletrabajo (TT) a los formularios existentes de novedades.
  * - Conserva el guardado nativo en turnos_novedades_v15 con tipo=teletrabajo.
- * - R301: asegura Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
+ * - R302: elimina ciclo MutationObserver y mantiene Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
  * - No instala MutationObserver ni captura global de clicks.
  */
 (()=>{
@@ -38,7 +38,7 @@
         const other=options.find(o=>o.value==='otro')||options.find(o=>/otra novedad/i.test(o.textContent||''));
         if(other)select.insertBefore(option,other);else select.appendChild(option);
       }
-      option.textContent='Permiso / ausencia';
+      if(option.textContent!=='Permiso / ausencia')option.textContent='Permiso / ausencia';
     }
   }
 
@@ -104,12 +104,7 @@
     enhanceModal();
     document.addEventListener('focusin',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
     document.addEventListener('pointerdown',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
-    const root=document.getElementById('modalRoot');
-    if(root&&!root.__stainherPermissionObserver){
-      root.__stainherPermissionObserver=true;
-      const observer=new MutationObserver(()=>installPermissionOption());
-      observer.observe(root,{childList:true,subtree:true});
-    }
+
   }
 
   const style=document.createElement('style');
