@@ -4,7 +4,7 @@
   'use strict';
   if(window.__STAINHER_RELEASE_REFRESH_R231__)return;
   window.__STAINHER_RELEASE_REFRESH_R231__=true;
-  const CURRENT='R303';
+  const CURRENT='R304';
   const BASE=new URL('../release.json',document.currentScript?.src||document.baseURI);
   let lastCheck=0,working=false;
   async function check(){
