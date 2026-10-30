@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R302",
-  "build": "20261030-r302-modal-freeze-fix",
+  "revision": "R303",
+  "build": "20261030-r303-permiso-selector",
   "path": "./",
   "publishedAt": "2026-10-30"
 }
