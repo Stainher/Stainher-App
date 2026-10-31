@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R305",
-  "build": "20261031-r305-pareto-subsistemas",
+  "revision": "R306",
+  "build": "20261031-r306-auto-subsistemas",
   "path": "./",
   "publishedAt": "2026-10-31"
 }
