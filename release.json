@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R304",
-  "build": "20261030-r304-permiso-core",
+  "revision": "R305",
+  "build": "20261031-r305-pareto-subsistemas",
   "path": "./",
-  "publishedAt": "2026-10-30"
+  "publishedAt": "2026-10-31"
 }
