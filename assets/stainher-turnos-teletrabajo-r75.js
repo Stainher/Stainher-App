@@ -1,7 +1,7 @@
 /* Stainher V15.24 · R75 · Teletrabajo en Turnos y Novedades.
  * - Agrega Teletrabajo (TT) a los formularios existentes de novedades.
  * - Conserva el guardado nativo en turnos_novedades_v15 con tipo=teletrabajo.
- * - R303: corregir búsqueda global y sincronía del selector Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
+ * - R307: mantener Permiso / ausencia visible tras renderizar y reconstruir el formulario.\n * - R303: corregir búsqueda global y sincronía del selector Permiso/ausencia con tipo nativo permiso para descuento de FTE en faena.
  * - No instala MutationObserver ni captura global de clicks.
  */
 (()=>{
@@ -24,20 +24,23 @@
   }
 
   function installPermissionOption(){
-    const selects=[...document.querySelectorAll('select')];
-    for(const select of selects){
+    // Tanto la malla directa como la edición por rango pueden reconstruir el selector.
+    // Identificarlo por sus opciones nativas, sin depender de un ID de modal.
+    for(const select of document.querySelectorAll('select')){
       const options=[...select.options];
-      const hasTurnOptions=options.some(o=>/encierro/i.test(o.textContent||''))
-        &&options.some(o=>/falta\s*\/\s*ausencia/i.test(o.textContent||''));
-      if(!hasTurnOptions)continue;
-      let option=options.find(o=>o.value==='permiso');
+      const isTurnEvent=options.some(o=>/encierro/i.test(o.textContent||''))
+        && options.some(o=>/falta\s*\/\s*ausencia/i.test(o.textContent||''));
+      if(!isTurnEvent)continue;
+      const matches=options.filter(o=>o.value==='permiso');
+      let option=matches[0];
       if(!option){
         option=document.createElement('option');
         option.value='permiso';
-        const other=options.find(o=>o.value==='otro')||options.find(o=>/otra novedad/i.test(o.textContent||''));
-        if(other)select.insertBefore(option,other);else select.appendChild(option);
+        const next=options.find(o=>o.value==='falta'||/falta\s*\/\s*ausencia/i.test(o.textContent||''));
+        if(next)next.after(option);else select.appendChild(option);
       }
       if(option.textContent!=='Permiso / ausencia')option.textContent='Permiso / ausencia';
+      for(const duplicate of matches.slice(1))duplicate.remove();
     }
   }
 
@@ -98,6 +101,7 @@
     }
   }
 
+  let permissionObserver=null;
   function install(){
     installLabels();
     wrapModalFunction('v1512EditTurnCell');
@@ -108,6 +112,15 @@
     window.__STAINHER_PERMISSION_LISTENER_R303__=true;
     document.addEventListener('focusin',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
     document.addEventListener('pointerdown',event=>{if(event.target?.tagName==='SELECT')installPermissionOption()},true);
+    // Reinstalar al crear/reemplazar el formulario, antes de abrir el selector.
+    // Observar solamente cambios de nodos, no atributos, para evitar ciclos.
+    permissionObserver=new MutationObserver(records=>{
+      if(!records.some(record=>[...record.addedNodes].some(n=>n.nodeType===1)))return;
+      installPermissionOption();
+    });
+    permissionObserver.observe(document.body,{childList:true,subtree:true});
+    window.addEventListener('stainher:turnos-rendered',installPermissionOption);
+
 
   }
 
