@@ -77,7 +77,12 @@
           try{window.StainherHPHistory.mount(page);window.StainherHPAdminDetail?.mount?.(page)}catch(error){console.error('[Stainher HP] Comparación histórica / horas administrativas.',error)}
           return;
         }
-        if(++retries<=40)setTimeout(ensureComparison,250);
+        if(++retries<=40){setTimeout(ensureComparison,250);return;}
+        if(!page.querySelector('[data-hp-history-error]')){
+          const warning=document.createElement('div');warning.className='notice warn';warning.dataset.hpHistoryError='1';
+          warning.textContent='No se pudo cargar el comparativo de los últimos tres meses. Reabre el reporte para reintentar.';
+          page.appendChild(warning);
+        }
       };
       ensureComparison();
     }catch(error){
