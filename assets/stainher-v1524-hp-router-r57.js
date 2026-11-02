@@ -74,7 +74,7 @@
       const ensureComparison=()=>{
         if(!page?.isConnected)return;
         if(typeof window.StainherHPHistory?.mount==='function'){
-          try{window.StainherHPHistory.mount(page)}catch(error){console.error('[Stainher HP] Comparación histórica.',error)}
+          try{window.StainherHPHistory.mount(page);window.StainherHPAdminDetail?.mount?.(page)}catch(error){console.error('[Stainher HP] Comparación histórica / horas administrativas.',error)}
           return;
         }
         if(++retries<=40)setTimeout(ensureComparison,250);
@@ -135,7 +135,7 @@
     if(active){
       tabs.querySelectorAll('[data-r18-tab]').forEach(tab=>tab.classList.toggle('active',tab===hp));
       const hpPage=content.querySelector(`#page-${PAGE_ID}`);
-      if(!hpPage)renderHpInto(content);else window.StainherHPHistory?.mount?.(hpPage);
+      if(!hpPage)renderHpInto(content);else {window.StainherHPHistory?.mount?.(hpPage);window.StainherHPAdminDetail?.mount?.(hpPage)}
     }
   }
 
