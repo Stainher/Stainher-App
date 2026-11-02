@@ -11,7 +11,7 @@
   window.__STAINHER_HP_LOADER_R72__=true;
   window.__STAINHER_HP_LOADER_VERSION__='R281';
 
-  const BUILD='20261031-r306-auto-subsistemas';
+  const BUILD='20261102-r307-permiso-ausencia-visible';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
