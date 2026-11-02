@@ -24,6 +24,13 @@ const css=`
   background:#fff!important;color:#17344f!important;-webkit-text-fill-color:#17344f!important;
 }
 #modalRoot .v158-review-modal .v158-review-kpi b{font-weight:750!important}
+#modalRoot .v158-review-modal .v16-ai-panel{background:#eaf3fb!important;background-image:none!important;border-color:#aec7db!important;color:#17344f!important}
+#modalRoot .v158-review-modal .v16-ai-panel :is(h3,h4,p,small,label,span){color:#17344f!important;-webkit-text-fill-color:#17344f!important;opacity:1!important}
+#modalRoot .v158-review-modal .v16-ai-panel .v16-ai-status{background:#f5faff!important;color:#17344f!important;border:1px solid #aec7db!important;-webkit-text-fill-color:#17344f!important}
+#modalRoot .v158-review-modal .v16-ai-panel .v16-ai-status.ok{background:#e5f5e9!important;color:#16572e!important}
+#modalRoot .v158-review-modal .v16-ai-panel .v16-ai-status.warn{background:#fff5db!important;color:#765008!important}
+#modalRoot .v158-review-modal .v16-ai-panel .v16-ai-status.error{background:#fff0f0!important;color:#8c2934!important}
+#modalRoot .v158-review-modal .v16-ai-panel .v16-ai-badge{background:#dbeafa!important;color:#17344f!important}
 #modalRoot .v158-review-modal .v158-review-actions{background:transparent!important}
 `;
 function insertStyle(){
