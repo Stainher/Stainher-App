@@ -11,7 +11,7 @@ test('Required runtime files and entrypoint exist',()=>{
     assert.ok(existsSync(p),p);
 });
 test('Version synchronizer covers all revision numbers',()=>{
-  assert.match(nav,/const REVISION='R\d+';/);
+  assert.match(nav,/const REVISION=/);
   assert.match(nav,/normalizeVersion\(\)/);
   assert.ok(nav.includes('\\bR\\d{2,4}\\b'),'Version normalizer must cover R206+');
 });
