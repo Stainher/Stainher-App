@@ -7,7 +7,7 @@
  *   las horas base del trabajador suspendido sin duplicar la cobertura.
  * - Horas extra quedan fuera del cálculo HP.
  * - Teletrabajo descuenta las horas correspondientes del cálculo HP en faena.
- * - FTE Codelco = Total HH en faena / 182,7.
+ * - R317: visualizar registros administrativos y no silenciar errores al cargarlos.\n * - FTE Codelco = Total HH en faena / 182,7.
  */
 (()=>{
   'use strict';
@@ -148,7 +148,8 @@
     state.profiles=new Map((prof.data||[]).map(x=>[String(x.id),x]));
     state.malla=mal.data||[];
     state.nov=(nov.data||[]).map((x,i)=>({...x,__hpIndex:i}));
-    state.adjust=adj.error?[]:(adj.data||[]);
+    state.adjustError=adj.error||null;
+    state.adjust=adj.data||[];
     state.coverage=buildCoverageAllocation(min,max);
     state.rows=state.people.map(calcPerson);
   }
@@ -313,12 +314,27 @@
     const matched=Number(state.coverage?.matchedSuspensions||0),pending=Number(state.coverage?.unmatchedSuspensions||0);
     return `<div class="notice hp-rules"><b>Reglas de cálculo HP R116:</b> Turno A = 12 h. Turno C = 4 h al inicio + 8 h al día siguiente. Encierro dentro de turno no agrega horas. Día adicional y encierro fuera de turno siempre registran 12 h esporádicas. Cuando una de estas coberturas compensa un <b>SE</b>, las horas base se descuentan al trabajador suspendido y se mantienen como esporádicas en quien cubre, conservando la cobertura contractual sin alterar la naturaleza del evento. Las horas extra no participan del HP. <b>TT</b> descuenta HP en faena. <span class="muted">Coberturas SE conciliadas: ${matched}${pending?` · SE sin cobertura identificada: ${pending}`:''}.</span></div>`;
   }
+  function adjustmentsHistoryHtml(){
+    if(state.adjustError){
+      return '<div class="notice warn" role="alert">No fue posible consultar las horas administrativas guardadas: '+esc(state.adjustError.message||String(state.adjustError))+'</div>';
+    }
+    const people=new Map(state.people.map(p=>[String(p.user_id),p.nombre]));
+    const rows=(state.adjust||[])
+      .filter(x=>x.tipo==='terreno_administrativo')
+      .sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+    if(!rows.length)return '<p class="muted">No hay horas administrativas registradas para el mes seleccionado.</p>';
+    const total=rows.reduce((sum,x)=>sum+Number(x.horas||0),0);
+    return '<div class="hp-table-wrap" style="margin-top:12px"><table class="hp-table" style="min-width:480px"><thead><tr><th>Fecha</th><th>Persona</th><th>HH administrativas</th><th>Observación</th></tr></thead><tbody>'+
+      rows.map(x=>'<tr><td>'+esc(x.fecha)+'</td><td>'+esc(people.get(String(x.user_id))||'Colaborador no disponible')+'</td><td>'+esc(Number(x.horas||0).toLocaleString('es-CL'))+'</td><td>'+esc(x.observacion||'—')+'</td></tr>').join('')+
+      '</tbody><tfoot><tr><th colspan="2">TOTAL REGISTRADO</th><th>'+esc(total.toLocaleString('es-CL'))+'</th><th></th></tr></tfoot></table></div>';
+  }
+
   function adjustmentsHtml(){
     if(state.official)return'';
     if(!canEdit())return'';
     const people=manualAdminPeople();
     if(!people.length)return `<div class="panel"><h3>Horas administrativas manuales</h3><div class="notice warn">No hay ADC, Gerente o personal de Confiabilidad activo disponible para registrar horas.</div></div>`;
-    return `<div class="panel"><div><h3>Horas administrativas manuales</h3><div class="muted">Disponible únicamente para Administrador de Contrato (ADC), Gerente y Confiabilidad.</div></div><form id="hpAdjForm" class="hp-adjust-grid"><label>Persona<select class="field" name="user_id" required><option value="">Seleccionar</option>${people.map(p=>`<option value="${p.user_id}">${esc(p.nombre)}</option>`).join('')}</select></label><label>Fecha<input class="field" name="fecha" type="date" required></label><label>Horas administrativas<input class="field" name="horas" type="number" min="0" step="0.5" value="12" required></label><label class="hp-adj-ob">Observación<input class="field" name="observacion"></label><button class="btn primary" type="submit">Guardar horas</button></form></div>`;
+    return `<div class="panel"><div><h3>Horas administrativas manuales</h3><div class="muted">Disponible únicamente para Administrador de Contrato (ADC), Gerente y Confiabilidad.</div></div><form id="hpAdjForm" class="hp-adjust-grid"><label>Persona<select class="field" name="user_id" required><option value="">Seleccionar</option>${people.map(p=>`<option value="${p.user_id}">${esc(p.nombre)}</option>`).join('')}</select></label><label>Fecha<input class="field" name="fecha" type="date" required></label><label>Horas administrativas<input class="field" name="horas" type="number" min="0" step="0.5" value="12" required></label><label class="hp-adj-ob">Observación<input class="field" name="observacion"></label><button class="btn primary" type="submit">Guardar horas</button></form>${adjustmentsHistoryHtml()}</div>`;
   }
 
   async function render(){
