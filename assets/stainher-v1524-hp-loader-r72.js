@@ -447,6 +447,7 @@
     await refreshCorrectivoHistoryR118();
     await refreshEquipmentViewR132();
     await refreshPreventivoStateR137();
+    await load('stainher-preventivo-excel-r321','stainher-v1524-preventivo-excel-r321.js');
     await refreshPreventivoDeleteScheduleR140();
     await refreshStandardizationR141();
     await refresh();
