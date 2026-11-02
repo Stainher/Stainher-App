@@ -9,7 +9,7 @@ assert.match(route,/REQUEST_APPROVER_R135__===BUILD/,'R135 debe quedar activo');
 assert.match(route,/clagos@stainher\.cl/,'Cristian Lagos debe ser el aprobador preferido');
 assert.match(route,/aprueba_administrador/,'Debe cargar solo perfiles habilitados para aprobar Administrador');
 assert.match(route,/data-r135-approver/,'El formulario debe incluir selector de aprobador');
-assert.match(route,/Por defecto tus solicitudes se envían a Cristian Lagos/,'La UI debe explicar el destino predeterminado');
+assert.match(route,/Las solicitudes del personal llegan primero a Ismael Gálvez/,'La UI debe indicar el destino inicial');
 assert.match(route,/crear_solicitud_propia_v135/,'La creación debe usar la RPC R135');
 assert.match(route,/p_aprobador_user_id/,'La creación debe enviar el aprobador seleccionado');
 assert.match(route,/Reenviar a Cristian Lagos/,'Debe permitir reenviar solicitudes aprobadas');
