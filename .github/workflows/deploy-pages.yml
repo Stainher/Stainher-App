@@ -1,0 +1,47 @@
+name: Deploy Stainher App to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: stainher-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify deployment inputs
+        shell: bash
+        run: |
+          test -s index.html
+          test -s release.json
+          node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync('release.json','utf8'));const html=fs.readFileSync('index.html','utf8');if(!html.includes('R'+r.revision.replace(/^R/,'')))process.exit(1);console.log('Deploying',r.revision)"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify public release (retry propagation)
+        shell: bash
+        run: |
+          expected=$(node -p "JSON.parse(require('fs').readFileSync('release.json','utf8')).revision")
+          for i in $(seq 1 18); do
+            html=$(curl -fsSL --max-time 12 "https://stainher.github.io/Stainher-App/index.html?check=${GITHUB_SHA}-${i}" || true)
+            manifest=$(curl -fsSL --max-time 12 "https://stainher.github.io/Stainher-App/release.json?check=${GITHUB_SHA}-${i}" || true)
+            if [[ "$html" == *"<title>Stainher App V15.24 ${expected}</title>"* && "$manifest" == *"\"revision\": \"${expected}\""* ]]; then
+              echo "Live Pages confirms ${expected}"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Published site does not match ${expected}"
+          exit 1
