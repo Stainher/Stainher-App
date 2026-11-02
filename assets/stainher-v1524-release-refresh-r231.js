@@ -27,7 +27,7 @@ function show(revision){
    await Promise.all(keys.filter(k=>/stainher|github/i.test(k)).map(k=>caches.delete(k)));
   }
  }catch(e){console.debug('[Stainher update] cache cleanup',e)}
- const url=new URL('index.html',root);
+ const url=new URL(revision==='R316'?'app-r316.html':'index.html',root);
  url.searchParams.set('app_rev',revision);
  url.searchParams.set('fresh',String(Date.now()));
  location.replace(url.href);
