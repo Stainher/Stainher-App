@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R317')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R319')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R317';
+  window.__STAINHER_HP_LOADER_VERSION__='R319';
 
-  const BUILD='20261102-r317-hp-and-approvals';
+  const BUILD='20261102-r319-hp-history';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
