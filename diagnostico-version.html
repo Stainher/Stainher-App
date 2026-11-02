@@ -17,10 +17,26 @@ if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getReg
 if('caches' in window)line('Cachés: '+(await caches.keys()).join(', '));
 }
 document.getElementById('repair').onclick=async()=>{
-const button=document.getElementById('repair');button.disabled=true;button.textContent='Reparando…';
-try{if('serviceWorker' in navigator){for(const r of await navigator.serviceWorker.getRegistrations()){if(r.scope.startsWith(new URL('./',location.href).href))await r.unregister()}}}catch(e){line('Service worker: '+e)}
-try{if('caches' in window){for(const name of await caches.keys()){if(/stainher|github|workbox|precache/i.test(name))await caches.delete(name)}}}catch(e){line('Cache: '+e)}
-const u=new URL('./index.html',location.href);u.searchParams.set('recovery',String(Date.now()));location.replace(u.href);
+ const button=document.getElementById('repair');button.disabled=true;button.textContent='Comprobando HTML vigente…';
+ try{
+   const token=Date.now();
+   const [manifest,htmlResponse]=await Promise.all([
+     fetch('./release.json?diagnostic='+token,{cache:'no-store',credentials:'same-origin'}),
+     fetch('./index.html?diagnostic='+token,{cache:'no-store',credentials:'same-origin'})
+   ]);
+   if(!manifest.ok||!htmlResponse.ok)throw new Error('No fue posible obtener los archivos públicos.');
+   const expected=(await manifest.json()).revision;
+   const html=await htmlResponse.text();
+   const actual=(new DOMParser().parseFromString(html,'text/html').title.match(/R[0-9]{2,4}/)||[])[0];
+   if(!actual||actual!==expected)throw new Error('HTML '+(actual||'desconocido')+' y manifiesto '+expected+' no coinciden.');
+   line('HTML '+actual+' verificado. Reemplazando documento activo sin borrar sesión.');
+   document.open('text/html','replace');
+   document.write(html);
+   document.close();
+ }catch(error){
+   line('No se realizó la actualización: '+(error.message||String(error)));
+   button.disabled=false;button.textContent='Reintentar reparación';
+ }
 };
 verify();
 </script></body></html>
