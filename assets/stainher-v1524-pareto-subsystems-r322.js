@@ -18,8 +18,19 @@ function classify(r){
  const supplied=norm(r.subsistema||r.subsistema_falla||r.categoria_falla||'');
  if(supplied)return supplied;
  const desc=[r.causa,r.descripcion_falla,r.falla,r.descripcion,r.observaciones,r.detalle].filter(Boolean).join(' ');
+ // Primero identificar componentes específicos; palabras genéricas como "cabina"
+ // o "piso" no deben anular una falla explícita de puertas o alimentación.
  const matches=CATEGORIES.filter(([,re])=>re.test(desc));
- return matches.length===1?matches[0][0]:'Sin clasificar';
+ if(!matches.length)return 'Sin clasificar';
+ const specific=matches.filter(([name])=>name!=='Cabina y nivelación');
+ if(specific.length===1)return specific[0][0];
+ if(specific.length>1){
+   const leading=norm(desc).split(/(?:causa probable|accion correctiva|acción correctiva)/i)[0];
+   const leadMatch=specific.filter(([,re])=>re.test(leading));
+   if(leadMatch.length===1)return leadMatch[0][0];
+   return 'Sin clasificar';
+ }
+ return matches[0][0];
 }
 function aggregate(rows){
  const groups=new Map();
