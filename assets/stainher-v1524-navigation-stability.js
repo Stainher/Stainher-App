@@ -4,7 +4,7 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION='R306';
+  const REVISION=(document.querySelector('head > title')?.textContent?.match(/R[0-9]{2,4}/)?.[0] || window.STAINHER_RELEASE?.revision || 'R318');
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function lockBrowserTitle(){
