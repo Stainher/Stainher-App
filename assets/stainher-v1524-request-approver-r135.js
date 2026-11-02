@@ -1,5 +1,5 @@
 /* Stainher V15.24 · R135 · Aprobador seleccionable para solicitudes del Administrador.
- * - Cristian Lagos es el aprobador predeterminado.
+ * - R317: Ismael recibe primero solicitudes del personal; las propias requieren otro aprobador.
  * - Administrador puede seleccionar otro Gerente habilitado.
  * - Permite reenviar solicitudes propias pendientes/aprobadas a Cristian Lagos.
  * - El correo al autorizador reutiliza R134.
@@ -11,6 +11,7 @@
   window.__STAINHER_REQUEST_APPROVER_R135__=BUILD;
 
   const CRISTIAN_EMAIL='clagos@stainher.cl';
+  const ISMAEL_EMAIL='ismael.galvez@stainher.cl';
   let approversPromise=null;
   let installTimer=null;
 
@@ -62,7 +63,7 @@
     const label=document.createElement('label');
     label.className='full';
     label.dataset.r135Approver='1';
-    label.innerHTML='<span>Aprobador</span><select class="field" name="aprobador_user_id" required><option value="">Cargando aprobadores…</option></select><small class="muted">Por defecto tus solicitudes se envían a Cristian Lagos. Puedes seleccionar otro aprobador habilitado antes de enviar.</small>';
+    label.innerHTML='<span>Aprobador</span><select class="field" name="aprobador_user_id" required><option value="">Cargando aprobadores…</option></select><small class="muted">Las solicitudes del personal llegan primero a Ismael Gálvez. Tus propias solicitudes requieren un aprobador distinto.</small>';
 
     const typeLabel=form.tipo?.closest('label');
     if(typeLabel)typeLabel.insertAdjacentElement('afterend',label);
@@ -76,7 +77,7 @@
     try{
       const list=await loadApprovers({force:true});
       select.innerHTML=list.map(x=>'<option value="'+String(x.id)+'">'+String(approverOptionLabel(x)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</option>').join('');
-      const preferred=list.find(x=>x.email===CRISTIAN_EMAIL||norm(x.nombre)==='cristian lagos');
+      const preferred=list.find(x=>x.email===ISMAEL_EMAIL)||list.find(x=>x.email===CRISTIAN_EMAIL||norm(x.nombre)==='cristian lagos');
       if(preferred)select.value=preferred.id;
       else if(list[0])select.value=list[0].id;
       if(!list.length){
