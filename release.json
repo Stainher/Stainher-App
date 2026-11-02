@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R306",
-  "build": "20261031-r306-auto-subsistemas",
+  "revision": "R307",
+  "build": "20261102-r307-permiso-ausencia-visible",
   "path": "./",
-  "publishedAt": "2026-10-31"
+  "publishedAt": "2026-11-02"
 }
