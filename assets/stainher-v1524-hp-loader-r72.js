@@ -336,19 +336,23 @@
   }
 
   async function refresh(){
-    try{
-      await load('stainher-weekly-hp-runtime-r117','stainher-v1524-weekly-hp-report.js');
-      await load('stainher-hp-history-runtime-r117','stainher-v1524-hp-history-r71.js');
-      await load('stainher-hp-admin-detail-runtime-r78','stainher-v1524-hp-admin-detail-r74.js');
-      await load('stainher-hp-layout-runtime-r78','stainher-v1524-hp-layout-r78.js');
-      await load('stainher-weekly-hp-router-r78','stainher-v1524-hp-router-r57.js');
-      window.dispatchEvent(new CustomEvent('stainher:hp-r78-ready'));
-      window.dispatchEvent(new CustomEvent('stainher:hp-r115-ready'));
-      window.dispatchEvent(new CustomEvent('stainher:hp-r116-ready'));
-      window.dispatchEvent(new CustomEvent('stainher:hp-r117-ready'));
-    }catch(error){
-      console.error('[Stainher HP R78]',error);
+    const modules=[
+      ['stainher-weekly-hp-runtime-r117','stainher-v1524-weekly-hp-report.js'],
+      ['stainher-hp-history-runtime-r117','stainher-v1524-hp-history-r71.js'],
+      ['stainher-hp-admin-detail-runtime-r78','stainher-v1524-hp-admin-detail-r74.js'],
+      ['stainher-hp-layout-runtime-r78','stainher-v1524-hp-layout-r78.js'],
+      ['stainher-weekly-hp-router-r78','stainher-v1524-hp-router-r57.js']
+    ];
+    // Un fallo en un módulo auxiliar no debe impedir montar el comparativo histórico.
+    for(const [id,file] of modules){
+      try{await load(id,file)}
+      catch(error){console.error('[Stainher HP] No se pudo cargar '+file,error)}
     }
+    window.dispatchEvent(new CustomEvent('stainher:hp-r78-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:hp-r115-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:hp-r116-ready'));
+    window.dispatchEvent(new CustomEvent('stainher:hp-r117-ready'));
+    window.StainherHPHistory?.mount?.(document.getElementById('page-reporte-hp'));
   }
 
   window.StainherHPR72={refresh};
