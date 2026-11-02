@@ -4,7 +4,7 @@ import {chromium} from 'playwright';
 
 const history=readFileSync('assets/stainher-v1524-hp-history-r71.js','utf8');
 const disclosure=readFileSync('assets/stainher-v1524-collapsible.js','utf8');
-assert.match(history,/HP_HISTORY_VERSION__='R294'/);
+assert.match(history,/HP_HISTORY_VERSION__='R295'/);
 assert.match(history,/data-no-collapse|noCollapse/);
 assert.match(history,/data-hp-history-body/);
 assert.match(history,/QUERY_LIMIT_MS=12000/);
