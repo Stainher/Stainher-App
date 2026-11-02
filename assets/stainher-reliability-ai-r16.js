@@ -59,21 +59,21 @@
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
-      #modalRoot .v16-ai-panel{margin:0 0 14px;padding:13px 14px;border:1px solid #35506b;border-radius:12px;background:linear-gradient(180deg,rgba(30,64,93,.25),rgba(12,21,30,.32));box-sizing:border-box}
+      #modalRoot .v16-ai-panel{margin:0 0 14px;padding:13px 14px;border:1px solid #aec7db;border-radius:12px;background:#eaf3fb;box-sizing:border-box}
       #modalRoot .v16-ai-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-      #modalRoot .v16-ai-title{font-size:13px;font-weight:800;color:#dbeafe}
-      #modalRoot .v16-ai-sub{margin-top:3px;font-size:10.5px;line-height:1.4;color:#9fb3c8;max-width:760px}
+      #modalRoot .v16-ai-title{font-size:13px;font-weight:800;color:#17344f}
+      #modalRoot .v16-ai-sub{margin-top:3px;font-size:10.5px;line-height:1.4;color:#17344f;max-width:760px}
       #modalRoot .v16-ai-controls{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;margin-top:11px}
-      #modalRoot .v16-ai-controls label{display:grid;gap:4px;font-size:10px;color:#9fb3c8}
+      #modalRoot .v16-ai-controls label{display:grid;gap:4px;font-size:10px;color:#17344f}
       #modalRoot .v16-ai-controls select{min-width:135px}
-      #modalRoot .v16-ai-status{margin-top:9px;padding:8px 10px;border-radius:9px;background:#0b141d;border:1px solid #26394b;color:#b7c8d9;font-size:10.5px;line-height:1.4}
-      #modalRoot .v16-ai-status.ok{border-color:#315b43;color:#a7f3d0;background:rgba(22,101,52,.12)}
-      #modalRoot .v16-ai-status.warn{border-color:#765a25;color:#fde68a;background:rgba(146,94,13,.12)}
-      #modalRoot .v16-ai-status.error{border-color:#713544;color:#fecdd3;background:rgba(127,29,29,.12)}
-      #modalRoot .v16-ai-evidence{margin-top:9px;font-size:10px;color:#aebfd0}
-      #modalRoot .v16-ai-evidence summary{cursor:pointer;color:#bfdbfe;font-weight:700}
+      #modalRoot .v16-ai-status{margin-top:9px;padding:8px 10px;border-radius:9px;background:#f5faff;border:1px solid #aec7db;color:#17344f;font-size:10.5px;line-height:1.4}
+      #modalRoot .v16-ai-status.ok{border-color:#a5d3b1;color:#16572e;background:#e5f5e9}
+      #modalRoot .v16-ai-status.warn{border-color:#e3c178;color:#765008;background:#fff5db}
+      #modalRoot .v16-ai-status.error{border-color:#dda3a8;color:#8c2934;background:#fff0f0}
+      #modalRoot .v16-ai-evidence{margin-top:9px;font-size:10px;color:#17344f}
+      #modalRoot .v16-ai-evidence summary{cursor:pointer;color:#17344f;font-weight:700}
       #modalRoot .v16-ai-evidence ul{margin:7px 0 0 18px;padding:0;display:grid;gap:6px}
-      #modalRoot .v16-ai-badge{display:inline-flex;align-items:center;padding:3px 7px;border:1px solid #42617f;border-radius:999px;font-size:9px;color:#bfdbfe;background:rgba(30,64,93,.28)}
+      #modalRoot .v16-ai-badge{display:inline-flex;align-items:center;padding:3px 7px;border:1px solid #aec7db;border-radius:999px;font-size:9px;color:#17344f;background:#dbeafa}
       @media(max-width:700px){#modalRoot .v16-ai-controls{display:grid;grid-template-columns:1fr}#modalRoot .v16-ai-controls .btn,#modalRoot .v16-ai-controls label,#modalRoot .v16-ai-controls select{width:100%;max-width:100%}}
     `;
     document.head.appendChild(style);
