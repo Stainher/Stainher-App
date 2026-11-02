@@ -307,6 +307,8 @@
     const C = window.ensurePdf?.();
     if (!C) return window.toast?.('No se pudo cargar el generador PDF','error');
     r.opt=reliabilityPdfOptionsFromModal(r.opt||{});
+    const paretoChoice=document.getElementById('stainher-include-subsystem-pareto-r325');
+    r.opt.paretoSubsistemas=paretoChoice?paretoChoice.checked:r.opt.paretoSubsistemas===true;
     const c = r.content || {}, opt = r.opt || {};
     const restoreCharts=opt.graficos===true?await prepareReliabilityCharts():()=>{};
     const doc = new C({orientation:'landscape',unit:'mm',format:'a4'});
@@ -342,6 +344,23 @@
       textSection('Análisis Pareto',c.pareto);
       y=drawRepairFrequencyScatter(doc,r.rank,y);
     }
+    if(opt.paretoSubsistemas===true){
+      const paretoAPI=window.StainherSubsystemParetoR322;
+      const all=Array.isArray(r.rows)?r.rows:window.state?.correctivo||[];
+      const scoped=r.eq&&r.eq!=='Todos los equipos'?all.filter(item=>String(item.equipo)===String(r.eq)):all;
+      const subs=paretoAPI?.aggregate?.(scoped)||[];
+      if(y>90){doc.addPage();y=20}
+      y=sectionTitle(doc,'Pareto 80/20 por subsistema · frecuencia y duración',y);
+      paretoAPI?.refreshChart?.();
+      const canvas=paretoAPI?.getCanvas?.();
+      if(canvas&&subs.length){
+        try{const png=canvas.toDataURL('image/png');doc.addImage(png,'PNG',18,y,260,83);y+=89}
+        catch(error){console.warn('[Confiabilidad] Gráfico de subsistemas no disponible en PDF',error)}
+      }
+      if(y>145){doc.addPage();y=20}
+      doc.autoTable({startY:y,head:[['Subsistema','Fallas','Horas','% frecuencia','% acumulado']],body:subs.length?subs.map(item=>[item.subsistema,item.fallas,item.horas.toFixed(1),item.porcentaje.toFixed(1)+'%',item.acumulado.toFixed(1)+'%']):[['Sin datos',0,0,'0%','0%']],styles:{fontSize:7.3,textColor:[28,34,41]},headStyles:{fillColor:[35,90,139],textColor:[255,255,255]}});
+      y=doc.lastAutoTable.finalY+8;
+    }
     if(opt.resumen===true){textSection('Hallazgos',c.hallazgos);textSection('Hipótesis de causa raíz',c.hipotesis);textSection('Recomendaciones técnicas',c.recomendaciones);textSection('Conclusiones',c.conclusiones)}
     if(opt.historial===true){
       if(y>115){doc.addPage();y=20}
@@ -369,6 +388,20 @@
     restoreCharts();
     window.closeModal?.(); window.toast?.('Informe aprobado y PDF descargado','success');
   };
+
+  function ensureParetoOption(){
+    const modal=document.querySelector('#modalRoot .v158-review-modal');
+    if(!modal||modal.querySelector('#stainher-include-subsystem-pareto-r325'))return;
+    const label=document.createElement('label');
+    label.style.cssText='display:flex;align-items:center;gap:9px;padding:9px 12px;margin:8px 0;border:1px solid #a5bfd5;border-radius:8px;background:#eef5fb;color:#163751';
+    const input=document.createElement('input');input.type='checkbox';input.id='stainher-include-subsystem-pareto-r325';input.checked=true;
+    const text=document.createElement('span');text.textContent='Incluir gráfico Pareto 80/20 por subsistema en el informe PDF';
+    label.append(input,text);
+    const actions=modal.querySelector('.v158-review-actions');
+    (actions||modal).insertAdjacentElement(actions?'beforebegin':'beforeend',label);
+  }
+  new MutationObserver(()=>ensureParetoOption()).observe(document.documentElement,{childList:true,subtree:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureParetoOption,{once:true});else ensureParetoOption();
 
   function ensureActions(){
     mountStyle();
