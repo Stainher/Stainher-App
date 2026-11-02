@@ -14,7 +14,7 @@
      if('serviceWorker' in navigator){
        const registrations=await navigator.serviceWorker.getRegistrations();
        for(const registration of registrations){
-         if(registration.scope.startsWith(new URL('../',BASE).href))await registration.unregister();
+         if(registration.scope.startsWith(new URL('./',BASE).href))await registration.unregister();
        }
      }
    }catch(error){console.debug('[Stainher cache] service worker',error)}
