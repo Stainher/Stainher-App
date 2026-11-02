@@ -1,4 +1,4 @@
-/* R311: version notice only. Never auto-reload or modify auth/cache. */
+/* R313: explicit index.html update, version notice only. Never auto-reload or modify auth/cache. */
 (()=>{
 'use strict';
 if(window.__STAINHER_RELEASE_NOTICE_R311__)return;
@@ -27,7 +27,7 @@ function show(revision){
    await Promise.all(keys.filter(k=>/stainher|github/i.test(k)).map(k=>caches.delete(k)));
   }
  }catch(e){console.debug('[Stainher update] cache cleanup',e)}
- const url=new URL('./',root);
+ const url=new URL('index.html',root);
  url.searchParams.set('app_rev',revision);
  url.searchParams.set('fresh',String(Date.now()));
  location.replace(url.href);
