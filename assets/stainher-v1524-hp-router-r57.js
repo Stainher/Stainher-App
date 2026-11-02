@@ -69,7 +69,17 @@
       }
       await renderer();
       const page=content.querySelector(`#page-${PAGE_ID}`);
-      try{window.StainherHPHistory?.mount?.(page)}catch(error){console.error('[Stainher HP R71] Comparación histórica.',error)}
+      // El módulo histórico puede llegar después del renderer HP: no perder el montaje.
+      let retries=0;
+      const ensureComparison=()=>{
+        if(!page?.isConnected)return;
+        if(typeof window.StainherHPHistory?.mount==='function'){
+          try{window.StainherHPHistory.mount(page)}catch(error){console.error('[Stainher HP] Comparación histórica.',error)}
+          return;
+        }
+        if(++retries<=40)setTimeout(ensureComparison,250);
+      };
+      ensureComparison();
     }catch(error){
       console.error('[Stainher HP R71] Render dentro de Turnos.',error);
       content.innerHTML=`<div class="notice error">No fue posible cargar Reporte Semanal HP: ${String(error?.message||error||'Error desconocido')}</div>`;
