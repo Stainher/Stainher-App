@@ -23,6 +23,30 @@
   window.__STAINHER_RELIABILITY_ACTIONS__ = true;
   window.__STAINHER_RELIABILITY_ACTIONS_VERSION__ = VERSION;
 
+  /* R326: contraste del modal de revisión, sin alterar la impresión PDF. */
+  const contrastStyle=document.createElement('style');
+  contrastStyle.id='stainher-reliability-review-contrast-r326';
+  contrastStyle.textContent=`
+    #modalRoot .v158-review-modal :is(.v158-review-kpi,.v158-review-card,.v158-review-section,.v158-review-panel),
+    #modalRoot .v158-review-modal :is(.v158-review-grid > div, .v158-review-grid > section){
+      background:#edf5fc!important;color:#17344f!important;border-color:#b7cddd!important;
+    }
+    #modalRoot .v158-review-modal :is(h2,h3,h4,h5,legend,label,strong,.muted,.v158-review-title),
+    #modalRoot .v158-review-modal :is(.v158-review-kpi,.v158-review-card,.v158-review-section,.v158-review-panel) :is(span,b,p,small){
+      color:#17344f!important;-webkit-text-fill-color:#17344f!important;text-shadow:none!important;opacity:1!important;
+    }
+    #modalRoot .v158-review-modal textarea,
+    #modalRoot .v158-review-modal select{
+      background:#fff!important;color:#17344f!important;-webkit-text-fill-color:#17344f!important;border:1px solid #9bb8cf!important;
+    }
+    #modalRoot .v158-review-modal :is(button.btn.primary,button.primary){color:#fff!important;-webkit-text-fill-color:#fff!important}
+    #modalRoot .v158-review-modal :is(.v158-review-actions,.v158-review-grid){background:transparent!important}
+    #modalRoot .v158-review-modal [style*="background:#0"],#modalRoot .v158-review-modal [style*="background: #0"]{
+      background:#e9f3fb!important;color:#17344f!important;
+    }
+  `;
+  document.getElementById(contrastStyle.id)?.remove();
+  document.head.appendChild(contrastStyle);
   const STYLE_ID = 'stainher-reliability-actions-style';
 
   function mountStyle(){
