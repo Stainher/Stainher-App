@@ -15,7 +15,23 @@ function show(revision){
  label.textContent='Nueva versión '+revision+' disponible. Guarda tu trabajo antes de actualizar.';
  const yes=document.createElement('button');yes.type='button';yes.textContent='Actualizar ahora';
  yes.style.cssText='padding:8px;margin:10px 8px 0 0;border:0;border-radius:6px;cursor:pointer';
- yes.onclick=()=>{const url=new URL(location.href);url.searchParams.set('app_rev',revision);url.searchParams.set('fresh',String(Date.now()));location.assign(url.href)};
+ yes.onclick=async()=>{
+ yes.disabled=true;yes.textContent='Actualizando…';
+ try{
+  if('serviceWorker' in navigator){
+   const regs=await navigator.serviceWorker.getRegistrations();
+   for(const reg of regs){if(reg.scope.startsWith(new URL('../',root).href))await reg.unregister()}
+  }
+  if('caches' in window){
+   const keys=await caches.keys();
+   await Promise.all(keys.filter(k=>/stainher|github/i.test(k)).map(k=>caches.delete(k)));
+  }
+ }catch(e){console.debug('[Stainher update] cache cleanup',e)}
+ const url=new URL('../',root);
+ url.searchParams.set('app_rev',revision);
+ url.searchParams.set('fresh',String(Date.now()));
+ location.replace(url.href);
+};
  const no=document.createElement('button');no.type='button';no.textContent='Más tarde';
  no.style.cssText='padding:8px;border:1px solid white;border-radius:6px;background:transparent;color:white;cursor:pointer';
  no.onclick=()=>{dismissed=revision;bar.remove()};
