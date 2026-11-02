@@ -23,7 +23,7 @@ function show(revision){
      const response=await fetch(url.href,{cache:'no-store',credentials:'same-origin',redirect:'follow'});
      if(!response.ok)throw new Error('HTTP '+response.status);
      const html=await response.text();
-     const live=html.match(/<title>[^<]*?(R\\d{2,4})<\\/title>/i)?.[1]||'';
+     const live=(new DOMParser().parseFromString(html,'text/html').title.match(/R[0-9]{2,4}/)||[])[0]||'';
      if(number(live)<number(revision))throw new Error('El servidor entrega '+(live||'una versión desconocida')+' en lugar de '+revision);
      yes.textContent='Abriendo '+live+'…';
      // Escritura del HTML verificado evita que la navegación reabra index.html cacheado.
