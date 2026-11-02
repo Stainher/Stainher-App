@@ -114,9 +114,11 @@
       let admin=0,oper=0,spor=0;
       if(isManualAdmin(person,profiles)){
         admin=manualAdmin(person.user_id);
-        for(let d=start;d<=end;d=plusDays(d,1))const encierroOperativo=offTurnEncierroHours(person.user_id,d);
+        for(let d=start;d<=end;d=plusDays(d,1)){
+          const encierroOperativo=offTurnEncierroHours(person.user_id,d);
           spor+=Math.max(0,extra(person.user_id,d)-encierroOperativo);
           oper+=encierroOperativo;
+        }
       }else if(isAutoAdmin(person,profiles)){
         for(let d=start;d<=end;d=plusDays(d,1)){
           const encierroOperativo=offTurnEncierroHours(person.user_id,d);
