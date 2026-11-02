@@ -20,14 +20,14 @@ function show(revision){
  try{
   if('serviceWorker' in navigator){
    const regs=await navigator.serviceWorker.getRegistrations();
-   for(const reg of regs){if(reg.scope.startsWith(new URL('../',root).href))await reg.unregister()}
+   for(const reg of regs){if(reg.scope.startsWith(new URL('./',root).href))await reg.unregister()}
   }
   if('caches' in window){
    const keys=await caches.keys();
    await Promise.all(keys.filter(k=>/stainher|github/i.test(k)).map(k=>caches.delete(k)));
   }
  }catch(e){console.debug('[Stainher update] cache cleanup',e)}
- const url=new URL('../',root);
+ const url=new URL('./',root);
  url.searchParams.set('app_rev',revision);
  url.searchParams.set('fresh',String(Date.now()));
  location.replace(url.href);
