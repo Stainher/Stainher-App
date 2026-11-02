@@ -1,0 +1,26 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stainher — Diagnóstico de versión</title><style>body{font:16px system-ui;background:#ecf3f8;color:#15334b;padding:24px;max-width:720px;margin:auto}section{background:white;border-radius:14px;padding:20px;box-shadow:0 2px 12px #1232}button{background:#1273b4;color:#fff;padding:12px 16px;border:0;border-radius:8px;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}a{color:#1266a3}</style></head><body><section><h1>Diagnóstico de actualización Stainher</h1><p>Esta herramienta verifica el HTML real de producción. No modifica datos ni cierra sesión.</p><pre id="result">Verificando…</pre><button id="repair" type="button">Reparar caché y abrir versión vigente</button></section><script>
+const result=document.getElementById('result');
+const output=[];
+function line(x){output.push(x);result.textContent=output.join('\n')}
+async function verify(){output.length=0;
+const stamp=Date.now();
+try{
+const release=await fetch('./release.json?verify='+stamp,{cache:'no-store'});const data=await release.json();
+line('Manifiesto público: '+data.revision+' (HTTP '+release.status+')');
+const response=await fetch('./index.html?verify='+stamp,{cache:'no-store'});
+const html=await response.text();
+const found=html.match(/<title>[^<]*R\d+/i)?.[0]||'sin revisión';
+line('HTML público: '+found.replace('<title>','')+' (HTTP '+response.status+')');
+line('Coinciden: '+(html.includes('V15.24 '+data.revision)?'SÍ':'NO'));
+}catch(e){line('Error: '+String(e))}
+if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();line('Service workers: '+regs.length);line('Controlando página: '+Boolean(navigator.serviceWorker.controller))}
+if('caches' in window)line('Cachés: '+(await caches.keys()).join(', '));
+}
+document.getElementById('repair').onclick=async()=>{
+const button=document.getElementById('repair');button.disabled=true;button.textContent='Reparando…';
+try{if('serviceWorker' in navigator){for(const r of await navigator.serviceWorker.getRegistrations()){if(r.scope.startsWith(new URL('./',location.href).href))await r.unregister()}}}catch(e){line('Service worker: '+e)}
+try{if('caches' in window){for(const name of await caches.keys()){if(/stainher|github|workbox|precache/i.test(name))await caches.delete(name)}}}catch(e){line('Cache: '+e)}
+const u=new URL('./index.html',location.href);u.searchParams.set('recovery',String(Date.now()));location.replace(u.href);
+};
+verify();
+</script></body></html>
