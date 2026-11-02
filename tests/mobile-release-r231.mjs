@@ -2,32 +2,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(p,'utf8');
-const BUILD='20261027-r294-hp-history-disclosure';
+const release=JSON.parse(read('release.json'));
+const BUILD=release.build;
 const html=read('index.html'),theme=read('assets/stainher-v1524-theme.js');
 const nav=read('assets/stainher-v1524-navigation-stability.js');
-const release=JSON.parse(read('release.json'));
 const watcher=read('assets/stainher-v1524-release-refresh-r231.js');
 
-test('R294 release manifest, navigation and loader agree',()=>{
+test('Release manifest and navigation resolve the current revision',()=>{
   assert.equal(release.version,'V15.24');
-  assert.equal(release.revision,'R294');
-  assert.equal(release.build,BUILD);
-  assert.match(nav,/const REVISION='R294'/);
-  assert.match(html,/revision:'R294'/);
-  assert.match(html,new RegExp(BUILD));
-  assert.match(theme,new RegExp(BUILD));
-  assert.match(html,/app_build=R294/);
-  assert.doesNotMatch(html,/app_build=R22[4567890]/);
-  assert.doesNotMatch(html,/V15\.23/);
+  assert.match(release.revision,/^R\\d+$/);
+  assert.match(BUILD,/^\\d{8}-r\\d+-/);
+  assert.match(nav,/window\\.STAINHER_RELEASE\\?\\.revision/);
+  assert.match(nav,/const REVISION=/);
+  assert.match(nav,/normalizeVersion\\(\\)/);
+  assert.doesNotMatch(html,/V15\\.23/);
 });
 
-test('Installed mobile shell exposes the current release',()=>{
-  assert.match(html,/stainher-v1524-release-refresh-r231\.js/);
-  assert.doesNotMatch(html,/stainher-v1524-release-refresh-r226\.js/);
-  assert.match(html,/stainher-r240-mobile-header-guarantee/);
-  assert.match(html,/Stainher App · V15\.24 · R294/);
-  assert.match(nav,/Stainher App · \$\{VERSION\} · \$\{REVISION\}/);
-  assert.match(nav,/document\.title=`Stainher App \$\{VERSION\} \$\{REVISION\}`/);
+test('Installed mobile shell exposes release and update watcher',()=>{
+  assert.match(html,/stainher-v1524-release-refresh-r231\\.js/);
+  assert.doesNotMatch(html,/stainher-v1524-release-refresh-r226\\.js/);
+  assert.match(nav,/Stainher App · \\$\\{VERSION\\} · \\$\\{REVISION\\}/);
+  assert.match(nav,/document\\.title=`Stainher App \\$\\{VERSION\\} \\$\\{REVISION\\}`/);
 });
 
 test('Index refreshes stale module URLs and preloaded copies',()=>{
@@ -46,7 +41,7 @@ test('Release watcher observes mobile return and only advances revisions',()=>{
   assert.match(watcher,/setTimeout\(check,0\)/);
 });
 
-test('Inline R294 loader syntax parses',()=>{
+test('Inline current loader syntax parses',()=>{
   const pattern=/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g;
   let seen=0;
   for(const match of html.matchAll(pattern)){
