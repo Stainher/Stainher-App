@@ -1,4 +1,4 @@
-/* R313: explicit index.html update, version notice only. Never auto-reload or modify auth/cache. */
+/* R318: verified in-place HTML update, no automatic reload. Never auto-reload or modify auth/cache. */
 (()=>{
 'use strict';
 if(window.__STAINHER_RELEASE_NOTICE_R311__)return;
@@ -16,22 +16,27 @@ function show(revision){
  const yes=document.createElement('button');yes.type='button';yes.textContent='Actualizar ahora';
  yes.style.cssText='padding:8px;margin:10px 8px 0 0;border:0;border-radius:6px;cursor:pointer';
  yes.onclick=async()=>{
- yes.disabled=true;yes.textContent='Actualizando…';
- try{
-  if('serviceWorker' in navigator){
-   const regs=await navigator.serviceWorker.getRegistrations();
-   for(const reg of regs){if(reg.scope.startsWith(new URL('./',root).href))await reg.unregister()}
-  }
-  if('caches' in window){
-   const keys=await caches.keys();
-   await Promise.all(keys.filter(k=>/stainher|github/i.test(k)).map(k=>caches.delete(k)));
-  }
- }catch(e){console.debug('[Stainher update] cache cleanup',e)}
- const url=new URL(revision==='R316'?'app-r316.html':'index.html',root);
- url.searchParams.set('app_rev',revision);
- url.searchParams.set('fresh',String(Date.now()));
- location.replace(url.href);
-};
+   yes.disabled=true;yes.textContent='Comprobando versión…';
+   try{
+     const url=new URL('index.html',root);
+     url.searchParams.set('verify',String(Date.now()));
+     const response=await fetch(url.href,{cache:'no-store',credentials:'same-origin',redirect:'follow'});
+     if(!response.ok)throw new Error('HTTP '+response.status);
+     const html=await response.text();
+     const live=html.match(/<title>[^<]*?(R\\d{2,4})<\\/title>/i)?.[1]||'';
+     if(number(live)<number(revision))throw new Error('El servidor entrega '+(live||'una versión desconocida')+' en lugar de '+revision);
+     yes.textContent='Abriendo '+live+'…';
+     // Escritura del HTML verificado evita que la navegación reabra index.html cacheado.
+     // La sesión sigue en el mismo origen; no se eliminan tokens ni datos locales.
+     document.open('text/html','replace');
+     document.write(html);
+     document.close();
+   }catch(error){
+     yes.disabled=false;yes.textContent='Reintentar actualización';
+     label.textContent='No se pudo cargar la versión nueva: '+String(error.message||error)+'. Se conserva tu pantalla y sesión.';
+     console.error('[Stainher update verification]',error);
+   }
+ };
  const no=document.createElement('button');no.type='button';no.textContent='Más tarde';
  no.style.cssText='padding:8px;border:1px solid white;border-radius:6px;background:transparent;color:white;cursor:pointer';
  no.onclick=()=>{dismissed=revision;bar.remove()};
