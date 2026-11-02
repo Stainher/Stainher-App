@@ -50,9 +50,26 @@ function mount(){
  const table=rows.map(r=>`<tr><td>${escape(r.subsistema)}</td><td>${r.fallas}</td><td>${r.horas.toLocaleString('es-CL',{maximumFractionDigits:1})}</td><td>${r.porcentaje.toFixed(1)}%</td><td>${r.acumulado.toFixed(1)}%</td></tr>`).join('');
  host.innerHTML=`<h3>Pareto de fallas por subsistema</h3><p class="muted">Clasificación orientativa por descripción y causa registradas. Frecuencia, duración acumulada y Pareto 80/20. Se excluyen del cálculo KPI los registros marcados para exclusión.</p><div style="overflow-x:auto"><table style="width:100%;min-width:560px"><thead><tr><th>Subsistema</th><th>Fallas</th><th>Horas</th><th>% frecuencia</th><th>% acumulado</th></tr></thead><tbody>${table||'<tr><td colspan="5">Sin averías válidas para analizar.</td></tr>'}</tbody></table></div><small class="muted">${uncategorized} evento(s) sin clasificación inequívoca. El umbral Pareto se alcanza en el primer subsistema con 80% acumulado o superior.</small>`;
 }
-let timer=0;
+let timer=0,lastSignature='';
 function schedule(){clearTimeout(timer);timer=setTimeout(mount,120)}
-function install(){mount();const page=document.getElementById('page-correctivo');if(page)new MutationObserver(schedule).observe(page,{childList:true})}
+function signature(){
+  const rows=window.state?.correctivo||[];
+  const eq=document.getElementById('corrEquipo')?.value||'';
+  return [window.state?.correctivoFrom,window.state?.correctivoTo,eq,rows.length,rows.map(r=>[r.id,r.fecha_inicio,r.duracion_horas,r.excluir_kpi,r.observaciones].join(':')).join('|')].join('~');
+}
+function install(){
+  mount();lastSignature=signature();
+  // El historial actualiza state.correctivo de forma asíncrona. Un observador de DOM
+  // no detecta los cambios del array; comprobar la firma evita dejar el Pareto vacío.
+  setInterval(()=>{
+    const page=document.getElementById('page-correctivo');
+    if(!page)return;
+    const next=signature();
+    if(next!==lastSignature||!page.querySelector('#stainher-pareto-subsistema-r322')){
+      lastSignature=next;mount();
+    }
+  },800);
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 window.StainherSubsystemParetoR322={classify,aggregate,mount};
 })();
