@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R309",
-  "build": "20261102-r309-auto-refresh",
+  "revision": "R310",
+  "build": "20261102-r310-boot-refresh",
   "path": "./",
   "publishedAt": "2026-11-02"
 }
