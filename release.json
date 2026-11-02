@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R310",
-  "build": "20261102-r310-boot-refresh",
+  "revision": "R311",
+  "build": "20261102-r311-safe-update",
   "path": "./",
   "publishedAt": "2026-11-02"
 }
