@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20260928-r135-request-approver-routing';
+  const BUILD='20261102-r318-cristian-exception';
   if(window.__STAINHER_REQUEST_APPROVER_R135__===BUILD)return;
   window.__STAINHER_REQUEST_APPROVER_R135__=BUILD;
 
@@ -41,6 +41,13 @@
         .order('nombre',{ascending:true});
       if(q.error)throw q.error;
       const list=(q.data||[]).map(x=>({...x,email:String(x.email||'').toLowerCase()}));
+      // Cristian Lagos conserva perfil Administrador y puede recibir derivaciones explícitas.
+      if(!list.some(x=>x.email===CRISTIAN_EMAIL)){
+        const special=await sb.from('perfiles').select('id,nombre,email,rol,activo')
+          .eq('email',CRISTIAN_EMAIL).eq('activo',true).neq('id',uid()).maybeSingle();
+        if(special.error)throw special.error;
+        if(special.data)list.push({...special.data,email:CRISTIAN_EMAIL});
+      }
       window.state=window.state||{};
       window.state.v135RequestApprovers=list;
       const cristian=list.find(x=>x.email===CRISTIAN_EMAIL||norm(x.nombre)==='cristian lagos')||null;
