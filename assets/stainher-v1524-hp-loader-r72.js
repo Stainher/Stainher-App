@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R308')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R309')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R308';
+  window.__STAINHER_HP_LOADER_VERSION__='R309';
 
-  const BUILD='20261102-r308-permiso-loader';
+  const BUILD='20261102-r309-auto-refresh';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
