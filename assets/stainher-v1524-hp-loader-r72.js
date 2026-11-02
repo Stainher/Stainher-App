@@ -444,6 +444,7 @@
     await refreshSignature();
     await refreshFreeReport();
     await refreshReliabilityActionsR119();
+    await load('stainher-pareto-subsystems-r322','stainher-v1524-pareto-subsystems-r322.js');
     await refreshCorrectivoHistoryR118();
     await refreshEquipmentViewR132();
     await refreshPreventivoStateR137();
