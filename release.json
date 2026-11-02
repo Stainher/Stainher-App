@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R315",
-  "build": "20261102-r315-hp-comparison",
+  "revision": "R316",
+  "build": "20261102-r316-versioned-entry",
   "path": "./",
   "publishedAt": "2026-11-02"
 }
