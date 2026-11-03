@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const ui=fs.readFileSync('assets/stainher-v1524-gastos-r342.js','utf8');
+const migration=fs.readFileSync('supabase/migrations/20261103193500_r349_desactivar_finanzas.sql','utf8');
+new Function(ui);
+assert.doesNotMatch(ui,/finanzas|Finanzas|FINANZAS|finance/);
+assert.match(ui,/Total del mes/);
+assert.match(ui,/Pendiente al personal/);
+assert.match(ui,/Devuelto al personal/);
+assert.match(ui,/Transferencias y devoluciones al personal/);
+assert.match(ui,/registrar_transferencia_gastos_r348/);
+assert.doesNotMatch(ui,/registrar_recuperacion_finanzas_r348/);
+assert.match(migration,/revoke execute on function public\.registrar_recuperacion_finanzas_r348/);
+console.log('R349: control exclusivo de gastos y devoluciones al personal');
