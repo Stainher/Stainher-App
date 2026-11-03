@@ -8,7 +8,7 @@ const ITEMS=["Instructivos","Materiales","Herramientas","EPP"];
 const S=["Datos generales","Riesgos de fatalidad","Actividades y preparación","Análisis y controles","Aportes y reconocimientos","Revisión y cierre"];
 const blank=()=>({nombre:"",preparacion:{},riesgos:[{rf:"",riesgo:"",consecuencia:"",controles:""}]});
 const initial=()=>({fecha:new Date().toLocaleDateString("en-CA"),turno:"A",centro:"Codelco Andina",gerencia:"GSER",empresa:"STAINHER",area:"",supervisor:window.state?.profile?.nombre||"",asistentes:0,participantes:[],riesgos:[],actividades:[blank()],aportes:[],reconocimientos:[],estado:"borrador"});
-let record=initial(),stage=0,view="wizard",busy=false;
+let record=initial(),stage=0,view="wizard",busy=false,staff=null,staffError="";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const host=()=>document.getElementById("page-liderazgo");
 const db=()=>window.sb;
@@ -22,11 +22,24 @@ function style(){
 function field(label,key,type="text",extra=""){
  return '<label>'+esc(label)+'<input data-field="'+key+'" type="'+type+'" value="'+esc(record[key])+'" '+extra+'></label>';
 }
+function participantMarkup(){
+ if(staff===null)return '<p class="rt-info">Cargando dotación…</p>';
+ if(staffError)return '<p class="rt-error">'+esc(staffError)+'</p><p class="rt-info">Puede ingresar la cantidad manual mientras se revisa el acceso.</p>';
+ return '<div class="rt-box"><b>Asistentes de Dotación</b><p class="rt-info">Seleccione solamente a quienes participaron; la cantidad se actualiza automáticamente.</p><div class="rt-risks">'+staff.map(s=>'<label><input type="checkbox" data-person="'+esc(s.id)+'" '+(record.participantes.some(p=>p.id===s.id)?"checked":"")+'>'+esc(s.nombre)+' · '+esc(s.cargo||"")+'</label>').join("")+'</div></div>';
+}
+async function loadStaff(){
+ if(staff!==null)return;
+ if(!db())return;
+ const {data,error}=await db().from("dotacion_contrato").select("id,nombre,cargo,estado").eq("estado","activo").order("nombre");
+ staffError=error?.message||"";
+ staff=error?[]:(data||[]);
+ if(view==="wizard"&&stage===0)render();
+}
 function markup(){
 let h='<div class="rt-bar"><h3>Reunión de Inicio de Turno (RIT)</h3><div class="rt-row"><button data-act="new">Nuevo RIT</button><button data-act="history">Historial</button></div></div>';
 if(view==="history")return h+'<div id="rt-history-list">Cargando registros…</div>';
 h+='<div class="rt-steps">Etapa '+(stage+1)+' de 6 · '+esc(S[stage])+'</div><div class="rt-box">';
-if(stage===0)h+='<div class="rt-grid">'+field("Centro de trabajo","centro")+field("Gerencia","gerencia")+field("Superintendencia / Empresa contratista","empresa")+field("Área / Frente de trabajo","area")+field("Fecha","fecha","date")+field("Turno","turno")+field("Supervisor a cargo","supervisor")+field("Nº asistentes","asistentes","number",'min="0" max="999"')+'</div><p class="rt-info">Los participantes podrán seleccionarse desde Dotación en una siguiente integración; la cantidad permanece editable por ahora.</p>';
+if(stage===0)h+='<div class="rt-grid">'+field("Centro de trabajo","centro")+field("Gerencia","gerencia")+field("Superintendencia / Empresa contratista","empresa")+field("Área / Frente de trabajo","area")+field("Fecha","fecha","date")+field("Turno","turno")+field("Supervisor a cargo","supervisor")+field("Nº asistentes","asistentes","number",'min="0" max="999"')+'</div>'+participantMarkup();
 if(stage===1)h+='<p>Marque solamente los riesgos presentes y verificados por el supervisor.</p><div class="rt-risks">'+RF.map(r=>'<label><input type="checkbox" data-risk="'+r[0]+'" '+(record.riesgos.includes(r[0])?"checked":"")+'>'+r[0]+' · '+esc(r[1])+'</label>').join("")+'</div>';
 if(stage===2)h+=record.actividades.map((a,i)=>'<div class="rt-box"><div class="rt-bar"><b>Actividad '+(i+1)+'</b><button data-remove="'+i+'">Quitar</button></div><label>Descripción<textarea data-activity="'+i+'" data-prop="nombre">'+esc(a.nombre)+'</textarea></label><div class="rt-grid3">'+ITEMS.map(item=>'<label>'+item+'<select data-prep="'+i+'" data-item="'+item+'">'+opt([["","Sin evaluar"],["si","Sí"],["no","No"]],a.preparacion[item]||"")+'</select></label>').join("")+'</div></div>').join("")+'<button data-act="add" '+(record.actividades.length>=6?"disabled":"")+'>Añadir actividad (máx. 6)</button>';
 if(stage===3)h+=record.actividades.map((a,i)=>'<div class="rt-box"><b>Actividad '+(i+1)+': '+esc(a.nombre||"Sin nombre")+'</b>'+a.riesgos.map((r,j)=>'<div class="rt-box"><div class="rt-grid"><label>RF<select data-analysis="'+i+':'+j+'" data-key="rf">'+opt([["","Seleccione RF"],...RF],r.rf)+'</select></label><label>Riesgo<input data-analysis="'+i+':'+j+'" data-key="riesgo" value="'+esc(r.riesgo)+'"></label><label>Consecuencia<textarea data-analysis="'+i+':'+j+'" data-key="consecuencia">'+esc(r.consecuencia)+'</textarea></label><label>Controles verificados<textarea data-analysis="'+i+':'+j+'" data-key="controles">'+esc(r.controles)+'</textarea></label></div><button data-delrisk="'+i+':'+j+'">Quitar riesgo</button></div>').join("")+'<button data-addrisk="'+i+'">Añadir riesgo a esta actividad</button></div>').join("");
@@ -83,6 +96,14 @@ function render(){const root=host();if(!root)return;style();let el=document.getE
 function change(e){
  const t=e.target;
  if(t.dataset.field){record[t.dataset.field]=t.dataset.field==="asistentes"?Number(t.value):t.value;return;}
+ if(t.dataset.person){
+  const person=staff?.find(p=>p.id===t.dataset.person);
+  if(!person)return;
+  record.participantes=t.checked?[...record.participantes.filter(p=>p.id!==person.id),{id:person.id,nombre:person.nombre,cargo:person.cargo}]:record.participantes.filter(p=>p.id!==person.id);
+  record.asistentes=record.participantes.length;
+  const count=document.querySelector('#rit-r331 [data-field="asistentes"]');if(count)count.value=record.asistentes;
+  return;
+ }
  if(t.dataset.risk){record.riesgos=t.checked?[...new Set([...record.riesgos,t.dataset.risk])]:record.riesgos.filter(x=>x!==t.dataset.risk);return;}
  if(t.dataset.activity!==undefined){record.actividades[Number(t.dataset.activity)][t.dataset.prop]=t.value;return;}
  if(t.dataset.prep!==undefined){record.actividades[Number(t.dataset.prep)].preparacion[t.dataset.item]=t.value;return;}
@@ -109,6 +130,7 @@ function mount(){
  const root=host();if(!root||!window.state?.session?.user)return;
  if(root.dataset.ritR331Events!=="1"){root.dataset.ritR331Events="1";root.addEventListener("input",change);root.addEventListener("change",change);root.addEventListener("click",click);}
  if(!document.getElementById("rit-r331"))render();
+ if(staff===null)loadStaff().catch(e=>{staff=[];staffError=e.message;render();});
 }
 let last=null;function pulse(){const root=host();if(root&&root!==last){last=root;mount();}else if(root&&!document.getElementById("rit-r331"))mount();}
 window.StainherRIT=Object.freeze({mount});
