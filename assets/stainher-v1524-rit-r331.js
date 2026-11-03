@@ -17,6 +17,7 @@ function style(){
  if(document.getElementById("rit-r331-style"))return;
  const e=document.createElement("style");e.id="rit-r331-style";
  e.textContent='.rit331{color:var(--text,#223548);background:var(--panel,#fff);border:1px solid var(--line,#ccd8e5);border-radius:14px;padding:18px;margin:16px 0;max-width:100%}.rit331 *{box-sizing:border-box}.rit331 h3{margin:0 0 10px}.rit331 .rt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.rit331 .rt-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.rit331 label{display:grid;gap:5px;font-size:12px;font-weight:600}.rit331 input:not([type=checkbox]),.rit331 select,.rit331 textarea{width:100%;min-height:36px;background:var(--panel,#fff);color:var(--text,#223548);border:1px solid var(--line,#aab);border-radius:7px;padding:7px;font:inherit}.rit331 textarea{min-height:70px}.rit331 button{padding:8px 12px;border:1px solid #6f95b9;background:linear-gradient(120deg,#1859a0,#367cbc);color:#fff;border-radius:8px;cursor:pointer}.rit331 button:disabled{opacity:.5;cursor:not-allowed}.rit331 .rt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin:10px 0}.rit331 .rt-box{border:1px solid var(--line,#ccd8e5);border-radius:10px;padding:12px;margin:10px 0;background:var(--panel2,#f3f6fa)}.rit331 .rt-risks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.rit331 .rt-risks label{display:flex;align-items:center;gap:6px}.rit331 .rt-steps{font-size:12px;color:var(--muted,#68788a)}.rit331 .rt-error{color:#b42318;font-weight:600}.rit331 .rt-info{font-size:12px;color:var(--muted,#667)}.rit331 .rt-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.rit331 table{width:100%;border-collapse:collapse}.rit331 th,.rit331 td{padding:7px;border-bottom:1px solid var(--line,#ddd);text-align:left}@media(max-width:760px){.rit331 .rt-grid,.rit331 .rt-grid3,.rit331 .rt-risks{grid-template-columns:1fr}}';
+ e.textContent+=".rit331 .rt-grid>label,.rit331 .rt-grid3>label{min-width:0;width:100%;overflow:visible}\n.rit331 label:has(input[type=\"date\"]){min-width:0;max-width:100%;position:relative}\n.rit331 input[type=\"date\"]{display:block;box-sizing:border-box;width:100%!important;min-width:0!important;max-width:100%!important;max-height:44px;appearance:auto;-webkit-appearance:auto;padding:6px 10px!important;line-height:1.35;overflow:hidden}\n.rit331 input[type=\"date\"]::-webkit-calendar-picker-indicator{position:static!important;float:none!important;display:inline-block!important;margin:0 0 0 3px!important;padding:2px!important;width:18px!important;height:18px!important;cursor:pointer;opacity:1}\n.rit331 input[type=\"date\"]::-webkit-datetime-edit{min-width:0;padding:0}\n.rit331 .rt-delete{background:#c72c3c!important;border-color:#b42330!important}\n.rit331 #rt-history-list{max-width:100%;overflow-x:auto}\n@media(max-width:760px){.rit331{padding:12px;margin:10px 0 100px;min-width:0;overflow:visible}.rit331 .rt-box{padding:12px;min-width:0}.rit331 .rt-grid,.rit331 .rt-grid3{grid-template-columns:minmax(0,1fr)}.rit331 .rt-bar{gap:8px}.rit331 .rt-row{gap:6px}.rit331 input[type=\"date\"]{font-size:16px!important;padding-right:10px!important}.rit331 #rt-history-list table{min-width:590px}}\n";
  document.head.appendChild(e);
 }
 function field(label,key,type="text",extra=""){
@@ -125,7 +126,7 @@ async function history(){
  if(!db()){el.textContent="No hay conexión a Supabase.";return;}
  const {data,error}=await db().from("rit_reuniones").select("id,fecha,turno,supervisor,area,estado").order("fecha",{ascending:false}).limit(100);
  if(error){el.textContent=error.message;return;}
- el.innerHTML='<table><thead><tr><th>Fecha</th><th>Turno</th><th>Supervisor</th><th>Área</th><th>Estado</th><th>Acción</th></tr></thead><tbody>'+(data||[]).map(r=>'<tr><td>'+esc(r.fecha)+'</td><td>'+esc(r.turno)+'</td><td>'+esc(r.supervisor)+'</td><td>'+esc(r.area)+'</td><td>'+esc(r.estado)+'</td><td>'+(r.estado==="borrador"?'<button data-open="'+esc(r.id)+'">Editar</button>':('<button data-pdf="'+esc(r.id)+'">PDF</button>')+' <button data-copy="'+esc(r.id)+'">Duplicar</button>')+'</td></tr>').join("")+'</tbody></table>';
+ el.innerHTML='<table><thead><tr><th>Fecha</th><th>Turno</th><th>Supervisor</th><th>Área</th><th>Estado</th><th>Acción</th></tr></thead><tbody>'+(data||[]).map(r=>'<tr><td>'+esc(r.fecha)+'</td><td>'+esc(r.turno)+'</td><td>'+esc(r.supervisor)+'</td><td>'+esc(r.area)+'</td><td>'+esc(r.estado)+'</td><td>'+(r.estado==="borrador"?'<button data-open="'+esc(r.id)+'">Editar</button>':('<button data-pdf="'+esc(r.id)+'">PDF</button>')+' <button data-delete="'+esc(r.id)+'" class="rt-delete">Eliminar</button>')+'</td></tr>').join("")+'</tbody></table>';
 }
 async function open(id){
  const {data,error}=await db().from("rit_reuniones").select("*").eq("id",id).single();
@@ -168,6 +169,18 @@ function change(e){
  if(t.dataset.analysis){const [i,j]=t.dataset.analysis.split(":").map(Number);record.actividades[i].riesgos[j][t.dataset.key]=t.value;return;}
  if(t.dataset.list){const [name,index,key]=t.dataset.list.split(":");record[name][index]??={};record[name][index][key]=t.value;}
 }
+async function deleteRIT(id){
+ if(!db())return;
+ // Solo se elimina el registro elegido; exige confirmación explícita.
+ if(!window.confirm("¿Eliminar permanentemente este RIT? La operación no se puede deshacer."))return;
+ const {data,error}=await db().from("rit_reuniones").delete().eq("id",id).select("id");
+ const panel=document.getElementById("rt-history-list");
+ if(error){window.toast?.(error.message||"No se pudo eliminar.","error");if(panel)panel.insertAdjacentHTML("afterbegin",'<p class="rt-error">'+esc(error.message)+'</p>');return;}
+ if(!data?.length){window.toast?.("No tiene permiso para eliminar este RIT.","error");return;}
+ if(record.id===id)record=initial();
+ await history();
+ window.toast?.("RIT eliminado correctamente.","success");
+}
 async function duplicate(id){
  if(!db())return;
  const {data,error}=await db().from("rit_reuniones").select("*").eq("id",id).single();
@@ -198,7 +211,7 @@ function click(e){
  const t=e.target.closest("button");if(!t||!document.getElementById("rit-r331")?.contains(t))return;
  if(t.dataset.open){open(t.dataset.open);return;}
  if(t.dataset.pdf){exportPDF(t.dataset.pdf);return;}
- if(t.dataset.copy){duplicate(t.dataset.copy);return;}
+ if(t.dataset.delete){deleteRIT(t.dataset.delete);return;}
  if(t.dataset.remove!==undefined){if(record.actividades.length===1){message("Debe mantener al menos una actividad.",true);return;}record.actividades.splice(Number(t.dataset.remove),1);render();return;}
  if(t.dataset.addrisk!==undefined){
   const risks=record.actividades[Number(t.dataset.addrisk)].riesgos;
