@@ -14,6 +14,8 @@ function mount(){
  if(!document.getElementById('r354-css')){
   const s=document.createElement('style');s.id='r354-css';s.textContent=[
   '#page-boletas-rendir{padding:22px;box-sizing:border-box;max-width:100%;min-width:0}',
+  '.nav button[data-page="boletas-rendir"]:not(.active){opacity:1!important;pointer-events:auto!important;cursor:pointer!important;color:inherit!important;filter:none!important}',
+  '.nav button[data-page="boletas-rendir"].active{opacity:1!important;pointer-events:auto!important;cursor:pointer!important}',
   '#page-boletas-rendir .r354-head{font-size:26px;font-weight:750;margin:0;color:var(--text,#17334d)}',
   '#page-boletas-rendir .r354-muted{color:var(--muted,#586c80);font-size:13px;margin:7px 0 15px}',
   '#page-boletas-rendir .r354-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}',
@@ -59,6 +61,11 @@ function mount(){
   if(btn.hidden)btn.hidden=false;
   if(btn.style.display==='none')btn.style.removeProperty('display');
   if(btn.getAttribute('aria-hidden')==='true')btn.setAttribute('aria-hidden','false');
+  if(btn.disabled)btn.disabled=false;
+  if(btn.getAttribute('aria-disabled')==='true')btn.setAttribute('aria-disabled','false');
+  if(btn.hasAttribute('inert'))btn.removeAttribute('inert');
+  if(btn.style.pointerEvents==='none')btn.style.removeProperty('pointer-events');
+  if(btn.style.opacity==='0.5'||btn.style.opacity==='0.4')btn.style.removeProperty('opacity');
  });
  return true;
 }
@@ -196,12 +203,19 @@ function install(){
  // Reponer sólo el enlace de menú cuando el menú legado es recreado
  // por cambios de permisos o de sesión. No reconstruir formularios.
  navObserver=new MutationObserver(records=>{
-  if(!records.some(r=>r.addedNodes.length||r.removedNodes.length))return;
-  if(navQueued)return;
+  // Los validadores de rol antiguos pueden marcar el botón como disabled
+  // después de guardar un comprobante o repintar la navegación.
+  const relevant=records.some(r=>{
+   const n=r.target;
+   return n?.closest?.('.nav')||n?.matches?.('.nav')||
+      [...r.addedNodes||[]].some(x=>x.nodeType===1&&
+         (x.matches?.('.nav,button[data-page="boletas-rendir"]')||x.querySelector?.('.nav,button[data-page="boletas-rendir"]')));
+  });
+  if(!relevant||navQueued)return;
   navQueued=true;
   requestAnimationFrame(()=>{navQueued=false;if(window.state?.session?.user)mount()});
  });
- navObserver.observe(document.body,{childList:true,subtree:true});
+ navObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','class','hidden','aria-hidden','aria-disabled','style','inert']});
 }
 window.StainherBoletasR354={install,render};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
