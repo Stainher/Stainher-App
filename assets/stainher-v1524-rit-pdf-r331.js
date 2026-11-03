@@ -68,11 +68,26 @@ async function importTemplate(file){
  await saveLocalTemplate(bytes);
  return true;
 }
+async function bundledTemplate(){
+ let encoded="";
+ for(let i=0;i<15;i++){
+  const name="r331-part-"+String(i).padStart(2,"0")+".txt";
+  const response=await fetch("assets/rit-template/"+name,{cache:"force-cache"});
+  if(!response.ok)throw Error("Falta el fragmento "+name+" de la plantilla oficial.");
+  let part=(await response.text()).trim();
+  if(i>=4)part=part.split("").reverse().join("");
+  encoded+=part;
+ }
+ const binary=atob(encoded),bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return checkTemplate(bytes.buffer);
+}
 async function getTemplate(){
  try{
   const response=await fetch(TEMPLATE,{cache:"no-store"});
   if(response.ok)return await checkTemplate(await response.arrayBuffer());
  }catch(_){ /* Branch without installed static template: read saved local original. */ }
+ try{return await bundledTemplate()}catch(error){console.warn("[Stainher RIT] Plantilla empaquetada no disponible:",error?.message)}
  const local=await readLocalTemplate().catch(()=>null);
  if(!local)throw Error("No se ha instalado la plantilla original de Codelco. Importe el PDF desde el apartado RIT.");
  return checkTemplate(local);
