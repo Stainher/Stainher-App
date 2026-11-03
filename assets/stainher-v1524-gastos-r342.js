@@ -12,7 +12,7 @@ let period=month(),rows=[],people=[],transfers=[],unpaidRows=[],linkedDocs=[],tr
 function style(){
 if(document.getElementById('r342-css'))return;
 const x=document.createElement('style');x.id='r342-css';x.textContent=`
-#contractContent .r342-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+#contractContent .r342-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
 #contractContent .r342-kpi{border:1px solid rgba(255,255,255,.16)!important;border-radius:12px;padding:15px 16px;min-height:86px;box-sizing:border-box;background:linear-gradient(135deg,#103b63 0%,#17598e 55%,#2276ab 100%)!important;box-shadow:0 5px 14px rgba(15,41,68,.12);color:#ffffff!important}
 #contractContent .r342-kpi small,#contractContent .r342-kpi small *{display:block;color:#eaf4ff!important;opacity:1!important;font-size:12px!important;font-weight:600!important;line-height:1.35!important;margin-bottom:7px}
 #contractContent .r342-kpi strong,#contractContent .r342-kpi strong *{display:block;color:#ffffff!important;opacity:1!important;font-size:clamp(20px,2.2vw,29px)!important;line-height:1.15!important;font-weight:800!important;font-variant-numeric:tabular-nums!important;text-shadow:0 1px 2px rgba(0,0,0,.16)}
@@ -97,16 +97,16 @@ if(!people.length){const p=await window.sb.from('perfiles').select('id,nombre').
 }
 function nextMonth(s){const [y,m]=s.split('-').map(Number);return new Date(Date.UTC(y,m,1)).toISOString().slice(0,10)}
 function totals(){
-const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.monto),0),personal:all.reduce((s,r)=>s+Math.max(0,Number(r.monto)-Number(r.reembolso_personal_monto||0)),0),finanzas:all.reduce((s,r)=>s+Math.max(0,Number(r.reembolso_personal_monto||0)-Number(r.reembolso_finanzas_monto||0)),0),codelco:all.filter(r=>r.ofertable_codelco).reduce((s,r)=>s+Number(r.monto),0)}
+const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.monto),0),personal:all.reduce((s,r)=>s+Math.max(0,Number(r.monto)-Number(r.reembolso_personal_monto||0)),0),devuelto:all.reduce((s,r)=>s+Math.min(Number(r.monto),Number(r.reembolso_personal_monto||0)),0)}
 }
 const stateText=(p,t)=>Number(p)>=Number(t)?'Completo':Number(p)>0?'Parcial':'Pendiente';
 function header(){
 const t=totals();return `<div class="r342-toolbar"><div><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label>Mes ${r345MonthSelector()}</label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
-<div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small>Pendiente al personal</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small>Pendiente con Finanzas</small><strong>${money(t.finanzas)}</strong></div><div class="r342-kpi"><small>Ofertable a Codelco</small><strong>${money(t.codelco)}</strong></div></div>
+<div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small>Pendiente al personal</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small>Devuelto al personal</small><strong>${money(t.devuelto)}</strong></div></div>
 <div class="r342-actions"><button class="btn ${subtab==='historial'?'primary':''}" data-r342="history">Historial</button><button class="btn ${subtab==='reembolsos'?'primary':''}" data-r342="reimb">Reembolsos</button></div>`}
 function history(){
-const filtered=rows.filter(r=>subtab==='historial'||(!r.anulado&&(Number(r.reembolso_personal_monto)<Number(r.monto)||Number(r.reembolso_finanzas_monto)<Number(r.reembolso_personal_monto))));
-return `<div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Tipo / detalle</th><th>Realizado por</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Personal</th><th>Finanzas</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>${filtered.map(r=>`<tr style="${r.anulado?'opacity:.5':''}"><td>${esc(r.fecha)}</td><td>${esc(r.categoria)}<br><small>${esc(r.detalle)}</small></td><td>${esc(r.realizado_por_nombre)}</td><td>${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td>${money(r.monto)}</td><td>${r.ofertable_codelco?'Sí':'No'}</td><td>${stateText(r.reembolso_personal_monto,r.monto)}<br>${money(r.reembolso_personal_monto)}</td><td>${stateText(r.reembolso_finanzas_monto,r.reembolso_personal_monto)}<br>${money(r.reembolso_finanzas_monto)}</td><td>${r.comprobante_path?'<button class="btn" data-r342="file" data-id="'+esc(r.id)+'">Ver</button>':'—'}</td><td>${isManager()&&!r.anulado?'<button class="btn" data-r342="edit" data-id="'+esc(r.id)+'">Editar</button> <button class="btn" data-r342="void" data-id="'+esc(r.id)+'">Anular</button>':r.anulado?'Anulado':'—'}</td></tr>`).join('')||'<tr><td colspan="10">Sin gastos para el período seleccionado.</td></tr>'}</tbody></table></div>`}
+const filtered=rows;
+return `<div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Tipo / detalle</th><th>Realizado por</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Devolución al personal</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>${filtered.map(r=>`<tr style="${r.anulado?'opacity:.5':''}"><td>${esc(r.fecha)}</td><td>${esc(r.categoria)}<br><small>${esc(r.detalle)}</small></td><td>${esc(r.realizado_por_nombre)}</td><td>${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td>${money(r.monto)}</td><td>${r.ofertable_codelco?'Sí':'No'}</td><td>${stateText(r.reembolso_personal_monto,r.monto)}<br>${money(r.reembolso_personal_monto)}</td><td>${r.comprobante_path?'<button class="btn" data-r342="file" data-id="'+esc(r.id)+'">Ver</button>':'—'}</td><td>${isManager()&&!r.anulado?'<button class="btn" data-r342="edit" data-id="'+esc(r.id)+'">Editar</button> <button class="btn" data-r342="void" data-id="'+esc(r.id)+'">Anular</button>':r.anulado?'Anulado':'—'}</td></tr>`).join('')||'<tr><td colspan="9">Sin gastos para el período seleccionado.</td></tr>'}</tbody></table></div>`}
 function personOptions(v){return '<option value="">Seleccionar</option>'+people.map(p=>`<option value="${esc(p.id)}" ${p.id===v?'selected':''}>${esc(p.nombre)}</option>`).join('')}
 function opt(a,v){return a.map(s=>`<option ${s===v?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}
 
@@ -177,8 +177,8 @@ function transferMarkup(){
  const selector=persons.map(([id,name])=>'<option value="'+esc(id)+'" '+(id===transferPerson?'selected':'')+'>'+esc(name)+'</option>').join('');
  const items=candidates.map(r=>'<label class="r348-item"><input type="checkbox" data-r348-check name="gastos" value="'+esc(r.id)+'"><span>'+esc(r.fecha)+' · '+esc(r.tipo_documento)+' '+esc(r.numero_documento)+'<small>'+esc(r.detalle)+'</small></span><b>'+money(r.monto)+'</b></label>').join('');
  const form=isManager()?'<form id="r348-transfer-form"><div class="r348-fields"><label>Trabajador<select class="field" id="r348-person">'+selector+'</select></label><label>Fecha de transferencia'+r345DateField('fecha_transferencia',new Date().toISOString().slice(0,10))+'</label><label>Transferido por<input class="field" name="pagado_por" value="Cristian Lagos" required></label></div><div class="r348-list">'+(items||'<div class="r342-note">No existen documentos pendientes.</div>')+'</div><div class="r348-total"><b>Total de transferencia: <span id="r348-total">$0</span></b><button type="submit" class="btn primary">Registrar transferencia</button></div></form>':'';
- const historyRows=transfers.map(t=>'<tr><td>'+esc(t.fecha)+'</td><td>'+esc(t.realizado_por_nombre)+'</td><td>'+esc(t.pagado_por)+'</td><td>'+linkedDocs.filter(r=>r.transferencia_id===t.id).map(r=>esc(r.numero_documento||r.detalle)).join(', ')+'</td><td>'+money(t.monto_total)+'</td><td>'+(t.finanzas_recuperado?'Recuperado '+esc(t.fecha_finanzas||''):isManager()?'<button type="button" class="btn" data-r342="finance" data-id="'+esc(t.id)+'">Marcar recuperado</button>':'Pendiente')+'</td></tr>').join('');
- return '<section class="r348-panel"><h3>Transferencias agrupadas</h3><p class="r342-note">Seleccione las boletas o facturas de una persona. El importe total se calcula automáticamente y cada documento puede reembolsarse una sola vez.</p>'+form+'<h3>Historial de transferencias</h3><div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Trabajador</th><th>Transferido por</th><th>Boletas y facturas</th><th>Total</th><th>Finanzas</th></tr></thead><tbody>'+(historyRows||'<tr><td colspan="6">Sin transferencias registradas.</td></tr>')+'</tbody></table></div></section>';
+ const historyRows=transfers.map(t=>'<tr><td>'+esc(t.fecha)+'</td><td>'+esc(t.realizado_por_nombre)+'</td><td>'+esc(t.pagado_por)+'</td><td>'+linkedDocs.filter(r=>r.transferencia_id===t.id).map(r=>esc(r.numero_documento||r.detalle)).join(', ')+'</td><td>'+money(t.monto_total)+'</td></tr>').join('');
+ return '<section class="r348-panel"><h3>Transferencias agrupadas</h3><p class="r342-note">Seleccione las boletas o facturas de una persona. El importe total se calcula automáticamente y cada documento puede reembolsarse una sola vez.</p>'+form+'<h3>Historial de transferencias</h3><div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Trabajador</th><th>Transferido por</th><th>Boletas y facturas</th><th>Total devuelto</th></tr></thead><tbody>'+(historyRows||'<tr><td colspan="5">Sin transferencias registradas.</td></tr>')+'</tbody></table></div></section>';
 }
 function transferTotal(){
  const el=document.getElementById('r348-total'),form=document.getElementById('r348-transfer-form');
@@ -233,21 +233,13 @@ if(cmd==='new'){if(!isManager())return;editing=true;document.getElementById('r34
 if(cmd==='edit'&&r){editing=r;document.getElementById('r342-body').innerHTML=form(r);document.getElementById('r342-form').onsubmit=save}
 if(cmd==='cancel'){editing=null;render()}
 if(cmd==='history'||cmd==='reimb'){subtab=cmd==='history'?'historial':'reembolsos';editing=null;render()}
-if(cmd==='finance'&&isManager()){
- const t=transfers.find(v=>v.id===id);if(!t||t.finanzas_recuperado)return;
- const today=new Date().toISOString().slice(0,10);
- if(!confirm('¿Confirmar reembolso de Finanzas por '+money(t.monto_total)+' con fecha '+today+'?'))return;
- const result=await window.sb.rpc('registrar_recuperacion_finanzas_r348',{p_transferencia:id,p_fecha:today});
- if(result.error)return window.toast?.(result.error.message,'error');
- window.toast?.('Reembolso de Finanzas registrado.','success');await render();return;
-}
 if(cmd==='file'&&r?.comprobante_path){const q=await window.sb.storage.from(BUCKET).createSignedUrl(r.comprobante_path,60);if(q.error)return window.toast?.(q.error.message,'error');window.open(q.data.signedUrl,'_blank','noopener')}
 if(cmd==='void'&&r&&isManager()){if(r.transferencia_id)return window.toast?.('El gasto está vinculado a una transferencia y no puede anularse.','error');const reason=prompt('Motivo de anulación (el historial se conserva):');if(!reason?.trim())return;const q=await window.sb.from(TABLE).update({anulado:true,motivo_anulacion:reason.trim()}).eq('id',r.id);if(q.error)return window.toast?.(q.error.message,'error');render()}
 if(cmd==='pdf')report();
 }
 async function report(){
  const current=rows.filter(r=>!r.anulado);
- const totals=(()=>{const sum=key=>current.reduce((s,r)=>s+Number(r[key]||0),0);return {total:sum('monto'),personal:current.reduce((s,r)=>s+Math.max(0,Number(r.monto)-Number(r.reembolso_personal_monto||0)),0),finanzas:current.reduce((s,r)=>s+Math.max(0,Number(r.reembolso_personal_monto||0)-Number(r.reembolso_finanzas_monto||0)),0),codelco:current.filter(r=>r.ofertable_codelco).reduce((s,r)=>s+Number(r.monto),0)}})();
+ const totals=(()=>{const sum=key=>current.reduce((s,r)=>s+Number(r[key]||0),0);return {total:sum('monto'),personal:current.reduce((s,r)=>s+Math.max(0,Number(r.monto)-Number(r.reembolso_personal_monto||0)),0),devuelto:sum('reembolso_personal_monto')}})();
  try{
   if(!window.PDFLib){
    await new Promise((resolve,reject)=>{const e=document.createElement('script');e.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';e.onload=resolve;e.onerror=()=>reject(Error('Motor PDF no disponible'));document.head.appendChild(e)})
@@ -314,10 +306,9 @@ async function report(){
   newPage();
   section('Resumen económico');
   const kpis=[
-   ['Total de gastos',totals.total],['Pendiente al personal',totals.personal],
-   ['Pendiente con Finanzas',totals.finanzas],['Ofertable a Codelco',totals.codelco]
+   ['Total de gastos',totals.total],['Devuelto al personal',totals.devuelto],['Pendiente al personal',totals.personal]
   ];
-  const cardW=(usable-27)/4;
+  const cardW=(usable-18)/3;
   kpis.forEach(([title,value],i)=>{
    const x=L+i*(cardW+9);
    page.drawRectangle({x,y:y-57,width:cardW,height:57,color:stripe,borderColor:line,borderWidth:.5});
@@ -339,12 +330,12 @@ if(transferReport.error)throw transferReport.error;
 const grouped=transferReport.data||[];
 let linked=[];
 if(grouped.length){const docs=await window.sb.from(TABLE).select('transferencia_id,numero_documento,detalle').in('transferencia_id',grouped.map(t=>t.id)).limit(500);if(docs.error)throw docs.error;linked=docs.data||[];}
-section('Transferencias agrupadas y regularizacion con Finanzas');
-table(['Fecha','Trabajador','Transferido por','Boletas y facturas','Total CLP','Finanzas'],
- [77,132,130,214,107,usable-660],grouped,t=>[
+section('Transferencias y devoluciones al personal');
+table(['Fecha','Trabajador','Transferido por','Boletas y facturas','Total devuelto CLP'],
+ [83,145,140,260,usable-628],grouped,t=>[
  CL(t.fecha),t.realizado_por_nombre,t.pagado_por,
  linked.filter(d=>d.transferencia_id===t.id).map(d=>d.numero_documento||d.detalle).join(', '),
- money(t.monto_total),t.finanzas_recuperado?'Recuperado':'Pendiente'
+ money(t.monto_total)
 ]);
   pages.forEach((p,i)=>{
    p.drawLine({start:{x:L,y:34},end:{x:W-R,y:34},thickness:.5,color:line});
