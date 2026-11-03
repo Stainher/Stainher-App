@@ -10,7 +10,7 @@ assert.match(source,/color:slate/);
 assert.match(source,/color:stripe/);
 assert.match(source,/Sin gastos registrados para el periodo seleccionado/);
 assert.match(source,/Distribución por categoría/);
-assert.match(source,/Transferencias agrupadas y regularizacion con Finanzas/);
+assert.match(source,/Transferencias y devoluciones al personal/);
 assert.match(source,/pages\.forEach/);
 assert.match(source,/doc\.save\(\)/);
 assert.match(source,/\['Total de gastos',totals\.total\]/);
