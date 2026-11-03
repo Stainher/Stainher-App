@@ -58,7 +58,7 @@ const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.
 }
 const stateText=(p,t)=>Number(p)>=Number(t)?'Completo':Number(p)>0?'Parcial':'Pendiente';
 function header(){
-const t=totals();return `<div class="r342-toolbar"><div><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label>Mes <input class="field" id="r342-period" type="month" value="${esc(period)}"></label><button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button><button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
+const t=totals();return `<div class="r342-toolbar"><div><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label>Mes <input class="field" id="r342-period" type="month" value="${esc(period)}"></label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
 <div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small>Pendiente al personal</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small>Pendiente con Finanzas</small><strong>${money(t.finanzas)}</strong></div><div class="r342-kpi"><small>Ofertable a Codelco</small><strong>${money(t.codelco)}</strong></div></div>
 <div class="r342-actions"><button class="btn ${subtab==='historial'?'primary':''}" data-r342="history">Historial</button><button class="btn ${subtab==='reembolsos'?'primary':''}" data-r342="reimb">Reembolsos</button></div>`}
 function history(){
@@ -123,10 +123,43 @@ if(cmd==='file'&&r?.comprobante_path){const q=await window.sb.storage.from(BUCKE
 if(cmd==='void'&&r&&isManager()){const reason=prompt('Motivo de anulación (el historial se conserva):');if(!reason?.trim())return;const q=await window.sb.from(TABLE).update({anulado:true,motivo_anulacion:reason.trim()}).eq('id',r.id);if(q.error)return window.toast?.(q.error.message,'error');render()}
 if(cmd==='pdf')report();
 }
-function report(){
-const t=totals(),data=rows.filter(r=>!r.anulado),categories={};data.forEach(r=>categories[r.categoria]=(categories[r.categoria]||0)+Number(r.monto));
-const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>STAINHER_GASTOS_${period}.pdf</title><style>body{font-family:Arial,sans-serif;color:#172b42;padding:25px}h1{color:#174d81}table{border-collapse:collapse;width:100%;font-size:10px}th,td{border:1px solid #cbd5df;padding:7px;text-align:left}th{background:#dce8f4}@page{size:A4 landscape;margin:12mm}</style></head><body><h1>STAINHER · Informe de Gastos Operacionales</h1><p>Contrato 4600029879 · División Andina · Período ${esc(period)}</p><p><b>Total:</b> ${money(t.total)} · <b>Pendiente personal:</b> ${money(t.personal)} · <b>Pendiente Finanzas:</b> ${money(t.finanzas)} · <b>Ofertable Codelco:</b> ${money(t.codelco)}</p><h3>Por categoría</h3><p>${Object.entries(categories).map(([k,v])=>esc(k)+': '+money(v)).join(' · ')}</p><h3>Detalle</h3><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Detalle</th><th>Trabajador</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Personal</th><th>Finanzas</th></tr></thead><tbody>${data.map(r=>`<tr><td>${esc(r.fecha)}</td><td>${esc(r.categoria)}</td><td>${esc(r.detalle)}</td><td>${esc(r.realizado_por_nombre)}</td><td>${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td>${money(r.monto)}</td><td>${r.ofertable_codelco?esc(r.estado_codelco):'No'}</td><td>${money(r.reembolso_personal_monto)}</td><td>${money(r.reembolso_finanzas_monto)}</td></tr>`).join('')}</tbody></table><p>Informe generado desde Stainher App. Los comprobantes se consultan de forma privada en cada registro.</p><script>window.onload=()=>window.print()<\/script></body></html>`;
-const w=window.open('','_blank');if(!w)return window.toast?.('Habilite ventanas emergentes para generar el PDF.','error');w.document.open();w.document.write(html);w.document.close();
+async function report(){
+const current=rows.filter(r=>!r.anulado),t=totals();
+try{
+ if(!window.PDFLib){await new Promise((resolve,reject)=>{const el=document.createElement('script');el.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';el.onload=resolve;el.onerror=()=>reject(Error('No fue posible cargar el motor PDF'));document.head.appendChild(el)})}
+ const {PDFDocument,StandardFonts,rgb}=window.PDFLib,doc=await PDFDocument.create();
+ const regular=await doc.embedFont(StandardFonts.Helvetica),bold=await doc.embedFont(StandardFonts.HelveticaBold);
+ const clean=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7e]/g,'?');
+ const text=(page,str,x,y,size=9,font=regular)=>page.drawText(clean(str).slice(0,160),{x,y,size,font,color:rgb(.1,.2,.32)});
+ let page,y,number=0;
+ function next(){
+ page=doc.addPage([841.89,595.28]);number++;y=550;
+ page.drawRectangle({x:35,y:565,width:770,height:3,color:rgb(.11,.34,.58)});
+ text(page,'STAINHER ASCENSORES  |  GASTOS OPERACIONALES',35,y,17,bold);y-=23;
+ text(page,'Contrato 4600029879 - Codelco Division Andina  |  Periodo '+period,35,y,10);y-=25;
+ }
+ next();
+ text(page,'Total '+money(t.total)+'  |  Pendiente personal '+money(t.personal)+'  |  Pendiente Finanzas '+money(t.finanzas)+'  |  Ofertable Codelco '+money(t.codelco),35,y,10,bold);y-=30;
+ const cat={};current.forEach(r=>{cat[r.categoria]=(cat[r.categoria]||0)+Number(r.monto)});
+ text(page,'DISTRIBUCION POR CATEGORIA',35,y,11,bold);y-=19;
+ for(const [k,v] of Object.entries(cat)){if(y<90)next();text(page,k+' : '+money(v),45,y,10);y-=15}
+ y-=12;text(page,'DETALLE DE GASTOS',35,y,11,bold);y-=21;
+ const widths=[65,90,184,110,95,82,80],labels=['Fecha','Categoria','Detalle','Responsable','Documento','Monto','Codelco'];
+ function heading(){let x=35;page.drawRectangle({x:35,y:y-6,width:770,height:20,color:rgb(.86,.92,.97)});for(let i=0;i<labels.length;i++){text(page,labels[i],x+4,y,8,bold);x+=widths[i]}y-=22}
+ heading();
+ for(const r of current){
+  if(y<75){next();heading()}
+  let x=35;const cells=[r.fecha,r.categoria,r.detalle,r.realizado_por_nombre,r.tipo_documento+' '+r.numero_documento,money(r.monto),r.ofertable_codelco?r.estado_codelco:'No'];
+  cells.forEach((v,i)=>{const cap=Math.max(6,Math.floor((widths[i]-6)/4.6));text(page,clean(v).slice(0,cap),x+4,y,8);x+=widths[i]});
+  y-=16;page.drawLine({start:{x:35,y:y+8},end:{x:805,y:y+8},thickness:.3,color:rgb(.8,.84,.88)});
+  if(y<75){next();heading()}
+  text(page,'Reembolso personal: '+money(r.reembolso_personal_monto)+'  |  Finanzas: '+money(r.reembolso_finanzas_monto)+'  |  Fecha: '+(r.reembolso_personal_fecha||'-'),42,y,7);y-=17;
+ }
+ const file='STAINHER_GASTOS_'+period.replace('-','_')+'.pdf',bytes=await doc.save();
+ const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=file;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+ window.toast?.('Informe PDF generado.','success');
+}catch(e){window.toast?.('No fue posible generar el PDF: '+e.message,'error')}
 }
 function install(){if(!isVisible())return;style();hooks();decorate();if(window.state?.contractTab===TAB&&!editing)render()}
 window.StainherGastosR342={install,render};
