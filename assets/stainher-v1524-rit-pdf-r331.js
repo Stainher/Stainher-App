@@ -193,7 +193,11 @@ async function buildPdf(record){
  });
  // Página 2 se conserva sin alteraciones: guía Codelco oficial.
  const output=await doc.save({useObjectStreams:false});
- const filename="RIT_"+String(record.fecha||"sin-fecha")+"_"+text(record.supervisor).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"_")+".pdf";
+ const dateParts=String(record.fecha||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+ if(!dateParts)throw Error("La fecha del RIT debe tener formato AAAA-MM-DD.");
+ const turno=text(record.turno).toUpperCase().replace(/[^A-Z0-9]/g,"");
+ if(!turno)throw Error("Seleccione el turno del RIT antes de exportar.");
+ const filename="STAINHER_RIT_"+dateParts[3]+"_"+dateParts[2]+"_"+dateParts[1]+"_TURNO_"+turno+".pdf";
  return {output,filename};
 }
 function downloadBuilt({output,filename}){
