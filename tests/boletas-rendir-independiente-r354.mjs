@@ -14,6 +14,8 @@ assert.match(src,/confirmar_reintegro_boletas_r354/);
 assert.match(src,/const manager=\(\)=>uid===ISMAEL/);
 assert.doesNotMatch(src,/data-page="contrato"/);
 assert.match(loader,/stainher-v1524-boletas-rendir-r354\.js/);
+assert.match(loader,/await refreshBoletasR354\(\)/,'Se carga en bootstrap general');
+assert.ok(loader.indexOf('await refreshBoletasR354();')<loader.indexOf('await refreshContractForecast();'),'Se inicializa antes de módulos de contrato');
 assert.match(sql,/enable row level security/);
 assert.match(sql,/public=false/);
 assert.match(sql,/Confirmación exclusiva de Ismael Gálvez/);
