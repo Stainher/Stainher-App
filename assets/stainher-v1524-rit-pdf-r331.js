@@ -7,6 +7,8 @@
 if(window.StainherRITPDF)return;
 const TEMPLATE="assets/RIT_Codelco_original.pdf";
 const PDFLIB_URL="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
+const PDFLIB_FALLBACK_URL="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js";
+const PDF_ASSET_BASE=new URL("./",document.currentScript?.src||new URL("assets/",location.href)).href;
 const RF_COORD={
  RF01:[0,0],RF02:[1,0],RF03:[2,0],RF04:[3,0],RF05:[4,0],RF07:[6,0],RF08:[7,0],
  RF09:[0,1],RF10:[1,1],RF11:[2,1],RF12:[3,1],RF13:[4,1],RF14:[5,1],RF15:[6,1],RF16:[7,1],
@@ -17,7 +19,7 @@ const cache={ready:null};
 const DB_NAME="stainher-rit-template-r331",DB_STORE="documentos",KEY="RIT_Codelco_original";
 const APPROVED_SHA256=new Set(["afa4a550b8e4fb2c0c63bcad4f18d75fb7e65ca328551f8f3f990ec3a3680717","1838c693e1d58d1a0d45e55c518bb1ee027a915596067dadda7095c196d85b20"]);
 async function verifyFingerprint(bytes){
- if(!crypto?.subtle)throw Error("El navegador no puede verificar la integridad del RIT.");
+ if(!globalThis.crypto?.subtle)throw Error("El navegador no puede verificar la integridad del RIT.");
  const digest=await crypto.subtle.digest("SHA-256",bytes);
  const hex=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
  if(!APPROVED_SHA256.has(hex))throw Error("La plantilla PDF no coincide con la versión Codelco aprobada para R331.");
@@ -68,41 +70,51 @@ async function importTemplate(file){
  await saveLocalTemplate(bytes);
  return true;
 }
+let templatePromise=null;
 async function bundledTemplate(){
- let encoded="";
- for(let i=0;i<15;i++){
+ // URLs relativas al módulo y no a la ruta actual del navegador/PWA.
+ const parts=await Promise.all(Array.from({length:15},async(_,i)=>{
   const name="r331-part-"+String(i).padStart(2,"0")+".txt";
-  const response=await fetch("assets/rit-template/"+name,{cache:"force-cache"});
-  if(!response.ok)throw Error("Falta el fragmento "+name+" de la plantilla oficial.");
-  let part=(await response.text()).trim();
-  if(i>=4)part=part.split("").reverse().join("");
-  encoded+=part;
- }
- const binary=atob(encoded),bytes=new Uint8Array(binary.length);
- for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const url=new URL("rit-template/"+name,PDF_ASSET_BASE);
+  const response=await fetch(url.href,{cache:"no-store",credentials:"same-origin"});
+  if(!response.ok)throw Error("No se pudo descargar "+name+" (HTTP "+response.status+").");
+  const raw=(await response.text()).trim();
+  if(!/^[A-Za-z0-9+/=]+$/.test(raw))throw Error("Fragmento PDF no válido: "+name);
+  return i>=4?raw.split("").reverse().join(""):raw;
+ }));
+ const encoded=parts.join("");
+ let binary;
+ try{binary=atob(encoded)}catch(_){throw Error("No se pudo reconstruir el PDF Codelco descargado.");}
+ const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
  return checkTemplate(bytes.buffer);
 }
 async function getTemplate(){
- try{
-  const response=await fetch(TEMPLATE,{cache:"no-store"});
-  if(response.ok)return await checkTemplate(await response.arrayBuffer());
- }catch(_){ /* Branch without installed static template: read saved local original. */ }
- try{return await bundledTemplate()}catch(error){console.warn("[Stainher RIT] Plantilla empaquetada no disponible:",error?.message)}
- const local=await readLocalTemplate().catch(()=>null);
- if(!local)throw Error("No se ha instalado la plantilla original de Codelco. Importe el PDF desde el apartado RIT.");
- return checkTemplate(local);
+ if(!templatePromise)templatePromise=(async()=>{
+  let bundledError;
+  try{return await bundledTemplate()}catch(error){bundledError=error;console.warn("[Stainher RIT] Falló PDF integrado:",error);}
+  const local=await readLocalTemplate().catch(()=>null);
+  if(local)return checkTemplate(local);
+  throw new Error("No se pudo abrir el PDF integrado en este dispositivo: "+(bundledError?.message||"Error de carga")+". Revise su conexión e intente nuevamente.");
+ })().catch(error=>{templatePromise=null;throw error});
+ return templatePromise;
 }
-async function hasTemplate(){
- try{await getTemplate();return true}catch(_){return false}
-}
+async function hasTemplate(){try{await getTemplate();return true}catch(error){console.warn("[Stainher RIT] Verificación de plantilla:",error);return false}}
 async function library(){
  if(window.PDFLib)return window.PDFLib;
  if(!cache.ready)cache.ready=new Promise((resolve,reject)=>{
-  const el=document.createElement("script");el.src=PDFLIB_URL;el.crossOrigin="anonymous";
-  el.onload=()=>window.PDFLib?resolve(window.PDFLib):reject(Error("pdf-lib no disponible"));
-  el.onerror=()=>reject(Error("No se pudo cargar el motor de PDF"));
-  document.head.appendChild(el);
- });
+  const sources=[PDFLIB_URL,PDFLIB_FALLBACK_URL];
+  let index=0;
+  const next=()=>{
+   if(window.PDFLib)return resolve(window.PDFLib);
+   if(index>=sources.length)return reject(Error("No se pudo cargar el motor PDF en este dispositivo."));
+   const el=document.createElement("script");
+   el.src=sources[index++];el.crossOrigin="anonymous";el.async=true;
+   el.onload=()=>window.PDFLib?resolve(window.PDFLib):next();
+   el.onerror=()=>next();
+   document.head.appendChild(el);
+  };
+  next();
+ }).catch(error=>{cache.ready=null;throw error});
  return cache.ready;
 }
 function text(value){return String(value??"").trim().replace(/[\u0000-\u001f]/g," ");}
