@@ -71,6 +71,18 @@ async function load(){
 if(!window.sb)throw Error('Conexión Supabase no disponible');
 const a=await window.sb.from(TABLE).select('*').gte('fecha',period+'-01').lt('fecha',nextMonth(period)).order('fecha',{ascending:false});
 if(a.error)throw a.error;rows=a.data||[];
+if(subtab==='reembolsos'){
+ const t=await window.sb.from('gastos_transferencias_r348').select('*').order('fecha',{ascending:false}).limit(200);
+ if(t.error)throw t.error;transfers=t.data||[];
+ const u=await window.sb.from(TABLE).select('*').eq('anulado',false).is('transferencia_id',null).eq('reembolso_personal_monto',0).order('fecha',{ascending:false}).limit(500);
+ if(u.error)throw u.error;unpaidRows=u.data||[];
+ if(!unpaidRows.some(x=>x.realizado_por===transferPerson))transferPerson=unpaidRows[0]?.realizado_por||'';
+ linkedDocs=[];
+ if(transfers.length){
+  const d=await window.sb.from(TABLE).select('id,transferencia_id,numero_documento,detalle').in('transferencia_id',transfers.map(x=>x.id)).limit(500);
+  if(d.error)throw d.error;linkedDocs=d.data||[];
+ }
+}
 if(!people.length){const p=await window.sb.from('perfiles').select('id,nombre').eq('activo',true).order('nombre');if(!p.error)people=p.data||[]}
 }
 function nextMonth(s){const [y,m]=s.split('-').map(Number);return new Date(Date.UTC(y,m,1)).toISOString().slice(0,10)}
