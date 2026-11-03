@@ -102,7 +102,24 @@ function makeWriter(page,font){
   page.drawText(v,{x,y:height-top-current,size:current,font,color:{type:"RGB",red:0.07,green:0.33,blue:0.73}});
  };
  const cross=(x,top)=>{page.drawLine({start:{x:x+1,y:height-top-2},end:{x:x+7,y:height-top-8},thickness:1.4,color:{type:"RGB",red:0.05,green:0.25,blue:0.65}});page.drawLine({start:{x:x+7,y:height-top-2},end:{x:x+1,y:height-top-8},thickness:1.4,color:{type:"RGB",red:0.05,green:0.25,blue:0.65}});};
- return {draw,cross};
+ const drawRows=(str,x,top,maxWidth)=>{
+  const value=text(str);if(!value)return;
+  const tokens=value.split(/\s+/);
+  for(let size=7;size>=6;size-=0.25){
+   const lines=[""];
+   for(const word of tokens){
+    const n=lines.length-1,candidate=lines[n]?lines[n]+" "+word:word;
+    if(font.widthOfTextAtSize(candidate,size)<=maxWidth)lines[n]=candidate;
+    else lines.push(word);
+   }
+   if(lines.length<=2&&lines.every(line=>font.widthOfTextAtSize(line,size)<=maxWidth)){
+    lines.forEach((line,i)=>page.drawText(line,{x,y:height-(top+i*7.4)-size,size,font,color:{type:"RGB",red:0.07,green:0.33,blue:0.73}}));
+    return;
+   }
+  }
+  throw Error("El análisis excede el espacio de dos líneas del formato Codelco: "+value.slice(0,35));
+ };
+ return {draw,drawRows,cross};
 }
 function dataCheck(r){
  if(!r||!r.fecha||!r.supervisor||!r.area)throw Error("Complete los datos generales antes de exportar.");
@@ -117,7 +134,7 @@ async function buildPdf(record){
  if(doc.getPageCount()!==2)throw Error("Plantilla no autorizada: debe conservar exactamente dos páginas.");
  const pg=doc.getPage(0),rev=doc.getPage(1);
  if(Math.abs(pg.getWidth()-1191)>3||Math.abs(pg.getHeight()-842)>3||Math.abs(rev.getWidth()-1191)>3)throw Error("Dimensiones de la plantilla RIT no coinciden con el documento original A3.");
- const font=await doc.embedFont(lib.StandardFonts.Helvetica),{draw,cross}=makeWriter(pg,font);
+ const font=await doc.embedFont(lib.StandardFonts.Helvetica),{draw,drawRows,cross}=makeWriter(pg,font);
  const blue={red:0.07,green:0.33,blue:0.73};
  // Cabecera: campo / valor dentro de celda; coordenadas sobre el PDF original.
  draw(clip(record.centro,65),145,78,8,154);
@@ -145,9 +162,9 @@ async function buildPdf(record){
   (a.riesgos||[]).forEach((r,j)=>{
    const rowY=y+j*17.4;
    draw(String(r.rf||"").replace(/^RF/i,""),301,rowY+3,7,17);
-   draw(clip(r.riesgo,90),323,rowY+3,7,165);
-   draw(clip(r.consecuencia,135),492,rowY+3,7,302);
-   draw(clip(r.controles,145),805,rowY+3,7,375);
+   drawRows(clip(r.riesgo,90),323,rowY+2,165);
+   drawRows(clip(r.consecuencia,135),492,rowY+2,302);
+   drawRows(clip(r.controles,145),805,rowY+2,375);
   });
  });
  (record.aportes||[]).slice(0,4).forEach((a,i)=>{
