@@ -50,9 +50,9 @@ return h;
 }
 function message(msg,fail=false){const e=document.getElementById("rt-message");if(e){e.textContent=msg;e.className=fail?"rt-error":"rt-info";}}
 function validate(final=false){
+ if(!final)return "";
  if(!record.fecha||!record.supervisor.trim()||!record.centro.trim()||!record.area.trim())return "Complete fecha, centro, área y supervisor.";
  if(record.participantes.length>0&&record.asistentes!==record.participantes.length)return "La cantidad debe coincidir con los asistentes seleccionados de Dotación.";
- if(!final)return "";
  if(record.riesgos.length===0)return "Seleccione los riesgos presentes del turno.";
  for(const a of record.actividades){
   if(!a.nombre.trim())return "Todas las actividades deben tener descripción.";
