@@ -95,7 +95,7 @@ if(subtab==='reembolsos'){
  if(t.error)throw t.error;transfers=t.data||[];
  const u=await window.sb.from(TABLE).select('*').eq('anulado',false).is('transferencia_id',null).eq('reembolso_personal_monto',0).order('fecha',{ascending:false}).limit(500);
  if(u.error)throw u.error;unpaidRows=u.data||[];
- if(!unpaidRows.some(x=>x.realizado_por===transferPerson))transferPerson=unpaidRows[0]?.realizado_por||'';
+ if(!unpaidRows.some(x=>(x.realizado_por||'externo:'+x.realizado_por_nombre.toLocaleLowerCase('es-CL'))===transferPerson))transferPerson=unpaidRows[0]?(unpaidRows[0].realizado_por||'externo:'+unpaidRows[0].realizado_por_nombre.toLocaleLowerCase('es-CL')):'';
  linkedDocs=[];
  if(transfers.length){
   const d=await window.sb.from(TABLE).select('id,transferencia_id,numero_documento,detalle').in('transferencia_id',transfers.map(x=>x.id)).limit(500);
@@ -172,7 +172,7 @@ const d=r.fecha||new Date().toLocaleDateString('en-CA');return `<h3>${r.id?'Edit
 <label class="wide">Detalle<textarea class="field" name="detalle" maxlength="1000" required>${esc(r.detalle||'')}</textarea></label>
 <label>Tipo documento<select class="field" name="tipo_documento">${opt(['boleta','factura','otro','sin_documento'],r.tipo_documento||'boleta')}</select></label>
 <label>Número de boleta/factura<input class="field" name="numero_documento" maxlength="120" value="${esc(r.numero_documento||'')}"></label>
-<label>Realizado por<select class="field" name="realizado_por" required>${personOptions(r.realizado_por||window.state?.profile?.id)}</select></label>
+<label>Realizado por<input class="field" name="realizado_por_nombre" maxlength="160" autocomplete="off" required placeholder="Nombre de quien realizó el gasto" value="${esc(r.realizado_por_nombre||window.state?.profile?.nombre||'')}"></label>
 <label>¿Se ofertará a Codelco?<select class="field" name="ofertable_codelco"><option value="false" ${!r.ofertable_codelco?'selected':''}>No</option><option value="true" ${r.ofertable_codelco?'selected':''}>Sí</option></select></label>
 <div class="wide r342-note">Los reembolsos se registran agrupando boletas y facturas desde la pestaña Reembolsos, por su monto completo.</div>
 <label class="wide">Comprobante (JPG, PNG, WebP o PDF · máximo 10 MB)<input type="file" name="archivo" accept="image/jpeg,image/png,image/webp,application/pdf">${r.comprobante_nombre?'<small>Actual: '+esc(r.comprobante_nombre)+'</small>':''}</label>
@@ -181,8 +181,8 @@ const d=r.fecha||new Date().toLocaleDateString('en-CA');return `<h3>${r.id?'Edit
 </form>`}
 
 function transferMarkup(){
- const persons=[...new Map(unpaidRows.map(r=>[r.realizado_por,r.realizado_por_nombre])).entries()];
- const candidates=unpaidRows.filter(r=>r.realizado_por===transferPerson);
+ const persons=[...new Map(unpaidRows.map(r=>[r.realizado_por||'externo:'+r.realizado_por_nombre.toLocaleLowerCase('es-CL'),r.realizado_por_nombre])).entries()];
+ const candidates=unpaidRows.filter(r=>(r.realizado_por||'externo:'+r.realizado_por_nombre.toLocaleLowerCase('es-CL'))===transferPerson);
  const selector=persons.map(([id,name])=>'<option value="'+esc(id)+'" '+(id===transferPerson?'selected':'')+'>'+esc(name)+'</option>').join('');
  const items=candidates.map(r=>'<label class="r348-item"><input type="checkbox" data-r348-check name="gastos" value="'+esc(r.id)+'"><span>'+esc(r.fecha)+' · '+esc(r.tipo_documento)+' '+esc(r.numero_documento)+'<small>'+esc(r.detalle)+'</small></span><b>'+money(r.monto)+'</b></label>').join('');
  const form=isManager()?'<form id="r348-transfer-form"><div class="r348-fields"><label>Trabajador<select class="field" id="r348-person">'+selector+'</select></label><label>Fecha de transferencia'+r345DateField('fecha_transferencia',new Date().toISOString().slice(0,10))+'</label><label>Transferido por<input class="field" name="pagado_por" value="Cristian Lagos" required></label></div><div class="r348-list">'+(items||'<div class="r342-note">No existen documentos pendientes.</div>')+'</div><div class="r348-total"><b>Total de transferencia: <span id="r348-total">$0</span></b><button type="submit" class="btn primary">Registrar transferencia</button></div></form>':'';
@@ -219,14 +219,14 @@ const formElement=host.querySelector('#r342-form');if(formElement)formElement.on
 }catch(e){host.innerHTML='<div class="r342-error">No se pudieron cargar los gastos: '+esc(e.message)+'</div>'}finally{loading=false}
 }
 async function save(e){
-e.preventDefault();const form=e.currentTarget,b=new FormData(form),file=b.get('archivo'),selected=people.find(p=>p.id===b.get('realizado_por'));
+e.preventDefault();const form=e.currentTarget,b=new FormData(form),file=b.get('archivo'),personName=String(b.get('realizado_por_nombre')||'').trim().replace(/\s+/g,' '),selected=people.find(p=>p.nombre?.toLocaleLowerCase('es-CL')===personName.toLocaleLowerCase('es-CL'));
 const amount=Number(b.get('monto')),ofertable=b.get('ofertable_codelco')==='true';
-if(!selected||!Number.isSafeInteger(amount)||amount<=0){window.toast?.('Revise montos y responsable del gasto.','error');return}
+if(!personName||personName.length>160||!Number.isSafeInteger(amount)||amount<=0){window.toast?.('Revise montos y responsable del gasto.','error');return}
 if(file&&file.size&&(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)||file.size>10485760)){window.toast?.('Comprobante no admitido o mayor a 10 MB.','error');return}
-const payload={fecha:b.get('fecha'),categoria:b.get('categoria'),detalle:String(b.get('detalle')).trim(),monto:amount,tipo_documento:b.get('tipo_documento'),numero_documento:b.get('numero_documento')||'',realizado_por:selected.id,realizado_por_nombre:selected.nombre,ofertable_codelco:ofertable,estado_codelco:ofertable?(['ofertado','recuperado'].includes(editing?.estado_codelco)?editing.estado_codelco:'pendiente'):'no_aplica',observaciones:b.get('observaciones')||'',updated_at:new Date().toISOString()};
+const payload={fecha:b.get('fecha'),categoria:b.get('categoria'),detalle:String(b.get('detalle')).trim(),monto:amount,tipo_documento:b.get('tipo_documento'),numero_documento:b.get('numero_documento')||'',realizado_por:selected?.id||null,realizado_por_nombre:selected?.nombre||personName,ofertable_codelco:ofertable,estado_codelco:ofertable?(['ofertado','recuperado'].includes(editing?.estado_codelco)?editing.estado_codelco:'pendiente'):'no_aplica',observaciones:b.get('observaciones')||'',updated_at:new Date().toISOString()};
 const button=form.querySelector('[type="submit"]');button.disabled=true;
 try{
-const isEdit=editing&&editing.id;if(isEdit&&editing.transferencia_id&&(Number(editing.monto)!==amount||String(editing.realizado_por)!==selected.id))throw Error('No se puede modificar el monto o responsable de una boleta ya reembolsada.');let q=isEdit?await window.sb.from(TABLE).update(payload).eq('id',editing.id).select().single():await window.sb.from(TABLE).insert(payload).select().single();if(q.error)throw q.error;
+const isEdit=editing&&editing.id;if(isEdit&&editing.transferencia_id&&(Number(editing.monto)!==amount||String(editing.realizado_por_nombre).toLocaleLowerCase('es-CL')!==personName.toLocaleLowerCase('es-CL')))throw Error('No se puede modificar el monto o responsable de una boleta ya reembolsada.');let q=isEdit?await window.sb.from(TABLE).update(payload).eq('id',editing.id).select().single():await window.sb.from(TABLE).insert(payload).select().single();if(q.error)throw q.error;
 if(file&&file.size){const me=(await window.sb.auth.getUser()).data?.user?.id;if(!me)throw Error('Sesión expirada');
 const safeName=String(file.name).replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100);const path=q.data.id+'/'+me+'/'+Date.now()+'-'+safeName;
 const upload=await window.sb.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});if(upload.error)throw upload.error;
