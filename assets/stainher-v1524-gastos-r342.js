@@ -78,6 +78,7 @@ const d=r.fecha||new Date().toLocaleDateString('en-CA');return `<h3>${r.id?'Edit
 <label>¿Se ofertará a Codelco?<select class="field" name="ofertable_codelco"><option value="false" ${!r.ofertable_codelco?'selected':''}>No</option><option value="true" ${r.ofertable_codelco?'selected':''}>Sí</option></select></label>
 <label>Estado Codelco<select class="field" name="estado_codelco">${opt(['no_aplica','pendiente','ofertado','recuperado'],r.estado_codelco||'no_aplica')}</select></label>
 <label>Reembolso al trabajador CLP<input class="field" type="number" min="0" name="reembolso_personal_monto" value="${esc(r.reembolso_personal_monto||0)}"></label>
+<label>Medio de reembolso al trabajador<select class="field" name="medio_reembolso_personal">${opt(['pendiente','caja_chica','transferencia','efectivo','otro'],r.medio_reembolso_personal||'pendiente')}</select></label>
 <label>Fecha reembolso al trabajador<input class="field" type="date" name="reembolso_personal_fecha" value="${esc(r.reembolso_personal_fecha||'')}"></label>
 <label>Reembolsado por<input class="field" name="reembolso_personal_por" value="${esc(r.reembolso_personal_por||'Cristian Lagos')}"></label>
 <label>Recuperado de Finanzas CLP<input class="field" type="number" min="0" name="reembolso_finanzas_monto" value="${esc(r.reembolso_finanzas_monto||0)}"></label>
@@ -101,7 +102,7 @@ e.preventDefault();const form=e.currentTarget,b=new FormData(form),file=b.get('a
 const amount=Number(b.get('monto')),personal=Number(b.get('reembolso_personal_monto')||0),finanzas=Number(b.get('reembolso_finanzas_monto')||0),ofertable=b.get('ofertable_codelco')==='true';
 if(!selected||!Number.isSafeInteger(amount)||amount<=0||personal>amount||finanzas>personal||personal<0||finanzas<0){window.toast?.('Revise montos y responsable del gasto.','error');return}
 if(file&&file.size&&(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)||file.size>10485760)){window.toast?.('Comprobante no admitido o mayor a 10 MB.','error');return}
-const payload={fecha:b.get('fecha'),categoria:b.get('categoria'),detalle:String(b.get('detalle')).trim(),monto:amount,tipo_documento:b.get('tipo_documento'),numero_documento:b.get('numero_documento')||'',realizado_por:selected.id,realizado_por_nombre:selected.nombre,ofertable_codelco:ofertable,estado_codelco:ofertable?(b.get('estado_codelco')==='no_aplica'?'pendiente':b.get('estado_codelco')):'no_aplica',reembolso_personal_monto:personal,reembolso_personal_fecha:b.get('reembolso_personal_fecha')||null,reembolso_personal_por:b.get('reembolso_personal_por')||'',reembolso_finanzas_monto:finanzas,reembolso_finanzas_fecha:b.get('reembolso_finanzas_fecha')||null,reembolso_finanzas_referencia:b.get('reembolso_finanzas_referencia')||'',observaciones:b.get('observaciones')||'',updated_at:new Date().toISOString()};
+const payload={fecha:b.get('fecha'),categoria:b.get('categoria'),detalle:String(b.get('detalle')).trim(),monto:amount,tipo_documento:b.get('tipo_documento'),numero_documento:b.get('numero_documento')||'',realizado_por:selected.id,realizado_por_nombre:selected.nombre,ofertable_codelco:ofertable,estado_codelco:ofertable?(b.get('estado_codelco')==='no_aplica'?'pendiente':b.get('estado_codelco')):'no_aplica',reembolso_personal_monto:personal,medio_reembolso_personal:b.get('medio_reembolso_personal'),reembolso_personal_fecha:b.get('reembolso_personal_fecha')||null,reembolso_personal_por:b.get('reembolso_personal_por')||'',reembolso_finanzas_monto:finanzas,reembolso_finanzas_fecha:b.get('reembolso_finanzas_fecha')||null,reembolso_finanzas_referencia:b.get('reembolso_finanzas_referencia')||'',observaciones:b.get('observaciones')||'',updated_at:new Date().toISOString()};
 const button=form.querySelector('[type="submit"]');button.disabled=true;
 try{
 const isEdit=editing&&editing.id;let q=isEdit?await window.sb.from(TABLE).update(payload).eq('id',editing.id).select().single():await window.sb.from(TABLE).insert(payload).select().single();if(q.error)throw q.error;
@@ -153,7 +154,7 @@ try{
   cells.forEach((v,i)=>{const cap=Math.max(6,Math.floor((widths[i]-6)/4.6));text(page,clean(v).slice(0,cap),x+4,y,8);x+=widths[i]});
   y-=16;page.drawLine({start:{x:35,y:y+8},end:{x:805,y:y+8},thickness:.3,color:rgb(.8,.84,.88)});
   if(y<75){next();heading()}
-  text(page,'Reembolso personal: '+money(r.reembolso_personal_monto)+'  |  Finanzas: '+money(r.reembolso_finanzas_monto)+'  |  Fecha: '+(r.reembolso_personal_fecha||'-'),42,y,7);y-=17;
+  text(page,'Reembolso personal: '+money(r.reembolso_personal_monto)+'  |  Medio: '+(r.medio_reembolso_personal||'-')+'  |  Finanzas: '+money(r.reembolso_finanzas_monto)+'  |  Fecha: '+(r.reembolso_personal_fecha||'-'),42,y,7);y-=17;
  }
  const file='STAINHER_GASTOS_'+period.replace('-','_')+'.pdf',bytes=await doc.save();
  const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');
