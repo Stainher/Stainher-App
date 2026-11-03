@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const ui=fs.readFileSync('assets/stainher-v1524-gastos-r342.js','utf8');
+const migration=fs.readFileSync('supabase/migrations/20261103195500_r351_responsable_libre.sql','utf8');
+new Function(ui);
+assert.match(ui,/name="realizado_por_nombre"/);
+assert.doesNotMatch(ui,/name="realizado_por"/);
+assert.match(ui,/realizado_por:selected\?\.id\|\|null/);
+assert.match(ui,/realizado_por_nombre:selected\?\.nombre\|\|personName/);
+assert.match(ui,/externo:/);
+assert.match(ui,/transferMarkup/);
+assert.match(migration,/alter column realizado_por drop not null/);
+assert.match(migration,/coalesce\(realizado_por::text,'externo:'/);
+assert.match(migration,/count\(distinct/);
+assert.match(migration,/security invoker/);
+console.log('R351: campo libre, identidad externa y reembolsos agrupados disponibles');
