@@ -23,6 +23,24 @@ const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r342-form label{display:grid;gap:5px;font-size:12px;color:var(--muted)}
 #contractContent .r342-form .wide{grid-column:1/-1}
 #contractContent .r342-form input,#contractContent .r342-form select,#contractContent .r342-form textarea{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+
+#contractContent .r345-date-field{display:block;position:relative;width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+#contractContent .r345-date-button{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px;width:100%!important;min-width:0!important;max-width:100%!important;min-height:44px!important;padding:10px 12px!important;box-sizing:border-box!important;text-align:left!important;white-space:normal!important;overflow:hidden!important;border:1px solid #acbfd1!important;border-radius:9px!important;background:#fff!important;color:#142d43!important;font-size:15px!important}
+#contractContent .r345-date-button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#contractContent .r345-calendar{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:10px;margin-top:5px;border:1px solid #b4cbe0;border-radius:12px;background:#f7fbff;color:#132c46;box-shadow:0 4px 12px rgba(14,42,72,.12);overflow:hidden}
+#contractContent .r345-calendar-head{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;align-items:center;gap:5px;margin-bottom:9px}
+#contractContent .r345-calendar-head strong{text-align:center;font-size:14px;color:#15395e;min-width:0}
+#contractContent .r345-calendar-head button,#contractContent .r345-calendar-days button{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;color:#15395e!important;border:1px solid transparent!important;background:transparent!important;border-radius:7px!important;box-shadow:none!important;padding:0!important}
+#contractContent .r345-calendar-head button{height:36px!important;background:#e5f0fa!important}
+#contractContent .r345-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;max-width:100%;min-width:0}
+#contractContent .r345-calendar-days span{font-size:11px;text-align:center;color:#536d83;padding:7px 0}
+#contractContent .r345-calendar-days button{height:37px!important;font-size:13px!important}
+#contractContent .r345-calendar-days button[data-selected="1"]{background:#155b96!important;color:white!important}
+#contractContent .r345-calendar-days button:not([data-selected="1"]):hover{background:#e0edf9!important}
+#contractContent .r345-calendar-clear{margin-top:6px;min-height:36px}
+#contractContent .r345-period{display:grid;grid-template-columns:minmax(0,1fr) 94px;gap:7px;width:100%;max-width:340px;min-width:0}
+#contractContent .r345-period select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:#fff;color:#16324c}
+@media(max-width:900px){#contractContent .r342-toolbar>label{width:100%;min-width:0}#contractContent .r345-period{max-width:100%}#contractContent .r342-form label{min-width:0;max-width:100%;box-sizing:border-box}#contractContent .r345-calendar{padding:7px}#contractContent .r345-calendar-days button{height:40px!important}}
 #contractContent .r342-table-wrap{width:100%;overflow-x:auto}
 #contractContent .r342-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 #contractContent .r342-table th,#contractContent .r342-table td{padding:9px;border-bottom:1px solid var(--line,#ccc);text-align:left}
@@ -61,7 +79,7 @@ const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.
 }
 const stateText=(p,t)=>Number(p)>=Number(t)?'Completo':Number(p)>0?'Parcial':'Pendiente';
 function header(){
-const t=totals();return `<div class="r342-toolbar"><div><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label>Mes <input class="field" id="r342-period" type="month" value="${esc(period)}"></label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
+const t=totals();return `<div class="r342-toolbar"><div><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label>Mes ${r345MonthSelector()}</label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
 <div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small>Pendiente al personal</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small>Pendiente con Finanzas</small><strong>${money(t.finanzas)}</strong></div><div class="r342-kpi"><small>Ofertable a Codelco</small><strong>${money(t.codelco)}</strong></div></div>
 <div class="r342-actions"><button class="btn ${subtab==='historial'?'primary':''}" data-r342="history">Historial</button><button class="btn ${subtab==='reembolsos'?'primary':''}" data-r342="reimb">Reembolsos</button></div>`}
 function history(){
@@ -69,9 +87,55 @@ const filtered=rows.filter(r=>subtab==='historial'||(!r.anulado&&(Number(r.reemb
 return `<div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Tipo / detalle</th><th>Realizado por</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Personal</th><th>Finanzas</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>${filtered.map(r=>`<tr style="${r.anulado?'opacity:.5':''}"><td>${esc(r.fecha)}</td><td>${esc(r.categoria)}<br><small>${esc(r.detalle)}</small></td><td>${esc(r.realizado_por_nombre)}</td><td>${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td>${money(r.monto)}</td><td>${r.ofertable_codelco?esc(r.estado_codelco):'No'}</td><td>${stateText(r.reembolso_personal_monto,r.monto)}<br>${money(r.reembolso_personal_monto)}</td><td>${stateText(r.reembolso_finanzas_monto,r.reembolso_personal_monto)}<br>${money(r.reembolso_finanzas_monto)}</td><td>${r.comprobante_path?'<button class="btn" data-r342="file" data-id="'+esc(r.id)+'">Ver</button>':'—'}</td><td>${isManager()&&!r.anulado?'<button class="btn" data-r342="edit" data-id="'+esc(r.id)+'">Editar</button> <button class="btn" data-r342="void" data-id="'+esc(r.id)+'">Anular</button>':r.anulado?'Anulado':'—'}</td></tr>`).join('')||'<tr><td colspan="10">Sin gastos para el período seleccionado.</td></tr>'}</tbody></table></div>`}
 function personOptions(v){return '<option value="">Seleccionar</option>'+people.map(p=>`<option value="${esc(p.id)}" ${p.id===v?'selected':''}>${esc(p.nombre)}</option>`).join('')}
 function opt(a,v){return a.map(s=>`<option ${s===v?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}
+
+const r345Months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const r345DateCL=v=>/^\\d{4}-\\d{2}-\\d{2}$/.test(String(v||''))?v.slice(8,10)+'-'+v.slice(5,7)+'-'+v.slice(0,4):'Seleccionar fecha';
+function r345DateField(name,value){
+return `<div class="r345-date-field" data-r345-field="${esc(name)}"><input type="hidden" name="${esc(name)}" value="${esc(value||'')}"><button class="r345-date-button" type="button" data-r345-open="${esc(name)}" aria-label="Seleccionar fecha" aria-expanded="false"><span data-r345-label>${esc(r345DateCL(value))}</span><span aria-hidden="true">▦</span></button><div data-r345-panel hidden></div></div>`;
+}
+function r345CalendarMarkup(field,monthValue){
+const value=field.querySelector('input[type="hidden"]').value;
+const [year,monthNumber]=monthValue.split('-').map(Number);
+const offset=(new Date(Date.UTC(year,monthNumber-1,1)).getUTCDay()+6)%7;
+const days=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
+const heading=new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(year,monthNumber-1,1)));
+let buttons=['L','M','M','J','V','S','D'].map(d=>'<span>'+d+'</span>').join('');
+for(let i=0;i<offset;i++)buttons+='<span aria-hidden="true"></span>';
+for(let day=1;day<=days;day++){
+const date=monthValue+'-'+String(day).padStart(2,'0');
+buttons+=`<button type="button" data-r345-day="${date}" data-selected="${date===value?'1':'0'}" aria-label="${date}">${day}</button>`;
+}
+return `<div class="r345-calendar" role="group" aria-label="Calendario de fecha"><div class="r345-calendar-head"><button type="button" data-r345-shift="-1" aria-label="Mes anterior">‹</button><strong>${esc(heading)}</strong><button type="button" data-r345-shift="1" aria-label="Mes siguiente">›</button></div><div class="r345-calendar-days">${buttons}</div><button class="btn r345-calendar-clear" type="button" data-r345-clear="1">Limpiar fecha</button></div>`;
+}
+function r345CalendarAction(e){
+const b=e.target.closest('[data-r345-open],[data-r345-shift],[data-r345-day],[data-r345-clear]');
+if(!b)return false;
+const field=b.closest('[data-r345-field]');if(!field)return false;
+const panel=field.querySelector('[data-r345-panel]'),input=field.querySelector('input[type="hidden"]');
+if(b.dataset.r345Open!==undefined){
+const wasOpen=!panel.hidden;
+document.querySelectorAll('#r342-form [data-r345-panel]').forEach(p=>{p.hidden=true;p.previousElementSibling?.setAttribute('aria-expanded','false')});
+if(!wasOpen){panel.hidden=false;panel.dataset.r345Month=(input.value||new Date().toLocaleDateString('en-CA')).slice(0,7);panel.innerHTML=r345CalendarMarkup(field,panel.dataset.r345Month);b.setAttribute('aria-expanded','true')}
+}else if(b.dataset.r345Shift!==undefined){
+const [year,monthNumber]=panel.dataset.r345Month.split('-').map(Number);
+const shifted=new Date(Date.UTC(year,monthNumber-1+Number(b.dataset.r345Shift),1));
+panel.dataset.r345Month=shifted.toISOString().slice(0,7);
+panel.innerHTML=r345CalendarMarkup(field,panel.dataset.r345Month);
+}else{
+input.value=b.dataset.r345Clear!==undefined?'':b.dataset.r345Day;
+field.querySelector('[data-r345-label]').textContent=r345DateCL(input.value);
+panel.hidden=true;field.querySelector('[data-r345-open]').setAttribute('aria-expanded','false');
+}
+return true;
+}
+function r345MonthSelector(){
+const [year,m]=period.split('-').map(Number);
+return `<span class="r345-period"><select class="field" id="r345-period-month" aria-label="Mes">${r345Months.map((name,i)=>`<option value="${String(i+1).padStart(2,'0')}" ${i+1===m?'selected':''}>${name}</option>`).join('')}</select><select class="field" id="r345-period-year" aria-label="Año">${Array.from({length:13},(_,i)=>year-6+i).map(y=>`<option value="${y}" ${y===year?'selected':''}>${y}</option>`).join('')}</select></span>`;
+}
+
 function form(r={}){
 const d=r.fecha||new Date().toLocaleDateString('en-CA');return `<h3>${r.id?'Editar':'Registrar'} gasto</h3><form id="r342-form" class="r342-form">
-<label>Fecha del gasto<input class="field" type="date" name="fecha" required value="${esc(d)}"></label>
+<label>Fecha del gasto${r345DateField("fecha",d)}</label>
 <label>Tipo de gasto<select class="field" name="categoria">${opt(['Insumos y materiales','Herramientas','Movilización','Alimentación','Caja chica','Compras operacionales','Gastos administrativos','Otros'],r.categoria||'Insumos y materiales')}</select></label>
 <label>Monto CLP<input class="field" type="number" min="1" step="1" name="monto" required value="${esc(r.monto||'')}"></label>
 <label class="wide">Detalle<textarea class="field" name="detalle" maxlength="1000" required>${esc(r.detalle||'')}</textarea></label>
@@ -82,10 +146,10 @@ const d=r.fecha||new Date().toLocaleDateString('en-CA');return `<h3>${r.id?'Edit
 <label>Estado Codelco<select class="field" name="estado_codelco">${opt(['no_aplica','pendiente','ofertado','recuperado'],r.estado_codelco||'no_aplica')}</select></label>
 <label>Reembolso al trabajador CLP<input class="field" type="number" min="0" name="reembolso_personal_monto" value="${esc(r.reembolso_personal_monto||0)}"></label>
 <label>Medio de reembolso al trabajador<select class="field" name="medio_reembolso_personal">${opt(['pendiente','caja_chica','transferencia','efectivo','otro'],r.medio_reembolso_personal||'pendiente')}</select></label>
-<label>Fecha reembolso al trabajador<input class="field" type="date" name="reembolso_personal_fecha" value="${esc(r.reembolso_personal_fecha||'')}"></label>
+<label>Fecha reembolso al trabajador${r345DateField("reembolso_personal_fecha",r.reembolso_personal_fecha||"")}</label>
 <label>Reembolsado por<input class="field" name="reembolso_personal_por" value="${esc(r.reembolso_personal_por||'Cristian Lagos')}"></label>
 <label>Recuperado de Finanzas CLP<input class="field" type="number" min="0" name="reembolso_finanzas_monto" value="${esc(r.reembolso_finanzas_monto||0)}"></label>
-<label>Fecha recuperación Finanzas<input class="field" type="date" name="reembolso_finanzas_fecha" value="${esc(r.reembolso_finanzas_fecha||'')}"></label>
+<label>Fecha recuperación Finanzas${r345DateField("reembolso_finanzas_fecha",r.reembolso_finanzas_fecha||"")}</label>
 <label>Referencia Finanzas<input class="field" name="reembolso_finanzas_referencia" value="${esc(r.reembolso_finanzas_referencia||'')}"></label>
 <label class="wide">Comprobante (JPG, PNG, WebP o PDF · máximo 10 MB)<input type="file" name="archivo" accept="image/jpeg,image/png,image/webp,application/pdf">${r.comprobante_nombre?'<small>Actual: '+esc(r.comprobante_nombre)+'</small>':''}</label>
 <label class="wide">Observaciones<textarea class="field" name="observaciones">${esc(r.observaciones||'')}</textarea></label>
@@ -96,7 +160,7 @@ if(window.state?.contractTab!==TAB||!isVisible())return;
 const host=document.getElementById('contractContent');if(!host||loading)return;
 loading=true;host.innerHTML='<div class="empty">Cargando gastos…</div>';style();decorate();
 try{await load();host.innerHTML=header()+'<div id="r342-body">'+(editing?form(editing===true?{}:editing):history())+'</div>';
-host.onclick=action;host.onchange=e=>{if(e.target.id==='r342-period'){period=e.target.value;editing=null;render()}};
+host.onclick=action;host.onchange=e=>{if(e.target.id==='r345-period-month'||e.target.id==='r345-period-year'){period=host.querySelector('#r345-period-year').value+'-'+host.querySelector('#r345-period-month').value;editing=null;render()}};
 const formElement=host.querySelector('#r342-form');if(formElement)formElement.onsubmit=save;
 }catch(e){host.innerHTML='<div class="r342-error">No se pudieron cargar los gastos: '+esc(e.message)+'</div>'}finally{loading=false}
 }
@@ -118,6 +182,7 @@ editing=null;period=String(payload.fecha).slice(0,7);window.toast?.('Gasto regis
 }catch(err){window.toast?.('Error: '+err.message,'error');button.disabled=false}
 }
 async function action(e){
+if(r345CalendarAction(e))return;
 const b=e.target.closest('[data-r342]');if(!b)return;const cmd=b.dataset.r342,id=b.dataset.id,r=rows.find(x=>x.id===id);
 if(cmd==='new'){if(!isManager())return;editing=true;document.getElementById('r342-body').innerHTML=form({});document.getElementById('r342-form').onsubmit=save}
 if(cmd==='edit'&&r){editing=r;document.getElementById('r342-body').innerHTML=form(r);document.getElementById('r342-form').onsubmit=save}
