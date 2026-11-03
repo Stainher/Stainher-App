@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const nav=fs.readFileSync('assets/stainher-v1524-navigation-stability.js','utf8');
+const mod=fs.readFileSync('assets/stainher-v1524-boletas-rendir-r354.js','utf8');
+new Function(nav);new Function(mod);
+assert.match(nav,/if\(page==='boletas-rendir'\)\{\s*window\.StainherBoletasR354\?\.install\?\.\(\);\s*await window\.StainherBoletasR354\?\.render\?\.\(\);/);
+const position=nav.indexOf("if(page==='boletas-rendir')");
+const nextBase=nav.indexOf('baseNavigate(page)',position);
+assert.ok(position>=0 && nextBase>position,'Boletas debe tener ruta independiente del ACL anterior');
+assert.match(mod,/btn\.classList\.remove\('hidden','v11-hidden'/);
+assert.match(mod,/new MutationObserver\(records=>/);
+assert.match(mod,/if\(window\.state\?\.session\?\.user\)mount\(\)/);
+assert.match(mod,/button\[data-page="solicitudes"\]/);
+assert.match(mod,/const manager=\(\)=>uid===ISMAEL/,'Confirmación exclusiva por identidad');
+assert.doesNotMatch(mod,/button\[data-page="contrato"\]/,'No depender de Administración del Contrato');
+console.log('R355 navegación: sin rechazo por ACL antiguo, menú estable, permisos conservados');
