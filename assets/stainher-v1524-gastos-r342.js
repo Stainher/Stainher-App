@@ -165,9 +165,16 @@ try{
  window.toast?.('Informe PDF generado.','success');
 }catch(e){window.toast?.('No fue posible generar el PDF: '+e.message,'error')}
 }
-function install(){if(!isVisible())return;style();hooks();decorate();if(window.state?.contractTab===TAB&&!editing)render()}
+function install(){
+ if(!isVisible())return;
+ style();hooks();decorate();
+ // R344: la instalación no debe recargar una pestaña ya dibujada.
+ // Sólo se renderiza cuando el contenedor está vacío (primera entrada).
+ const host=document.getElementById('contractContent');
+ if(window.state?.contractTab===TAB && host && !loading && !editing && !host.querySelector('.r342-grid'))render();
+}
 window.StainherGastosR342={install,render};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 window.addEventListener('stainher:modules-ready',install);
-setInterval(()=>{if(window.state?.session?.user)install()},3500);
+// Sin setInterval: el refresco de 3,5 s destruía la tabla y los formularios.
 })();
