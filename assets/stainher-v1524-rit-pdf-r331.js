@@ -64,7 +64,7 @@ async function exportPdf(record){
  draw(clip(record.area,65),1024,78,8,156);
  const fecha=String(record.fecha||"").split("-");draw(fecha.length===3?fecha.reverse().join("-"):record.fecha,87,96,8,150);
  draw(record.turno,376,96,8,70);
- draw(clip(record.supervisor,70),804,96,8,140);
+ draw(clip(record.supervisor,70),729,96,8,160);
  draw(String(record.asistentes??""),1053,96,8,90);
  for(const rf of record.riesgos||[]){
   const pos=RF_COORD[rf];if(!pos)throw Error("RF no presente en la portada del RIT: "+rf);
@@ -82,7 +82,7 @@ async function exportPdf(record){
   if((a.riesgos||[]).length>4)throw Error("La actividad "+(i+1)+" excede las cuatro filas RF del formato original.");
   (a.riesgos||[]).forEach((r,j)=>{
    const rowY=y+j*17.4;
-   draw(r.rf,286,rowY+3,7,34);
+   draw(String(r.rf||"").replace(/^RF/i,""),301,rowY+3,7,17);
    draw(clip(r.riesgo,90),323,rowY+3,7,165);
    draw(clip(r.consecuencia,135),492,rowY+3,7,302);
    draw(clip(r.controles,145),805,rowY+3,7,375);
