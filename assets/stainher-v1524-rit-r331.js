@@ -92,7 +92,7 @@ async function history(){
  if(!db()){el.textContent="No hay conexión a Supabase.";return;}
  const {data,error}=await db().from("rit_reuniones").select("id,fecha,turno,supervisor,area,estado").order("fecha",{ascending:false}).limit(100);
  if(error){el.textContent=error.message;return;}
- el.innerHTML='<table><thead><tr><th>Fecha</th><th>Turno</th><th>Supervisor</th><th>Área</th><th>Estado</th><th>Acción</th></tr></thead><tbody>'+(data||[]).map(r=>'<tr><td>'+esc(r.fecha)+'</td><td>'+esc(r.turno)+'</td><td>'+esc(r.supervisor)+'</td><td>'+esc(r.area)+'</td><td>'+esc(r.estado)+'</td><td>'+(r.estado==="borrador"?'<button data-open="'+esc(r.id)+'">Editar</button>':('<button data-pdf="'+esc(r.id)+'">PDF</button>'))+'</td></tr>').join("")+'</tbody></table>';
+ el.innerHTML='<table><thead><tr><th>Fecha</th><th>Turno</th><th>Supervisor</th><th>Área</th><th>Estado</th><th>Acción</th></tr></thead><tbody>'+(data||[]).map(r=>'<tr><td>'+esc(r.fecha)+'</td><td>'+esc(r.turno)+'</td><td>'+esc(r.supervisor)+'</td><td>'+esc(r.area)+'</td><td>'+esc(r.estado)+'</td><td>'+(r.estado==="borrador"?'<button data-open="'+esc(r.id)+'">Editar</button>':('<button data-pdf="'+esc(r.id)+'">PDF</button>')+' <button data-copy="'+esc(r.id)+'">Duplicar</button>')+'</td></tr>').join("")+'</tbody></table>';
 }
 async function open(id){
  const {data,error}=await db().from("rit_reuniones").select("*").eq("id",id).single();
@@ -126,6 +126,20 @@ function change(e){
  if(t.dataset.analysis){const [i,j]=t.dataset.analysis.split(":").map(Number);record.actividades[i].riesgos[j][t.dataset.key]=t.value;return;}
  if(t.dataset.list){const [name,index,key]=t.dataset.list.split(":");record[name][index]??={};record[name][index][key]=t.value;}
 }
+async function duplicate(id){
+ if(!db())return;
+ const {data,error}=await db().from("rit_reuniones").select("*").eq("id",id).single();
+ if(error){window.toast?.(error.message,"error");return;}
+ const next=initial();
+ next.turno=data.turno;next.centro=data.centro;next.gerencia=data.gerencia;next.empresa=data.empresa;next.area=data.area;
+ next.riesgos=Array.isArray(data.riesgos)?[...data.riesgos]:[];
+ next.actividades=Array.isArray(data.actividades)?data.actividades.map(a=>({
+  nombre:a.nombre||"",preparacion:{},
+  riesgos:Array.isArray(a.riesgos)?a.riesgos.map(r=>({rf:r.rf||"",riesgo:r.riesgo||"",consecuencia:r.consecuencia||"",controles:r.controles||""})):[]
+ })):[blank()];
+ record=next;view="wizard";stage=0;render();
+ window.toast?.("Actividades copiadas. Verifique de nuevo preparación, riesgos y controles de este turno.","success");
+}
 async function exportPDF(id){
  try{
   if(!window.StainherRITPDF)throw Error("Motor de PDF no disponible.");
@@ -142,6 +156,7 @@ function click(e){
  const t=e.target.closest("button");if(!t||!document.getElementById("rit-r331")?.contains(t))return;
  if(t.dataset.open){open(t.dataset.open);return;}
  if(t.dataset.pdf){exportPDF(t.dataset.pdf);return;}
+ if(t.dataset.copy){duplicate(t.dataset.copy);return;}
  if(t.dataset.remove!==undefined){if(record.actividades.length===1){message("Debe mantener al menos una actividad.",true);return;}record.actividades.splice(Number(t.dataset.remove),1);render();return;}
  if(t.dataset.addrisk!==undefined){
   const risks=record.actividades[Number(t.dataset.addrisk)].riesgos;
