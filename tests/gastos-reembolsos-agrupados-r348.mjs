@@ -5,11 +5,11 @@ const sql=fs.readFileSync('supabase/migrations/20261103183000_gastos_transferenc
 new Function(ui);
 for(const field of ['name="reembolso_personal_monto"','name="medio_reembolso_personal"','name="reembolso_finanzas_referencia"','name="reembolso_finanzas_monto"'])assert.ok(!ui.includes(field),'Campo individual eliminado: '+field);
 assert.match(ui,/registrar_transferencia_gastos_r348/);
-assert.match(ui,/registrar_recuperacion_finanzas_r348/);
+assert.doesNotMatch(ui,/registrar_recuperacion_finanzas_r348/);
 assert.match(ui,/data-r348-check/);
 assert.match(ui,/transferencia_id/);
 assert.match(ui,/transferTotal/);
-assert.match(ui,/Transferencias agrupadas y regularizacion con Finanzas/);
+assert.match(ui,/Transferencias y devoluciones al personal/);
 assert.match(sql,/security invoker/);
 assert.match(sql,/for update/);
 assert.match(sql,/transferencia_id is not null/);
