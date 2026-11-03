@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R319')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R342')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R319';
+  window.__STAINHER_HP_LOADER_VERSION__='R342';
 
-  const BUILD='20261102-r319-hp-history';
+  const BUILD='20261103-r342-gastos-operacionales';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -142,6 +142,7 @@
       await load('stainher-edp-inline-runtime-r125','stainher-v1524-edp-inline-r125.js');
       await load('stainher-edp-quarterly-runtime-r149','stainher-v1524-edp-quarterly-certification-r149.js');
       await load('stainher-contract-standardization-runtime-r162','stainher-v1524-contract-standardization-r162.js');
+      await load('stainher-contract-gastos-runtime-r342','stainher-v1524-gastos-r342.js');
       window.StainherContractForecastR95?.install?.();
       window.StainherContractForecastR96?.install?.();
       window.StainherContractForecastR98?.install?.();
@@ -156,6 +157,7 @@
       window.StainherEdpInlineR125?.install?.();
       window.StainherEdpQuarterlyR149?.install?.();
       window.StainherContractStandardizationR162?.install?.();
+      window.StainherGastosR342?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:contract-standardization-r162-ready'));
       window.dispatchEvent(new CustomEvent('stainher:edp-inline-r125-ready'));
       window.dispatchEvent(new CustomEvent('stainher:edp-quarterly-r149-ready'));
