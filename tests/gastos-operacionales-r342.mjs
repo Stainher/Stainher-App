@@ -19,4 +19,8 @@ assert.match(migration,/gastos_r342_storage_insert/);
 assert.match(ui, /#contractContent \\.r342-kpi strong[^\\n]*color:#ffffff!important/, 'Montos KPI blancos y con prioridad sobre estilos globales');
 assert.match(ui, /#contractContent \\.r342-kpi small[^\\n]*color:#eaf4ff!important/, 'Etiquetas KPI visibles en azul claro');
 assert.match(ui, /background:linear-gradient\\(135deg,#103b63/, 'Fondo KPI con degradado azul de alto contraste');
+
+// R344: no reinstalar ni renderizar la pestaña cada 3,5 segundos.
+assert.doesNotMatch(ui,/setInterval\(\(\)=>\{if\(window\.state\?\.session\?\.user\)install\(\)\},3500\)/);
+assert.match(ui,/!host\.querySelector\('\.r342-grid'\)/);
 console.log('gastos-r342: sintaxis, integración, adjuntos privados y PDF OK');
