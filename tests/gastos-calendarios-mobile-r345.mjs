@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const src=fs.readFileSync('assets/stainher-v1524-gastos-r342.js','utf8');
+new Function(src);
+assert.doesNotMatch(src,/type="date"/,'No debe haber selector nativo de fechas iOS');
+assert.doesNotMatch(src,/type="month"/,'No debe haber selector nativo de mes iOS');
+for(const field of ['fecha','reembolso_personal_fecha','reembolso_finanzas_fecha'])assert.ok(src.includes('r345DateField("'+field+'"'),'Debe usar calendario responsive: '+field);
+assert.match(src,/r345CalendarAction\(e\)/);
+assert.match(src,/grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
+assert.match(src,/id="r345-period-month"/);
+assert.match(src,/id="r345-period-year"/);
+assert.match(src,/input type="hidden" name=/,'La fecha se transmite en ISO a FormData');
+assert.match(src,/panel.hidden=true/,'Cerrar selector sin reconstruir formulario');
+console.log('R345 calendario iOS: estructura responsive y datos ISO verificados');
