@@ -266,6 +266,7 @@
     // R355: ruta propia de rendiciones. No pasarla por el ACL legado
     // que sólo reconoce módulos anteriores y muestra falso acceso denegado.
     if(page==='boletas-rendir'){
+      window.StainherBoletasR354?.install?.();
       await window.StainherBoletasR354?.render?.();
       if(token===sequence)enforcePage(page);
       return true;
