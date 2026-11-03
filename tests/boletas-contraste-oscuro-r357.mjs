@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const src=fs.readFileSync('assets/stainher-v1524-boletas-rendir-r354.js','utf8');
+new Function(src);
+assert.match(src,/R357: contraste estable/);
+assert.match(src,/tbody tr:nth-child\(odd\)\{background:#193148!important/);
+assert.match(src,/tbody tr:nth-child\(even\)\{background:#223b53!important/);
+assert.match(src,/tbody td\{background:transparent!important/);
+assert.match(src,/color:#f5f9ff!important/);
+assert.match(src,/-webkit-text-fill-color:#f5f9ff!important/);
+assert.match(src,/tbody td \.r354-btn\{background:#1976c9!important/);
+assert.match(src,/\.r354-scroll tbody td input\[type="checkbox"\]/);
+console.log('R357: tablas con contraste visible y botones legibles');
