@@ -13,8 +13,11 @@ function style(){
 if(document.getElementById('r342-css'))return;
 const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r342-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
-#contractContent .r342-kpi{border:1px solid var(--line,#364759);border-radius:12px;padding:13px;background:linear-gradient(125deg,#163f68,#2471aa);color:white}
-#contractContent .r342-kpi small{display:block;opacity:.85}#contractContent .r342-kpi strong{font-size:21px}
+#contractContent .r342-kpi{border:1px solid rgba(255,255,255,.16)!important;border-radius:12px;padding:15px 16px;min-height:86px;box-sizing:border-box;background:linear-gradient(135deg,#103b63 0%,#17598e 55%,#2276ab 100%)!important;box-shadow:0 5px 14px rgba(15,41,68,.12);color:#ffffff!important}
+#contractContent .r342-kpi small,#contractContent .r342-kpi small *{display:block;color:#eaf4ff!important;opacity:1!important;font-size:12px!important;font-weight:600!important;line-height:1.35!important;margin-bottom:7px}
+#contractContent .r342-kpi strong,#contractContent .r342-kpi strong *{display:block;color:#ffffff!important;opacity:1!important;font-size:clamp(20px,2.2vw,29px)!important;line-height:1.15!important;font-weight:800!important;font-variant-numeric:tabular-nums!important;text-shadow:0 1px 2px rgba(0,0,0,.16)}
+#contractContent .r342-kpi:hover{filter:brightness(1.06)}
+@media(prefers-reduced-motion:no-preference){#contractContent .r342-kpi{transition:filter .16s ease}}
 #contractContent .r342-toolbar,#contractContent .r342-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:12px 0}
 #contractContent .r342-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 #contractContent .r342-form label{display:grid;gap:5px;font-size:12px;color:var(--muted)}
