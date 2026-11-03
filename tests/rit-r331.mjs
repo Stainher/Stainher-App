@@ -44,5 +44,5 @@ assert.equal(createHash("sha256").update(template).digest("hex"),"afa4a550b8e4fb
 assert.match(pdf,/async function bundledTemplate/);
 assert.match(file,/RF\.filter\(\(\[code\]\)=>record\.riesgos\.includes\(code\)\)/);
 assert.match(file,/record\.riesgos\.includes\(r\.rf\)\?r\.rf:""/);
-assert.match(file,/record\.actividades\[i\]\.riesgos\.push/);
+assert.match(file,/risks\.push\(\{rf:""/);
 console.log("R331 RIT wizard, Dotación and guarded original-PDF overlay checks passed.");
