@@ -429,6 +429,12 @@
   window.StainherHPR185=api;
   window.StainherHPR186=api;
 
+  async function refreshDashboardVisualR359(){
+    try{
+      await load('stainher-dashboard-visual-r359','stainher-v1524-dashboard-visual-r359.js');
+      window.StainherVisualR359?.install?.();
+    }catch(error){console.warn('[Dashboard visual R359]',error)}
+  }
   async function refreshBoletasR354(){
     try{
       await load('stainher-user-rendiciones-runtime-r354','stainher-v1524-boletas-rendir-r354.js');
@@ -444,6 +450,7 @@
     await refreshRequestCloseR177();
     await refreshAccessR107();
     await refreshBoletasR354();
+    await refreshDashboardVisualR359();
     await refreshBudgets();
     await refreshContractForecast();
     await refreshTurnReport();
