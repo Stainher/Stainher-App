@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const source=fs.readFileSync('assets/stainher-v1524-gastos-r342.js','utf8');
+new Function(source);
+assert.match(source,/STAINHER ASCENSORES LTDA\./);
+assert.match(source,/Informe Mensual de Gastos Operacionales/);
+assert.match(source,/page\.drawRectangle\(\{x:0,y:H-119,width:W,height:119,color:navy\}\)/);
+assert.match(source,/page\.drawRectangle\(\{x:0,y:H-124,width:W,height:5,color:orange\}\)/);
+assert.match(source,/color:slate/);
+assert.match(source,/color:stripe/);
+assert.match(source,/Sin gastos registrados para el periodo seleccionado/);
+assert.match(source,/Distribución por categoría/);
+assert.match(source,/Seguimiento de reembolsos/);
+assert.match(source,/pages\.forEach/);
+assert.match(source,/doc\.save\(\)/);
+assert.match(source,/money\(totals\.total\)/);
+assert.doesNotMatch(source,/STAINHER ASCENSORES  \|  GASTOS OPERACIONALES/);
+console.log('R346: estructura institucional, paginación, tablas, totales y vacío OK');
