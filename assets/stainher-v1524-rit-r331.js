@@ -8,7 +8,7 @@ const ITEMS=["Instructivos","Materiales","Herramientas","EPP"];
 const S=["Datos generales","Riesgos de fatalidad","Actividades y preparación","Análisis y controles","Aportes y reconocimientos","Revisión y cierre"];
 const blank=()=>({nombre:"",preparacion:{},riesgos:[{rf:"",riesgo:"",consecuencia:"",controles:""}]});
 const initial=()=>({fecha:new Date().toLocaleDateString("en-CA"),turno:"A",centro:"Codelco Andina",gerencia:"GSER",empresa:"STAINHER",area:"",supervisor:window.state?.profile?.nombre||"",asistentes:0,participantes:[],riesgos:[],actividades:[blank()],aportes:[],reconocimientos:[],estado:"borrador"});
-let record=initial(),stage=0,view="wizard",busy=false,staff=null,staffError="";
+let record=initial(),stage=0,view="wizard",busy=false,staff=null,staffError="",calendarOpen=false,calendarMonth=record.fecha.slice(0,7);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const host=()=>document.getElementById("page-liderazgo");
 const db=()=>window.sb;
@@ -19,8 +19,39 @@ function style(){
  e.textContent='.rit331{color:var(--text,#223548);background:var(--panel,#fff);border:1px solid var(--line,#ccd8e5);border-radius:14px;padding:18px;margin:16px 0;max-width:100%}.rit331 *{box-sizing:border-box}.rit331 h3{margin:0 0 10px}.rit331 .rt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.rit331 .rt-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.rit331 label{display:grid;gap:5px;font-size:12px;font-weight:600}.rit331 input:not([type=checkbox]),.rit331 select,.rit331 textarea{width:100%;min-height:36px;background:var(--panel,#fff);color:var(--text,#223548);border:1px solid var(--line,#aab);border-radius:7px;padding:7px;font:inherit}.rit331 textarea{min-height:70px}.rit331 button{padding:8px 12px;border:1px solid #6f95b9;background:linear-gradient(120deg,#1859a0,#367cbc);color:#fff;border-radius:8px;cursor:pointer}.rit331 button:disabled{opacity:.5;cursor:not-allowed}.rit331 .rt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin:10px 0}.rit331 .rt-box{border:1px solid var(--line,#ccd8e5);border-radius:10px;padding:12px;margin:10px 0;background:var(--panel2,#f3f6fa)}.rit331 .rt-risks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.rit331 .rt-risks label{display:flex;align-items:center;gap:6px}.rit331 .rt-steps{font-size:12px;color:var(--muted,#68788a)}.rit331 .rt-error{color:#b42318;font-weight:600}.rit331 .rt-info{font-size:12px;color:var(--muted,#667)}.rit331 .rt-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.rit331 table{width:100%;border-collapse:collapse}.rit331 th,.rit331 td{padding:7px;border-bottom:1px solid var(--line,#ddd);text-align:left}@media(max-width:760px){.rit331 .rt-grid,.rit331 .rt-grid3,.rit331 .rt-risks{grid-template-columns:1fr}}';
  e.textContent+=".rit331 .rt-grid>label,.rit331 .rt-grid3>label{min-width:0;width:100%;overflow:visible}\n.rit331 label:has(input[type=\"date\"]){min-width:0;max-width:100%;position:relative}\n.rit331 input[type=\"date\"]{display:block;box-sizing:border-box;width:100%!important;min-width:0!important;max-width:100%!important;max-height:44px;appearance:auto;-webkit-appearance:auto;padding:6px 10px!important;line-height:1.35;overflow:hidden}\n.rit331 input[type=\"date\"]::-webkit-calendar-picker-indicator{position:static!important;float:none!important;display:inline-block!important;margin:0 0 0 3px!important;padding:2px!important;width:18px!important;height:18px!important;cursor:pointer;opacity:1}\n.rit331 input[type=\"date\"]::-webkit-datetime-edit{min-width:0;padding:0}\n.rit331 .rt-delete{background:#c72c3c!important;border-color:#b42330!important}\n.rit331 #rt-history-list{max-width:100%;overflow-x:auto}\n@media(max-width:760px){.rit331{padding:12px;margin:10px 0 100px;min-width:0;overflow:visible}.rit331 .rt-box{padding:12px;min-width:0}.rit331 .rt-grid,.rit331 .rt-grid3{grid-template-columns:minmax(0,1fr)}.rit331 .rt-bar{gap:8px}.rit331 .rt-row{gap:6px}.rit331 input[type=\"date\"]{font-size:16px!important;padding-right:10px!important}.rit331 #rt-history-list table{min-width:590px}}\n";
  e.textContent+=".rit331 label:has(>input[type=\"date\"]){position:relative;max-width:100%;min-width:0;overflow:hidden}\n.rit331 label>input[type=\"date\"]{width:100%!important;min-width:0!important;max-width:100%!important;display:block!important;padding:8px 40px 8px 10px!important;box-sizing:border-box!important;overflow:hidden!important;-webkit-appearance:none!important;appearance:none!important;background-color:var(--panel,#fff)!important}\n.rit331 label>input[type=\"date\"]::-webkit-calendar-picker-indicator{opacity:0!important;width:0!important;height:0!important;min-width:0!important;max-width:0!important;padding:0!important;margin:0!important;display:none!important}\n.rit331 label:has(>input[type=\"date\"])::after{content:\"📅\";position:absolute;right:12px;bottom:8px;font-size:17px;line-height:20px;pointer-events:none}\n@media(max-width:760px){.rit331 label>input[type=\"date\"]{font-size:16px!important;width:100%!important;max-width:100%!important}}\n";
+ e.textContent+="\n/* R340: calendario propio, sin selector nativo que se desborde en iOS Safari. */\n.rit331 .rt-date-field{min-width:0;width:100%;max-width:100%;display:block}\n.rit331 .rt-date-label{display:block;font-size:12px;font-weight:600;margin-bottom:5px}\n.rit331 .rt-date-control{width:100%;min-width:0;max-width:100%;display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:6px;align-items:stretch}\n.rit331 .rt-date-control input.rt-date-display[type=\"text\"]{display:block;width:100%!important;min-width:0!important;max-width:100%!important;text-align:center;font-size:16px!important;padding:8px 10px!important;box-sizing:border-box}\n.rit331 button.rt-date-toggle{width:46px!important;min-width:0!important;max-width:46px!important;height:42px!important;padding:7px!important;display:flex;justify-content:center;align-items:center;border-radius:8px}\n.rit331 .rt-calendar{width:100%;min-width:0;max-width:100%;margin-top:8px;border:1px solid var(--line,#b5c8dd);background:var(--panel,#fff);padding:10px;border-radius:10px;box-sizing:border-box;overflow:hidden}\n.rit331 .rt-calendar-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}\n.rit331 .rt-calendar-head strong{font-size:14px;text-transform:capitalize;color:var(--text,#21354c)}\n.rit331 button.rt-calendar-nav{width:38px!important;height:34px!important;padding:4px!important;flex-shrink:0}\n.rit331 .rt-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;min-width:0;max-width:100%}\n.rit331 .rt-calendar-day-label{font-size:11px;font-weight:700;color:var(--muted,#64748b);text-align:center;padding:4px 0}\n.rit331 button.rt-calendar-day{width:100%!important;min-width:0!important;min-height:34px!important;max-width:100%!important;padding:4px 0!important;border:1px solid transparent!important;border-radius:6px!important;background:var(--panel2,#edf3fa)!important;color:var(--text,#1c2b3b)!important;font-size:14px!important;box-sizing:border-box}\n.rit331 button.rt-calendar-day[aria-pressed=\"true\"]{background:#1769bb!important;color:#fff!important;border-color:#1769bb!important}\n.rit331 button.rt-calendar-day:focus-visible,.rit331 button.rt-date-toggle:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}\n@media(max-width:760px){\n .rit331 .rt-date-control{grid-template-columns:minmax(0,1fr) 44px;gap:6px}\n .rit331 button.rt-date-toggle{width:44px!important;max-width:44px!important}\n .rit331 .rt-calendar{padding:7px}\n .rit331 .rt-calendar-grid{gap:2px}\n .rit331 button.rt-calendar-day{font-size:14px!important;min-height:38px!important}\n}";
  document.head.appendChild(e);
 }
+
+function ritDateFormat(iso){
+ const parts=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+ return parts?parts[3]+"-"+parts[2]+"-"+parts[1]:"";
+}
+function monthShift(amount){
+ const [year,month]=calendarMonth.split("-").map(Number);
+ const shifted=new Date(Date.UTC(year,month-1+amount,1));
+ calendarMonth=shifted.getUTCFullYear()+"-"+String(shifted.getUTCMonth()+1).padStart(2,"0");
+}
+function calendarMarkup(){
+ const parts=calendarMonth.match(/^(\d{4})-(\d{2})$/);
+ if(!parts)return "";
+ const year=Number(parts[1]),month=Number(parts[2])-1;
+ const title=new Intl.DateTimeFormat("es-CL",{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(Date.UTC(year,month,1)));
+ const offset=(new Date(Date.UTC(year,month,1)).getUTCDay()+6)%7;
+ const days=new Date(Date.UTC(year,month+1,0)).getUTCDate();
+ let result='<div class="rt-calendar" role="group" aria-label="Calendario RIT"><div class="rt-calendar-head"><button type="button" class="rt-calendar-nav" data-act="date-prev" aria-label="Mes anterior">‹</button><strong>'+esc(title)+'</strong><button type="button" class="rt-calendar-nav" data-act="date-next" aria-label="Mes siguiente">›</button></div><div class="rt-calendar-grid">';
+ for(const day of ["Lu","Ma","Mi","Ju","Vi","Sa","Do"])result+='<span class="rt-calendar-day-label">'+day+'</span>';
+ for(let i=0;i<offset;i++)result+='<span aria-hidden="true"></span>';
+ for(let i=1;i<=days;i++){
+  const iso=calendarMonth+"-"+String(i).padStart(2,"0");
+  result+='<button type="button" class="rt-calendar-day" data-date-day="'+iso+'" aria-label="'+esc(ritDateFormat(iso))+'" aria-pressed="'+(record.fecha===iso)+'">'+i+'</button>';
+ }
+ return result+"</div></div>";
+}
+function dateField(){
+ return '<div class="rt-date-field"><span class="rt-date-label" id="rt-date-label">Fecha</span><div class="rt-date-control"><input type="text" class="rt-date-display" value="'+esc(ritDateFormat(record.fecha))+'" readonly aria-labelledby="rt-date-label" title="Seleccione una fecha desde el calendario"><button type="button" class="rt-date-toggle" data-act="date-toggle" aria-label="Abrir calendario" aria-expanded="'+calendarOpen+'">▦</button></div>'+(calendarOpen?calendarMarkup():"")+'</div>';
+}
+
 function field(label,key,type="text",extra=""){
  return '<label>'+esc(label)+'<input data-field="'+key+'" type="'+type+'" value="'+esc(record[key])+'" '+extra+'></label>';
 }
@@ -41,7 +72,7 @@ function markup(){
 let h='<div class="rt-bar"><h3>Reunión de Inicio de Turno (RIT)</h3><div class="rt-row"><button data-act="new">Nuevo RIT</button><button data-act="history">Historial</button></div></div>';
 if(view==="history")return h+'<div class="rt-box"><p class="rt-info" id="rt-template-state">Verificando plantilla oficial incluida en Stainher App…</p></div><div id="rt-history-list">Cargando registros…</div>';
 h+='<div class="rt-steps">Etapa '+(stage+1)+' de 6 · '+esc(S[stage])+'</div><div class="rt-box">';
-if(stage===0)h+='<div class="rt-grid">'+field("Centro de trabajo","centro")+field("Gerencia","gerencia")+field("Superintendencia / Empresa contratista","empresa")+field("Área / Frente de trabajo","area")+field("Fecha","fecha","date")+field("Turno","turno")+field("Supervisor a cargo","supervisor")+field("Nº asistentes","asistentes","number",'min="0" max="999"')+'</div>'+participantMarkup();
+if(stage===0)h+='<div class="rt-grid">'+field("Centro de trabajo","centro")+field("Gerencia","gerencia")+field("Superintendencia / Empresa contratista","empresa")+field("Área / Frente de trabajo","area")+dateField()+field("Turno","turno")+field("Supervisor a cargo","supervisor")+field("Nº asistentes","asistentes","number",'min="0" max="999"')+'</div>'+participantMarkup();
 if(stage===1)h+='<p>Marque solamente los riesgos presentes y verificados por el supervisor.</p><div class="rt-risks">'+RF.map(r=>'<label><input type="checkbox" data-risk="'+r[0]+'" '+(record.riesgos.includes(r[0])?"checked":"")+'>'+r[0]+' · '+esc(r[1])+'</label>').join("")+'</div>';
 if(stage===2)h+=record.actividades.map((a,i)=>'<div class="rt-box"><div class="rt-bar"><b>Actividad '+(i+1)+'</b><button data-remove="'+i+'">Quitar</button></div><label>Descripción<textarea data-activity="'+i+'" data-prop="nombre">'+esc(a.nombre)+'</textarea></label><div class="rt-grid3">'+ITEMS.map(item=>'<label>'+item+'<select data-prep="'+i+'" data-item="'+item+'">'+opt([["","Sin evaluar"],["si","Sí"],["no","No"]],a.preparacion[item]||"")+'</select></label>').join("")+'</div></div>').join("")+'<button data-act="add" '+(record.actividades.length>=6?"disabled":"")+'>Añadir actividad (máx. 6)</button>';
 if(stage===3&&!record.riesgos.length)h+='<p class="rt-error">Seleccione primero los riesgos de fatalidad en la etapa 2.</p>';
@@ -132,7 +163,7 @@ async function history(){
 async function open(id){
  const {data,error}=await db().from("rit_reuniones").select("*").eq("id",id).single();
  if(error){const el=document.getElementById("rt-history-list");if(el)el.textContent=error.message;return;}
- record={...initial(),...data};stage=0;view="wizard";render();
+ record={...initial(),...data};stage=0;view="wizard";calendarOpen=false;calendarMonth=record.fecha.slice(0,7);render();
 }
 function render(){const root=host();if(!root)return;style();let el=document.getElementById("rit-r331");if(!el){el=document.createElement("section");el.className="rit331";el.id="rit-r331";root.appendChild(el);}el.innerHTML=markup();
  const status=el.querySelector("#rt-template-state");
@@ -210,6 +241,7 @@ async function exportPDF(id){
 }
 function click(e){
  const t=e.target.closest("button");if(!t||!document.getElementById("rit-r331")?.contains(t))return;
+ if(t.dataset.dateDay){record.fecha=t.dataset.dateDay;calendarOpen=false;render();return;}
  if(t.dataset.open){open(t.dataset.open);return;}
  if(t.dataset.pdf){exportPDF(t.dataset.pdf);return;}
  if(t.dataset.delete){deleteRIT(t.dataset.delete);return;}
@@ -221,7 +253,10 @@ function click(e){
  }
  if(t.dataset.delrisk){const [i,j]=t.dataset.delrisk.split(":").map(Number);record.actividades[i].riesgos.splice(j,1);render();return;}
  switch(t.dataset.act){
- case "new":record=initial();stage=0;view="wizard";render();break;
+ case "new":record=initial();stage=0;view="wizard";calendarOpen=false;calendarMonth=record.fecha.slice(0,7);render();break;
+ case "date-toggle":calendarOpen=!calendarOpen;calendarMonth=record.fecha.slice(0,7)||calendarMonth;render();break;
+ case "date-prev":monthShift(-1);render();break;
+ case "date-next":monthShift(1);render();break;
  case "history":view="history";render();history();break;
  case "add":if(record.actividades.length<6){record.actividades.push(blank());render();}break;
  case "previous":stage=Math.max(0,stage-1);render();break;
