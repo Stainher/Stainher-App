@@ -51,6 +51,7 @@ return h;
 function message(msg,fail=false){const e=document.getElementById("rt-message");if(e){e.textContent=msg;e.className=fail?"rt-error":"rt-info";}}
 function validate(final=false){
  if(!record.fecha||!record.supervisor.trim()||!record.centro.trim()||!record.area.trim())return "Complete fecha, centro, área y supervisor.";
+ if(record.participantes.length>0&&record.asistentes!==record.participantes.length)return "La cantidad debe coincidir con los asistentes seleccionados de Dotación.";
  if(!final)return "";
  if(record.riesgos.length===0)return "Seleccione los riesgos presentes del turno.";
  for(const a of record.actividades){
@@ -99,7 +100,16 @@ async function open(id){
  if(error){const el=document.getElementById("rt-history-list");if(el)el.textContent=error.message;return;}
  record={...initial(),...data};stage=0;view="wizard";render();
 }
-function render(){const root=host();if(!root)return;style();let el=document.getElementById("rit-r331");if(!el){el=document.createElement("section");el.className="rit331";el.id="rit-r331";root.appendChild(el);}el.innerHTML=markup();}
+function render(){const root=host();if(!root)return;style();let el=document.getElementById("rit-r331");if(!el){el=document.createElement("section");el.className="rit331";el.id="rit-r331";root.appendChild(el);}el.innerHTML=markup();
+ const status=el.querySelector("#rt-template-state");
+ if(status){
+  window.StainherRITPDF?.hasTemplate().then(ready=>{
+   if(status.isConnected)status.textContent=ready
+    ?"Plantilla original Codelco verificada; PDF disponible."
+    :"Plantilla oficial aún no instalada. Seleccione el PDF original Codelco de dos páginas.";
+  }).catch(()=>{if(status.isConnected)status.textContent="No se pudo verificar la plantilla original."});
+ }
+}
 function change(e){
  const t=e.target;
  if(t.dataset.ritTemplate){
