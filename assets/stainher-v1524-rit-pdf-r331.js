@@ -143,11 +143,11 @@ async function buildPdf(record){
  draw(clip(record.area,65),1024,78,8,156);
  const fecha=String(record.fecha||"").split("-");draw(fecha.length===3?fecha.reverse().join("-"):record.fecha,87,96,8,150);
  draw(record.turno,376,96,8,70);
- draw(clip(record.supervisor,70),729,96,8,160);
+ draw(clip(record.supervisor,70),656,96,8,236);
  draw(String(record.asistentes??""),1053,96,8,90);
  for(const rf of record.riesgos||[]){
   const pos=RF_COORD[rf];if(!pos)throw Error("RF no presente en la portada del RIT: "+rf);
-  cross(36+144.5*pos[0],140+23.3*pos[1]);
+  cross(33+141.7*pos[0],136.5+23.8*pos[1]);
  }
  const items=["Instructivos","Materiales","Herramientas","EPP"];
  record.actividades.forEach((a,i)=>{
