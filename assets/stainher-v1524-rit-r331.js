@@ -8,7 +8,7 @@ const ITEMS=["Instructivos","Materiales","Herramientas","EPP"];
 const S=["Datos generales","Riesgos de fatalidad","Actividades y preparación","Análisis y controles","Aportes y reconocimientos","Revisión y cierre"];
 const blank=()=>({nombre:"",preparacion:{},riesgos:[{rf:"",riesgo:"",consecuencia:"",controles:""}]});
 const initial=()=>({fecha:new Date().toLocaleDateString("en-CA"),turno:"A",centro:"Codelco Andina",gerencia:"GSER",empresa:"STAINHER",area:"",supervisor:window.state?.profile?.nombre||"",asistentes:0,participantes:[],riesgos:[],actividades:[blank()],aportes:[],reconocimientos:[],estado:"borrador"});
-let record=initial(),stage=0,view="wizard",busy=false,staff=null,staffError="",calendarOpen=false,calendarMonth=record.fecha.slice(0,7);
+let record=initial(),stage=0,view="wizard",busy=false,staff=null,staffError="",calendarOpen=false,calendarMonth=record.fecha.slice(0,7),calendarTarget="fecha";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const host=()=>document.getElementById("page-liderazgo");
 const db=()=>window.sb;
@@ -32,6 +32,19 @@ function monthShift(amount){
  const shifted=new Date(Date.UTC(year,month-1+amount,1));
  calendarMonth=shifted.getUTCFullYear()+"-"+String(shifted.getUTCMonth()+1).padStart(2,"0");
 }
+function getCalendarValue(target){
+ if(target==="fecha")return record.fecha||"";
+ const match=String(target).match(/^aportes:(\d):fecha$/);
+ return match?(record.aportes[Number(match[1])]?.fecha||""):"";
+}
+function setCalendarValue(target,value){
+ if(target==="fecha"){record.fecha=value;return;}
+ const match=String(target).match(/^aportes:(\d):fecha$/);
+ if(!match)return;
+ const index=Number(match[1]);
+ record.aportes[index]??={};
+ record.aportes[index].fecha=value;
+}
 function calendarMarkup(){
  const parts=calendarMonth.match(/^(\d{4})-(\d{2})$/);
  if(!parts)return "";
@@ -44,12 +57,14 @@ function calendarMarkup(){
  for(let i=0;i<offset;i++)result+='<span aria-hidden="true"></span>';
  for(let i=1;i<=days;i++){
   const iso=calendarMonth+"-"+String(i).padStart(2,"0");
-  result+='<button type="button" class="rt-calendar-day" data-date-day="'+iso+'" aria-label="'+esc(ritDateFormat(iso))+'" aria-pressed="'+(record.fecha===iso)+'">'+i+'</button>';
+  result+='<button type="button" class="rt-calendar-day" data-date-day="'+iso+'" aria-label="'+esc(ritDateFormat(iso))+'" aria-pressed="'+(getCalendarValue(calendarTarget)===iso)+'">'+i+'</button>';
  }
  return result+"</div></div>";
 }
-function dateField(){
- return '<div class="rt-date-field"><span class="rt-date-label" id="rt-date-label">Fecha</span><div class="rt-date-control"><input type="text" class="rt-date-display" value="'+esc(ritDateFormat(record.fecha))+'" readonly aria-labelledby="rt-date-label" title="Seleccione una fecha desde el calendario"><button type="button" class="rt-date-toggle" data-act="date-toggle" aria-label="Abrir calendario" aria-expanded="'+calendarOpen+'">▦</button></div>'+(calendarOpen?calendarMarkup():"")+'</div>';
+function dateField(target="fecha"){
+ const value=getCalendarValue(target),expanded=calendarOpen&&calendarTarget===target;
+ const fieldId="rt-date-"+target.replace(/[^a-zA-Z0-9]/g,"-");
+ return '<div class="rt-date-field"><span class="rt-date-label" id="'+fieldId+'">Fecha</span><div class="rt-date-control"><input type="text" class="rt-date-display" value="'+esc(ritDateFormat(value))+'" readonly aria-labelledby="'+fieldId+'" title="Seleccione una fecha desde el calendario"><button type="button" class="rt-date-toggle" data-act="date-toggle" data-date-target="'+esc(target)+'" aria-label="Abrir calendario" aria-expanded="'+expanded+'">▦</button></div>'+(expanded?calendarMarkup():"")+'</div>';
 }
 
 function field(label,key,type="text",extra=""){
@@ -77,7 +92,7 @@ if(stage===1)h+='<p>Marque solamente los riesgos presentes y verificados por el 
 if(stage===2)h+=record.actividades.map((a,i)=>'<div class="rt-box"><div class="rt-bar"><b>Actividad '+(i+1)+'</b><button data-remove="'+i+'">Quitar</button></div><label>Descripción<textarea data-activity="'+i+'" data-prop="nombre">'+esc(a.nombre)+'</textarea></label><div class="rt-grid3">'+ITEMS.map(item=>'<label>'+item+'<select data-prep="'+i+'" data-item="'+item+'">'+opt([["","Sin evaluar"],["si","Sí"],["no","No"]],a.preparacion[item]||"")+'</select></label>').join("")+'</div></div>').join("")+'<button data-act="add" '+(record.actividades.length>=6?"disabled":"")+'>Añadir actividad (máx. 6)</button>';
 if(stage===3&&!record.riesgos.length)h+='<p class="rt-error">Seleccione primero los riesgos de fatalidad en la etapa 2.</p>';
 if(stage===3)h+=record.actividades.map((a,i)=>'<div class="rt-box"><b>Actividad '+(i+1)+': '+esc(a.nombre||"Sin nombre")+'</b>'+a.riesgos.map((r,j)=>'<div class="rt-box"><div class="rt-grid"><label>RF<select data-analysis="'+i+':'+j+'" data-key="rf">'+opt([["","Seleccione RF"],...RF.filter(([code])=>record.riesgos.includes(code))],record.riesgos.includes(r.rf)?r.rf:"")+'</select></label><label>Riesgo<input data-analysis="'+i+':'+j+'" data-key="riesgo" value="'+esc(r.riesgo)+'"></label><label>Consecuencia<textarea data-analysis="'+i+':'+j+'" data-key="consecuencia">'+esc(r.consecuencia)+'</textarea></label><label>Controles verificados<textarea data-analysis="'+i+':'+j+'" data-key="controles">'+esc(r.controles)+'</textarea></label></div><button data-delrisk="'+i+':'+j+'">Quitar riesgo</button></div>').join("")+'<button data-addrisk="'+i+'">Añadir riesgo a esta actividad</button></div>').join("");
-if(stage===4)h+='<h4>Aportes a la gestión de riesgos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.aportes[i]||{};return '<div class="rt-grid3"><label>Propuesta<input data-list="aportes:'+i+':propuesta" value="'+esc(a.propuesta)+'"></label><label>Responsable<input data-list="aportes:'+i+':responsable" value="'+esc(a.responsable)+'"></label><label>Fecha<input type="date" data-list="aportes:'+i+':fecha" value="'+esc(a.fecha)+'"></label></div>'}).join("")+'<h4>Reconocimientos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.reconocimientos[i]||{};return '<div class="rt-grid"><label>Quién<input data-list="reconocimientos:'+i+':quien" value="'+esc(a.quien)+'"></label><label>Motivo<input data-list="reconocimientos:'+i+':motivo" value="'+esc(a.motivo)+'"></label></div>'}).join("");
+if(stage===4)h+='<h4>Aportes a la gestión de riesgos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.aportes[i]||{};return '<div class="rt-grid3"><label>Propuesta<input data-list="aportes:'+i+':propuesta" value="'+esc(a.propuesta)+'"></label><label>Responsable<input data-list="aportes:'+i+':responsable" value="'+esc(a.responsable)+'"></label>'+dateField('aportes:'+i+':fecha')+'</div>'}).join("")+'<h4>Reconocimientos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.reconocimientos[i]||{};return '<div class="rt-grid"><label>Quién<input data-list="reconocimientos:'+i+':quien" value="'+esc(a.quien)+'"></label><label>Motivo<input data-list="reconocimientos:'+i+':motivo" value="'+esc(a.motivo)+'"></label></div>'}).join("");
 if(stage===5)h+='<h4>Revisión antes de finalizar</h4><p>Fecha: '+esc(record.fecha)+' · Supervisor: '+esc(record.supervisor)+' · Turno: '+esc(record.turno)+'</p><p>Riesgos del turno: '+record.riesgos.map(esc).join(", ")+'</p><p>Actividades: '+record.actividades.length+' · Asistentes: '+esc(record.asistentes)+'</p><p class="rt-info">El PDF oficial de Codelco de dos páginas se genera automáticamente con la plantilla incluida en Stainher App. No es necesario subir archivos.</p><p class="rt-info" id="rt-template-state">Verificando disponibilidad de plantilla…</p><button data-act="pdf">Descargar vista previa PDF</button>';
 if(stage===5){const pendiente=record.actividades.flatMap((a,i)=>ITEMS.filter(item=>a.preparacion?.[item]==="no").map(item=>({actividad:i+1,nombre:a.nombre,item})));if(pendiente.length)h+='<div class="rt-box"><strong class="rt-error">Preparación pendiente:</strong><ul>'+pendiente.map(p=>'<li>Actividad '+p.actividad+' ('+esc(p.nombre||"Sin nombre")+'): '+esc(p.item)+' está marcado No</li>').join("")+'</ul><p class="rt-info">El RIT puede guardarse como borrador; para finalizar, verifique que se resolvió cada condición y actualice la evaluación.</p><button data-act="review-prep">Revisar preparación</button></div>';}
 h+='</div><div class="rt-bar"><button data-act="previous" '+(stage===0?"disabled":"")+'>Anterior</button><span id="rt-message" role="status" aria-live="polite"></span><div class="rt-row"><button data-act="save">Guardar borrador</button>'+(stage<5?'<button data-act="next">Siguiente</button>':'<button data-act="finish">Finalizar RIT</button>')+'</div></div>';
@@ -241,7 +256,7 @@ async function exportPDF(id){
 }
 function click(e){
  const t=e.target.closest("button");if(!t||!document.getElementById("rit-r331")?.contains(t))return;
- if(t.dataset.dateDay){record.fecha=t.dataset.dateDay;calendarOpen=false;render();return;}
+ if(t.dataset.dateDay){setCalendarValue(calendarTarget,t.dataset.dateDay);calendarOpen=false;render();return;}
  if(t.dataset.open){open(t.dataset.open);return;}
  if(t.dataset.pdf){exportPDF(t.dataset.pdf);return;}
  if(t.dataset.delete){deleteRIT(t.dataset.delete);return;}
@@ -253,8 +268,14 @@ function click(e){
  }
  if(t.dataset.delrisk){const [i,j]=t.dataset.delrisk.split(":").map(Number);record.actividades[i].riesgos.splice(j,1);render();return;}
  switch(t.dataset.act){
- case "new":record=initial();stage=0;view="wizard";calendarOpen=false;calendarMonth=record.fecha.slice(0,7);render();break;
- case "date-toggle":calendarOpen=!calendarOpen;calendarMonth=record.fecha.slice(0,7)||calendarMonth;render();break;
+ case "new":record=initial();stage=0;view="wizard";calendarOpen=false;calendarTarget="fecha";calendarMonth=record.fecha.slice(0,7);render();break;
+ case "date-toggle":{
+  const target=t.dataset.dateTarget||"fecha";
+  calendarOpen=calendarTarget===target?!calendarOpen:true;
+  calendarTarget=target;
+  calendarMonth=(getCalendarValue(target)||record.fecha).slice(0,7)||calendarMonth;
+  render();break;
+ }
  case "date-prev":monthShift(-1);render();break;
  case "date-next":monthShift(1);render();break;
  case "history":view="history";render();history();break;
