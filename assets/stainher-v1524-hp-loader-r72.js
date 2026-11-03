@@ -143,7 +143,6 @@
       await load('stainher-edp-quarterly-runtime-r149','stainher-v1524-edp-quarterly-certification-r149.js');
       await load('stainher-contract-standardization-runtime-r162','stainher-v1524-contract-standardization-r162.js');
       await load('stainher-contract-gastos-runtime-r342','stainher-v1524-gastos-r342.js');
-      await load('stainher-user-rendiciones-runtime-r354','stainher-v1524-boletas-rendir-r354.js');
       window.StainherContractForecastR95?.install?.();
       window.StainherContractForecastR96?.install?.();
       window.StainherContractForecastR98?.install?.();
@@ -159,7 +158,6 @@
       window.StainherEdpQuarterlyR149?.install?.();
       window.StainherContractStandardizationR162?.install?.();
       window.StainherGastosR342?.install?.();
-      window.StainherBoletasR354?.install?.();
       window.dispatchEvent(new CustomEvent('stainher:contract-standardization-r162-ready'));
       window.dispatchEvent(new CustomEvent('stainher:edp-inline-r125-ready'));
       window.dispatchEvent(new CustomEvent('stainher:edp-quarterly-r149-ready'));
@@ -431,6 +429,12 @@
   window.StainherHPR185=api;
   window.StainherHPR186=api;
 
+  async function refreshBoletasR354(){
+    try{
+      await load('stainher-user-rendiciones-runtime-r354','stainher-v1524-boletas-rendir-r354.js');
+      window.StainherBoletasR354?.install?.();
+    }catch(error){console.warn('[Boletas a rendir R354]',error)}
+  }
   async function bootstrapR135(){
     // Solicitudes primero: evita mostrar temporalmente el render antiguo.
     await refreshSolicitudesViewR133();
@@ -439,6 +443,7 @@
     await refreshMarriageLeaveR171();
     await refreshRequestCloseR177();
     await refreshAccessR107();
+    await refreshBoletasR354();
     await refreshBudgets();
     await refreshContractForecast();
     await refreshTurnReport();
