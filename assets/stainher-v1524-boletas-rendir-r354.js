@@ -46,13 +46,19 @@ function mount(){
   const el=document.createElement('section');el.id='page-'+PAGE;el.className='page hidden';el.hidden=true;el.setAttribute('aria-hidden','true');base.insertAdjacentElement('afterend',el);
  }
  document.querySelectorAll('.nav').forEach(nav=>{
-  if(nav.querySelector('button[data-page="'+PAGE+'"]'))return;
-  const btn=document.createElement('button');btn.type='button';btn.dataset.page=PAGE;
-  btn.innerHTML='<span aria-hidden="true">🧾</span> <span>Boletas a rendir</span>';
-  const old=nav.querySelector('button[data-page="solicitudes"]');
-  btn.className=(old?.className||'').replace(/\bactive\b/g,'').trim();
-  if(old)old.insertAdjacentElement('afterend',btn);else nav.appendChild(btn);
-  btn.addEventListener('click',()=>{if(page()&&!page().classList.contains('hidden'))render()});
+  let btn=nav.querySelector('button[data-page="'+PAGE+'"]');
+  if(!btn){
+   btn=document.createElement('button');btn.type='button';btn.dataset.page=PAGE;
+   btn.innerHTML='<span aria-hidden="true">🧾</span> <span>Boletas a rendir</span>';
+   const anchor=nav.querySelector('button[data-page="solicitudes"]');
+   if(anchor)anchor.insertAdjacentElement('afterend',btn);else nav.appendChild(btn);
+  }
+  // R355: El menú es para cualquier sesión autenticada. No heredar
+  // clases de ocultación específicas de Solicitudes o de otro perfil.
+  btn.classList.remove('hidden','v11-hidden','v1519-hidden','v1524-hidden');
+  if(btn.hidden)btn.hidden=false;
+  if(btn.style.display==='none')btn.style.removeProperty('display');
+  if(btn.getAttribute('aria-hidden')==='true')btn.setAttribute('aria-hidden','false');
  });
  return true;
 }
@@ -182,7 +188,21 @@ async function render(){
  }catch(error){root.innerHTML='<h2 class="r354-head">Boletas a rendir</h2><p class="r354-muted">Error: '+esc(error.message)+'</p>'}
  finally{busy=false}
 }
-function install(){if(window.sb)mount()}
+let navObserver=null,navQueued=false;
+function install(){
+ if(!window.sb||!window.state?.session?.user)return;
+ mount();
+ if(navObserver)return;
+ // Reponer sólo el enlace de menú cuando el menú legado es recreado
+ // por cambios de permisos o de sesión. No reconstruir formularios.
+ navObserver=new MutationObserver(records=>{
+  if(!records.some(r=>r.addedNodes.length||r.removedNodes.length))return;
+  if(navQueued)return;
+  navQueued=true;
+  requestAnimationFrame(()=>{navQueued=false;if(window.state?.session?.user)mount()});
+ });
+ navObserver.observe(document.body,{childList:true,subtree:true});
+}
 window.StainherBoletasR354={install,render};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 window.addEventListener('stainher:modules-ready',install);
