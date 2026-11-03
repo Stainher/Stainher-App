@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const ui=fs.readFileSync('assets/stainher-v1524-gastos-r342.js','utf8');
+const sql=fs.readFileSync('supabase/migrations/20261103200000_r352_anular_transferencias.sql','utf8');
+new Function(ui);
+assert.match(ui,/Eliminar transferencia/);
+assert.match(ui,/cancel-transfer/);
+assert.match(ui,/anular_transferencia_gastos_r352/);
+assert.match(ui,/motivo_anulacion/);
+assert.match(sql,/security invoker/);
+assert.match(sql,/for update/);
+assert.match(sql,/transferencia_id=null/);
+assert.match(sql,/reembolso_personal_monto=0/);
+assert.match(sql,/anulada=true/);
+assert.match(sql,/anulada_por=auth.uid\(\)/);
+assert.match(sql,/length\(trim\(coalesce\(p_motivo/);
+console.log('R352: anulación auditable, liberación de boletas y control de acceso OK');
