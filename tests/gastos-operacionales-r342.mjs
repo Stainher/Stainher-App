@@ -12,7 +12,7 @@ assert.match(ui,/createSignedUrl/);
 assert.match(ui,/PDFDocument\.create/);
 assert.match(ui,/\['administrador'\]/);
 assert.match(ui,/reembolso_personal_monto/);
-assert.match(ui,/reembolso_finanzas_monto/);
+assert.doesNotMatch(ui,/reembolso_finanzas_monto/);
 assert.match(migration,/enable row level security/);
 assert.match(migration,/public=false/);
 assert.match(migration,/gastos_r342_storage_insert/);
