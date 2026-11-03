@@ -143,13 +143,7 @@ const d=r.fecha||new Date().toLocaleDateString('en-CA');return `<h3>${r.id?'Edit
 <label>Número de boleta/factura<input class="field" name="numero_documento" maxlength="120" value="${esc(r.numero_documento||'')}"></label>
 <label>Realizado por<select class="field" name="realizado_por" required>${personOptions(r.realizado_por||window.state?.profile?.id)}</select></label>
 <label>¿Se ofertará a Codelco?<select class="field" name="ofertable_codelco"><option value="false" ${!r.ofertable_codelco?'selected':''}>No</option><option value="true" ${r.ofertable_codelco?'selected':''}>Sí</option></select></label>
-<label>Reembolso al trabajador CLP<input class="field" type="number" min="0" name="reembolso_personal_monto" value="${esc(r.reembolso_personal_monto||0)}"></label>
-<label>Medio de reembolso al trabajador<select class="field" name="medio_reembolso_personal">${opt(['pendiente','caja_chica','transferencia','efectivo','otro'],r.medio_reembolso_personal||'pendiente')}</select></label>
-<label>Fecha reembolso al trabajador${r345DateField("reembolso_personal_fecha",r.reembolso_personal_fecha||"")}</label>
-<label>Reembolsado por<input class="field" name="reembolso_personal_por" value="${esc(r.reembolso_personal_por||'Cristian Lagos')}"></label>
-<label>Recuperado de Finanzas CLP<input class="field" type="number" min="0" name="reembolso_finanzas_monto" value="${esc(r.reembolso_finanzas_monto||0)}"></label>
-<label>Fecha recuperación Finanzas${r345DateField("reembolso_finanzas_fecha",r.reembolso_finanzas_fecha||"")}</label>
-<label>Referencia Finanzas<input class="field" name="reembolso_finanzas_referencia" value="${esc(r.reembolso_finanzas_referencia||'')}"></label>
+<div class="wide r342-note">Los reembolsos se registran agrupando boletas y facturas desde la pestaña Reembolsos, por su monto completo.</div>
 <label class="wide">Comprobante (JPG, PNG, WebP o PDF · máximo 10 MB)<input type="file" name="archivo" accept="image/jpeg,image/png,image/webp,application/pdf">${r.comprobante_nombre?'<small>Actual: '+esc(r.comprobante_nombre)+'</small>':''}</label>
 <label class="wide">Observaciones<textarea class="field" name="observaciones">${esc(r.observaciones||'')}</textarea></label>
 <div class="wide r342-actions"><button type="submit" class="btn primary">Guardar gasto</button><button type="button" class="btn" data-r342="cancel">Cancelar</button></div>
@@ -165,13 +159,13 @@ const formElement=host.querySelector('#r342-form');if(formElement)formElement.on
 }
 async function save(e){
 e.preventDefault();const form=e.currentTarget,b=new FormData(form),file=b.get('archivo'),selected=people.find(p=>p.id===b.get('realizado_por'));
-const amount=Number(b.get('monto')),personal=Number(b.get('reembolso_personal_monto')||0),finanzas=Number(b.get('reembolso_finanzas_monto')||0),ofertable=b.get('ofertable_codelco')==='true';
-if(!selected||!Number.isSafeInteger(amount)||amount<=0||personal>amount||finanzas>personal||personal<0||finanzas<0){window.toast?.('Revise montos y responsable del gasto.','error');return}
+const amount=Number(b.get('monto')),ofertable=b.get('ofertable_codelco')==='true';
+if(!selected||!Number.isSafeInteger(amount)||amount<=0){window.toast?.('Revise montos y responsable del gasto.','error');return}
 if(file&&file.size&&(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)||file.size>10485760)){window.toast?.('Comprobante no admitido o mayor a 10 MB.','error');return}
-const payload={fecha:b.get('fecha'),categoria:b.get('categoria'),detalle:String(b.get('detalle')).trim(),monto:amount,tipo_documento:b.get('tipo_documento'),numero_documento:b.get('numero_documento')||'',realizado_por:selected.id,realizado_por_nombre:selected.nombre,ofertable_codelco:ofertable,estado_codelco:ofertable?(['ofertado','recuperado'].includes(editing?.estado_codelco)?editing.estado_codelco:'pendiente'):'no_aplica',reembolso_personal_monto:personal,medio_reembolso_personal:b.get('medio_reembolso_personal'),reembolso_personal_fecha:b.get('reembolso_personal_fecha')||null,reembolso_personal_por:b.get('reembolso_personal_por')||'',reembolso_finanzas_monto:finanzas,reembolso_finanzas_fecha:b.get('reembolso_finanzas_fecha')||null,reembolso_finanzas_referencia:b.get('reembolso_finanzas_referencia')||'',observaciones:b.get('observaciones')||'',updated_at:new Date().toISOString()};
+const payload={fecha:b.get('fecha'),categoria:b.get('categoria'),detalle:String(b.get('detalle')).trim(),monto:amount,tipo_documento:b.get('tipo_documento'),numero_documento:b.get('numero_documento')||'',realizado_por:selected.id,realizado_por_nombre:selected.nombre,ofertable_codelco:ofertable,estado_codelco:ofertable?(['ofertado','recuperado'].includes(editing?.estado_codelco)?editing.estado_codelco:'pendiente'):'no_aplica',observaciones:b.get('observaciones')||'',updated_at:new Date().toISOString()};
 const button=form.querySelector('[type="submit"]');button.disabled=true;
 try{
-const isEdit=editing&&editing.id;let q=isEdit?await window.sb.from(TABLE).update(payload).eq('id',editing.id).select().single():await window.sb.from(TABLE).insert(payload).select().single();if(q.error)throw q.error;
+const isEdit=editing&&editing.id;if(isEdit&&editing.transferencia_id&&(Number(editing.monto)!==amount||String(editing.realizado_por)!==selected.id))throw Error('No se puede modificar el monto o responsable de una boleta ya reembolsada.');let q=isEdit?await window.sb.from(TABLE).update(payload).eq('id',editing.id).select().single():await window.sb.from(TABLE).insert(payload).select().single();if(q.error)throw q.error;
 if(file&&file.size){const me=(await window.sb.auth.getUser()).data?.user?.id;if(!me)throw Error('Sesión expirada');
 const safeName=String(file.name).replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100);const path=q.data.id+'/'+me+'/'+Date.now()+'-'+safeName;
 const upload=await window.sb.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});if(upload.error)throw upload.error;
@@ -188,7 +182,7 @@ if(cmd==='edit'&&r){editing=r;document.getElementById('r342-body').innerHTML=for
 if(cmd==='cancel'){editing=null;render()}
 if(cmd==='history'||cmd==='reimb'){subtab=cmd==='history'?'historial':'reembolsos';editing=null;render()}
 if(cmd==='file'&&r?.comprobante_path){const q=await window.sb.storage.from(BUCKET).createSignedUrl(r.comprobante_path,60);if(q.error)return window.toast?.(q.error.message,'error');window.open(q.data.signedUrl,'_blank','noopener')}
-if(cmd==='void'&&r&&isManager()){const reason=prompt('Motivo de anulación (el historial se conserva):');if(!reason?.trim())return;const q=await window.sb.from(TABLE).update({anulado:true,motivo_anulacion:reason.trim()}).eq('id',r.id);if(q.error)return window.toast?.(q.error.message,'error');render()}
+if(cmd==='void'&&r&&isManager()){if(r.transferencia_id)return window.toast?.('El gasto está vinculado a una transferencia y no puede anularse.','error');const reason=prompt('Motivo de anulación (el historial se conserva):');if(!reason?.trim())return;const q=await window.sb.from(TABLE).update({anulado:true,motivo_anulacion:reason.trim()}).eq('id',r.id);if(q.error)return window.toast?.(q.error.message,'error');render()}
 if(cmd==='pdf')report();
 }
 async function report(){
