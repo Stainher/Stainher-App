@@ -44,7 +44,7 @@ if(stage===1)h+='<p>Marque solamente los riesgos presentes y verificados por el 
 if(stage===2)h+=record.actividades.map((a,i)=>'<div class="rt-box"><div class="rt-bar"><b>Actividad '+(i+1)+'</b><button data-remove="'+i+'">Quitar</button></div><label>Descripción<textarea data-activity="'+i+'" data-prop="nombre">'+esc(a.nombre)+'</textarea></label><div class="rt-grid3">'+ITEMS.map(item=>'<label>'+item+'<select data-prep="'+i+'" data-item="'+item+'">'+opt([["","Sin evaluar"],["si","Sí"],["no","No"]],a.preparacion[item]||"")+'</select></label>').join("")+'</div></div>').join("")+'<button data-act="add" '+(record.actividades.length>=6?"disabled":"")+'>Añadir actividad (máx. 6)</button>';
 if(stage===3)h+=record.actividades.map((a,i)=>'<div class="rt-box"><b>Actividad '+(i+1)+': '+esc(a.nombre||"Sin nombre")+'</b>'+a.riesgos.map((r,j)=>'<div class="rt-box"><div class="rt-grid"><label>RF<select data-analysis="'+i+':'+j+'" data-key="rf">'+opt([["","Seleccione RF"],...RF],r.rf)+'</select></label><label>Riesgo<input data-analysis="'+i+':'+j+'" data-key="riesgo" value="'+esc(r.riesgo)+'"></label><label>Consecuencia<textarea data-analysis="'+i+':'+j+'" data-key="consecuencia">'+esc(r.consecuencia)+'</textarea></label><label>Controles verificados<textarea data-analysis="'+i+':'+j+'" data-key="controles">'+esc(r.controles)+'</textarea></label></div><button data-delrisk="'+i+':'+j+'">Quitar riesgo</button></div>').join("")+'<button data-addrisk="'+i+'">Añadir riesgo a esta actividad</button></div>').join("");
 if(stage===4)h+='<h4>Aportes a la gestión de riesgos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.aportes[i]||{};return '<div class="rt-grid3"><label>Propuesta<input data-list="aportes:'+i+':propuesta" value="'+esc(a.propuesta)+'"></label><label>Responsable<input data-list="aportes:'+i+':responsable" value="'+esc(a.responsable)+'"></label><label>Fecha<input type="date" data-list="aportes:'+i+':fecha" value="'+esc(a.fecha)+'"></label></div>'}).join("")+'<h4>Reconocimientos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.reconocimientos[i]||{};return '<div class="rt-grid"><label>Quién<input data-list="reconocimientos:'+i+':quien" value="'+esc(a.quien)+'"></label><label>Motivo<input data-list="reconocimientos:'+i+':motivo" value="'+esc(a.motivo)+'"></label></div>'}).join("");
-if(stage===5)h+='<h4>Revisión antes de finalizar</h4><p>Fecha: '+esc(record.fecha)+' · Supervisor: '+esc(record.supervisor)+' · Turno: '+esc(record.turno)+'</p><p>Riesgos del turno: '+record.riesgos.map(esc).join(", ")+'</p><p>Actividades: '+record.actividades.length+' · Asistentes: '+esc(record.asistentes)+'</p><p class="rt-info">La exportación PDF fiel al original quedará habilitada cuando la plantilla binaria Codelco esté incorporada y validada en GitHub. Nunca se generará un documento que simule ser el original.</p>';
+if(stage===5)h+='<h4>Revisión antes de finalizar</h4><p>Fecha: '+esc(record.fecha)+' · Supervisor: '+esc(record.supervisor)+' · Turno: '+esc(record.turno)+'</p><p>Riesgos del turno: '+record.riesgos.map(esc).join(", ")+'</p><p>Actividades: '+record.actividades.length+' · Asistentes: '+esc(record.asistentes)+'</p><p class="rt-info">La exportación PDF fiel al original quedará habilitada cuando la plantilla binaria Codelco esté incorporada y validada en GitHub. Nunca se generará un documento que simule ser el original.</p><button data-act="pdf">Descargar PDF oficial</button>';
 h+='</div><div class="rt-bar"><button data-act="previous" '+(stage===0?"disabled":"")+'>Anterior</button><span id="rt-message" role="status" aria-live="polite"></span><div class="rt-row"><button data-act="save">Guardar borrador</button>'+(stage<5?'<button data-act="next">Siguiente</button>':'<button data-act="finish">Finalizar RIT</button>')+'</div></div>';
 return h;
 }
@@ -85,7 +85,7 @@ async function history(){
  if(!db()){el.textContent="No hay conexión a Supabase.";return;}
  const {data,error}=await db().from("rit_reuniones").select("id,fecha,turno,supervisor,area,estado").order("fecha",{ascending:false}).limit(100);
  if(error){el.textContent=error.message;return;}
- el.innerHTML='<table><thead><tr><th>Fecha</th><th>Turno</th><th>Supervisor</th><th>Área</th><th>Estado</th><th>Acción</th></tr></thead><tbody>'+(data||[]).map(r=>'<tr><td>'+esc(r.fecha)+'</td><td>'+esc(r.turno)+'</td><td>'+esc(r.supervisor)+'</td><td>'+esc(r.area)+'</td><td>'+esc(r.estado)+'</td><td>'+(r.estado==="borrador"?'<button data-open="'+esc(r.id)+'">Editar</button>':"Registro cerrado")+'</td></tr>').join("")+'</tbody></table>';
+ el.innerHTML='<table><thead><tr><th>Fecha</th><th>Turno</th><th>Supervisor</th><th>Área</th><th>Estado</th><th>Acción</th></tr></thead><tbody>'+(data||[]).map(r=>'<tr><td>'+esc(r.fecha)+'</td><td>'+esc(r.turno)+'</td><td>'+esc(r.supervisor)+'</td><td>'+esc(r.area)+'</td><td>'+esc(r.estado)+'</td><td>'+(r.estado==="borrador"?'<button data-open="'+esc(r.id)+'">Editar</button>':('<button data-pdf="'+esc(r.id)+'">PDF</button>'))+'</td></tr>').join("")+'</tbody></table>';
 }
 async function open(id){
  const {data,error}=await db().from("rit_reuniones").select("*").eq("id",id).single();
@@ -110,9 +110,22 @@ function change(e){
  if(t.dataset.analysis){const [i,j]=t.dataset.analysis.split(":").map(Number);record.actividades[i].riesgos[j][t.dataset.key]=t.value;return;}
  if(t.dataset.list){const [name,index,key]=t.dataset.list.split(":");record[name][index]??={};record[name][index][key]=t.value;}
 }
+async function exportPDF(id){
+ try{
+  if(!window.StainherRITPDF)throw Error("Motor de PDF no disponible.");
+  let entry=record;
+  if(id){
+   const {data,error}=await db().from("rit_reuniones").select("*").eq("id",id).single();
+   if(error)throw error;
+   entry=data;
+  }
+  await window.StainherRITPDF.exportPdf(entry);
+ }catch(error){window.toast?.(error.message||"No se pudo generar el PDF.","error");message(error.message||"No se pudo generar el PDF.",true);}
+}
 function click(e){
  const t=e.target.closest("button");if(!t||!document.getElementById("rit-r331")?.contains(t))return;
  if(t.dataset.open){open(t.dataset.open);return;}
+ if(t.dataset.pdf){exportPDF(t.dataset.pdf);return;}
  if(t.dataset.remove!==undefined){if(record.actividades.length===1){message("Debe mantener al menos una actividad.",true);return;}record.actividades.splice(Number(t.dataset.remove),1);render();return;}
  if(t.dataset.addrisk!==undefined){record.actividades[Number(t.dataset.addrisk)].riesgos.push({rf:"",riesgo:"",consecuencia:"",controles:""});render();return;}
  if(t.dataset.delrisk){const [i,j]=t.dataset.delrisk.split(":").map(Number);record.actividades[i].riesgos.splice(j,1);render();return;}
@@ -124,6 +137,7 @@ function click(e){
  case "next":stage=Math.min(5,stage+1);render();break;
  case "save":save();break;
  case "finish":save(true);break;
+ case "pdf":exportPDF();break;
  }
 }
 function mount(){
