@@ -15,7 +15,7 @@ test("R339: bundled RIT resolves script-relative URLs on mobile/PWA",async()=>{
   window:{PDFLib:{PDFDocument:{load:async()=>({getPages:()=>[0,1].map(()=>({getWidth:()=>1190.55,getHeight:()=>841.89}))})}}},
   fetch:async url=>{
    requested.push(String(url));
-   const match=String(url).match(/r331-part-(\\d{2})\\.txt$/);
+   const match=String(url).match(/r331-part-(\d{2})\.txt$/);
    assert.ok(match,"unexpected template URL: "+url);
    return {ok:true,text:async()=>readFileSync("assets/rit-template/r331-part-"+match[1]+".txt","utf8")};
   }
