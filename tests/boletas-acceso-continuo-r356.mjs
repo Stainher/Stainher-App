@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const ui=fs.readFileSync('assets/stainher-v1524-boletas-rendir-r354.js','utf8');
+const nav=fs.readFileSync('assets/stainher-v1524-navigation-stability.js','utf8');
+new Function(ui);new Function(nav);
+assert.match(ui,/if\(btn\.disabled\)btn\.disabled=false/);
+assert.match(ui,/aria-disabled/);
+assert.match(ui,/pointer-events:auto!important/);
+assert.match(ui,/attributes:true,attributeFilter:/);
+assert.match(ui,/requestAnimationFrame\(\(\)=>\{navQueued=false/);
+assert.match(ui,/window\.state\?\.session\?\.user\)mount\(\)/);
+assert.match(nav,/if\(page==='boletas-rendir'\)/);
+assert.match(ui,/toast\('Boleta registrada, pendiente de reintegro/);
+console.log('R356: acceso continuo después de guardar una boleta, reparación del botón deshabilitado y navegación independiente');
