@@ -334,15 +334,18 @@ async function report(){
   table(['Fecha','Categoria','Detalle','Realizado por','Documento','Monto','Codelco'],colW,current,
    r=>[CL(r.fecha),r.categoria,r.detalle,r.realizado_por_nombre,
     (r.tipo_documento||'')+' '+(r.numero_documento||''),money(r.monto),r.ofertable_codelco?'Sí':'No']);
-  if(current.length){
-   section('Seguimiento de reembolsos');
-   table(['Fecha','Responsable','Gasto CLP','Al personal CLP','Medio','Finanzas CLP','Pendiente CLP'],
-    [70,143,103,113,115,112,usable-656],current,r=>[
-      CL(r.fecha),r.realizado_por_nombre,money(r.monto),money(r.reembolso_personal_monto),
-      String(r.medio_reembolso_personal||'pendiente').replaceAll('_',' '),
-      money(r.reembolso_finanzas_monto),money(Math.max(0,Number(r.monto)-Number(r.reembolso_personal_monto||0)))
-    ]);
-  }
+  const transferReport=await window.sb.from('gastos_transferencias_r348').select('*').gte('fecha',period+'-01').lt('fecha',nextMonth(period)).order('fecha',{ascending:false});
+if(transferReport.error)throw transferReport.error;
+const grouped=transferReport.data||[];
+let linked=[];
+if(grouped.length){const docs=await window.sb.from(TABLE).select('transferencia_id,numero_documento,detalle').in('transferencia_id',grouped.map(t=>t.id)).limit(500);if(docs.error)throw docs.error;linked=docs.data||[];}
+section('Transferencias agrupadas y regularizacion con Finanzas');
+table(['Fecha','Trabajador','Transferido por','Boletas y facturas','Total CLP','Finanzas'],
+ [77,132,130,214,107,usable-660],grouped,t=>[
+ CL(t.fecha),t.realizado_por_nombre,t.pagado_por,
+ linked.filter(d=>d.transferencia_id===t.id).map(d=>d.numero_documento||d.detalle).join(', '),
+ money(t.monto_total),t.finanzas_recuperado?'Recuperado':'Pendiente'
+]);
   pages.forEach((p,i)=>{
    p.drawLine({start:{x:L,y:34},end:{x:W-R,y:34},thickness:.5,color:line});
    p.drawText(safe('STAINHER ASCENSORES LTDA.  |  Emitido '+emitDate),{x:L,y:19,size:8,font:normal,color:muted});
