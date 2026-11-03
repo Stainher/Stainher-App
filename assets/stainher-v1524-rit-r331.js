@@ -51,6 +51,36 @@ h+='</div><div class="rt-bar"><button data-act="previous" '+(stage===0?"disabled
 return h;
 }
 function message(msg,fail=false){const e=document.getElementById("rt-message");if(e){e.textContent=msg;e.className=fail?"rt-error":"rt-info";}}
+function validateStep(step){
+ if(step===0){
+  if(!record.fecha||!record.centro?.trim()||!record.gerencia?.trim()||!record.empresa?.trim()||!record.area?.trim()||!record.supervisor?.trim()||!record.turno?.trim())return "Complete los datos generales obligatorios antes de continuar.";
+  if(record.participantes.length&&record.asistentes!==record.participantes.length)return "Verifique la cantidad de asistentes seleccionados.";
+  if(Number(record.asistentes)<1)return "Indique al menos un asistente antes de continuar.";
+ }
+ if(step===1&&!record.riesgos.length)return "Debe seleccionar los riesgos de fatalidad presentes en el turno antes de avanzar.";
+ if(step===2){
+  for(let i=0;i<record.actividades.length;i++){
+   const a=record.actividades[i];
+   if(!a.nombre?.trim())return "Actividad "+(i+1)+": ingrese la descripción antes de continuar.";
+   for(const item of ITEMS){
+    if(!a.preparacion?.[item])return "Actividad "+(i+1)+": marque Sí o No en "+item+" antes de continuar.";
+    if(a.preparacion[item]==="no")return "Actividad "+(i+1)+": "+item+" marcado No. Resuelva y vuelva a verificar la condición antes de continuar.";
+   }
+  }
+ }
+ if(step===3){
+  for(let i=0;i<record.actividades.length;i++){
+   const rows=record.actividades[i].riesgos||[];
+   if(!rows.length)return "Actividad "+(i+1)+": agregue al menos un análisis de riesgo.";
+   for(let j=0;j<rows.length;j++){
+    const r=rows[j];
+    if(!r.rf||!record.riesgos.includes(r.rf))return "Actividad "+(i+1)+", riesgo "+(j+1)+": seleccione un RF marcado en el paso 2.";
+    if(!r.riesgo?.trim()||!r.consecuencia?.trim()||!r.controles?.trim())return "Actividad "+(i+1)+", riesgo "+(j+1)+": complete riesgo, consecuencia y controles.";
+   }
+  }
+ }
+ return "";
+}
 function validate(final=false){
  if(!final)return "";
  if(!record.fecha||!record.supervisor.trim()||!record.centro.trim()||!record.area.trim())return "Complete fecha, centro, área y supervisor.";
@@ -181,7 +211,7 @@ function click(e){
  case "history":view="history";render();history();break;
  case "add":if(record.actividades.length<6){record.actividades.push(blank());render();}break;
  case "previous":stage=Math.max(0,stage-1);render();break;
- case "next":stage=Math.min(5,stage+1);render();break;
+ case "next":{const pending=validateStep(stage);if(pending){message(pending,true);break;}stage=Math.min(5,stage+1);render();break;}
  case "save":save();break;
  case "finish":save(true);break;
  case "review-prep":stage=2;render();break;
