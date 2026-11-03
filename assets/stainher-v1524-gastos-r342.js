@@ -41,6 +41,16 @@ const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r345-period{display:grid;grid-template-columns:minmax(0,1fr) 94px;gap:7px;width:100%;max-width:340px;min-width:0}
 #contractContent .r345-period select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:#fff;color:#16324c}
 @media(max-width:900px){#contractContent .r342-toolbar>label{width:100%;min-width:0}#contractContent .r345-period{max-width:100%}#contractContent .r342-form label{min-width:0;max-width:100%;box-sizing:border-box}#contractContent .r345-calendar{padding:7px}#contractContent .r345-calendar-days button{height:40px!important}}
+#contractContent .r348-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}
+#contractContent .r348-fields label{display:grid;gap:6px;min-width:0}
+#contractContent .r348-fields input,#contractContent .r348-fields select{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+#contractContent .r348-list{display:grid;gap:7px;max-height:360px;overflow-y:auto;margin:14px 0}
+#contractContent .r348-item{display:flex;gap:11px;align-items:center;padding:11px;border:1px solid var(--line,#bbcede);border-radius:10px;background:var(--panel,#f8fafc)}
+#contractContent .r348-item input{width:20px;height:20px;flex:none}
+#contractContent .r348-item span{min-width:0;flex:1;overflow-wrap:anywhere}
+#contractContent .r348-item small{display:block;color:var(--muted);margin-top:4px}
+#contractContent .r348-total{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0 28px}
+@media(max-width:850px){#contractContent .r348-fields{grid-template-columns:1fr}}
 #contractContent .r342-table-wrap{width:100%;overflow-x:auto}
 #contractContent .r342-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 #contractContent .r342-table th,#contractContent .r342-table td{padding:9px;border-bottom:1px solid var(--line,#ccc);text-align:left}
@@ -160,6 +170,36 @@ const d=r.fecha||new Date().toLocaleDateString('en-CA');return `<h3>${r.id?'Edit
 <label class="wide">Observaciones<textarea class="field" name="observaciones">${esc(r.observaciones||'')}</textarea></label>
 <div class="wide r342-actions"><button type="submit" class="btn primary">Guardar gasto</button><button type="button" class="btn" data-r342="cancel">Cancelar</button></div>
 </form>`}
+
+function transferMarkup(){
+ const persons=[...new Map(unpaidRows.map(r=>[r.realizado_por,r.realizado_por_nombre])).entries()];
+ const candidates=unpaidRows.filter(r=>r.realizado_por===transferPerson);
+ const selector=persons.map(([id,name])=>'<option value="'+esc(id)+'" '+(id===transferPerson?'selected':'')+'>'+esc(name)+'</option>').join('');
+ const items=candidates.map(r=>'<label class="r348-item"><input type="checkbox" data-r348-check name="gastos" value="'+esc(r.id)+'"><span>'+esc(r.fecha)+' · '+esc(r.tipo_documento)+' '+esc(r.numero_documento)+'<small>'+esc(r.detalle)+'</small></span><b>'+money(r.monto)+'</b></label>').join('');
+ const form=isManager()?'<form id="r348-transfer-form"><div class="r348-fields"><label>Trabajador<select class="field" id="r348-person">'+selector+'</select></label><label>Fecha de transferencia'+r345DateField('fecha_transferencia',new Date().toISOString().slice(0,10))+'</label><label>Transferido por<input class="field" name="pagado_por" value="Cristian Lagos" required></label></div><div class="r348-list">'+(items||'<div class="r342-note">No existen documentos pendientes.</div>')+'</div><div class="r348-total"><b>Total de transferencia: <span id="r348-total">$0</span></b><button type="submit" class="btn primary">Registrar transferencia</button></div></form>':'';
+ const historyRows=transfers.map(t=>'<tr><td>'+esc(t.fecha)+'</td><td>'+esc(t.realizado_por_nombre)+'</td><td>'+esc(t.pagado_por)+'</td><td>'+linkedDocs.filter(r=>r.transferencia_id===t.id).map(r=>esc(r.numero_documento||r.detalle)).join(', ')+'</td><td>'+money(t.monto_total)+'</td><td>'+(t.finanzas_recuperado?'Recuperado '+esc(t.fecha_finanzas||''):isManager()?'<button type="button" class="btn" data-r342="finance" data-id="'+esc(t.id)+'">Marcar recuperado</button>':'Pendiente')+'</td></tr>').join('');
+ return '<section class="r348-panel"><h3>Transferencias agrupadas</h3><p class="r342-note">Seleccione las boletas o facturas de una persona. El importe total se calcula automáticamente y cada documento puede reembolsarse una sola vez.</p>'+form+'<h3>Historial de transferencias</h3><div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Trabajador</th><th>Transferido por</th><th>Boletas y facturas</th><th>Total</th><th>Finanzas</th></tr></thead><tbody>'+(historyRows||'<tr><td colspan="6">Sin transferencias registradas.</td></tr>')+'</tbody></table></div></section>';
+}
+function transferTotal(){
+ const el=document.getElementById('r348-total'),form=document.getElementById('r348-transfer-form');
+ if(!form||!el)return;
+ const ids=new Set([...form.querySelectorAll('[data-r348-check]:checked')].map(x=>x.value));
+ el.textContent=money(unpaidRows.filter(r=>ids.has(r.id)).reduce((sum,r)=>sum+Number(r.monto),0));
+}
+async function submitTransfer(e){
+ e.preventDefault();if(!isManager())return;
+ const form=e.currentTarget,ids=[...form.querySelectorAll('[data-r348-check]:checked')].map(x=>x.value);
+ const date=form.querySelector('[name="fecha_transferencia"]')?.value,payer=String(form.querySelector('[name="pagado_por"]')?.value||'').trim();
+ if(!ids.length||!date||!payer)return window.toast?.('Seleccione boletas, fecha y quien transfirió.','error');
+ const button=form.querySelector('[type="submit"]');button.disabled=true;
+ try{
+  const q=await window.sb.rpc('registrar_transferencia_gastos_r348',{p_gastos:ids,p_fecha:date,p_pagado_por:payer});
+  if(q.error)throw q.error;
+  window.toast?.('Transferencia registrada con el total de los documentos.','success');
+  await render();
+ }catch(error){window.toast?.(error.message,'error');button.disabled=false}
+}
+
 async function render(){
 if(window.state?.contractTab!==TAB||!isVisible())return;
 const host=document.getElementById('contractContent');if(!host||loading)return;
