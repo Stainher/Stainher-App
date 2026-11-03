@@ -14,6 +14,63 @@ const RF_COORD={
  RF25:[0,3],RF30:[5,3]
 };
 const cache={ready:null};
+const DB_NAME="stainher-rit-template-r331",DB_STORE="documentos",KEY="RIT_Codelco_original";
+function templateDB(){
+ return new Promise((resolve,reject)=>{
+  if(!window.indexedDB)return reject(Error("Este navegador no permite guardar la plantilla PDF."));
+  const request=indexedDB.open(DB_NAME,1);
+  request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(DB_STORE))request.result.createObjectStore(DB_STORE)};
+  request.onerror=()=>reject(request.error);
+  request.onsuccess=()=>resolve(request.result);
+ });
+}
+async function readLocalTemplate(){
+ const database=await templateDB();
+ return new Promise((resolve,reject)=>{
+  const tx=database.transaction(DB_STORE,"readonly"),req=tx.objectStore(DB_STORE).get(KEY);
+  req.onsuccess=()=>{database.close();resolve(req.result||null)};
+  req.onerror=()=>{database.close();reject(req.error)};
+ });
+}
+async function saveLocalTemplate(bytes){
+ const database=await templateDB();
+ return new Promise((resolve,reject)=>{
+  const tx=database.transaction(DB_STORE,"readwrite");
+  tx.objectStore(DB_STORE).put(bytes,KEY);
+  tx.oncomplete=()=>{database.close();resolve(true)};
+  tx.onerror=()=>{database.close();reject(tx.error)};
+ });
+}
+async function checkTemplate(bytes){
+ const buf=bytes instanceof ArrayBuffer?bytes:bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);
+ if(new TextDecoder().decode(buf.slice(0,5))!=="%PDF-")throw Error("El archivo seleccionado no es PDF.");
+ const lib=await library();
+ const doc=await lib.PDFDocument.load(buf,{updateMetadata:false});
+ const pages=doc.getPages();
+ if(pages.length!==2)throw Error("El RIT original debe tener exactamente dos páginas.");
+ for(const p of pages){
+  if(Math.abs(p.getWidth()-1191)>3||Math.abs(p.getHeight()-842)>3)throw Error("La plantilla debe ser A3 horizontal en ambas páginas.");
+ }
+ return buf;
+}
+async function importTemplate(file){
+ if(!file||file.size>3*1024*1024)throw Error("Seleccione el RIT original PDF (máximo 3 MB).");
+ const bytes=await checkTemplate(await file.arrayBuffer());
+ await saveLocalTemplate(bytes);
+ return true;
+}
+async function getTemplate(){
+ try{
+  const response=await fetch(TEMPLATE,{cache:"no-store"});
+  if(response.ok)return await checkTemplate(await response.arrayBuffer());
+ }catch(_){ /* Branch without installed static template: read saved local original. */ }
+ const local=await readLocalTemplate().catch(()=>null);
+ if(!local)throw Error("No se ha instalado la plantilla original de Codelco. Importe el PDF desde el apartado RIT.");
+ return checkTemplate(local);
+}
+async function hasTemplate(){
+ try{await getTemplate();return true}catch(_){return false}
+}
 async function library(){
  if(window.PDFLib)return window.PDFLib;
  if(!cache.ready)cache.ready=new Promise((resolve,reject)=>{
@@ -45,11 +102,7 @@ function dataCheck(r){
 }
 async function exportPdf(record){
  dataCheck(record);
- const response=await fetch(TEMPLATE,{cache:"no-store"});
- if(!response.ok)throw Error("Plantilla oficial del RIT aún no instalada en la aplicación. No se ha generado un documento alternativo.");
- const bytes=await response.arrayBuffer();
- const signature=new TextDecoder().decode(bytes.slice(0,5));
- if(signature!=="%PDF-")throw Error("La plantilla RIT descargada no es un PDF válido.");
+ const bytes=await getTemplate();
  const lib=await library();
  const doc=await lib.PDFDocument.load(bytes,{updateMetadata:false});
  if(doc.getPageCount()!==2)throw Error("Plantilla no autorizada: debe conservar exactamente dos páginas.");
@@ -104,5 +157,5 @@ async function exportPdf(record){
  const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
  return true;
 }
-window.StainherRITPDF=Object.freeze({exportPdf,template:TEMPLATE,coordinates:RF_COORD});
+window.StainherRITPDF=Object.freeze({exportPdf,importTemplate,hasTemplate,template:TEMPLATE,coordinates:RF_COORD});
 })();
