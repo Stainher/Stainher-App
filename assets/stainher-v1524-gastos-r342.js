@@ -89,7 +89,7 @@ function personOptions(v){return '<option value="">Seleccionar</option>'+people.
 function opt(a,v){return a.map(s=>`<option ${s===v?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}
 
 const r345Months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const r345DateCL=v=>/^\\d{4}-\\d{2}-\\d{2}$/.test(String(v||''))?v.slice(8,10)+'-'+v.slice(5,7)+'-'+v.slice(0,4):'Seleccionar fecha';
+const r345DateCL=v=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(v||''))?v.slice(8,10)+'-'+v.slice(5,7)+'-'+v.slice(0,4):'Seleccionar fecha';
 function r345DateField(name,value){
 return `<div class="r345-date-field" data-r345-field="${esc(name)}"><input type="hidden" name="${esc(name)}" value="${esc(value||'')}"><button class="r345-date-button" type="button" data-r345-open="${esc(name)}" aria-label="Seleccionar fecha" aria-expanded="false"><span data-r345-label>${esc(r345DateCL(value))}</span><span aria-hidden="true">▦</span></button><div data-r345-panel hidden></div></div>`;
 }
@@ -115,7 +115,7 @@ const panel=field.querySelector('[data-r345-panel]'),input=field.querySelector('
 if(b.dataset.r345Open!==undefined){
 const wasOpen=!panel.hidden;
 document.querySelectorAll('#r342-form [data-r345-panel]').forEach(p=>{p.hidden=true;p.previousElementSibling?.setAttribute('aria-expanded','false')});
-if(!wasOpen){panel.hidden=false;panel.dataset.r345Month=(input.value||new Date().toLocaleDateString('en-CA')).slice(0,7);panel.innerHTML=r345CalendarMarkup(field,panel.dataset.r345Month);b.setAttribute('aria-expanded','true')}
+if(!wasOpen){panel.hidden=false;panel.dataset.r345Month=(input.value||new Date().toISOString().slice(0,10)).slice(0,7);panel.innerHTML=r345CalendarMarkup(field,panel.dataset.r345Month);b.setAttribute('aria-expanded','true')}
 }else if(b.dataset.r345Shift!==undefined){
 const [year,monthNumber]=panel.dataset.r345Month.split('-').map(Number);
 const shifted=new Date(Date.UTC(year,monthNumber-1+Number(b.dataset.r345Shift),1));
