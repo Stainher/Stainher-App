@@ -76,7 +76,7 @@ async function save(final=false){
   if(final)payload.fecha_cierre=new Date().toISOString();
   let query;
   if(record.id)query=await db().from("rit_reuniones").update(payload).eq("id",record.id).select("id,estado").single();
-  else query=await db().from("rit_reuniones").insert(payload).select("id,estado").single();
+  else { const draft={...payload,estado:"borrador"}; delete draft.fecha_cierre; query=await db().from("rit_reuniones").insert(draft).select("id,estado").single(); if(!query.error && final){record.id=query.data.id;query=await db().from("rit_reuniones").update(payload).eq("id",record.id).select("id,estado").single();} }
   if(query.error)throw query.error;
   record.id=query.data.id;record.estado=query.data.estado;
   message(final?"RIT finalizado y almacenado.":"Borrador guardado.");
