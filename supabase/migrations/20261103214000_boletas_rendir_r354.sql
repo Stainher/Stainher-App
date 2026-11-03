@@ -23,7 +23,14 @@ create table if not exists public.boletas_reintegros_r354(
  confirmado_por uuid not null default auth.uid() references auth.users(id),
  created_at timestamptz not null default now()
 );
--- La restricción FK existe desde la migración aplicada en producción.
+do $
+begin
+ if not exists(select 1 from pg_constraint where conname='boletas_r354_transferencia_fk'
+   and conrelid='public.boletas_rendir_r354'::regclass) then
+  alter table public.boletas_rendir_r354 add constraint boletas_r354_transferencia_fk
+  foreign key(transferencia_id) references public.boletas_reintegros_r354(id);
+ end if;
+end $;
 create index if not exists boletas_r354_owner_idx on public.boletas_rendir_r354(user_id,created_at desc);
 create index if not exists reintegros_r354_owner_idx on public.boletas_reintegros_r354(user_id,fecha_transferencia desc);
 alter table public.boletas_rendir_r354 enable row level security;
