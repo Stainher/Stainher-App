@@ -100,7 +100,7 @@ function dataCheck(r){
  if(!Array.isArray(r.actividades)||!r.actividades.length||r.actividades.length>6)throw Error("El RIT requiere entre una y seis actividades.");
  if((r.aportes||[]).length>4||(r.reconocimientos||[]).length>4)throw Error("La sección de aportes o reconocimientos supera el formulario.");
 }
-async function exportPdf(record){
+async function buildPdf(record){
  dataCheck(record);
  const bytes=await getTemplate();
  const lib=await library();
@@ -152,10 +152,14 @@ async function exportPdf(record){
  });
  // Página 2 se conserva sin alteraciones: guía Codelco oficial.
  const output=await doc.save({useObjectStreams:false});
- const url=URL.createObjectURL(new Blob([output],{type:"application/pdf"}));
  const filename="RIT_"+String(record.fecha||"sin-fecha")+"_"+text(record.supervisor).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"_")+".pdf";
- const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
- return true;
+ return {output,filename};
 }
-window.StainherRITPDF=Object.freeze({exportPdf,importTemplate,hasTemplate,template:TEMPLATE,coordinates:RF_COORD});
+function downloadBuilt({output,filename}){
+ const url=URL.createObjectURL(new Blob([output],{type:"application/pdf"}));
+ const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+async function exportPdf(record){const built=await buildPdf(record);downloadBuilt(built);return true}
+window.StainherRITPDF=Object.freeze({exportPdf,buildPdf,downloadBuilt,importTemplate,hasTemplate,template:TEMPLATE,coordinates:RF_COORD});
 })();
