@@ -158,7 +158,7 @@ async function buildPdf(record){
  draw(clip(record.area,65),1024,78,8,156);
  const fecha=String(record.fecha||"").split("-");draw(fecha.length===3?fecha.reverse().join("-"):record.fecha,87,96,8,150);
  draw(record.turno,376,96,8,70);
- draw(clip(record.supervisor,70),656,96,8,236);
+ draw(clip(record.supervisor,70),681,96,8,196);
  draw(String(record.asistentes??""),1053,96,8,90);
  for(const rf of record.riesgos||[]){
   const pos=RF_COORD[rf];if(!pos)throw Error("RF no presente en la portada del RIT: "+rf);
@@ -170,13 +170,13 @@ async function buildPdf(record){
   draw(clip(a.nombre||"",90),41,y+26,8,128);
   items.forEach((item,j)=>{
    const val=a.preparacion?.[item];
-   if(val==="si")cross(229,y+j*17.4+3);
-   if(val==="no")cross(249,y+j*17.4+3);
+   if(val==="si")cross(239,y+j*17.4+3);
+   if(val==="no")cross(259,y+j*17.4+3);
   });
   if((a.riesgos||[]).length>4)throw Error("La actividad "+(i+1)+" excede las cuatro filas RF del formato original.");
   (a.riesgos||[]).forEach((r,j)=>{
    const rowY=y+j*17.4;
-   draw(String(r.rf||"").replace(/^RF/i,""),301,rowY+3,7,17);
+   draw(String(r.rf||"").replace(/^RF/i,""),289,rowY+3,7,17);
    drawRows(clip(r.riesgo,90),323,rowY+2,165);
    drawRows(clip(r.consecuencia,135),492,rowY+2,302);
    drawRows(clip(r.controles,145),805,rowY+2,375);
