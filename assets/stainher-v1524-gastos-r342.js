@@ -335,11 +335,11 @@ async function report(){
   table(['Fecha','Categoria','Detalle','Realizado por','Documento','Monto','Codelco'],colW,current,
    r=>[CL(r.fecha),r.categoria,r.detalle,r.realizado_por_nombre,
     (r.tipo_documento||'')+' '+(r.numero_documento||''),money(r.monto),r.ofertable_codelco?'Sí':'No']);
-  const transferReport=await window.sb.from('gastos_transferencias_r348').select('*').gte('fecha',period+'-01').lt('fecha',nextMonth(period)).order('fecha',{ascending:false});
+  const transferReport=await window.sb.from('gastos_transferencias_r348').select('*').eq('anulada',false).gte('fecha',period+'-01').lt('fecha',nextMonth(period)).order('fecha',{ascending:false});
 if(transferReport.error)throw transferReport.error;
-const grouped=transferReport.data||[];
+const grouped=(transferReport.data||[]).filter(t=>!t.anulada);
 let linked=[];
-if(grouped.length){const docs=await window.sb.from(TABLE).select('transferencia_id,numero_documento,detalle').in('transferencia_id',grouped.map(t=>t.id)).limit(500);if(docs.error)throw docs.error;linked=docs.data||[];}
+if(grouped.length){const docs=await window.sb.from(TABLE).select('transferencia_id,numero_documento,detalle').in('transferencia_id',grouped.map(t=>t.id)).eq('anulado',false).limit(500);if(docs.error)throw docs.error;linked=docs.data||[];}
 section('Transferencias y devoluciones al personal');
 table(['Fecha','Trabajador','Transferido por','Boletas y facturas','Total devuelto CLP'],
  [83,145,140,260,usable-628],grouped,t=>[
