@@ -204,7 +204,7 @@ async function report(){
   const normal=await doc.embedFont(StandardFonts.Helvetica),bold=await doc.embedFont(StandardFonts.HelveticaBold);
   const W=841.89,H=595.28,L=37,R=37,usable=W-L-R;
   const ink=rgb(.10,.15,.22),muted=rgb(.36,.43,.52),navy=rgb(.075,.11,.15),slate=rgb(.14,.18,.24),orange=rgb(.96,.30,.12),white=rgb(1,1,1),stripe=rgb(.95,.96,.97),line=rgb(.84,.87,.90);
-  const safe=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7e]/g,'?');
+  const safe=v=>String(v??'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/[^\x20-\xFF]/g,'?');
   const monthName=new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(period+'-01T12:00:00Z'));
   const CL=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:String(v||'-')};
   const emitDate=new Intl.DateTimeFormat('es-CL',{dateStyle:'medium',timeZone:'America/Santiago'}).format(new Date());
@@ -223,7 +223,7 @@ async function report(){
    page.drawRectangle({x:0,y:H-119,width:W,height:119,color:navy});
    put('STAINHER ASCENSORES LTDA.',L,H-41,19,bold,white);
    put('Informe Mensual de Gastos Operacionales',L,H-67,12,bold,white);
-   put('Contrato 4600029879 - Codelco Division Andina',L,H-88,9,normal,white);
+   put('Contrato 4600029879 - Codelco División Andina',L,H-88,9,normal,white);
    put(safe(monthName).toUpperCase(),W-R-140,H-62,10,bold,white,140);
    page.drawRectangle({x:0,y:H-124,width:W,height:5,color:orange});
    y=H-158;
@@ -259,7 +259,7 @@ async function report(){
    y-=13;
   }
   newPage();
-  section('Resumen economico');
+  section('Resumen económico');
   const kpis=[
    ['Total de gastos',totals.total],['Pendiente al personal',totals.personal],
    ['Pendiente con Finanzas',totals.finanzas],['Ofertable a Codelco',totals.codelco]
@@ -272,15 +272,15 @@ async function report(){
    put(money(value),x+10,y-43,14,bold,ink,cardW-18);
   });
   y-=80;
-  section('Distribucion por categoria');
+  section('Distribución por categoría');
   const categoryRows=Object.entries(current.reduce((a,r)=>{a[r.categoria]=(a[r.categoria]||0)+Number(r.monto);return a},{})).sort((a,b)=>b[1]-a[1]);
-  table(['Categoria','Cantidad','Total CLP'],[380,140,usable-520],categoryRows,
+  table(['Categoría','Cantidad','Total CLP'],[380,140,usable-520],categoryRows,
    ([name,value])=>[name,String(current.filter(r=>r.categoria===name).length),money(value)]);
   section('Detalle de gastos');
   const colW=[69,113,192,110,113,91,usable-688];
   table(['Fecha','Categoria','Detalle','Realizado por','Documento','Monto','Codelco'],colW,current,
    r=>[CL(r.fecha),r.categoria,r.detalle,r.realizado_por_nombre,
-    (r.tipo_documento||'')+' '+(r.numero_documento||''),money(r.monto),r.ofertable_codelco?'Si':'No']);
+    (r.tipo_documento||'')+' '+(r.numero_documento||''),money(r.monto),r.ofertable_codelco?'Sí':'No']);
   if(current.length){
    section('Seguimiento de reembolsos');
    table(['Fecha','Responsable','Gasto CLP','Al personal CLP','Medio','Finanzas CLP','Pendiente CLP'],
@@ -293,7 +293,7 @@ async function report(){
   pages.forEach((p,i)=>{
    p.drawLine({start:{x:L,y:34},end:{x:W-R,y:34},thickness:.5,color:line});
    p.drawText(safe('STAINHER ASCENSORES LTDA.  |  Emitido '+emitDate),{x:L,y:19,size:8,font:normal,color:muted});
-   p.drawText('Pagina '+(i+1)+' de '+pages.length,{x:W-R-80,y:19,size:8,font:normal,color:muted});
+   p.drawText('Página '+(i+1)+' de '+pages.length,{x:W-R-80,y:19,size:8,font:normal,color:muted});
   });
   const bytes=await doc.save();
   const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
