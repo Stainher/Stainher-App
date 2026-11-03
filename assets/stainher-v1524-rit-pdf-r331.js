@@ -15,6 +15,14 @@ const RF_COORD={
 };
 const cache={ready:null};
 const DB_NAME="stainher-rit-template-r331",DB_STORE="documentos",KEY="RIT_Codelco_original";
+const APPROVED_SHA256=new Set(["afa4a550b8e4fb2c0c63bcad4f18d75fb7e65ca328551f8f3f990ec3a3680717","1838c693e1d58d1a0d45e55c518bb1ee027a915596067dadda7095c196d85b20"]);
+async function verifyFingerprint(bytes){
+ if(!crypto?.subtle)throw Error("El navegador no puede verificar la integridad del RIT.");
+ const digest=await crypto.subtle.digest("SHA-256",bytes);
+ const hex=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+ if(!APPROVED_SHA256.has(hex))throw Error("La plantilla PDF no coincide con la versión Codelco aprobada para R331.");
+}
+
 function templateDB(){
  return new Promise((resolve,reject)=>{
   if(!window.indexedDB)return reject(Error("Este navegador no permite guardar la plantilla PDF."));
@@ -44,6 +52,7 @@ async function saveLocalTemplate(bytes){
 async function checkTemplate(bytes){
  const buf=bytes instanceof ArrayBuffer?bytes:bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);
  if(new TextDecoder().decode(buf.slice(0,5))!=="%PDF-")throw Error("El archivo seleccionado no es PDF.");
+ await verifyFingerprint(buf);
  const lib=await library();
  const doc=await lib.PDFDocument.load(buf,{updateMetadata:false});
  const pages=doc.getPages();
