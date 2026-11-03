@@ -23,4 +23,7 @@ assert.ok(ui.includes('background:linear-gradient(135deg,#103b63'));
 // R344: no reinstalar ni renderizar la pestaña cada 3,5 segundos.
 assert.doesNotMatch(ui,/setInterval\(\(\)=>\{if\(window\.state\?\.session\?\.user\)install\(\)\},3500\)/);
 assert.match(ui,/!host\.querySelector\('\.r342-grid'\)/);
+assert.doesNotMatch(ui,/name="estado_codelco"/,'R347 no debe mostrar selector Estado Codelco');
+assert.match(ui,/name="ofertable_codelco"/,'R347 mantiene opción para ofertar a Codelco');
+assert.match(ui,/estado_codelco:ofertable\?/,'R347 asigna estado interno al guardar');
 console.log('gastos-r342: sintaxis, integración, adjuntos privados y PDF OK');
