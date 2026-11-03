@@ -5,7 +5,7 @@ if(window.StainherBoletasR354)return;
 const PAGE='boletas-rendir',TABLE='boletas_rendir_r354',BUCKET='boletas-rendir-r354',ISMAEL='44b92981-9398-42cb-a334-a51baa876125';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'$'+Number(v||0).toLocaleString('es-CL');
-const date=()=>new Date().toLocaleDateString('en-CA');
+const date=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 const toast=(s,type='info')=>window.toast?.(s,type);
 let uid=null,profile=null,items=[],payments=[],busy=false;
 const manager=()=>uid===ISMAEL;
