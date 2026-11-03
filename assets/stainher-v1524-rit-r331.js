@@ -37,14 +37,14 @@ async function loadStaff(){
 }
 function markup(){
 let h='<div class="rt-bar"><h3>Reunión de Inicio de Turno (RIT)</h3><div class="rt-row"><button data-act="new">Nuevo RIT</button><button data-act="history">Historial</button></div></div>';
-if(view==="history")return h+'<div id="rt-history-list">Cargando registros…</div>';
+if(view==="history")return h+'<div class="rt-box"><label>Plantilla original Codelco (PDF de 2 páginas A3)<input type="file" accept="application/pdf,.pdf" data-rit-template="1"></label><p class="rt-info" id="rt-template-state">Se utiliza la plantilla oficial disponible en esta instalación.</p></div><div id="rt-history-list">Cargando registros…</div>';
 h+='<div class="rt-steps">Etapa '+(stage+1)+' de 6 · '+esc(S[stage])+'</div><div class="rt-box">';
 if(stage===0)h+='<div class="rt-grid">'+field("Centro de trabajo","centro")+field("Gerencia","gerencia")+field("Superintendencia / Empresa contratista","empresa")+field("Área / Frente de trabajo","area")+field("Fecha","fecha","date")+field("Turno","turno")+field("Supervisor a cargo","supervisor")+field("Nº asistentes","asistentes","number",'min="0" max="999"')+'</div>'+participantMarkup();
 if(stage===1)h+='<p>Marque solamente los riesgos presentes y verificados por el supervisor.</p><div class="rt-risks">'+RF.map(r=>'<label><input type="checkbox" data-risk="'+r[0]+'" '+(record.riesgos.includes(r[0])?"checked":"")+'>'+r[0]+' · '+esc(r[1])+'</label>').join("")+'</div>';
 if(stage===2)h+=record.actividades.map((a,i)=>'<div class="rt-box"><div class="rt-bar"><b>Actividad '+(i+1)+'</b><button data-remove="'+i+'">Quitar</button></div><label>Descripción<textarea data-activity="'+i+'" data-prop="nombre">'+esc(a.nombre)+'</textarea></label><div class="rt-grid3">'+ITEMS.map(item=>'<label>'+item+'<select data-prep="'+i+'" data-item="'+item+'">'+opt([["","Sin evaluar"],["si","Sí"],["no","No"]],a.preparacion[item]||"")+'</select></label>').join("")+'</div></div>').join("")+'<button data-act="add" '+(record.actividades.length>=6?"disabled":"")+'>Añadir actividad (máx. 6)</button>';
 if(stage===3)h+=record.actividades.map((a,i)=>'<div class="rt-box"><b>Actividad '+(i+1)+': '+esc(a.nombre||"Sin nombre")+'</b>'+a.riesgos.map((r,j)=>'<div class="rt-box"><div class="rt-grid"><label>RF<select data-analysis="'+i+':'+j+'" data-key="rf">'+opt([["","Seleccione RF"],...RF],r.rf)+'</select></label><label>Riesgo<input data-analysis="'+i+':'+j+'" data-key="riesgo" value="'+esc(r.riesgo)+'"></label><label>Consecuencia<textarea data-analysis="'+i+':'+j+'" data-key="consecuencia">'+esc(r.consecuencia)+'</textarea></label><label>Controles verificados<textarea data-analysis="'+i+':'+j+'" data-key="controles">'+esc(r.controles)+'</textarea></label></div><button data-delrisk="'+i+':'+j+'">Quitar riesgo</button></div>').join("")+'<button data-addrisk="'+i+'">Añadir riesgo a esta actividad</button></div>').join("");
 if(stage===4)h+='<h4>Aportes a la gestión de riesgos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.aportes[i]||{};return '<div class="rt-grid3"><label>Propuesta<input data-list="aportes:'+i+':propuesta" value="'+esc(a.propuesta)+'"></label><label>Responsable<input data-list="aportes:'+i+':responsable" value="'+esc(a.responsable)+'"></label><label>Fecha<input type="date" data-list="aportes:'+i+':fecha" value="'+esc(a.fecha)+'"></label></div>'}).join("")+'<h4>Reconocimientos (último día)</h4>'+[0,1,2,3].map(i=>{const a=record.reconocimientos[i]||{};return '<div class="rt-grid"><label>Quién<input data-list="reconocimientos:'+i+':quien" value="'+esc(a.quien)+'"></label><label>Motivo<input data-list="reconocimientos:'+i+':motivo" value="'+esc(a.motivo)+'"></label></div>'}).join("");
-if(stage===5)h+='<h4>Revisión antes de finalizar</h4><p>Fecha: '+esc(record.fecha)+' · Supervisor: '+esc(record.supervisor)+' · Turno: '+esc(record.turno)+'</p><p>Riesgos del turno: '+record.riesgos.map(esc).join(", ")+'</p><p>Actividades: '+record.actividades.length+' · Asistentes: '+esc(record.asistentes)+'</p><p class="rt-info">La exportación PDF fiel al original quedará habilitada cuando la plantilla binaria Codelco esté incorporada y validada en GitHub. Nunca se generará un documento que simule ser el original.</p><button data-act="pdf">Descargar PDF oficial</button>';
+if(stage===5)h+='<h4>Revisión antes de finalizar</h4><p>Fecha: '+esc(record.fecha)+' · Supervisor: '+esc(record.supervisor)+' · Turno: '+esc(record.turno)+'</p><p>Riesgos del turno: '+record.riesgos.map(esc).join(", ")+'</p><p>Actividades: '+record.actividades.length+' · Asistentes: '+esc(record.asistentes)+'</p><p class="rt-info">La exportación conserva la plantilla original de dos páginas. Si no está instalada en esta versión, seleccione aquí el PDF original de Codelco (queda guardado en este navegador).</p><label>Plantilla oficial Codelco<input type="file" accept="application/pdf,.pdf" data-rit-template="1"></label><p class="rt-info" id="rt-template-state">Verificando disponibilidad de plantilla…</p><button data-act="pdf">Descargar vista previa PDF</button>';
 h+='</div><div class="rt-bar"><button data-act="previous" '+(stage===0?"disabled":"")+'>Anterior</button><span id="rt-message" role="status" aria-live="polite"></span><div class="rt-row"><button data-act="save">Guardar borrador</button>'+(stage<5?'<button data-act="next">Siguiente</button>':'<button data-act="finish">Finalizar RIT</button>')+'</div></div>';
 return h;
 }
@@ -57,6 +57,7 @@ function validate(final=false){
   if(!a.nombre.trim())return "Todas las actividades deben tener descripción.";
   for(const item of ITEMS)if(!a.preparacion[item])return "Evalúe Instructivos, Materiales, Herramientas y EPP.";
   if(ITEMS.some(item=>a.preparacion[item]==="no"))return "Hay un requisito de preparación NO: resuelva la condición antes del cierre.";
+  if(a.riesgos.length>4)return "Máximo cuatro riesgos analizados por actividad en el PDF original.";
   if(!a.riesgos.length||a.riesgos.some(r=>!r.rf||!r.riesgo.trim()||!r.consecuencia.trim()||!r.controles.trim()))return "Complete RF, riesgo, consecuencia y controles de cada actividad.";
   if(a.riesgos.some(r=>!record.riesgos.includes(r.rf)))return "Todos los RF de las actividades deben marcarse también en riesgos del turno.";
  }
@@ -67,6 +68,9 @@ async function save(final=false){
  if(!db()){message("Conexión de datos no disponible.",true);return false;}
  if(busy)return false;busy=true;
  try{
+  // Antes de cerrar el registro, debe poder construirse el PDF exacto.
+  const pdfPrepared=final?await window.StainherRITPDF?.buildPdf(record):null;
+  if(final&&!pdfPrepared)throw Error("No está listo el generador PDF original; se conserva el RIT como borrador.");
   const payload={fecha:record.fecha,turno:record.turno,centro:record.centro,gerencia:record.gerencia,empresa:record.empresa,area:record.area,supervisor:record.supervisor,asistentes:Number(record.asistentes)||0,participantes:record.participantes,riesgos:record.riesgos,actividades:record.actividades,aportes:record.aportes,reconocimientos:record.reconocimientos,estado:final?"finalizado":"borrador",updated_at:new Date().toISOString()};
   if(final)payload.fecha_cierre=new Date().toISOString();
   let query;
@@ -75,7 +79,10 @@ async function save(final=false){
   if(query.error)throw query.error;
   record.id=query.data.id;record.estado=query.data.estado;
   message(final?"RIT finalizado y almacenado.":"Borrador guardado.");
-  if(final){view="history";render();await history();}
+  if(final){
+   try{window.StainherRITPDF.downloadBuilt(pdfPrepared)}catch(error){window.toast?.("RIT finalizado; no se pudo iniciar la descarga: "+error.message,"error")}
+   view="history";render();await history();
+  }
   return true;
  }catch(e){message(e.message||"No se pudo guardar RIT.",true);return false}
  finally{busy=false}
@@ -95,6 +102,15 @@ async function open(id){
 function render(){const root=host();if(!root)return;style();let el=document.getElementById("rit-r331");if(!el){el=document.createElement("section");el.className="rit331";el.id="rit-r331";root.appendChild(el);}el.innerHTML=markup();}
 function change(e){
  const t=e.target;
+ if(t.dataset.ritTemplate){
+  const file=t.files?.[0];if(!file)return;
+  const panel=document.getElementById("rt-template-state");if(panel)panel.textContent="Validando plantilla PDF…";
+  Promise.resolve().then(()=>window.StainherRITPDF?.importTemplate(file)).then(ok=>{
+   if(!ok)throw Error("Motor PDF no disponible.");
+   if(panel)panel.textContent="Plantilla Codelco de 2 páginas A3 validada y guardada en este navegador.";
+  }).catch(err=>{if(panel)panel.textContent=err.message;window.toast?.(err.message,"error")});
+  return;
+ }
  if(t.dataset.field){record[t.dataset.field]=t.dataset.field==="asistentes"?Number(t.value):t.value;return;}
  if(t.dataset.person){
   const person=staff?.find(p=>p.id===t.dataset.person);
@@ -127,7 +143,11 @@ function click(e){
  if(t.dataset.open){open(t.dataset.open);return;}
  if(t.dataset.pdf){exportPDF(t.dataset.pdf);return;}
  if(t.dataset.remove!==undefined){if(record.actividades.length===1){message("Debe mantener al menos una actividad.",true);return;}record.actividades.splice(Number(t.dataset.remove),1);render();return;}
- if(t.dataset.addrisk!==undefined){record.actividades[Number(t.dataset.addrisk)].riesgos.push({rf:"",riesgo:"",consecuencia:"",controles:""});render();return;}
+ if(t.dataset.addrisk!==undefined){
+  const risks=record.actividades[Number(t.dataset.addrisk)].riesgos;
+  if(risks.length>=4){message("El PDF original permite cuatro filas de análisis por actividad.",true);return;}
+  risks.push({rf:"",riesgo:"",consecuencia:"",controles:""});render();return;
+ }
  if(t.dataset.delrisk){const [i,j]=t.dataset.delrisk.split(":").map(Number);record.actividades[i].riesgos.splice(j,1);render();return;}
  switch(t.dataset.act){
  case "new":record=initial();stage=0;view="wizard";render();break;
