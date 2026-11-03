@@ -8,7 +8,7 @@ const money=v=>'$'+Math.round(Number(v)||0).toLocaleString('es-CL');
 const month=()=>new Date().toLocaleDateString('en-CA').slice(0,7);
 const isManager=()=>['administrador'].includes(String(window.state?.profile?.rol||'').toLowerCase())&&!window.state?.v15PreviewRole;
 const isVisible=()=>['administrador','gerente'].includes(String(window.state?.profile?.rol||'').toLowerCase())&&!window.state?.v15PreviewRole;
-let period=month(),rows=[],people=[],subtab='historial',editing=null,loading=false;
+let period=month(),rows=[],people=[],transfers=[],unpaidRows=[],linkedDocs=[],transferPerson='',subtab='historial',editing=null,loading=false;
 function style(){
 if(document.getElementById('r342-css'))return;
 const x=document.createElement('style');x.id='r342-css';x.textContent=`
@@ -152,7 +152,7 @@ async function render(){
 if(window.state?.contractTab!==TAB||!isVisible())return;
 const host=document.getElementById('contractContent');if(!host||loading)return;
 loading=true;host.innerHTML='<div class="empty">Cargando gastos…</div>';style();decorate();
-try{await load();host.innerHTML=header()+'<div id="r342-body">'+(editing?form(editing===true?{}:editing):history())+'</div>';
+try{await load();host.innerHTML=header()+'<div id="r342-body">'+(editing?form(editing===true?{}:editing):subtab==='reembolsos'?transferMarkup():history())+'</div>';
 host.onclick=action;host.onchange=e=>{if(e.target.id==='r345-period-month'||e.target.id==='r345-period-year'){period=host.querySelector('#r345-period-year').value+'-'+host.querySelector('#r345-period-month').value;editing=null;render()}};
 const formElement=host.querySelector('#r342-form');if(formElement)formElement.onsubmit=save;
 }catch(e){host.innerHTML='<div class="r342-error">No se pudieron cargar los gastos: '+esc(e.message)+'</div>'}finally{loading=false}
