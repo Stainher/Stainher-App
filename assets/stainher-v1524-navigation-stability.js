@@ -263,6 +263,13 @@
   async function navigate(page){
     if(!page||page==='__more')return false;
     const token=++sequence;enforcePage(page);
+    // R355: ruta propia de rendiciones. No pasarla por el ACL legado
+    // que sólo reconoce módulos anteriores y muestra falso acceso denegado.
+    if(page==='boletas-rendir'){
+      await window.StainherBoletasR354?.render?.();
+      if(token===sequence)enforcePage(page);
+      return true;
+    }
     try{
       const result=typeof baseNavigate==='function'?await baseNavigate(page):false;
       if(token===sequence){enforcePage(page);requestAnimationFrame(()=>token===sequence&&enforcePage(page));setTimeout(()=>token===sequence&&enforcePage(page),150)}
