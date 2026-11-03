@@ -205,8 +205,8 @@ if(window.state?.contractTab!==TAB||!isVisible())return;
 const host=document.getElementById('contractContent');if(!host||loading)return;
 loading=true;host.innerHTML='<div class="empty">Cargando gastos…</div>';style();decorate();
 try{await load();host.innerHTML=header()+'<div id="r342-body">'+(editing?form(editing===true?{}:editing):subtab==='reembolsos'?transferMarkup():history())+'</div>';
-host.onclick=action;host.onchange=e=>{if(e.target.id==='r345-period-month'||e.target.id==='r345-period-year'){period=host.querySelector('#r345-period-year').value+'-'+host.querySelector('#r345-period-month').value;editing=null;render()}};
-const formElement=host.querySelector('#r342-form');if(formElement)formElement.onsubmit=save;
+host.onclick=action;host.onchange=e=>{if(e.target.id==='r348-person'){transferPerson=e.target.value;const body=host.querySelector('#r342-body');body.innerHTML=transferMarkup();const tf=body.querySelector('#r348-transfer-form');if(tf)tf.onsubmit=submitTransfer;return}if(e.target.matches('[data-r348-check]')){transferTotal();return}if(e.target.id==='r345-period-month'||e.target.id==='r345-period-year'){period=host.querySelector('#r345-period-year').value+'-'+host.querySelector('#r345-period-month').value;editing=null;render()}};
+const formElement=host.querySelector('#r342-form');if(formElement)formElement.onsubmit=save;const tf=host.querySelector('#r348-transfer-form');if(tf)tf.onsubmit=submitTransfer;
 }catch(e){host.innerHTML='<div class="r342-error">No se pudieron cargar los gastos: '+esc(e.message)+'</div>'}finally{loading=false}
 }
 async function save(e){
@@ -233,6 +233,14 @@ if(cmd==='new'){if(!isManager())return;editing=true;document.getElementById('r34
 if(cmd==='edit'&&r){editing=r;document.getElementById('r342-body').innerHTML=form(r);document.getElementById('r342-form').onsubmit=save}
 if(cmd==='cancel'){editing=null;render()}
 if(cmd==='history'||cmd==='reimb'){subtab=cmd==='history'?'historial':'reembolsos';editing=null;render()}
+if(cmd==='finance'&&isManager()){
+ const t=transfers.find(v=>v.id===id);if(!t||t.finanzas_recuperado)return;
+ const today=new Date().toISOString().slice(0,10);
+ if(!confirm('¿Confirmar reembolso de Finanzas por '+money(t.monto_total)+' con fecha '+today+'?'))return;
+ const result=await window.sb.rpc('registrar_recuperacion_finanzas_r348',{p_transferencia:id,p_fecha:today});
+ if(result.error)return window.toast?.(result.error.message,'error');
+ window.toast?.('Reembolso de Finanzas registrado.','success');await render();return;
+}
 if(cmd==='file'&&r?.comprobante_path){const q=await window.sb.storage.from(BUCKET).createSignedUrl(r.comprobante_path,60);if(q.error)return window.toast?.(q.error.message,'error');window.open(q.data.signedUrl,'_blank','noopener')}
 if(cmd==='void'&&r&&isManager()){if(r.transferencia_id)return window.toast?.('El gasto está vinculado a una transferencia y no puede anularse.','error');const reason=prompt('Motivo de anulación (el historial se conserva):');if(!reason?.trim())return;const q=await window.sb.from(TABLE).update({anulado:true,motivo_anulacion:reason.trim()}).eq('id',r.id);if(q.error)return window.toast?.(q.error.message,'error');render()}
 if(cmd==='pdf')report();
