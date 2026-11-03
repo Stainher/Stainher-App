@@ -13,6 +13,6 @@ assert.match(source,/Distribución por categoría/);
 assert.match(source,/Seguimiento de reembolsos/);
 assert.match(source,/pages\.forEach/);
 assert.match(source,/doc\.save\(\)/);
-assert.match(source,/money\(totals\.total\)/);
+assert.match(source,/\['Total de gastos',totals\.total\]/);
 assert.doesNotMatch(source,/STAINHER ASCENSORES  \|  GASTOS OPERACIONALES/);
 console.log('R346: estructura institucional, paginación, tablas, totales y vacío OK');
