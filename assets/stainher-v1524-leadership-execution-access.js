@@ -87,3 +87,27 @@
   script.addEventListener('error',()=>console.error('[Stainher Liderazgo] No se pudo cargar el correo automático de controles.'),{once:true});
   document.head.appendChild(script);
 })();
+
+/* Desarrollo 29: cargar RIT sólo como módulo adicional de Liderazgo. */
+(()=>{
+  if(window.__STAINHER_RIT_R331_LOADER__)return;
+  window.__STAINHER_RIT_R331_LOADER__=true;
+  const tag=document.createElement('script');
+  const src=document.currentScript?.src||location.href;
+  tag.src=new URL('stainher-v1524-rit-r331.js',src).href+'?build=r331-20261103';
+  tag.async=false;tag.dataset.stainherModule='stainher-v1524-rit-r331.js';
+  tag.onerror=()=>console.error('[Stainher RIT] Falló la carga del asistente R331');
+  document.head.appendChild(tag);
+})();
+
+/* Desarrollo 29: motor PDF de RIT sobre plantilla Codelco original. */
+(()=>{
+ if(window.__STAINHER_RIT_PDF_R331_LOADER__)return;
+ window.__STAINHER_RIT_PDF_R331_LOADER__=true;
+ const script=document.createElement('script');
+ const src=document.currentScript?.src||location.href;
+ script.src=new URL('stainher-v1524-rit-pdf-r331.js',src).href+'?build=r331-20261103';
+ script.async=false;script.dataset.stainherModule='stainher-v1524-rit-pdf-r331.js';
+ script.onerror=()=>console.error('[Stainher RIT] Falló la carga del motor PDF.');
+ document.head.appendChild(script);
+})();
