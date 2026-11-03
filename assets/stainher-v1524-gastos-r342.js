@@ -18,7 +18,16 @@ const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r342-kpi strong,#contractContent .r342-kpi strong *{display:block;color:#ffffff!important;opacity:1!important;font-size:clamp(20px,2.2vw,29px)!important;line-height:1.15!important;font-weight:800!important;font-variant-numeric:tabular-nums!important;text-shadow:0 1px 2px rgba(0,0,0,.16)}
 #contractContent .r342-kpi:hover{filter:brightness(1.06)}
 @media(prefers-reduced-motion:no-preference){#contractContent .r342-kpi{transition:filter .16s ease}}
-#contractContent .r342-toolbar,#contractContent .r342-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:12px 0}
+#contractContent .r342-toolbar{display:grid!important;grid-template-columns:minmax(240px,1fr) minmax(205px,320px) max-content max-content;align-items:end!important;gap:12px!important;margin:14px 0 18px;max-width:100%;box-sizing:border-box}
+#contractContent .r342-toolbar .r349-toolbar-intro{align-self:center;min-width:0}
+#contractContent .r342-toolbar .r349-toolbar-intro h3{margin:0 0 5px}
+#contractContent .r342-toolbar .r349-period-label{display:flex;flex-direction:column;gap:5px;min-width:0;width:100%;margin:0}
+#contractContent .r342-toolbar .r345-period{max-width:none;width:100%}
+#contractContent .r342-toolbar>.btn{height:44px!important;min-height:44px!important;white-space:nowrap!important;align-self:end!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:0!important;box-sizing:border-box!important}
+#contractContent .r342-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:12px 0}
+@media(min-width:901px) and (max-width:1280px){#contractContent .r342-toolbar{grid-template-columns:minmax(200px,1fr) minmax(190px,300px);gap:10px}#contractContent .r342-toolbar>.btn{justify-self:start}}
+@media(max-width:900px){#contractContent .r342-toolbar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important}#contractContent .r342-toolbar .r349-toolbar-intro,#contractContent .r342-toolbar .r349-period-label{grid-column:1/-1;width:100%}#contractContent .r342-toolbar>.btn{width:100%!important;white-space:normal!important;min-width:0!important;text-align:center!important}}
+@media(max-width:390px){#contractContent .r342-toolbar{grid-template-columns:1fr}#contractContent .r342-toolbar>.btn{grid-column:1/-1}}
 #contractContent .r342-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 #contractContent .r342-form label{display:grid;gap:5px;font-size:12px;color:var(--muted)}
 #contractContent .r342-form .wide{grid-column:1/-1}
@@ -101,7 +110,7 @@ const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.
 }
 const stateText=(p,t)=>Number(p)>=Number(t)?'Completo':Number(p)>0?'Parcial':'Pendiente';
 function header(){
-const t=totals();return `<div class="r342-toolbar"><div><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label>Mes ${r345MonthSelector()}</label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
+const t=totals();return `<div class="r342-toolbar"><div class="r349-toolbar-intro"><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label class="r349-period-label">Mes ${r345MonthSelector()}</label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
 <div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small>Pendiente al personal</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small>Devuelto al personal</small><strong>${money(t.devuelto)}</strong></div></div>
 <div class="r342-actions"><button class="btn ${subtab==='historial'?'primary':''}" data-r342="history">Historial</button><button class="btn ${subtab==='reembolsos'?'primary':''}" data-r342="reimb">Reembolsos</button></div>`}
 function history(){
