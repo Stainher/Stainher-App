@@ -294,9 +294,38 @@ function mount(){
  if(!document.getElementById("rit-r331"))render();
  if(staff===null)loadStaff().catch(e=>{staff=[];staffError=e.message;render();});
 }
-let last=null;function pulse(){const root=host();if(root&&root!==last){last=root;mount();}else if(root&&!document.getElementById("rit-r331"))mount();}
-window.StainherRIT=Object.freeze({mount});
-window.addEventListener("stainher:modules-ready",()=>setTimeout(mount,100));
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});else mount();
-setInterval(pulse,2500);
+// R367: sin sondeo periódico. El RIT se monta al abrir Liderazgo o
+// cuando el contenedor se reconstruye, nunca mediante recargas cada 2,5 s.
+let activeRoot=null,scheduled=false,watcher=null;
+function syncMount(){
+ const root=host();
+ if(!root||!window.state?.session?.user)return;
+ const changed=root!==activeRoot;
+ const missing=!root.querySelector("#rit-r331");
+ if(!changed&&!missing)return;
+ activeRoot=root;
+ mount();
+}
+function scheduleMount(){
+ if(scheduled)return;scheduled=true;
+ requestAnimationFrame(()=>{scheduled=false;syncMount()});
+}
+function observeMount(){
+ if(watcher)return;
+ watcher=new MutationObserver(records=>{
+  const root=host();
+  if(!root||!window.state?.session?.user)return;
+  // Ignorar cambios internos del formulario, que no requieren remontaje.
+  const changed=root!==activeRoot;
+  const removed=records.some(r=>[...r.removedNodes].some(n=>n.nodeType===1&&
+   (n.id==="rit-r331"||n.querySelector?.("#rit-r331"))));
+  if(changed||removed||!root.querySelector("#rit-r331"))scheduleMount();
+ });
+ watcher.observe(document.body,{childList:true,subtree:true});
+}
+window.StainherRIT=Object.freeze({mount:syncMount});
+window.addEventListener("stainher:modules-ready",scheduleMount);
+window.addEventListener("stainher:navigation",scheduleMount);
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{syncMount();observeMount()},{once:true});
+else {syncMount();observeMount()}
 })();
