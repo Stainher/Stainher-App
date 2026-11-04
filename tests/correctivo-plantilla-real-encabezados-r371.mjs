@@ -1,3 +1,4 @@
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -32,6 +33,7 @@ context.window.XLSX.read=()=>({SheetNames:Object.keys(sheets),Sheets:sheets});
 context.window.XLSX.utils.sheet_to_json=sh=>sh===sheets['Carga averías']?matrix:[['Uso','Descripción']];
 context.window.addEventListener=()=>{};
 vm.runInNewContext(src,context);
+test('R371 plantilla exacta de 72 filas con fechas seriales',()=>{
 const result=context.window.StainherCorrectivoReplaceR364.parse(new ArrayBuffer(0));
 assert.equal(result.length,72,'Debe reconocer las 72 filas de la plantilla adjunta');
 assert.equal(result[0].equipo_original,'JAULA ASEA');
@@ -47,3 +49,5 @@ context.window.XLSX.SSF={};
 const fallback=context.window.StainherCorrectivoReplaceR364.parse(new ArrayBuffer(0));
 assert.equal(fallback[0].fecha_inicio,'2026-01-13','Debe convertir serial Excel incluso sin SSF');
 console.log('R371: 72 averías reconocidas, 9 encabezados exactos, fechas y horas seriales convertidas');
+
+});
