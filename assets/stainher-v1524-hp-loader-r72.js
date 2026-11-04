@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R371')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R373')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R371';
+  window.__STAINHER_HP_LOADER_VERSION__='R373';
 
-  const BUILD='20261104-r371-plantilla-fechas-excel';
+  const BUILD='20261104-r373-confirmacion-reemplazo';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
