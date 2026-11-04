@@ -149,8 +149,18 @@ async function onFile(event){
   if(count.error)throw count.error;
   const old=count.count;
   if(!Number.isInteger(old))throw Error('No fue posible comprobar el total de averías actuales.');
-  const summary='El Excel contiene '+rows.length+' averías.\nLa base actual contiene '+old+
-    ' averías (incluidos registros manuales).\nTodas se reemplazarán, guardando previamente un respaldo íntegro.\n\n¿Continuar?';
+  // R368: vista previa obligatoria antes del reemplazo destructivo.
+  const muestra=rows.slice(0,5).map((r,i)=>
+    (i+1)+'. '+r.equipo_original+' | '+(r.fecha_inicio||'sin fecha')+
+    ' | '+(r.numero_guia||'sin guía')).join('\n');
+  const fechas=rows.map(r=>r.fecha_inicio).filter(Boolean).sort();
+  const periodo=fechas.length?fechas[0]+' a '+fechas[fechas.length-1]:'sin fechas identificadas';
+  const summary='REVISIÓN PREVIA DEL REEMPLAZO CORRECTIVO\n\nArchivo: '+file.name+
+    '\nRegistros actuales: '+old+
+    '\nRegistros en el Excel: '+rows.length+
+    '\nPeríodo del Excel: '+periodo+
+    '\n\nPrimeros registros:\n'+muestra+
+    '\n\nATENCIÓN: se reemplazará TODA la base actual, incluidos registros manuales. Se conservará un respaldo íntegro y la operación se revertirá si falla la importación.\n\n¿Desea continuar?';
   if(!window.confirm(summary))return;
   const typed=window.prompt('Para confirmar el reemplazo de TODA la base correctiva, escriba REEMPLAZAR:');
   if(typed!=='REEMPLAZAR'){toast('Importación cancelada; la base no se modificó.');return}
