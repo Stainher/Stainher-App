@@ -219,15 +219,25 @@ async function onFile(event){
   const button=input.closest('.r369-correctivo-import')?.querySelector('[data-r369-start]');if(button)button.disabled=true;
   status('Reemplazando base y generando respaldo. No cierre esta ventana…');
   try{
+   // R373: el resultado del RPC es la única autoridad para informar si la base
+   // se reemplazó. Un error posterior al refrescar la vista NO revierte el RPC.
    const q=await sb.rpc('reemplazar_averias_excel_r364',{p_filas:rows,p_archivo:file.name,p_cantidad_esperada:old});
    if(q.error)throw q.error;
    const data=q.data||{};
-   status('Importación completada: '+data.nuevos+' averías. Respaldo: '+data.respaldo_id);toast('Importación completada: '+data.nuevos+' averías. Respaldo previo generado.','success');
-   window.dispatchEvent(new CustomEvent('stainher:correctivo-reemplazado-r364',{detail:data}));
-   if(typeof window.renderCorrectivo==='function')await window.renderCorrectivo();
-   else if(typeof window.loadAverias==='function')await window.loadAverias();
+   const saved='Base reemplazada correctamente: '+data.nuevos+' averías. Respaldo: '+data.respaldo_id+'.';
+   status(saved+' No vuelva a importar el archivo para refrescar la pantalla.');
+   toast(saved,'success');
+   try{
+    window.dispatchEvent(new CustomEvent('stainher:correctivo-reemplazado-r364',{detail:data}));
+    if(typeof window.renderCorrectivo==='function')await window.renderCorrectivo();
+    else if(typeof window.loadAverias==='function')await window.loadAverias();
+   }catch(refreshError){
+    // La base ya fue modificada: no lanzar error de "No se reemplazó".
+    console.warn('[R373] Reemplazo confirmado; la vista no pudo actualizarse',refreshError);
+    status(saved+' La vista no pudo actualizarse automáticamente; use Actualizar o vuelva a ingresar a Correctivo. No repita la importación.');
+   }
   }finally{if(button)button.disabled=false}
- }catch(error){status('Error: '+(error.message||error),true);toast('No se reemplazó la base: '+(error.message||error),'error');console.error('[R369] Importación correctiva',error)}
+ }catch(error){status('No se confirmó el reemplazo: '+(error.message||error),true);toast('No se confirmó el reemplazo: '+(error.message||error),'error');console.error('[R373] RPC de reemplazo correctivo',error)}
  finally{input.value=''}
 }
 let installed=false,pending=false;
