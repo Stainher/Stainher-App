@@ -46,5 +46,5 @@ try{
   await p.close();
  }
 }finally{await browser.close()}
-} catch(error) { console.error('R362 DIAGNOSTIC: '+(error?.stack||error)); throw error; }
+} catch(error) { const {test}=await import('node:test'); test('R362_DIAGNOSTIC_'+String(error?.message||error).slice(0,175),()=>{throw error}); }
 console.log('R362: 3 temas, KPI completos, contraste blanco, sin afectar tablas ni botones');
