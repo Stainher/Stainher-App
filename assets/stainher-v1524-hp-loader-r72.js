@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R366')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R369')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R366';
+  window.__STAINHER_HP_LOADER_VERSION__='R369';
 
-  const BUILD='20261104-r366-rit-mobile';
+  const BUILD='20261104-r369-importacion-averias';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
