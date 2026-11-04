@@ -7,6 +7,7 @@ new Function(source);new Function(loader);
 assert.match(loader,/refreshKpiContrastR362/);
 assert.match(loader,/stainher-v1524-kpi-contrast-r362\.js/);
 assert.doesNotMatch(source,/setInterval/);
+try {
 const browser=await chromium.launch({headless:true});
 try{
  for(const theme of ['light','modern','dark']){
@@ -45,4 +46,5 @@ try{
   await p.close();
  }
 }finally{await browser.close()}
+} catch(error) { console.error('R362 DIAGNOSTIC: '+(error?.stack||error)); throw error; }
 console.log('R362: 3 temas, KPI completos, contraste blanco, sin afectar tablas ni botones');
