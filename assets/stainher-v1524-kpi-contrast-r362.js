@@ -24,7 +24,7 @@ function nearestCard(label){
  for(let i=0;i<5&&node&&!node.matches('.page,#app,main,body');i++,node=node.parentElement){
   if(!valid(node))break;
   selected=node;
-  if(/kpi|stat|metric|tile|counter/i.test(String(node.className||'')))break;
+  if(/kpi|stat|metric|tile|counter|summary|card|box/i.test(String(node.className||'')))break;
  }
  return selected;
 }
