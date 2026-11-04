@@ -429,6 +429,12 @@
   window.StainherHPR185=api;
   window.StainherHPR186=api;
 
+  async function refreshUnifiedSummaryR360(){
+    try{
+      await load('stainher-unified-summary-r360','stainher-v1524-summary-design-r360.js');
+      window.StainherUnifiedSummaryR360?.install?.();
+    }catch(error){console.warn('[Unified Summary R360]',error)}
+  }
   async function refreshDashboardVisualR359(){
     try{
       await load('stainher-dashboard-visual-r359','stainher-v1524-dashboard-visual-r359.js');
@@ -451,6 +457,7 @@
     await refreshAccessR107();
     await refreshBoletasR354();
     await refreshDashboardVisualR359();
+    await refreshUnifiedSummaryR360();
     await refreshBudgets();
     await refreshContractForecast();
     await refreshTurnReport();
