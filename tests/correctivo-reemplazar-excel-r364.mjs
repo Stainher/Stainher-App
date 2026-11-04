@@ -15,6 +15,10 @@ assert.match(sql,/v_rol not in \('administrador','confiabilidad'\)/);
 assert.match(sql,/security invoker|LANGUAGE plpgsql/);
 assert.match(src,/REEMPLAZAR/);
 assert.match(src,/REVISIÓN PREVIA DEL REEMPLAZO CORRECTIVO/);
+assert.match(src,/page-confiabilidad/);
+assert.match(src,/resolveRole\(\)\.then\(mount\)/);
+assert.match(src,/r369-status/);
+assert.match(src,/book\.SheetNames\.map/);
 assert.match(src,/Primeros registros:/);
 assert.match(src,/Registros actuales:/);
 assert.match(src,/Registros en el Excel:/);
@@ -35,7 +39,7 @@ try{
    ]}};
   },userRole);
   await page.addScriptTag({content:src});
-  assert.equal(await page.locator('#r364-start').count(),userRole==='confiabilidad'?1:0);
+  assert.equal(await page.locator('[data-r369-start]').count(),userRole==='confiabilidad'?1:0);
   if(userRole==='confiabilidad'){
    const parsed=await page.evaluate(()=>window.StainherCorrectivoReplaceR364.parse(new Uint8Array([1])));
    assert.equal(parsed.length,1);
