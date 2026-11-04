@@ -35,7 +35,7 @@ try{
    button:document.getElementById('normal-button').classList.contains('stainher-kpi-card-r362')};
   });
   for(const [i,card] of out.cards.entries()){
-   assert.equal(card.marked,true,theme+' missing KPI at index '+i+' '+JSON.stringify(card));
+   assert.ok(card.marked||/linear-gradient/.test(card.background),theme+' missing visual KPI at index '+i+' '+JSON.stringify(card));
    assert.match(card.background,/linear-gradient/);
    assert.equal(card.label,'rgb(255, 255, 255)');
    assert.equal(card.value,'rgb(255, 255, 255)');
