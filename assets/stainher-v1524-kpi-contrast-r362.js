@@ -3,7 +3,7 @@
 'use strict';
 if(window.StainherSummaryFixR362)return;
 const gradient='linear-gradient(125deg,#12446e 0%,#1a6094 52%,#287eb3 100%)';
-const labels=/^(?:total(?: del mes| per[ií]odo| rendido| neto acumulado)?|valor vigente|cobrado neto|estados de pago|veh[ií]culos activos|dotaci[oó]n contractual|dotaci[oó]n visible|activos|vacantes|documentos\s*(?:<|≤|menos de)\s*60 d[ií]as|documentos|detalle neto|reconocido edp|edp registrados|por calendarizar|programadas|atrasadas|ejecutadas|programados|realizados|pendientes|vencidos|cumplimiento|ejecuciones libres|operativos hoy|turno normal|encierro dentro de turno|encierro fuera de turno|suspendidos por encierro|equipos|aver[ií]as|preventivos|abiertas|en proceso|cerradas|saldo|pendiente al personal|devuelto al personal|reintegrado|pendiente de reintegro)$/i;
+const labels=/^(?:total(?: del mes| per[ií]odo| rendido| neto acumulado| actividades)?|valor vigente|cobrado neto|estados de pago|veh[ií]culos activos|dotaci[oó]n contractual|dotaci[oó]n visible|activos|vacantes|documentos\s*(?:<|≤|menos de)\s*60 d[ií]as|documentos|detalle neto|reconocido edp|edp registrados|por calendarizar|programadas|atrasadas|ejecutadas|programados|realizados|pendientes|vencidos|cumplimiento|ejecuciones libres|operativos hoy|turno normal|encierro dentro de turno|encierro fuera de turno|suspendidos por encierro|equipos|aver[ií]as|preventivos|abiertas|en proceso|cerradas|saldo|pendiente al personal|devuelto al personal|reintegrado|pendiente de reintegro|realizadas|no realizadas|avance global)$/i;
 const known='.kpi,.mini-stat,.v1512-mini-kpi,.v1520-kpi,.v1524-home-kpi,.v158-review-kpi,.system-stat,.usage-stat,.supabase-stat,.r342-kpi,.r354-kpi,.stainher-leadership-kpi-r214,.stainher-r359-kpi,.stainher-unified-kpi-r360';
 const ignore='.modal,#modalRoot,[role="dialog"],.tooltip,.popover,table,thead,tbody,tr,td,th,form';
 const clean=t=>String(t||'').replace(/\s+/g,' ').trim();
@@ -32,6 +32,9 @@ function style(){
  if(document.getElementById('stainher-kpi-r362'))return;
  const tag=document.createElement('style');tag.id='stainher-kpi-r362';
  tag.textContent=[
+ 'html body #page-liderazgo .v1512-mini-kpi,html body #page-liderazgo .stainher-leadership-kpi-r214{background:linear-gradient(125deg,#12446e,#287eb3)!important;background-image:linear-gradient(125deg,#12446e,#287eb3)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+ 'html body #page-liderazgo .v1512-mini-kpi :is(span,small,b,strong),html body #page-liderazgo .stainher-leadership-kpi-r214 :is(span,small,b,strong){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
+
  'html body .stainher-kpi-card-r362{background:'+gradient+'!important;background-image:'+gradient+'!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid rgba(255,255,255,.17)!important;border-radius:12px!important;box-shadow:0 5px 14px rgba(13,49,82,.16)!important;min-width:0;box-sizing:border-box;opacity:1!important}',
  'html body .stainher-kpi-card-r362 :is(div,span,small,p,label,b,strong,h3,h4,h5,[class*="value"],[class*="number"],[class*="label"]){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;text-shadow:none!important;background-color:transparent!important}',
  'html body .stainher-kpi-card-r362 :is(b,strong,[class*="value"],[class*="number"]){font-weight:750!important;font-variant-numeric:tabular-nums}',
@@ -60,6 +63,9 @@ function apply(){
  root.querySelectorAll('small,span,label,div,p').forEach(label=>{
   if(!isLabel(label)||label.closest(ignore))return;
   const card=nearestCard(label);if(card)cards.add(card);
+ });
+ root.querySelectorAll('#page-liderazgo .v1512-mini-kpi,#page-liderazgo .stainher-leadership-kpi-r214,#page-estandarizacion .kpi,#page-estandarizacion .mini-stat,#page-estandarizacion [class*="stat-card"],#page-estandarizacion [class*="kpi-card"],#page-contrato .v1520-kpi').forEach(el=>{
+  if(!el.querySelector('table,canvas,form,button')&&/\d/.test(clean(el.textContent)))cards.add(el);
  });
  root.querySelectorAll(known).forEach(el=>{
   if(!valid(el))return;
