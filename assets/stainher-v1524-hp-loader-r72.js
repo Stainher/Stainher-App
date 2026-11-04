@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R365')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R366')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R365';
+  window.__STAINHER_HP_LOADER_VERSION__='R366';
 
-  const BUILD='20261104-r365-kpi-estables';
+  const BUILD='20261104-r366-rit-mobile';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -435,6 +435,12 @@
       window.StainherCorrectivoReplaceR364?.install?.();
     }catch(error){console.warn('[Correctivo overwrite R364]',error)}
   }
+  async function refreshRITMobileR366(){
+    try{
+      await load('stainher-rit-mobile-r366','stainher-v1524-rit-mobile-access-r366.js');
+      window.StainherRITMobileR366?.install?.();
+    }catch(error){console.warn('[RIT mobile R366]',error)}
+  }
   async function refreshStableKpiR365(){
     try{
       await load('stainher-stable-kpi-r365','stainher-v1524-stable-kpi-r365.js');
@@ -484,6 +490,7 @@
     // R365: no iniciar R360 ni R362; sus MutationObservers competían
     // al repintar los KPI y provocaban cambios de color visibles en móvil.
     await refreshStableKpiR365();
+    await refreshRITMobileR366();
     await refreshHomeRemindersR361();
     await refreshCorrectivoReplaceR364();
     await refreshBudgets();
