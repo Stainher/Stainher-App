@@ -429,6 +429,12 @@
   window.StainherHPR185=api;
   window.StainherHPR186=api;
 
+  async function refreshCorrectivoReplaceR364(){
+    try{
+      await load('stainher-correctivo-replace-r364','stainher-v1524-correctivo-replace-r364.js');
+      window.StainherCorrectivoReplaceR364?.install?.();
+    }catch(error){console.warn('[Correctivo overwrite R364]',error)}
+  }
   async function refreshKpiContrastR362(){
     try{
       await load('stainher-kpi-contrast-r362','stainher-v1524-kpi-contrast-r362.js');
@@ -472,6 +478,7 @@
     await refreshUnifiedSummaryR360();
     await refreshHomeRemindersR361();
     await refreshKpiContrastR362();
+    await refreshCorrectivoReplaceR364();
     await refreshBudgets();
     await refreshContractForecast();
     await refreshTurnReport();
