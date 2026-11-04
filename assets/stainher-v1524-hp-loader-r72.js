@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R362')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R365')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R362';
+  window.__STAINHER_HP_LOADER_VERSION__='R365';
 
-  const BUILD='20261104-r362-contraste-global';
+  const BUILD='20261104-r365-kpi-estables';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -435,6 +435,12 @@
       window.StainherCorrectivoReplaceR364?.install?.();
     }catch(error){console.warn('[Correctivo overwrite R364]',error)}
   }
+  async function refreshStableKpiR365(){
+    try{
+      await load('stainher-stable-kpi-r365','stainher-v1524-stable-kpi-r365.js');
+      window.StainherStableKpiR365?.install?.();
+    }catch(error){console.warn('[KPI estables R365]',error)}
+  }
   async function refreshKpiContrastR362(){
     try{
       await load('stainher-kpi-contrast-r362','stainher-v1524-kpi-contrast-r362.js');
@@ -475,9 +481,10 @@
     await refreshAccessR107();
     await refreshBoletasR354();
     await refreshDashboardVisualR359();
-    await refreshUnifiedSummaryR360();
+    // R365: no iniciar R360 ni R362; sus MutationObservers competían
+    // al repintar los KPI y provocaban cambios de color visibles en móvil.
+    await refreshStableKpiR365();
     await refreshHomeRemindersR361();
-    await refreshKpiContrastR362();
     await refreshCorrectivoReplaceR364();
     await refreshBudgets();
     await refreshContractForecast();
