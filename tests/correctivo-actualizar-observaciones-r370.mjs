@@ -14,7 +14,7 @@ assert.match(ui,/p_confirmar:true/);
 assert.match(ui,/window\.prompt\('Para confirmar /);
 assert.match(sql,/auditoria_observaciones_averias_r370/);
 assert.match(sql,/pg_advisory_xact_lock/);
-assert.match(sql,/security definer/);
+assert.match(sql,/security definer/i);
 assert.match(sql,/observaciones=c\.item->>'nuevo'/);
 test('R370 importación de observaciones desde modal legado',async()=>{
 const browser=await chromium.launch({headless:true});
