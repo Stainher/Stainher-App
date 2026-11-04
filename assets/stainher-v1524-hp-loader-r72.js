@@ -429,6 +429,12 @@
   window.StainherHPR185=api;
   window.StainherHPR186=api;
 
+  async function refreshHomeRemindersR361(){
+    try{
+      await load('stainher-home-reminders-r361','stainher-v1524-home-reminders-r361.js');
+      window.StainherReminderR361?.install?.();
+    }catch(error){console.warn('[Inicio recordatorios R361]',error)}
+  }
   async function refreshUnifiedSummaryR360(){
     try{
       await load('stainher-unified-summary-r360','stainher-v1524-summary-design-r360.js');
@@ -458,6 +464,7 @@
     await refreshBoletasR354();
     await refreshDashboardVisualR359();
     await refreshUnifiedSummaryR360();
+    await refreshHomeRemindersR361();
     await refreshBudgets();
     await refreshContractForecast();
     await refreshTurnReport();
