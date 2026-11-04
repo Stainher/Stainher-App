@@ -14,8 +14,28 @@ const CATEGORIES=[
 ];
 const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function normalizedCategory(value){
+ const v=norm(value).toLowerCase().replace(/\s+/g,' ');
+ if(!v)return '';
+ if(/puerta|enclavamiento|acceso/.test(v))return 'Puertas y accesos';
+ if(/seguridad|proteccion/.test(v))return 'Seguridad';
+ if(/electr|alimentaci[oó]n|energia/.test(v))return 'Alimentación eléctrica';
+ if(/cable|tracci[oó]n|transmisi[oó]n|mec[aá]nic|freno|aire comprimido/.test(v))return 'Tracción y transmisión';
+ if(/control|electr[oó]nic|automatizaci[oó]n/.test(v))return 'Control y electrónica';
+ if(/hidraul|neumat|pist[oó]n/.test(v))return 'Hidráulica';
+ if(/cabina|nivelaci[oó]n/.test(v))return 'Cabina y nivelación';
+ return norm(value);
+}
+function declaredSubsystem(r){
+ const direct=r.subsistema||r.subsistema_falla||r.categoria_falla;
+ if(String(direct||'').trim())return normalizedCategory(direct);
+ // R374: respetar el campo explícito "Subsistema:" al inicio de Observaciones.
+ // Evitar interpretar palabras de la descripción, causa o acción como categoría.
+ const m=String(r.observaciones||'').match(/(?:^|[\r\n])\s*subsistema\s*:\s*([^\r\n]+)/i);
+ return m?normalizedCategory(m[1]):'';
+}
 function classify(r){
- const supplied=norm(r.subsistema||r.subsistema_falla||r.categoria_falla||'');
+ const supplied=declaredSubsystem(r);
  if(supplied)return supplied;
  const desc=[r.causa,r.descripcion_falla,r.falla,r.descripcion,r.observaciones,r.detalle].filter(Boolean).join(' ');
  // Primero identificar componentes específicos; palabras genéricas como "cabina"
