@@ -1,3 +1,4 @@
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {chromium} from 'playwright';
@@ -15,6 +16,7 @@ assert.match(sql,/auditoria_observaciones_averias_r370/);
 assert.match(sql,/pg_advisory_xact_lock/);
 assert.match(sql,/security definer/);
 assert.match(sql,/observaciones=c\.item->>'nuevo'/);
+test('R370 importación de observaciones desde modal legado',async()=>{
 const browser=await chromium.launch({headless:true});
 try{
  const p=await browser.newPage();
@@ -49,3 +51,4 @@ try{
  await p.close();
 }finally{await browser.close()}
 console.log('R370: botón disponible junto a Importar 0, lectura Excel, vista previa y confirmación de cambios');
+});
