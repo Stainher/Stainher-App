@@ -14,6 +14,12 @@ assert.match(sql,/p_cantidad_esperada is distinct from v_actual/);
 assert.match(sql,/v_rol not in \('administrador','confiabilidad'\)/);
 assert.match(sql,/security invoker|LANGUAGE plpgsql/);
 assert.match(src,/REEMPLAZAR/);
+assert.match(src,/REVISIÓN PREVIA DEL REEMPLAZO CORRECTIVO/);
+assert.match(src,/Primeros registros:/);
+assert.match(src,/Registros actuales:/);
+assert.match(src,/Registros en el Excel:/);
+assert.match(src,/La base cambió|p_cantidad_esperada/);
+
 assert.match(src,/reemplazar_averias_excel_r364/);
 assert.doesNotMatch(src,/\.from\('averias'\)\.delete/);
 const browser=await chromium.launch({headless:true});
