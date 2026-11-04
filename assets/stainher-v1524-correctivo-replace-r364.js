@@ -27,13 +27,13 @@ const toast=(msg,type='info')=>window.toast?.(msg,type)||console.info('[R364]',m
 const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const names={
  equipo_original:['equipo','nombre equipo','nombre del equipo','equipo original','ascensor','instalacion'],
- numero_guia:['numero guia','n guia','nro guia','guia','numero de guia','ot','orden de trabajo','n guia de trabajo','numero de guia de trabajo','nro de guia de trabajo','guia de trabajo'],
- supervisor_tecnico:['supervisor tecnico','responsable','supervisor','tecnico','encargado','supervisor y tecnico'],
- fecha_inicio:['fecha inicio','fecha de inicio','fecha de inicio de trabajo','fecha falla','fecha de falla','inicio'],
- hora_inicio:['hora inicio','hora de inicio','hora falla','hora de falla'],
- fecha_termino:['fecha termino','fecha de termino','fecha de termino de trabajo','fecha fin','fecha restitucion','fecha de restitucion'],
- hora_termino:['hora termino','hora fin','hora restitucion','hora de restitucion'],
- estado_final:['estado final','estado','resultado','condicion final'],
+ numero_guia:['numero guia','n guia','nro guia','guia','numero de guia','ot','orden de trabajo','n guia de trabajo','numero de guia de trabajo','numero guia de trabajo','nro de guia de trabajo','guia de trabajo'],
+ supervisor_tecnico:['supervisor tecnico','responsable','supervisor','tecnico','encargado','supervisor y tecnico','nombre supervisor tecnico','nombre supervisor/tecnico'],
+ fecha_inicio:['fecha inicio','fecha de inicio','fecha de inicio de trabajo','fecha inicio trabajo','fecha falla','fecha de falla','inicio'],
+ hora_inicio:['hora inicio','hora de inicio','hora inicio trabajo','hora de inicio trabajo','hora falla','hora de falla'],
+ fecha_termino:['fecha termino','fecha de termino','fecha de termino de trabajo','fecha termino de trabajo','fecha termino trabajo','fecha fin','fecha restitucion','fecha de restitucion'],
+ hora_termino:['hora termino','hora termino trabajo','hora de termino de trabajo','hora fin','hora restitucion','hora de restitucion'],
+ estado_final:['estado final','estado','resultado','condicion final','estado final del equipo','estado final equipo'],
  observaciones:['observaciones','observacion','detalle','descripcion','causa','descripcion averia'],
  duracion_minutos:['duracion minutos','duracion min','minutos','tiempo detencion min','tiempo falla minutos','duracion atencion','duracion de atencion','tiempo de atencion','tiempo de indisponibilidad'],
  id_falla:['id falla','id de falla','codigo falla','id averia','numero falla','n falla'],
@@ -50,8 +50,14 @@ function dateCell(v){
  if(v===null||v===undefined||v==='')return null;
  if(v instanceof Date)return [v.getFullYear(),pad(v.getMonth()+1),pad(v.getDate())].join('-');
  if(typeof v==='number'){
-  const d=window.XLSX?.SSF?.parse_date_code(v);
+  const d=window.XLSX?.SSF?.parse_date_code?.(v);
   if(d?.y&&d?.m&&d?.d)return [d.y,pad(d.m),pad(d.d)].join('-');
+  // R371: respaldo para fechas almacenadas como serial Excel.
+  if(Number.isFinite(v)&&v>=1&&v<2958466){
+   const parsed=new Date(Date.UTC(1899,11,30)+Math.floor(v)*86400000);
+   if(!Number.isNaN(parsed.getTime()))
+    return [parsed.getUTCFullYear(),pad(parsed.getUTCMonth()+1),pad(parsed.getUTCDate())].join('-');
+  }
  }
  const s=String(v).trim();
  let m=s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
@@ -137,7 +143,9 @@ function parse(buffer){
    const delta=(new Date(end)-new Date(start))/60000;
    if(delta>=0&&Number.isFinite(delta))mapped.duracion_minutos=Math.round(delta);
   }
-  if(!mapped.equipo_original||!start)throw Error('Fila '+(i+1)+': falta equipo o fecha inicial. Se canceló sin modificar datos.');
+  if(!mapped.equipo_original||!start)
+   throw Error('Hoja '+candidate.name+', fila '+(i+1)+': '+(!mapped.equipo_original?'falta Equipo':'fecha inicial no reconocida')+
+     '. Revise el encabezado o formato de la fecha. No se modificaron datos.');
   rows.push(mapped);
  }
  if(!rows.length)throw Error('El Excel no contiene averías válidas.');
