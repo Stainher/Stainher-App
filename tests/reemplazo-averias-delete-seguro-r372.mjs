@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const sql=fs.readFileSync('supabase/migrations/20261104195000_r372_reemplazo_delete_con_where.sql','utf8');
+assert.match(sql,/delete from public\.averias where id is not null;/i);
+assert.doesNotMatch(sql,/delete from public\.averias\s*;/i);
+assert.ok(sql.indexOf('insert into public.respaldos_averias_r364')<sql.indexOf('delete from public.averias where id is not null'),'Respaldo antes del borrado');
+assert.match(sql,/p_cantidad_esperada is distinct from v_actual/);
+assert.match(sql,/jsonb_array_length\(p_filas\)/);
+assert.match(sql,/Solo Confiabilidad y Administrador/);
+assert.match(sql,/No se insertaron todas las filas/);
+console.log('R372: WHERE en DELETE, respaldo previo, validación de permisos y rollback automático');
