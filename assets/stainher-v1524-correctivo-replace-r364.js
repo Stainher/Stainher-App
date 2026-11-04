@@ -3,8 +3,25 @@
 'use strict';
 if(window.StainherCorrectivoReplaceR364)return;
 const id='stainher-corr-replace-r364';
-const role=()=>String(window.state?.profile?.rol||window.v11Role?.()||'').toLowerCase().trim();
-const allowed=()=>['confiabilidad','administrador'].includes(role());
+const role=()=>String(window.state?.profile?.rol||window.state?.profile?.role||window.v11Role?.()||'').toLowerCase().trim();
+let confirmedRole='',lastRoleCheck=0,roleCheckRunning=false;
+async function resolveRole(){
+ if(allowed())return role();
+ if(confirmedRole&&Date.now()-lastRoleCheck<30000)return confirmedRole;
+ if(roleCheckRunning)return '';
+ const sb=client();if(!sb?.rpc)return '';
+ roleCheckRunning=true;
+ try{
+  const response=await sb.rpc('mi_rol');
+  if(!response.error){
+   confirmedRole=String(response.data||'').toLowerCase().trim();
+   lastRoleCheck=Date.now();
+  }
+ }catch(error){console.warn('[R369] No se pudo verificar perfil de importación',error)}
+ finally{roleCheckRunning=false}
+ return confirmedRole;
+}
+const allowed=()=>['confiabilidad','administrador'].includes(role()||confirmedRole);
 const client=()=>window.sb;
 const toast=(msg,type='info')=>window.toast?.(msg,type)||console.info('[R364]',msg);
 const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -72,16 +89,27 @@ function mins(v){
 function parse(buffer){
  if(!window.XLSX?.read||!window.XLSX?.utils?.sheet_to_json)throw Error('Lector Excel no disponible en la aplicación.');
  const book=window.XLSX.read(buffer,{type:'array',cellDates:false});
- const sheet=book.Sheets[book.SheetNames[0]];
- if(!sheet)throw Error('El archivo no contiene hojas.');
- const matrix=window.XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:''});
- const search=matrix.slice(0,20).map((line,index)=>{
+ if(!book.SheetNames?.length)throw Error('El archivo no contiene hojas.');
+ const pages=book.SheetNames.map(name=>{
+  const sheet=book.Sheets[name];
+  const matrix=window.XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:''});
+  const headers=matrix.slice(0,40).map((line,index)=>{
+   let matches=0;
+   const columns=line.map(x=>{const k=alias.get(norm(x))||null;if(k)matches++;return k});
+   return {index,columns,matches};
+  }).sort((a,b)=>b.matches-a.matches);
+  return {name,matrix,header:headers[0]};
+ }).sort((a,b)=>(b.header?.matches||0)-(a.header?.matches||0));
+ const candidate=pages.find(p=>p.header?.matches>=2&&p.header.columns.includes('equipo_original'));
+ if(!candidate)throw Error('No se reconocieron columnas en las hojas del Excel. Debe incluir Equipo y fecha de inicio o falla.');
+ const matrix=candidate.matrix;
+ const search=matrix.slice(0,40).map((line,index)=>{
   let matches=0;
   const columns=line.map(x=>{const k=alias.get(norm(x))||null;if(k)matches++;return k});
   return {index,columns,matches};
  }).sort((a,b)=>b.matches-a.matches);
  const header=search[0];
- if(!header||header.matches<2||!header.columns.includes('equipo_original'))throw Error('No se identificaron las columnas del Excel. Debe incluir Equipo y campos de fecha/avería.');
+ if(!header||header.matches<2||!header.columns.includes('equipo_original'))throw Error('No se identificaron las columnas del Excel.');
  const rows=[];
  for(let i=header.index+1;i<matrix.length;i++){
   const cells=matrix[i];
@@ -119,30 +147,45 @@ function parse(buffer){
 function css(){
  if(document.getElementById('r364-style'))return;
  const el=document.createElement('style');el.id='r364-style';
- el.textContent='#page-correctivo #'+id+'{margin:12px 0;padding:14px;border:1px solid var(--line,#b7cbe0);background:var(--panel,#f7fafc);border-radius:12px;color:var(--text,#15344b)}'+
- '#page-correctivo #'+id+' .r364-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}'+
- '#page-correctivo #'+id+' .r364-button{border:1px solid #176aa7;background:linear-gradient(125deg,#0e619e,#1e83c1);color:white;-webkit-text-fill-color:white;border-radius:9px;padding:10px 13px;font-weight:700;cursor:pointer}'+
- '#page-correctivo #'+id+' .r364-hint{color:var(--muted,#52677e);font-size:12px;margin:8px 0 0}'+
- '#page-correctivo #'+id+' input[type=file]{max-width:100%;min-width:0}';
+ el.textContent='.r369-correctivo-import{margin:12px 0;padding:14px;border:1px solid var(--line,#b7cbe0);background:var(--panel,#f7fafc);border-radius:12px;color:var(--text,#15344b)}'+
+ '.r369-correctivo-import .r364-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}'+
+ '.r369-correctivo-import .r364-button{border:1px solid #176aa7;background:linear-gradient(125deg,#0e619e,#1e83c1);color:white;-webkit-text-fill-color:white;border-radius:9px;padding:10px 13px;font-weight:700;cursor:pointer}'+
+ '.r369-correctivo-import .r364-hint{color:var(--muted,#52677e);font-size:12px;margin:8px 0 0}'+
+ '.r369-correctivo-import .r369-status{margin-top:9px;white-space:pre-wrap;color:var(--text,#15344b);font-size:13px}';
  document.head.appendChild(el);
 }
+const pageIds=['page-correctivo','page-confiabilidad'];
+function status(message,failed=false){
+ for(const node of document.querySelectorAll('.r369-correctivo-import .r369-status')){
+  node.textContent=message;node.style.color=failed?'#c33434':'';
+ }
+}
 function mount(){
- const page=document.getElementById('page-correctivo');
- if(!page||!allowed()){document.getElementById(id)?.remove();return}
  css();
- if(document.getElementById(id))return;
- const zone=document.createElement('section');zone.id=id;
- zone.innerHTML='<div class="r364-actions"><button type="button" class="r364-button" id="r364-start">Importar Excel y reemplazar base</button><input id="r364-file" type="file" accept=".xlsx,.xls,.csv" hidden></div>'+
- '<p class="r364-hint">Confiabilidad: reemplaza la base correctiva completa solo tras revisar el Excel y confirmar. La base anterior queda respaldada.</p>';
- const body=page.querySelector('#corrBody')||page;
- body.prepend(zone);
- zone.querySelector('#r364-start').onclick=()=>zone.querySelector('#r364-file').click();
- zone.querySelector('#r364-file').onchange=onFile;
+ const canImport=allowed();
+ for(const pageId of pageIds){
+  const page=document.getElementById(pageId);
+  const zoneId=id+'-'+pageId;
+  if(!page||!canImport){document.getElementById(zoneId)?.remove();continue}
+  if(document.getElementById(zoneId))continue;
+  const zone=document.createElement('section');zone.id=zoneId;
+  zone.className='r369-correctivo-import';
+  zone.innerHTML='<div class="r364-actions"><button type="button" class="r364-button" data-r369-start>Importar Excel y reemplazar base de averías</button><input data-r369-file type="file" accept=".xlsx,.xls,.csv" hidden></div>'+
+   '<p class="r364-hint">Se revisará el Excel antes de reemplazar. Confirmación doble, respaldo automático y recuperación ante errores.</p>'+
+   '<div class="r369-status" role="status" aria-live="polite">Listo para seleccionar archivo.</div>';
+  const body=page.querySelector('#corrBody')||page;
+  body.prepend(zone);
+  zone.querySelector('[data-r369-start]').addEventListener('click',()=>{
+   zone.querySelector('[data-r369-file]').click();
+  });
+  zone.querySelector('[data-r369-file]').addEventListener('change',onFile);
+ }
 }
 async function onFile(event){
  const input=event.target,file=input.files?.[0];if(!file)return;
  try{
   if(file.size>15*1024*1024)throw Error('Archivo superior a 15 MB.');
+  status('Leyendo y validando las hojas del Excel…');
   const rows=parse(await file.arrayBuffer());
   const sb=client();if(!sb)throw Error('Sin conexión a la base de datos.');
   const count=await sb.from('averias').select('id',{count:'exact',head:true});
@@ -161,31 +204,33 @@ async function onFile(event){
     '\nPeríodo del Excel: '+periodo+
     '\n\nPrimeros registros:\n'+muestra+
     '\n\nATENCIÓN: se reemplazará TODA la base actual, incluidos registros manuales. Se conservará un respaldo íntegro y la operación se revertirá si falla la importación.\n\n¿Desea continuar?';
+  status('Archivo validado: '+rows.length+' averías. Esperando confirmación.');
   if(!window.confirm(summary))return;
   const typed=window.prompt('Para confirmar el reemplazo de TODA la base correctiva, escriba REEMPLAZAR:');
   if(typed!=='REEMPLAZAR'){toast('Importación cancelada; la base no se modificó.');return}
-  const button=document.getElementById('r364-start');if(button)button.disabled=true;
+  const button=input.closest('.r369-correctivo-import')?.querySelector('[data-r369-start]');if(button)button.disabled=true;
+  status('Reemplazando base y generando respaldo. No cierre esta ventana…');
   try{
    const q=await sb.rpc('reemplazar_averias_excel_r364',{p_filas:rows,p_archivo:file.name,p_cantidad_esperada:old});
    if(q.error)throw q.error;
    const data=q.data||{};
-   toast('Importación completada: '+data.nuevos+' averías. Respaldo previo generado.','success');
+   status('Importación completada: '+data.nuevos+' averías. Respaldo: '+data.respaldo_id);toast('Importación completada: '+data.nuevos+' averías. Respaldo previo generado.','success');
    window.dispatchEvent(new CustomEvent('stainher:correctivo-reemplazado-r364',{detail:data}));
    if(typeof window.renderCorrectivo==='function')await window.renderCorrectivo();
    else if(typeof window.loadAverias==='function')await window.loadAverias();
   }finally{if(button)button.disabled=false}
- }catch(error){toast('No se reemplazó la base: '+(error.message||error),'error')}
+ }catch(error){status('Error: '+(error.message||error),true);toast('No se reemplazó la base: '+(error.message||error),'error');console.error('[R369] Importación correctiva',error)}
  finally{input.value=''}
 }
 let installed=false,pending=false;
 function install(){
- mount();if(installed)return;installed=true;
+ mount();resolveRole().then(mount);if(installed)return;installed=true;
  new MutationObserver(events=>{
   if(!events.some(e=>e.type==='childList'&&(e.addedNodes.length||e.removedNodes.length)))return;
   if(pending)return;
   pending=true;requestAnimationFrame(()=>{pending=false;mount()});
  }).observe(document.body,{subtree:true,childList:true});
 }
-window.StainherCorrectivoReplaceR364={install,parse,mount};
+window.StainherCorrectivoReplaceR364={install,parse,mount,resolveRole};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
