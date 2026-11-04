@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {chromium} from 'playwright';
+const src=fs.readFileSync('assets/stainher-v1524-home-reminders-r361.js','utf8');
+const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
+new Function(src);new Function(loader);
+assert.match(loader,/refreshHomeRemindersR361/);
+assert.match(src,/recordatorios_alertas/);
+assert.match(src,/created_by:uid/);
+assert.match(src,/renderHomeAlertsV95/);
+const browser=await chromium.launch({headless:true});
+try{
+ const page=await browser.newPage({viewport:{width:390,height:844}});
+ await page.setContent('<html><head></head><body><section id="page-inicio"><button id="add">+ Nuevo recordatorio / alerta</button></section></body></html>');
+ await page.evaluate(()=>{window.__reminderWrites=[];window.sb={auth:{getUser:async()=>({data:{user:{id:'0f04d921-893a-4a1c-aaba-1e15236ce000'}})},from:table=>({insert:payload=>({select:()=>({single:async()=>{window.__reminderWrites.push({table,payload});return {data:{id:'0c96f021-2941-4420-97b1-d9b2339e1e94'}}}})})})};window.renderHomeAlertsV95=async()=>{window.__renderedReminders=true}});
+ await page.addScriptTag({content:src});
+ await page.click('#add');
+ assert.equal(await page.locator('#r361-form').count(),1,'New reminder opens real form');
+ await page.locator('[name="titulo"]').fill('Revisión de inspección');
+ await page.locator('[name="fecha_evento"]').fill('2026-11-12');
+ await page.locator('[name="descripcion"]').fill('Confirmar equipos');
+ await page.locator('.r361-save').click();
+ await page.waitForFunction(()=>window.__reminderWrites.length===1);
+ const saved=await page.evaluate(()=>({writes:window.__reminderWrites,rendered:window.__renderedReminders,open:!!document.getElementById('r361-form')}));
+ assert.equal(saved.writes[0].table,'recordatorios_alertas');
+ assert.equal(saved.writes[0].payload.titulo,'Revisión de inspección');
+ assert.equal(saved.writes[0].payload.fecha_evento,'2026-11-12');
+ assert.equal(saved.writes[0].payload.visibilidad,'todos');
+ assert.equal(saved.rendered,true);
+ assert.equal(saved.open,false);
+ await page.close();
+}finally{await browser.close()}
+console.log('R361: botón abre modal, formulario guarda en la tabla existente y actualiza Inicio');
