@@ -32,7 +32,7 @@ const names={
  fecha_inicio:['fecha inicio','fecha de inicio','fecha de inicio de trabajo','fecha inicio trabajo','fecha falla','fecha de falla','inicio'],
  hora_inicio:['hora inicio','hora de inicio','hora inicio trabajo','hora de inicio trabajo','hora falla','hora de falla'],
  fecha_termino:['fecha termino','fecha de termino','fecha de termino de trabajo','fecha termino de trabajo','fecha termino trabajo','fecha fin','fecha restitucion','fecha de restitucion'],
- hora_termino:['hora termino','hora termino trabajo','hora de termino de trabajo','hora fin','hora restitucion','hora de restitucion'],
+ hora_termino:['hora termino','hora termino trabajo','hora termino de trabajo','hora de termino de trabajo','hora fin','hora restitucion','hora de restitucion'],
  estado_final:['estado final','estado','resultado','condicion final','estado final del equipo','estado final equipo'],
  observaciones:['observaciones','observacion','detalle','descripcion','causa','descripcion averia'],
  duracion_minutos:['duracion minutos','duracion min','minutos','tiempo detencion min','tiempo falla minutos','duracion atencion','duracion de atencion','tiempo de atencion','tiempo de indisponibilidad'],
