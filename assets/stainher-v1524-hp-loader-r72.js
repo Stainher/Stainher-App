@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R369')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R370')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R369';
+  window.__STAINHER_HP_LOADER_VERSION__='R370';
 
-  const BUILD='20261104-r369-importacion-averias';
+  const BUILD='20261104-r370-observaciones-correctivo';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -429,6 +429,12 @@
   window.StainherHPR185=api;
   window.StainherHPR186=api;
 
+  async function refreshObservacionesR370(){
+    try{
+      await load('stainher-correctivo-observaciones-r370','stainher-v1524-correctivo-observaciones-r370.js');
+      window.StainherObservacionesR370?.install?.();
+    }catch(error){console.warn('[Correctivo observaciones R370]',error)}
+  }
   async function refreshCorrectivoReplaceR364(){
     try{
       await load('stainher-correctivo-replace-r364','stainher-v1524-correctivo-replace-r364.js');
@@ -493,6 +499,7 @@
     await refreshRITMobileR366();
     await refreshHomeRemindersR361();
     await refreshCorrectivoReplaceR364();
+    await refreshObservacionesR370();
     await refreshBudgets();
     await refreshContractForecast();
     await refreshTurnReport();
