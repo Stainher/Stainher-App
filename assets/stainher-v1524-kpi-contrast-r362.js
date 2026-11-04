@@ -32,6 +32,9 @@ function style(){
  if(document.getElementById('stainher-kpi-r362'))return;
  const tag=document.createElement('style');tag.id='stainher-kpi-r362';
  tag.textContent=[
+ 'html body #page-sistema .system-stat,html body #page-sistema .supabase-stat,html body #page-sistema .usage-stat{background:linear-gradient(125deg,#12446e,#1a6094 52%,#287eb3)!important;background-image:linear-gradient(125deg,#12446e,#1a6094 52%,#287eb3)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+ 'html body #page-sistema :is(.system-stat,.supabase-stat,.usage-stat) :is(span,small,b,strong,div){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
+
  'html body #page-estandarizacion .std-kpi{background:linear-gradient(125deg,#12446e,#1a6094 52%,#287eb3)!important;background-image:linear-gradient(125deg,#12446e,#1a6094 52%,#287eb3)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:12px!important}',
  'html body #page-estandarizacion .std-kpi :is(span,strong,small,div){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
  'html body #page-estandarizacion .std-kpi .std-progress{background:rgba(255,255,255,.27)!important}',
@@ -68,6 +71,9 @@ function apply(){
   const card=nearestCard(label);if(card)cards.add(card);
  });
  root.querySelectorAll('#page-liderazgo .v1512-mini-kpi,#page-liderazgo .stainher-leadership-kpi-r214,#page-estandarizacion .std-kpi,#page-estandarizacion .kpi,#page-estandarizacion .mini-stat,#page-estandarizacion [class*="stat-card"],#page-estandarizacion [class*="kpi-card"],#page-contrato .v1520-kpi').forEach(el=>{
+  if(!el.querySelector('table,canvas,form,button')&&/\d/.test(clean(el.textContent)))cards.add(el);
+ });
+ root.querySelectorAll('#page-sistema .system-stat,#page-sistema .supabase-stat,#page-sistema .usage-stat').forEach(el=>{
   if(!el.querySelector('table,canvas,form,button')&&/\d/.test(clean(el.textContent)))cards.add(el);
  });
  root.querySelectorAll(known).forEach(el=>{
