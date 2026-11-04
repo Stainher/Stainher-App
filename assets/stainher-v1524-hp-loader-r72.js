@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R354')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R362')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R354';
+  window.__STAINHER_HP_LOADER_VERSION__='R362';
 
-  const BUILD='20261103-r354-boletas-independientes';
+  const BUILD='20261104-r362-contraste-global';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -429,6 +429,12 @@
   window.StainherHPR185=api;
   window.StainherHPR186=api;
 
+  async function refreshKpiContrastR362(){
+    try{
+      await load('stainher-kpi-contrast-r362','stainher-v1524-kpi-contrast-r362.js');
+      window.StainherSummaryFixR362?.install?.();
+    }catch(error){console.warn('[Visual KPI R362]',error)}
+  }
   async function refreshHomeRemindersR361(){
     try{
       await load('stainher-home-reminders-r361','stainher-v1524-home-reminders-r361.js');
@@ -465,6 +471,7 @@
     await refreshDashboardVisualR359();
     await refreshUnifiedSummaryR360();
     await refreshHomeRemindersR361();
+    await refreshKpiContrastR362();
     await refreshBudgets();
     await refreshContractForecast();
     await refreshTurnReport();
