@@ -2771,9 +2771,15 @@ renderSistema=function(){
 
 // ------------------------ Liderazgo / supervisores --------------------
 async function v13GetSupervisors(){
+  // R375: recuperar la nómina oficial desde Dotación y usar perfiles como respaldo.
+  // Una respuesta vacía también activa la alternativa, no solo un error de RPC.
   let q=await sb.rpc('liderazgo_supervisores_v13');
-  if(q.error){q=await sb.rpc('liderazgo_supervisores')}
-  return {data:q.data||[],error:q.error};
+  if(q.error||!Array.isArray(q.data)||q.data.length===0){
+    const fallback=await sb.rpc('liderazgo_supervisores');
+    if(!fallback.error&&Array.isArray(fallback.data)&&fallback.data.length)q=fallback;
+    else if(q.error)q=fallback;
+  }
+  return {data:Array.isArray(q.data)?q.data:[],error:q.error};
 }
 v12FillSupervisor=async function(id){
   const sel=document.getElementById(id);if(!sel)return;const identity=await currentSupervisorIdentityV11();
@@ -2803,9 +2809,19 @@ openTerrainControlV95=async function(){
     const nm=identity.nombre||state.profile?.nombre||'';sel.innerHTML=`<option value="${esc(nm)}" data-user-id="${identity.user_id||state.session.user.id}" selected>${esc(nm)}</option>`;sel.disabled=true;return;
   }
   const {data,error}=await v13GetSupervisors();
-  if(error){sel.innerHTML='<option value="">No se pudieron cargar supervisores</option>';return}
+  // R375: el Administrador, Prevención y demás perfiles de ejecución libre
+  // pueden escoger supervisor. Mostrar claramente si la nómina no está disponible.
+  if(error||!data.length){
+    sel.innerHTML='<option value="">'+(error?'Error al cargar supervisores':'No hay supervisores activos')+'</option>';
+    sel.disabled=true;
+    return;
+  }
+  const previous=sel.value;
+  sel.innerHTML='<option value="">Seleccionar supervisor</option>'+data
+    .filter(x=>String(x.nombre||'').trim())
+    .map(x=>`<option value="${esc(x.nombre)}" data-user-id="${x.user_id||''}">${esc(x.nombre)}</option>`).join('');
   sel.disabled=false;
-  sel.innerHTML='<option value="">Seleccionar supervisor</option>'+data.map(x=>`<option value="${esc(x.nombre)}" data-user-id="${x.user_id||''}">${esc(x.nombre)}${x.user_id?'':' · Sin usuario vinculado'}</option>`).join('');
+  if(previous&&Array.from(sel.options).some(o=>o.value===previous))sel.value=previous;
 };
 const _terrainDataV13Base=terrainDataV11;
 terrainDataV11=function(){const d=_terrainDataV13Base();const sel=document.querySelector('#terrainSupervisorV11'),o=sel?.selectedOptions?.[0];d.supervisor_user_id=o?.dataset?.userId||null;d.supervisor=(o?.textContent||'').replace(' · Sin usuario vinculado','').trim();return d};
@@ -9131,8 +9147,8 @@ if(typeof v1513OpenBuiltinRaw==='function'){const _v1514Raw=v1513OpenBuiltinRaw;
 const _v1514Register=v12Register;
 v12Register=async function(ctrl,date,selId,turno=''){if(!v1512LeadershipFreeRole?.())return _v1514Register(ctrl,date,selId,turno);const dt=new Date(date+'T12:00:00'),payload={supervisor_user_id:null,supervisor_nombre:null,control_codigo:ctrl.code,control_nombre:ctrl.name,fecha:date,turno:turno||null,anio:dt.getFullYear(),mes:dt.getMonth()+1,estado:'realizado',created_by:state.session.user.id,fuera_programacion:true,ejecutado_por_user_id:state.session.user.id,ejecutado_por_nombre:state.profile?.nombre||state.session.user.email,ejecutado_por_rol:v11Role()};const {error}=await sb.from('liderazgo_cumplimiento').insert(payload);if(error)throw error;v1512Audit?.('liderazgo','ejecutar_control',ctrl.code,{fecha:date,libre:true});return payload};
 generateTerrainPdfV11=async function(e){
-  e.preventDefault();const d=terrainDataV11(),free=v1512LeadershipFreeRole?.(),missing=[];if(!free&&!d.supervisor)missing.push('Supervisor');if(!d.fecha)missing.push('Fecha del control');if(!d.actividad)missing.push('Actividad');if(!d.lugar)missing.push('Lugar específico');if(Object.keys(d.estados).length<V11_GROUPS.reduce((a,x)=>a+x[1].length,0))missing.push('evaluación de todos los ítems');if(!terrainSignatureV11)missing.push('Firma');if(missing.length)return toast('Completa: '+missing.join(', '),'error');
-  try{const dt=new Date(d.fecha+'T12:00:00'),role=v11Role(),uid=String(state.session.user.id);if(!free&&['supervisor','tecnico'].includes(role)){const {data,error}=await sb.from('liderazgo_programacion').select('meta').eq('programado_user_id',uid).eq('control_codigo','SGI-ST-REG-018').eq('anio',dt.getFullYear()).eq('mes',dt.getMonth()+1).maybeSingle();if(error)throw error;if(!data||Number(data.meta||0)<=0)throw new Error('Este control requiere una actividad programada para el período seleccionado.')}const payload={supervisor_user_id:free?null:(d.supervisor_user_id||null),supervisor_nombre:free?null:(d.supervisor||null),control_codigo:'SGI-ST-REG-018',control_nombre:'Control Preventivo en Terreno',fecha:d.fecha,turno:d.turno||null,anio:dt.getFullYear(),mes:dt.getMonth()+1,estado:'realizado',created_by:state.session.user.id,fuera_programacion:!!free,ejecutado_por_user_id:state.session.user.id,ejecutado_por_nombre:state.profile?.nombre||state.session.user.email,ejecutado_por_rol:role};const {error}=await sb.from('liderazgo_cumplimiento').insert(payload);if(error)throw error;if(free)d.supervisor=payload.ejecutado_por_nombre;const doc=buildTerrainPdfV11(d);doc.save(`SGI-ST-REG-018_${String(payload.ejecutado_por_nombre||'usuario').replace(/\s+/g,'_')}_${d.fecha}.pdf`);v1512Audit?.('liderazgo','ejecutar_control','SGI-ST-REG-018',{fecha:d.fecha,libre:!!free});closeModal();await renderLiderazgoV95();toast('PDF generado y cumplimiento registrado','success')}catch(err){toast(err.message||String(err),'error')}
+  e.preventDefault();const d=terrainDataV11(),free=v1512LeadershipFreeRole?.(),missing=[];if(!d.supervisor)missing.push('Supervisor');if(!d.fecha)missing.push('Fecha del control');if(!d.actividad)missing.push('Actividad');if(!d.lugar)missing.push('Lugar específico');if(Object.keys(d.estados).length<V11_GROUPS.reduce((a,x)=>a+x[1].length,0))missing.push('evaluación de todos los ítems');if(!terrainSignatureV11)missing.push('Firma');if(missing.length)return toast('Completa: '+missing.join(', '),'error');
+  try{const dt=new Date(d.fecha+'T12:00:00'),role=v11Role(),uid=String(state.session.user.id);if(!free&&['supervisor','tecnico'].includes(role)){const {data,error}=await sb.from('liderazgo_programacion').select('meta').eq('programado_user_id',uid).eq('control_codigo','SGI-ST-REG-018').eq('anio',dt.getFullYear()).eq('mes',dt.getMonth()+1).maybeSingle();if(error)throw error;if(!data||Number(data.meta||0)<=0)throw new Error('Este control requiere una actividad programada para el período seleccionado.')}const payload={supervisor_user_id:d.supervisor_user_id||null,supervisor_nombre:d.supervisor||null,control_codigo:'SGI-ST-REG-018',control_nombre:'Control Preventivo en Terreno',fecha:d.fecha,turno:d.turno||null,anio:dt.getFullYear(),mes:dt.getMonth()+1,estado:'realizado',created_by:state.session.user.id,fuera_programacion:!!free,ejecutado_por_user_id:state.session.user.id,ejecutado_por_nombre:state.profile?.nombre||state.session.user.email,ejecutado_por_rol:role};const {error}=await sb.from('liderazgo_cumplimiento').insert(payload);if(error)throw error;const doc=buildTerrainPdfV11(d);doc.save(`SGI-ST-REG-018_${String(payload.ejecutado_por_nombre||'usuario').replace(/\s+/g,'_')}_${d.fecha}.pdf`);v1512Audit?.('liderazgo','ejecutar_control','SGI-ST-REG-018',{fecha:d.fecha,libre:!!free});closeModal();await renderLiderazgoV95();toast('PDF generado y cumplimiento registrado','success')}catch(err){toast(err.message||String(err),'error')}
 };
 
 /* =====================================================================
