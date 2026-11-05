@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R375')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R376')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R375';
+  window.__STAINHER_HP_LOADER_VERSION__='R376';
 
-  const BUILD='20261105-r375-supervisor-control-preventivo';
+  const BUILD='20261105-r376-selector-supervisor-terreno';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -459,6 +459,12 @@
       window.StainherSummaryFixR362?.install?.();
     }catch(error){console.warn('[Visual KPI R362]',error)}
   }
+  async function refreshTerrainSupervisorR376(){
+    try{
+      await load('stainher-terrain-supervisor-r376','stainher-v1524-terrain-supervisor-r376.js');
+      window.StainherTerrainSupervisorR376?.install?.();
+    }catch(error){console.warn('[R376] Selector de supervisor',error)}
+  }
   async function refreshHomeRemindersR361(){
     try{
       await load('stainher-home-reminders-r361','stainher-v1524-home-reminders-r361.js');
@@ -498,6 +504,7 @@
     await refreshStableKpiR365();
     await refreshRITMobileR366();
     await refreshHomeRemindersR361();
+    await refreshTerrainSupervisorR376();
     await refreshCorrectivoReplaceR364();
     await refreshObservacionesR370();
     await refreshBudgets();
