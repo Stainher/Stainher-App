@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R374')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R375')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R374';
+  window.__STAINHER_HP_LOADER_VERSION__='R375';
 
-  const BUILD='20261104-r374-pareto-subsistema-explicito';
+  const BUILD='20261105-r375-supervisor-control-preventivo';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
