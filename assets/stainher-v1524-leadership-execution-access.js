@@ -29,6 +29,11 @@
   }
 
   function isLeadershipExecutor(){
+    if(!window.state?.session?.user?.id)return false;
+    // La programación define metas; la autorización para ejecutar la da el permiso de Liderazgo.
+    try{
+      if(window.canViewV11?.('liderazgo')||window.canEditV11?.('liderazgo'))return true;
+    }catch(_){ }
     const role=profileText();
     if(!role)return false;
     return /(^|\b)(administrador|administrativo|administrativa|administracion|confiabilidad|planificacion|planificador|planificadora|programacion|programador|programadora|prevencion|prevencionista|experto en prevencion|experta en prevencion|apr|supervisor|tecnico|tecnica)(\b|$)/.test(role);
