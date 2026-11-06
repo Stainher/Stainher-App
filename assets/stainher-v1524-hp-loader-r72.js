@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R381')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R383')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R381';
+  window.__STAINHER_HP_LOADER_VERSION__='R383';
 
-  const BUILD='20261106-r381-sensor-header-contrast';
+  const BUILD='20261106-r383-extintores-supervisor-selector';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -80,6 +80,12 @@
       await load('stainher-vehicle-fatigue-r379','stainher-v1524-vehicle-fatigue-sensor-r379.js');
       window.StainherVehicleFatigueSensorR379?.install?.();
     }catch(error){console.warn('[R379] Sensor de fatiga en camionetas',error)}
+  }
+  async function refreshExtintoresSupervisorR383(){
+    try{
+      await load('stainher-extintores-supervisor-r383','stainher-v1524-extintores-supervisor-r383.js');
+      window.StainherExtintoresSupervisorR383?.install?.();
+    }catch(error){console.warn('[R383] Supervisor Check List Extintores',error)}
   }
   async function refreshExtintoresPdfR378(){
     try{
@@ -530,6 +536,7 @@
     await refreshVehicleExpiryR109();
     await refreshLeadership();
     await refreshExtintoresPdfR378();
+    await refreshExtintoresSupervisorR383();
     await refreshLeadershipExecuteR377();
     await refreshVehicleFatigueR379();
     await refreshSystem();
