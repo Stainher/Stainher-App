@@ -57,6 +57,7 @@
     window.canExecuteLeadershipV11=canExecuteLeadershipUnlocked;
     window.v1512LeadershipFreeRole=leadershipFreeRoleUnlocked;
     window.StainherLeadershipAccess=Object.freeze({
+      install,
       canExecute:()=>canExecuteLeadershipUnlocked(),
       isFreeProfile:isLeadershipExecutor,
       profileText
