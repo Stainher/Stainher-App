@@ -9,7 +9,7 @@ new Function(feature);new Function(mail);
 test('R379: el cargador actual instala el control de sensor',()=>{
  assert.match(loader,/refreshVehicleFatigueR379/);
  assert.match(loader,/stainher-v1524-vehicle-fatigue-sensor-r379\.js/);
- assert.ok(Number(loader.match(/__STAINHER_HP_LOADER_VERSION__='R(\\d+)'/)?.[1])>=379);
+ assert.ok(Number(loader.match(/__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1])>=379);
 });
 test('R379: los cuatro ítems forman parte de los datos que usa PDF y evaluación',()=>{
  let form=null;
