@@ -15,7 +15,20 @@
    const label=norm(s.closest('label')?.textContent||s.labels?.[0]?.textContent||'');
    return /supervisor|inspector/.test(attr)||/^supervisor\b/.test(label);
   });
-  return found||null;
+  if(found)return found;
+  // Algunos diseños colocan el texto Supervisor fuera del <label>.
+  const candidates=[...f.querySelectorAll('select')];
+  for(const s of candidates){
+   let container=s.parentElement;
+   for(let i=0;i<3&&container&&container!==f;i++,container=container.parentElement){
+    const texts=[...container.querySelectorAll('label,span,strong,b')].map(e=>norm(e.textContent));
+    if(texts.some(t=>/^supervisor\s*[:*]?$/.test(t)) && container.querySelectorAll('select').length===1)return s;
+   }
+  }
+  // En el paso Datos principales el primer selector corresponde a Supervisor.
+  const modal=f.closest('.modal,.modal-wide-v9')||f;
+  if(/check list de extintores/i.test(modal.querySelector('h2,h3')?.textContent||'') && /supervisor/i.test(f.textContent||''))return candidates[0]||null;
+  return null;
  }
  function notice(sel,msg){
   if(!sel?.isConnected)return;
