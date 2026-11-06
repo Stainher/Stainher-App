@@ -419,3 +419,23 @@ html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v156-nav :i
 #modalRoot [data-r379-sensor] .v13-check-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,190px);gap:10px;align-items:center;padding:7px 0}
 #modalRoot [data-r379-sensor] :is(select,textarea){color:var(--text,#18354e)!important;-webkit-text-fill-color:var(--text,#18354e)!important;background:var(--panel,#fff)!important}
 @media(max-width:650px){#modalRoot [data-r379-sensor] .v13-check-row{grid-template-columns:1fr}}
+
+/* R381: título del sensor siempre legible, sin fondo negro heredado. */
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot [data-r379-sensor] > h4,
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-group [data-r379-sensor] > h4 {
+  display:block!important;
+  background:#e4f1fb!important;
+  background-image:none!important;
+  color:#17466b!important;
+  -webkit-text-fill-color:#17466b!important;
+  border:1px solid #b4cee1!important;
+  border-radius:8px!important;
+  padding:11px 12px!important;
+  text-shadow:none!important;
+}
+html[data-theme="dark"] body #modalRoot [data-r379-sensor] > h4{
+  background:#183b57!important;background-image:none!important;
+  color:#f3f8fd!important;-webkit-text-fill-color:#f3f8fd!important;
+  border:1px solid #456d8c!important;border-radius:8px!important;
+  padding:11px 12px!important;text-shadow:none!important;
+}
