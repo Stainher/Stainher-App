@@ -404,3 +404,18 @@ html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-check-
 html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v154-signature-box{
   background:#f1f7fc!important;color:#18354e!important;border-color:#bbcede!important;
 }
+
+
+/* R380: Contraste legible del botón Anterior en el asistente de camionetas. */
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v156-nav :is(button,.btn):first-child{
+ background:#f4f9fe!important;background-image:none!important;
+ color:#18354e!important;-webkit-text-fill-color:#18354e!important;
+ border:1px solid #aac3db!important;text-shadow:none!important;
+}
+html:is([data-theme="light"],[data-theme="modern"]) body #modalRoot .v156-nav :is(button,.btn):first-child:disabled{
+ opacity:.7!important;color:#36556d!important;-webkit-text-fill-color:#36556d!important;
+}
+#modalRoot [data-r379-sensor]{margin:16px 0!important;padding:14px!important;border:1px solid var(--line,#bacddd)!important;border-radius:12px!important;background:var(--panel2,#f4f9fe)!important;color:var(--text,#18354e)!important}
+#modalRoot [data-r379-sensor] .v13-check-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,190px);gap:10px;align-items:center;padding:7px 0}
+#modalRoot [data-r379-sensor] :is(select,textarea){color:var(--text,#18354e)!important;-webkit-text-fill-color:var(--text,#18354e)!important;background:var(--panel,#fff)!important}
+@media(max-width:650px){#modalRoot [data-r379-sensor] .v13-check-row{grid-template-columns:1fr}}
