@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R383')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R384')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R383';
+  window.__STAINHER_HP_LOADER_VERSION__='R384';
 
-  const BUILD='20261106-r383-extintores-supervisor-selector';
+  const BUILD='20261106-r384-rollback-freeze-r383';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -536,7 +536,7 @@
     await refreshVehicleExpiryR109();
     await refreshLeadership();
     await refreshExtintoresPdfR378();
-    await refreshExtintoresSupervisorR383();
+    // R384: módulo R383 deshabilitado por congelamiento reportado en Liderazgo.
     await refreshLeadershipExecuteR377();
     await refreshVehicleFatigueR379();
     await refreshSystem();
