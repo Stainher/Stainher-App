@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R376')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R377')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R376';
+  window.__STAINHER_HP_LOADER_VERSION__='R377';
 
-  const BUILD='20261105-r376-selector-supervisor-terreno';
+  const BUILD='20261106-r377-control-terreno-perfiles';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -69,6 +69,12 @@
     }
   }
 
+  async function refreshLeadershipExecuteR377(){
+    try{
+      await load('stainher-leadership-execution-r377','stainher-v1524-leadership-execution-access.js');
+      window.StainherLeadershipAccess?.install?.();
+    }catch(error){console.warn('[R377] Ejecución de controles',error)}
+  }
   async function refreshLeadership(){
     try{
       await load('stainher-leadership-mail-runtime-r93','stainher-v1524-leadership-mail.js');
@@ -512,6 +518,7 @@
     await refreshTurnReport();
     await refreshVehicleExpiryR109();
     await refreshLeadership();
+    await refreshLeadershipExecuteR377();
     await refreshSystem();
     await refreshSignature();
     await refreshFreeReport();
