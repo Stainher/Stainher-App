@@ -32,6 +32,7 @@
     theme:'grid',
     styles:{font:'helvetica',fontSize:8,cellPadding:2.4,overflow:'linebreak',valign:'middle',textColor:[24,48,72],lineColor:[184,201,219]},
     headStyles:{fillColor:[26,75,112],textColor:255,fontStyle:'bold'},
+    didDrawPage:()=>drawHeader(),
     body,...options.opts
    });
    y=(doc.lastAutoTable?.finalY||y)+6;
