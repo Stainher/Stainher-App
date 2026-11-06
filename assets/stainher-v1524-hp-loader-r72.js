@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R378')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R379')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R378';
+  window.__STAINHER_HP_LOADER_VERSION__='R379';
 
-  const BUILD='20261106-r378-extintores-pdf-completo';
+  const BUILD='20261106-r379-fatiga-sensor-libre-correo';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -74,6 +74,12 @@
       await load('stainher-leadership-execution-r377','stainher-v1524-leadership-execution-access.js');
       window.StainherLeadershipAccess?.install?.();
     }catch(error){console.warn('[R377] Ejecución de controles',error)}
+  }
+  async function refreshVehicleFatigueR379(){
+    try{
+      await load('stainher-vehicle-fatigue-r379','stainher-v1524-vehicle-fatigue-sensor-r379.js');
+      window.StainherVehicleFatigueSensorR379?.install?.();
+    }catch(error){console.warn('[R379] Sensor de fatiga en camionetas',error)}
   }
   async function refreshExtintoresPdfR378(){
     try{
@@ -525,6 +531,7 @@
     await refreshLeadership();
     await refreshExtintoresPdfR378();
     await refreshLeadershipExecuteR377();
+    await refreshVehicleFatigueR379();
     await refreshSystem();
     await refreshSignature();
     await refreshFreeReport();
