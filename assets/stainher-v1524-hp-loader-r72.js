@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R380')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R381')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R380';
+  window.__STAINHER_HP_LOADER_VERSION__='R381';
 
-  const BUILD='20261106-r380-camioneta-sensor-contrast';
+  const BUILD='20261106-r381-sensor-header-contrast';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
