@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20260916-r88-leadership-mail-after-save';
+  const BUILD='20261106-r379-leadership-mail-record-fallback';
   if(window.__STAINHER_LEADERSHIP_MAIL_AFTER_SAVE_R88__===BUILD)return;
   window.__STAINHER_LEADERSHIP_MAIL_AFTER_SAVE_R88__=BUILD;
 
@@ -67,14 +67,26 @@
     return true;
   }
 
-  async function afterSaved(startedAt){
+  async function afterSaved(startedAt,captured=null){
+    // El guardado puede ser válido aunque un filtro por fecha/usuario no recupere el registro.
+    // Reutilizar el mismo documento mantiene la deduplicación del módulo de correo.
+    if(!captured?.doc)return false; // Sin PDF no asumir que el guardado concluyó.
     try{
       const row=await latestSavedRecord(startedAt);
-      if(!row)return window.toast?.('Control registrado. No fue posible identificar el registro para enviar correo.','warn');
-      await sendRecord(row);
+      const mail=window.StainherLeadershipMail;
+      if(!mail?.send)throw new Error('Servicio de correo no disponible.');
+      if(row?.id){
+        if(await alreadySent(row.id)){sent.add(String(row.id));return true;}
+        await mail.send(captured.doc,captured.fileName,String(row.id),{control:row.control_nombre||row.control_codigo,fecha:row.fecha});
+        sent.add(String(row.id));
+      }else{
+        await mail.send(captured.doc,captured.fileName,null,{control:captured.control||'Control Stainher'});
+      }
+      return true;
     }catch(error){
-      console.warn('[Stainher Liderazgo R88] correo posterior al guardado',error);
+      console.warn('[Stainher Liderazgo R379] correo posterior al guardado',error);
       window.toast?.(`Control registrado. Correo no enviado: ${error?.message||String(error)}`,'warn');
+      return false;
     }
   }
 
@@ -83,8 +95,19 @@
     if(!form||typeof submit!=='function'||submit[WRAP])return;
     const wrapped=async function(...args){
       const startedAt=Date.now();
-      const out=await submit.apply(this,args);
-      await afterSaved(startedAt);
+      const proto=window.jspdf?.jsPDF?.prototype;
+      const save=proto?.save;
+      let captured=null;
+      if(typeof save==='function'){
+        proto.save=function(fileName,...saveArgs){
+          captured={doc:this,fileName:String(fileName||'Control_Stainher.pdf')};
+          return save.call(this,fileName,...saveArgs);
+        };
+      }
+      let out;
+      try{out=await submit.apply(this,args)}
+      finally{if(typeof save==='function')proto.save=save}
+      await afterSaved(startedAt,captured);
       return out;
     };
     wrapped[WRAP]=true;wrapped.__base=submit;form.onsubmit=wrapped;
