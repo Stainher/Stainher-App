@@ -1,6 +1,7 @@
 /* Stainher App V15.24 · acceso de ejecución para Liderazgo en Terreno.
  * Prevención y perfiles administrativos con acceso a Liderazgo pueden ejecutar controles libremente.
- * Supervisor/Técnico conservan las reglas de programación existentes.
+ * R377: Supervisor y Técnico también pueden ejecutar controles de forma libre.
+ * La gestión de metas y plantillas permanece protegida por RLS.
  */
 (()=>{
   'use strict';
@@ -27,22 +28,22 @@
     ].filter(Boolean).join(' '));
   }
 
-  function isPreventionOrAdministrative(){
+  function isLeadershipExecutor(){
     const role=profileText();
     if(!role)return false;
-    return /(^|\b)(administrador|administrativo|administrativa|administracion|confiabilidad|planificacion|planificador|planificadora|programacion|programador|programadora|prevencion|prevencionista|experto en prevencion|experta en prevencion|apr)(\b|$)/.test(role);
+    return /(^|\b)(administrador|administrativo|administrativa|administracion|confiabilidad|planificacion|planificador|planificadora|programacion|programador|programadora|prevencion|prevencionista|experto en prevencion|experta en prevencion|apr|supervisor|tecnico|tecnica)(\b|$)/.test(role);
   }
 
   let baseCanExecute=typeof window.canExecuteLeadershipV11==='function'?window.canExecuteLeadershipV11:null;
   let baseFreeRole=typeof window.v1512LeadershipFreeRole==='function'?window.v1512LeadershipFreeRole:null;
 
   function canExecuteLeadershipUnlocked(...args){
-    if(isPreventionOrAdministrative())return true;
+    if(isLeadershipExecutor())return true;
     try{return baseCanExecute?!!baseCanExecute.apply(this,args):false}catch(_){return false}
   }
 
   function leadershipFreeRoleUnlocked(...args){
-    if(isPreventionOrAdministrative())return true;
+    if(isLeadershipExecutor())return true;
     try{return baseFreeRole?!!baseFreeRole.apply(this,args):false}catch(_){return false}
   }
 
@@ -57,7 +58,7 @@
     window.v1512LeadershipFreeRole=leadershipFreeRoleUnlocked;
     window.StainherLeadershipAccess=Object.freeze({
       canExecute:()=>canExecuteLeadershipUnlocked(),
-      isFreeProfile:isPreventionOrAdministrative,
+      isFreeProfile:isLeadershipExecutor,
       profileText
     });
   }
