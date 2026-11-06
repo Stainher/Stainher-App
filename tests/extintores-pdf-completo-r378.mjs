@@ -44,8 +44,8 @@ test('R378: PDF contiene todos los extintores dinámicos y las siete verificacio
  for(const check of ['Manguera','Boquilla','Manilla de traslado','Manómetro','Manijas','Señalización','Acceso'])
   assert.ok(joined.includes(check),'Falta verificación '+check);
  assert.ok(doc.records.some(x=>x.kind==='signature'));
- assert.ok(doc.records.some(x=>x.value.includes('Observación detallada')));
- assert.ok(doc.records.some(x=>x.value.includes('Plan de acción')));
+ assert.ok(doc.records.some(x=>x.value?.includes('Observación detallada')));
+ assert.ok(doc.records.some(x=>x.value?.includes('Plan de acción')));
  assert.ok(doc.internal.getNumberOfPages()>2,'Debe paginar sin límite fijo de dos páginas');
  const footers=doc.records.filter(x=>x.value?.startsWith('Página '));
  assert.equal(footers.length,doc.internal.getNumberOfPages(),'Todas las páginas llevan numeración');
