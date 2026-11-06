@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R377')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R378')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R377';
+  window.__STAINHER_HP_LOADER_VERSION__='R378';
 
-  const BUILD='20261106-r377-control-terreno-perfiles';
+  const BUILD='20261106-r378-extintores-pdf-completo';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -74,6 +74,11 @@
       await load('stainher-leadership-execution-r377','stainher-v1524-leadership-execution-access.js');
       window.StainherLeadershipAccess?.install?.();
     }catch(error){console.warn('[R377] Ejecución de controles',error)}
+  }
+  async function refreshExtintoresPdfR378(){
+    try{
+      await load('stainher-extintores-pdf-r378','stainher-v1524-extintores-pdf-r378.js');
+    }catch(error){console.warn('[R378] PDF Check List Extintores',error)}
   }
   async function refreshLeadership(){
     try{
@@ -518,6 +523,7 @@
     await refreshTurnReport();
     await refreshVehicleExpiryR109();
     await refreshLeadership();
+    await refreshExtintoresPdfR378();
     await refreshLeadershipExecuteR377();
     await refreshSystem();
     await refreshSignature();
