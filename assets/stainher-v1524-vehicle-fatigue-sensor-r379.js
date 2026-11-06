@@ -43,23 +43,6 @@
    const notice=box.querySelector('[data-r379-alert]');if(notice)notice.hidden=!failed;
   };
   box.addEventListener('change',check);
-  const submit=form.onsubmit;
-  if(typeof submit==='function'&&!submit.__r379Sensor){
-   const wrapped=async function(e){
-    const original=window.sb?.rpc;
-    // Se amplía exclusivamente la observación del RPC CTRL-04 durante este envío.
-    if(typeof original!=='function')return submit.call(this,e);
-    const inspection=collect();
-    const detail=inspection.map(([k,v])=>`${k}: ${v}`).concat(['Observaciones sensor: '+(read('sensor_observaciones')||'Sin observaciones')]).join(' | ');
-    window.sb.rpc=function(name,args,...rest){
-      if(name!=='registrar_control4_v151')return original.call(this,name,args,...rest);
-      return original.call(this,name,{...args,p_observaciones:[args?.p_observaciones||'',detail].filter(Boolean).join(' | ')},...rest);
-    };
-    try{return await submit.call(this,e)}
-    finally{window.sb.rpc=original;}
-   };
-   wrapped.__r379Sensor=true;form.onsubmit=wrapped;
-  }
   check();return true;
  }
  function collect(){
@@ -76,7 +59,7 @@
   if(typeof dataFn==='function'&&!dataFn.__r379Sensor){
    const wrapped=function(...args){
     const d=dataFn.apply(this,args);
-    const f=getForm();if(!getRoot()?.querySelector('[data-r379-sensor]'))return d;
+    const f=getForm();if(!getRoot()?.querySelector('[data-r379-sensor]')&&!f?.querySelector('[data-r379-sensor]'))return d;
     const rows=collect();d.groups=[...(d.groups||[]),['Dispositivo de fatiga y somnolencia',rows]];
     const note=read('sensor_observaciones').trim();
     d.sensor_observaciones=note;
