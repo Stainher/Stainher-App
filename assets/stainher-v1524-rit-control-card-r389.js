@@ -74,7 +74,7 @@
        '<button type="button" data-r389-action="toggle" aria-controls="'+BODY_ID+'" aria-expanded="false">Realizar ahora</button>'+
        '<button type="button" class="r389-history" data-r389-action="history">Historial</button>'+
      '</div>'+
-     '<div id="'+BODY_ID+'" hidden></div>';
+     '<div id="'+BODY_ID+'" hidden><p class="r389-loading">Cargando formulario RIT…</p></div>';
    return el;
  }
  function update(card){
@@ -89,6 +89,7 @@
    const rit=page()?.querySelector('#rit-r331');
    const slot=card?.querySelector('#'+BODY_ID);
    if(rit&&slot&&rit.parentElement!==slot){
+     slot.querySelector('.r389-loading')?.remove();
      slot.appendChild(rit); // move, never clone; keeps RIT event handlers and state.
      rit.dataset.r389Integrated='1';
    }
@@ -119,8 +120,9 @@
    const card=page()?.querySelector('#'+CARD_ID);
    if(card){relocate(card);update(card)}
    if(history){
+     if(card)delete card.dataset.r389HistoryOpened;
      const historyButton=card?.querySelector('#rit-r331 [data-act="history"]');
-     historyButton?.click();
+     if(historyButton){historyButton.click();card.dataset.r389HistoryOpened='1'}
    }
    [120,550].forEach(delay=>setTimeout(()=>{
      if(!expanded)return;
