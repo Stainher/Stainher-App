@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R385')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R386')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R385';
+  window.__STAINHER_HP_LOADER_VERSION__='R386';
 
-  const BUILD='20261106-r385-extintores-supervisor-safe-v2';
+  const BUILD='20261106-r386-extintores-field-type-fix';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -80,6 +80,12 @@
       await load('stainher-vehicle-fatigue-r379','stainher-v1524-vehicle-fatigue-sensor-r379.js');
       window.StainherVehicleFatigueSensorR379?.install?.();
     }catch(error){console.warn('[R379] Sensor de fatiga en camionetas',error)}
+  }
+  async function refreshExtintoresSupervisorR386(){
+    try{
+      await load('stainher-extintores-supervisor-r386','stainher-v1524-extintores-supervisor-r386.js');
+      window.StainherExtintoresSupervisorR386?.install?.();
+    }catch(error){console.warn('[R386] Supervisor Extintores',error)}
   }
   async function refreshExtintoresSupervisorR385(){
     try{
@@ -543,7 +549,8 @@
     await refreshLeadership();
     await refreshExtintoresPdfR378();
     // R384: no volver a cargar el módulo R383 con observador global.
-    await refreshExtintoresSupervisorR385();
+    // R386: sustituir R385; solución compatible con select o input real del wizard.
+    await refreshExtintoresSupervisorR386();
     await refreshLeadershipExecuteR377();
     await refreshVehicleFatigueR379();
     await refreshSystem();
