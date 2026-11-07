@@ -1,0 +1,88 @@
+/* Superficie independiente del tema de la sesión: diario mural Moderno. */
+body.stainher-tv-open{overflow:hidden!important}
+#stainher-tv{position:fixed;inset:0;z-index:2147483000;overflow:auto;color:#142638;background:radial-gradient(ellipse at 90% 0,#c5eff6,transparent 45%),linear-gradient(150deg,#eef5fa,#dcebf5);font:clamp(14px,1.05vw,22px)/1.35 Inter,Arial,sans-serif;isolation:isolate;color-scheme:light}
+#stainher-tv *{box-sizing:border-box}
+#stainher-tv :is(h1,h2,h3,p){margin:0;color:inherit}
+#stainher-tv button,#stainher-tv input,#stainher-tv select,#stainher-tv textarea{font:inherit;color:#173651;background:#fff;border:1px solid #a9c8de;border-radius:9px;padding:.55em .8em}
+#stainher-tv button{cursor:pointer;min-height:40px;white-space:normal}
+#stainher-tv button:focus-visible,#stainher-tv :is(input,select,textarea):focus-visible{outline:3px solid #e86427;outline-offset:2px}
+#stainher-tv button:disabled{opacity:.45;cursor:default}
+#stainher-tv .tv-primary{background:linear-gradient(125deg,#087f8c,#176fc1);border-color:#087f8c;color:white}
+#stainher-tv .tv-header{display:flex;align-items:center;gap:24px;padding:16px 2vw;background:linear-gradient(110deg,#142c43,#0d3656);color:#fff;border-bottom:3px solid #29bcc5}
+#stainher-tv .tv-brand{display:flex;align-items:center;gap:14px;flex:1}
+#stainher-tv .tv-brandmark{width:52px;height:52px;flex:none;border-radius:12px;background:linear-gradient(135deg,#ff6a33,#9e2a00);display:grid;place-items:center;font-size:34px;font-weight:900}
+#stainher-tv .tv-brand strong{font-size:1.4em;color:#fff!important;font-weight:800!important}
+#stainher-tv .tv-brand small{display:block;color:#d6e7f4!important}
+#stainher-tv .tv-site{font-size:1.2em;font-weight:700}
+#stainher-tv .tv-heading{display:flex;justify-content:space-between;align-items:center;padding:20px 2vw 10px;gap:15px}
+#stainher-tv h1{font-size:clamp(24px,2.5vw,50px);font-weight:750!important;line-height:1.15}
+#stainher-tv .tv-heading p{color:#46647b;margin-top:6px}
+#stainher-tv .tv-heading>span{white-space:nowrap;color:#47667d}
+#stainher-tv .tv-toolbar{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:4px 2vw 16px}
+#stainher-tv [data-tv-tabs],#stainher-tv .tv-tools{display:flex;gap:7px;flex-wrap:wrap}
+#stainher-tv [aria-current="page"]{background:#d0eafa;border-color:#176fc1;box-shadow:inset 0 -3px #176fc1}
+#stainher-tv .tv-grid{padding:0 2vw 20px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;align-items:stretch}
+#stainher-tv .tv-widget{min-width:0;background:linear-gradient(160deg,#fff,#f2f9fd);border:1px solid #b5d3e5;border-radius:18px;box-shadow:0 8px 24px #173e5b12;overflow:hidden}
+#stainher-tv .tv-widget h2{padding:12px 18px;font-size:1.15em;background:linear-gradient(100deg,#d5eaf7,#eaf6fc);border-bottom:1px solid #bfd8e6;font-weight:650!important}
+#stainher-tv .tv-widget-content{padding:16px 18px}
+#stainher-tv .tv-type-aviso h2{background:linear-gradient(110deg,#f36b21,#ee962f);color:#fff}
+#stainher-tv .tv-type-nomina h2,#stainher-tv .tv-type-personal h2{background:linear-gradient(110deg,#087f8c,#176fc1);color:white}
+#stainher-tv .tv-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+#stainher-tv .tv-kpis>div{border-left:5px solid #0c9aab;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+#stainher-tv .tv-kpis>div:first-child{border-color:#ee742a}
+#stainher-tv .tv-kpis strong,#stainher-tv .tv-total strong{font-size:clamp(32px,3.3vw,65px);font-weight:800!important;line-height:1.1;color:#123452}
+#stainher-tv .tv-kpis span{color:#37566f}
+#stainher-tv .tv-equipment{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#stainher-tv .tv-equipment>div{padding:12px;border:1px solid #c1d9e9;border-radius:12px;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center}
+#stainher-tv .tv-equipment span{grid-row:span 2;font-size:1.8em;color:#087f8c}
+#stainher-tv .tv-equipment b{overflow-wrap:anywhere;font-weight:650!important}
+#stainher-tv .tv-equipment small{color:#587187!important}
+#stainher-tv .tv-note{font-size:.82em;color:#536f83;margin-top:12px}
+#stainher-tv .tv-donut-row{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;min-height:190px}
+#stainher-tv .tv-donut{width:clamp(160px,13vw,260px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;flex:none;box-shadow:0 5px 15px #143f5c22}
+#stainher-tv .tv-donut>div{width:70%;height:70%;border-radius:50%;background:#f8fcff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 12px #173f5d15}
+#stainher-tv .tv-donut strong{font-size:clamp(36px,4vw,78px);font-weight:800!important;line-height:1.1}
+#stainher-tv .tv-donut span{font-size:.9em}
+#stainher-tv .tv-legend{display:flex;flex-direction:column;gap:14px}
+#stainher-tv .tv-legend>span{display:flex;gap:10px;align-items:center}
+#stainher-tv .tv-legend i{width:14px;height:14px;border-radius:4px}
+#stainher-tv .tv-legend b{margin-left:auto}
+#stainher-tv .tv-bars{display:grid;gap:13px}
+#stainher-tv .tv-bar{display:grid;grid-template-columns:minmax(90px,1fr) minmax(45px,1.4fr) 2ch;gap:10px;align-items:center}
+#stainher-tv .tv-bar>span{overflow-wrap:anywhere}
+#stainher-tv .tv-bar>div{height:20px;background:#e3eef6;border-radius:6px;overflow:hidden}
+#stainher-tv .tv-bar i{display:block;height:100%;border-radius:6px}
+#stainher-tv .tv-total{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+#stainher-tv .tv-rosters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;align-items:start}
+#stainher-tv .tv-rosters h3,#stainher-tv .tv-directory h3{font-size:1em;padding:8px 10px;border-radius:8px;background:#dcecf7;color:#153c59;margin-bottom:6px}
+#stainher-tv .tv-rosters h3 span{float:right}
+#stainher-tv .tv-rosters p{padding:7px 5px;border-bottom:1px solid #d8e6ef}
+#stainher-tv .tv-rosters b{display:block;overflow-wrap:anywhere}
+#stainher-tv .tv-rosters small{display:block;color:#547286!important;font-size:.8em}
+#stainher-tv .tv-directory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+#stainher-tv .tv-directory p{padding:4px 8px;overflow-wrap:anywhere}
+#stainher-tv .tv-message{font-size:1.5em;line-height:1.5;padding:12px 4px;overflow-wrap:anywhere}
+#stainher-tv .tv-clock{font-size:1.45em;text-align:center;color:#176491}
+#stainher-tv .tv-empty{padding:20px;color:#536e80}
+#stainher-tv .tv-footer{display:flex;justify-content:space-between;gap:18px;padding:12px 2vw 20px;color:#365d78;font-size:.8em}
+#stainher-tv .tv-error{color:#a3283c}
+#stainher-tv .tv-editor{position:fixed;inset:10px 10px 10px auto;width:min(790px,calc(100vw - 20px));background:#f3f8fc;border:1px solid #93bbd5;border-radius:18px;box-shadow:0 0 0 100vmax #0a2639aa,0 20px 50px #0d30464d;z-index:5;padding:24px;overflow:auto;font-size:16px}
+#stainher-tv [hidden]{display:none!important}
+#stainher-tv .tv-editor :is(header,footer){display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:14px}
+#stainher-tv .tv-editor footer{position:sticky;bottom:-24px;background:#f3f8fc;padding:16px 0;margin:15px 0 0;border-top:1px solid #bdd4e4}
+#stainher-tv .tv-editor h2{font-size:24px}
+#stainher-tv .tv-editor p{margin:10px 0;color:#446579}
+#stainher-tv .tv-editor label{display:flex;flex-direction:column;gap:6px;min-width:0}
+#stainher-tv .tv-editor-fields{display:grid;grid-template-columns:1fr 1.3fr .7fr;gap:12px;margin:18px 0}
+#stainher-tv .tv-editor-actions{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin:12px 0}
+#stainher-tv .tv-widget-edit-list fieldset{border:1px solid #abc9dd;border-radius:12px;padding:14px;display:grid;grid-template-columns:2fr 1fr;gap:12px;margin:16px 0;background:white}
+#stainher-tv .tv-wide{grid-column:1/-1}
+#stainher-tv .tv-editor [data-tv-save-error]{color:#b4233c}
+@media(min-width:1600px){#stainher-tv .tv-grid{gap:22px}#stainher-tv .tv-widget-content{padding:22px}#stainher-tv .tv-rosters p{padding:10px 5px}}
+@media(max-width:1000px){#stainher-tv .tv-header{gap:12px}#stainher-tv .tv-site{font-size:.9em}#stainher-tv .tv-directory{grid-template-columns:repeat(2,minmax(0,1fr))}#stainher-tv .tv-equipment{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){#stainher-tv .tv-widget{grid-column:span 12!important}#stainher-tv .tv-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#stainher-tv .tv-site{display:none}#stainher-tv .tv-header{padding:12px}#stainher-tv .tv-brand strong{font-size:18px}#stainher-tv .tv-brand small{font-size:10px}#stainher-tv .tv-brandmark{width:40px;height:40px;font-size:27px}#stainher-tv .tv-editor-fields{grid-template-columns:1fr}#stainher-tv .tv-directory{grid-template-columns:repeat(2,minmax(0,1fr))}#stainher-tv .tv-footer{flex-direction:column}}
+
+#stainher-tv .tv-show-controls{display:none}
+#stainher-tv.tv-presenting .tv-show-controls{display:block}
+#stainher-tv.tv-presenting .tv-toolbar{display:none}
+#stainher-tv.tv-presenting{overflow:hidden}

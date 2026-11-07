@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R319",
-  "build": "20261102-r319-hp-history",
+  "revision": "R397",
+  "build": "20261107-r397-tv-widgets-admin",
   "path": "./",
-  "publishedAt": "2026-11-02"
+  "publishedAt": "2026-11-07"
 }
