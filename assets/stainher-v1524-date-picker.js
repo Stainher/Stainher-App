@@ -1,5 +1,11 @@
 (function installStainherDatePickers() {
   'use strict';
+  const PICKER_BUILD='20261107-r398-idempotent';
+  if(window.__STAINHER_DATE_PICKER_BUILD__===PICKER_BUILD){
+    window.v1514InstallDatePickers?.(document);
+    return;
+  }
+  window.__STAINHER_DATE_PICKER_BUILD__=PICKER_BUILD;
 
   const STYLE_ID = 'stainher-v1524-date-picker-style';
   const INPUT_SELECTOR = 'input[type="date"], input[type="month"]';

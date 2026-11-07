@@ -67,6 +67,9 @@
     root.querySelectorAll?.('.page[id^="page-"]').forEach(page=>{
       const candidates=[...page.children].slice(0,5).flatMap(section=>[section,...section.querySelectorAll('span,small,.meta-chip,.version-chip')]);
       candidates.forEach(node=>{
+        // Los valores de formularios no son insignias de versión/fecha.
+        if(node.closest('form,label,.stainher-date-picker,.stainher-native-control-shell,.r394-date-field,[data-contractual-selector]'))return;
+        if(node.querySelector('input,select,textarea'))return;
         if(node.children.length && node.matches('.page-header,header,.global-meta,.v1514-global-meta'))return;
         const value=String(node.textContent||'').trim();
         if(value.length>85)return;

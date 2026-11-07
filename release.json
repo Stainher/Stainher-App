@@ -1,16 +1,23 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R397",
-  "build": "20261107-r397-tv-widgets-admin",
+  "revision": "R398",
+  "build": "20261107-r398-runtime-audit",
   "path": "./",
   "publishedAt": "2026-11-07",
   "operationalStatus": {
-    "status": "funcional y operativa",
+    "status": "base funcional confirmada; mantenimiento R398 sujeto a verificación técnica",
     "confirmedBy": "Ismael Gálvez",
     "confirmedOn": "2026-11-07",
     "confirmation": "Todas las mejoras funcionan",
     "sourceCommit": "773dbf7156786c5c57648db55e8775121b28377f",
-    "baselineBranch": "baseline/funcional-operativa-r397-20261107"
+    "baselineBranch": "baseline/funcional-operativa-r397-20261107",
+    "confirmedRevision": "R397"
+  },
+  "maintenanceAudit": {
+    "date": "2026-11-07",
+    "baselineRevision": "R397",
+    "scope": "Arranque, cargadores, caché, fechas, navegación y revisión de base de datos",
+    "report": "docs/AUDITORIA_R398_20261107.md"
   }
 }
