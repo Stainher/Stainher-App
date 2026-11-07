@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R395')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R396')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R395';
+  window.__STAINHER_HP_LOADER_VERSION__='R396';
 
-  const BUILD='20261107-r395-boletas-mobile-navigation';
+  const BUILD='20261107-r396-boletas-drawer-unlock';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
