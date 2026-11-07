@@ -5,8 +5,8 @@ const nav=readFileSync('assets/stainher-v1524-navigation-stability.js','utf8');
 const theme=readFileSync('assets/stainher-v1524-theme.js','utf8');
 const loader=readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 new Function(nav);
-assert.match(theme,/20261107-r395-boletas-route-shell/,'cache freshness for mobile nav');
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__='R395'/);
+assert.match(theme,/20261107-r396-boletas-drawer-unlock/,'R396 navigation cache freshness');
+assert.ok(Number(loader.match(/__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1])>=395,'R395+');
 assert.match(nav,/function synchronizeBoletasHeader/);
 assert.match(nav,/closeDrawerForBoletas/);
 const browser=await chromium.launch({headless:true});
@@ -54,12 +54,23 @@ try{
   assert.equal(await page.evaluate(()=>document.body.classList.contains('v151-drawer-open')),false);
   assert.equal(await page.locator('#v151MobileTitle').innerText(),'🧾 Boletas a rendir','mobile title matches boletas');
   assert.equal(await page.locator('#v1514GlobalHeader h2').innerText(),'Boletas a rendir');
-  assert.equal(await page.locator('#v1514GlobalHeader .v1516-header-actions').count(),0,'no old Solicitudes button');
+  assert.equal(await page.locator('#v1514GlobalHeader .v1516-header-actions').isVisible(),false,'Solicitudes header actions temporarily hidden');
   assert.equal(await page.locator('#page-solicitudes').isVisible(),false,'requests hidden');
   assert.equal(await page.locator('#page-boletas-rendir').isVisible(),true,'boletas visible');
   assert.equal(await page.locator('#page-boletas-rendir .r354-head').isVisible(),false,'no duplicate title');
   assert.equal(await page.locator('#page-boletas-rendir button').isVisible(),true,'boletas actions preserved');
   assert.equal(await page.evaluate(()=>window.__renderBoletas),1,'render correct module once');
+  // R396: abrir el menú de forma manual no debe ser revertido por el
+  // normalizador que observa cambios en el DOM.
+  await page.evaluate(()=>{
+    document.querySelector('.sidebar').classList.add('v151-open');
+    document.querySelector('#v151DrawerOverlay').classList.add('v151-open');
+    const child=document.createElement('span');child.textContent='navegación abierta';
+    document.querySelector('.sidebar').appendChild(child);
+  });
+  await page.waitForTimeout(350);
+  assert.equal(await page.locator('.sidebar').evaluate(x=>x.classList.contains('v151-open')),true,'drawer can reopen while in Boletas');
+  assert.equal(await page.locator('#v151DrawerOverlay').evaluate(x=>x.classList.contains('v151-open')),true,'overlay remains open until explicitly closed');
   await page.evaluate(()=>{document.querySelector('#v1514GlobalHeader h2').textContent='Solicitudes';});
   await page.waitForFunction(()=>document.querySelector('#v1514GlobalHeader h2').textContent==='Boletas a rendir');
   await page.evaluate(()=>window.v1519Navigate('solicitudes'));
@@ -68,6 +79,7 @@ try{
   assert.equal(await page.locator('#page-solicitudes').isVisible(),true,'requests visible');
   assert.equal(await page.locator('#page-boletas-rendir .r354-head').isVisible(),false,'hidden route stays hidden');
   assert.equal(await page.locator('#v1514GlobalHeader h2').innerText(),'Solicitudes','header resets');
+  assert.equal(await page.locator('#v1514GlobalHeader .v1516-header-actions').isVisible(),true,'original header action restored');
   assert.match((await page.locator('#v151MobileTitle').innerText()).replace(/\s+/g,''),/^📋Solicitudes$/,'mobile title resets');
   await page.close();
  }
