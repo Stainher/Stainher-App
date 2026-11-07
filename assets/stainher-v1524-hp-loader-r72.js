@@ -550,6 +550,8 @@
     }catch(error){console.warn('[Boletas a rendir R354]',error)}
   }
   async function bootstrapR135(){
+    // Reparar valores de fecha/mes antes de los módulos autenticados.
+    await load('stainher-date-picker-mobile-readable','stainher-v1524-date-picker.js');
     // Solicitudes primero: evita mostrar temporalmente el render antiguo.
     await refreshSolicitudesViewR133();
     await refreshRequestApproverR135();

@@ -3,13 +3,43 @@
 
   const STYLE_ID = 'stainher-v1524-date-picker-style';
   const INPUT_SELECTOR = 'input[type="date"], input[type="month"]';
+  const valueSync = new WeakMap();
 
   function installStyles() {
-    if (document.getElementById(STYLE_ID)) return;
+    document.getElementById(STYLE_ID)?.remove();
 
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
+      @media(max-width:900px){
+        html body .page .stainher-date-picker{
+          position:relative!important;display:flex!important;align-items:center!important;
+          box-sizing:border-box!important;width:100%!important;max-width:100%!important;
+          min-width:0!important;min-height:48px!important;padding:12px 48px 12px 12px!important;
+          overflow:hidden!important;border:1px solid #b8ccdd!important;border-radius:12px!important;
+          background:#f8fbff!important;color:#17344d!important;
+        }
+        html body .page .stainher-date-picker>.stainher-native-control-shell__value{
+          display:block!important;position:relative!important;z-index:1!important;
+          width:100%!important;min-width:0!important;visibility:visible!important;opacity:1!important;
+          color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+          font-size:16px!important;line-height:1.4!important;white-space:nowrap!important;
+          overflow:hidden!important;text-overflow:ellipsis!important;pointer-events:none!important;
+        }
+        html body .page .stainher-date-picker>input:is([type="date"],[type="month"]){
+          position:absolute!important;inset:0!important;width:100%!important;max-width:100%!important;
+          min-width:0!important;height:100%!important;margin:0!important;padding:0!important;
+          opacity:.001!important;z-index:2!important;box-sizing:border-box!important;
+        }
+        html body .page .stainher-date-picker>.stainher-calendar-button{
+          z-index:3!important;color:#486782!important;-webkit-text-fill-color:#486782!important;
+        }
+        html body .page .stainher-date-picker::after{content:none!important}
+        html[data-theme="dark"] body .page .stainher-date-picker{background:#183247!important;border-color:#5e7e98!important}
+        html[data-theme="dark"] body .page .stainher-date-picker>.stainher-native-control-shell__value,
+        html[data-theme="dark"] body .page .stainher-date-picker>.stainher-calendar-button{color:#f2f8ff!important;-webkit-text-fill-color:#f2f8ff!important}
+      }
+      @media(min-width:901px){.stainher-date-picker>.stainher-native-control-shell__value{display:none!important}}
       .stainher-date-picker {
         position: relative;
         display: block;
@@ -117,7 +147,8 @@
   }
 
   function enhanceInput(input) {
-    if (!(input instanceof HTMLInputElement) || input.dataset.stainherCalendar === '1') return;
+    if (!(input instanceof HTMLInputElement)) return;
+    if (valueSync.has(input)) { valueSync.get(input)(); return; }
     input.dataset.stainherCalendar = '1';
 
     let wrapper = input.parentElement;
@@ -137,6 +168,23 @@
     // The legacy native-shell observer must not wrap an already-enhanced input.
     // This marker is intentionally retained even when no shell was necessary.
     input.dataset.stainherNativeShell = '1';
+    wrapper.classList.add('stainher-native-control-shell');
+    input.classList.add('stainher-native-control');
+
+    // Crear siempre el texto visible, independientemente del orden de carga.
+    let value=wrapper.querySelector(':scope > .stainher-native-control-shell__value');
+    if(!value){value=document.createElement('span');value.className='stainher-native-control-shell__value';value.setAttribute('aria-hidden','true');wrapper.prepend(value)}
+    const syncValue=()=>{
+      const raw=input.value;
+      if(input.type==='month'&&/^\d{4}-\d{2}$/.test(raw)){
+        const [year,month]=raw.split('-').map(Number);
+        value.textContent=new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric'}).format(new Date(year,month-1,1));
+      }else if(input.type==='date'&&/^\d{4}-\d{2}-\d{2}$/.test(raw))value.textContent=raw.split('-').reverse().join('-');
+      else value.textContent=raw||(input.type==='month'?'Seleccionar mes':'Seleccionar fecha');
+    };
+    valueSync.set(input,syncValue);syncValue();
+    input.addEventListener('input',syncValue);input.addEventListener('change',syncValue);
+    new MutationObserver(syncValue).observe(input,{attributes:true,attributeFilter:['value']});
 
     let button = wrapper.querySelector(':scope > .stainher-calendar-button');
     if (!button) {

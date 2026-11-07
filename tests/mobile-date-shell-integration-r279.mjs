@@ -62,7 +62,7 @@ try{
        }else{
          assert.equal(x.shellBorder,'0px','No white outer frame');
          assert.equal(x.inputBorder,'0px','No white inner frame');
-         assert.equal(x.textColor,'rgb(255, 255, 255)','White date on orange gradient');
+         assert.equal(x.textColor,'rgb(23, 52, 77)','Readable date on light Moderno surface');
        }
      }else{
        assert.ok(x.inputOpacity>.9,'No transparent native input without a visible label');
