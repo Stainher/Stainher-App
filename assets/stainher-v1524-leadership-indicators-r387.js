@@ -1,4 +1,4 @@
-/* Stainher V15.24 R387: historial y cumplimiento sin metas; lectura bajo RLS.
+/* Stainher V15.24 R388: historial, cumplimiento y eliminación auditada; lectura bajo RLS.
    Sin MutationObservers, sin modificaciones de registros, PDF o permisos. */
 (()=>{
  'use strict';
@@ -7,6 +7,7 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const getPage=()=>document.getElementById('page-liderazgo');
  let cache=null,cacheKey='',cacheAt=0,pending=null,lastRender='',installed=false;
+ const removing=new Set();
  function period(){
   const s=window.state||{},now=new Date();
   let year=Number(s.leadershipYear)||now.getFullYear(),month=Number(s.leadershipMonth)||now.getMonth()+1;
@@ -40,7 +41,7 @@
   pending=(async()=>{
    const [done,goals]=await Promise.all([
     sb.from('liderazgo_cumplimiento')
-      .select('id,fecha,created_at,supervisor_nombre,supervisor_user_id,ejecutado_por_nombre,ejecutado_por_user_id,control_codigo,control_nombre,fuera_programacion,estado')
+      .select('id,fecha,created_at,created_by,supervisor_nombre,supervisor_user_id,ejecutado_por_nombre,ejecutado_por_user_id,control_codigo,control_nombre,fuera_programacion,estado')
       .eq('anio',year).eq('mes',month).order('created_at',{ascending:false}).limit(250),
     sb.from('liderazgo_programacion')
       .select('meta,programado_nombre,programado_user_id,supervisor_nombre,supervisor_user_id,control_codigo')
@@ -90,6 +91,43 @@
   const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
   return m?m[3]+'-'+m[2]+'-'+m[1]:String(value||'');
  }
+ function canDeleteRecord(record){
+  const userId=String(window.state?.session?.user?.id||'');
+  if(!userId||!record?.id)return false;
+  if(String(record.created_by||'')===userId)return true;
+  const role=norm(window.v11Role?.()||window.state?.profile?.rol||'');
+  const restricted=role==='supervisor'||role==='tecnico';
+  try{
+   return !restricted&&!!window.canEditV11?.('liderazgo');
+  }catch(_){return false}
+ }
+ async function deleteRecord(id,button){
+  if(!id||removing.has(id))return;
+  const record=cache?.done?.find(r=>String(r.id)===String(id));
+  if(!canDeleteRecord(record)){
+   window.toast?.('No tienes autorización para eliminar este control.','error');return;
+  }
+  const label=record.control_nombre||record.control_codigo||'control';
+  const date=dateCL(record.fecha);
+  if(!window.confirm('¿Eliminar el control "'+label+'" del '+date+'?\n\nSe actualizarán el historial y los indicadores. La eliminación quedará registrada en auditoría.'))return;
+  removing.add(id);
+  const previous=button?.textContent||'Eliminar';
+  if(button){button.disabled=true;button.textContent='Eliminando…'}
+  try{
+   const out=await window.sb.rpc('eliminar_control_liderazgo_r388',{p_id:id});
+   if(out.error)throw out.error;
+   if(out.data!==true)throw new Error('La base de datos no confirmó la eliminación.');
+   cache=null;cacheKey='';cacheAt=0;lastRender='';
+   // The original summary counters and this supplemental mobile history must refresh.
+   if(typeof window.renderLiderazgoV95==='function')await window.renderLiderazgoV95();
+   await refresh(true);
+   window.toast?.('Control eliminado. El historial y los indicadores se actualizaron.','success');
+  }catch(error){
+   console.error('[R388] Eliminar control Liderazgo',error);
+   window.toast?.(error?.message||'No se pudo eliminar el control.','error');
+   if(button?.isConnected){button.disabled=false;button.textContent=previous}
+  }finally{removing.delete(id)}
+ }
  function renderRecords(node,rows,periodName){
   if(!node)return;
   const records=rows.filter(x=>!x.estado||x.estado==='realizado');
@@ -98,13 +136,16 @@
     '<article class="r387-card"><strong>'+esc(r.control_nombre||r.control_codigo||'Control Stainher')+'</strong>'+
     '<p>'+esc(dateCL(r.fecha))+' · '+esc(r.ejecutado_por_nombre||r.supervisor_nombre||'Sin nombre')+'</p>'+
     '<p class="r387-muted">'+(r.fuera_programacion?'Ejecución libre':'Programado')+'</p>'+
-    (r.id?'<button type="button" class="btn r387-download" data-r387-download="'+esc(r.id)+'">Descargar PDF</button>':'')+
+    (r.id?'<div class="r388-actions"><button type="button" class="btn r387-download" data-r387-download="'+esc(r.id)+'">Descargar PDF</button>'+
+     (canDeleteRecord(r)?'<button type="button" class="btn r388-delete" data-r388-delete="'+esc(r.id)+'" aria-label="Eliminar control realizado">Eliminar</button>':'')+'</div>':'')+
     '</article>').join('')+'</div>':
     '<p class="r387-muted">No hay controles visibles para este perfil durante el período.</p>')+
    '<p class="r387-foot">Los controles libres no requieren una meta mensual para aparecer en el historial.</p>';
   if(!node.__r387Bound){
    node.__r387Bound=true;
    node.addEventListener('click',event=>{
+    const remove=event.target?.closest?.('[data-r388-delete]');
+    if(remove){void deleteRecord(remove.dataset.r388Delete,remove);return}
     const target=event.target?.closest?.('[data-r387-download]');
     if(target&&window.v1524DownloadLeadershipRecordPdf)window.v1524DownloadLeadershipRecordPdf(target.dataset.r387Download);
    });
@@ -145,6 +186,10 @@
    '#page-liderazgo .r387-foot{color:var(--muted,#516b84);font-size:11px;margin:10px 0 0}',
    '#page-liderazgo .r387-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:9px}',
    '#page-liderazgo .r387-download{margin-top:6px;padding:8px}',
+   '#page-liderazgo .r388-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}',
+   '#page-liderazgo .r388-actions .btn{margin:0;min-height:36px}',
+   '#page-liderazgo .r388-delete{background:#fff3f2!important;color:#9f2433!important;-webkit-text-fill-color:#9f2433!important;border:1px solid #d6a5aa!important}',
+   '#page-liderazgo .r388-delete:disabled{opacity:.6!important;cursor:wait}',
    '@media(max-width:600px){#page-liderazgo .r387-grid{grid-template-columns:minmax(0,1fr)}}'
   ].join('\n');
   document.head.appendChild(css);
@@ -183,7 +228,7 @@
   window.addEventListener('stainher:modules-ready',()=>{wrapRender();lastRender='';schedule()});
   schedule();
  }
- window.StainherLeadershipIndicatorsR387=Object.freeze({install,refresh,period,read});
+ window.StainherLeadershipIndicatorsR387=Object.freeze({install,refresh,period,read,canDeleteRecord,deleteRecord});
  install();
  [350,1100,2600].forEach(ms=>setTimeout(()=>{wrapRender();schedule()},ms));
 })();
