@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R390')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R391')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R390';
+  window.__STAINHER_HP_LOADER_VERSION__='R391';
 
-  const BUILD='20261106-r390-rit-modal-like-controls';
+  const BUILD='20261106-r391-leadership-initial-collapsed-rit-hidden';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
