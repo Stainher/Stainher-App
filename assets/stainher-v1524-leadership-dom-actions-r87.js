@@ -5,10 +5,11 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261107-leadership-controls-first';
+  const BUILD='20261107-leadership-controls-first-open';
   if(window.__STAINHER_LEADERSHIP_DOM_ACTIONS_R87__===BUILD)return;
   window.__STAINHER_LEADERSHIP_DOM_ACTIONS_R87__=BUILD;
   const WRAP=Symbol('stainherLeadershipDomActionsR87');
+  let needsControls=true;
 
   const canManage=()=>{try{return !!window.canManageLeadershipV11?.()}catch(_){return false}};
   const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
@@ -98,6 +99,14 @@
   async function enhanceAll(){
     // Orden DOM: también respeta navegación por teclado y vista móvil.
     const root=page();
+    if(root?.dataset.stainherOpenControls==='1'){
+      const panel=root.querySelector('#v1512Lead_controles .panel');
+      if(panel){
+        panel.dataset.noCollapse='1';
+        if(panel.tagName==='DETAILS')panel.open=true;
+        delete root.dataset.stainherOpenControls;
+      }
+    }
     root?.querySelectorAll('.v1512-lead-tabs,.v154-lead-tabs,.v156-lead-tabs').forEach(tabs=>{
       const buttons=[...tabs.querySelectorAll(':scope > button')];
       const controls=buttons.find(b=>norm(b.textContent)==='controles stainher');
@@ -113,6 +122,12 @@
     const current=window.renderLiderazgoV95;
     if(typeof current!=='function'||current[WRAP])return;
     const wrapped=async function(){
+      if(needsControls){
+        if(typeof state!=='undefined')state.leadTabV1512='controles';
+        const root=page();
+        if(root)root.dataset.stainherOpenControls='1';
+        needsControls=false;
+      }
       const out=await current.apply(this,arguments);
       queueMicrotask(()=>enhanceAll().catch(()=>{}));
       setTimeout(()=>enhanceAll().catch(()=>{}),120);
@@ -124,6 +139,9 @@
   function installLocalTabHook(){
     const root=page();if(!root||root.dataset.r87LeadershipHook==='1')return;
     root.dataset.r87LeadershipHook='1';
+    new MutationObserver(()=>{
+      if(root.hidden||root.classList.contains('hidden'))needsControls=true;
+    }).observe(root,{attributes:true,attributeFilter:['class','hidden']});
     root.addEventListener('click',event=>{
       const btn=event.target?.closest?.('button,[role="tab"]');if(!btn)return;
       const text=norm(btn.textContent);
