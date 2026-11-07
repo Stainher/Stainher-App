@@ -41,14 +41,14 @@
   const el=document.createElement('style');
   el.id='stainher-rit-r390-style';
   el.textContent=[
-   '#page-liderazgo #'+CARD+'{box-sizing:border-box;min-width:0;max-width:100%;align-self:start;border:1px solid var(--line,#b7cddd);border-radius:13px;background:var(--panel2,#f5f9fd);color:var(--text,#17354d);padding:14px;overflow:visible}',
+   '#page-liderazgo #'+CARD+'{box-sizing:border-box;min-width:0;max-width:100%;align-self:start;border:1px solid var(--line,#b7cddd);border-radius:13px;background:linear-gradient(135deg,#f36b21 0%,#e85a0c 55%,#c9470a 100%)!important;color:#ffffff!important;padding:14px;overflow:visible}',
    '#page-liderazgo #'+CARD+' *{box-sizing:border-box}',
    '#page-liderazgo #'+CARD+' .r390-head{display:flex;justify-content:space-between;align-items:center;gap:10px}',
    '#page-liderazgo #'+CARD+' .r390-number{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;border:1px solid #91bddf;border-radius:8px;background:#dceefe;color:#17436a;font-weight:700}',
    '#page-liderazgo #'+CARD+' .r390-available{font-size:11px;padding:5px 9px;border-radius:999px;background:#dcf5e9;color:#176243}',
-   '#page-liderazgo #'+CARD+' h4{margin:9px 0 5px;font-size:15px;color:var(--text,#17354d)!important}',
-   '#page-liderazgo #'+CARD+' p{margin:5px 0;font-size:13px;line-height:1.5;color:var(--text,#17354d)!important}',
-   '#page-liderazgo #'+CARD+' .r390-frequency{font-size:12px;color:var(--muted,#59738b)!important}',
+   '#page-liderazgo #'+CARD+' h4{margin:9px 0 5px;font-size:15px;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;text-shadow:0 1px 2px rgba(58,20,7,.34)}',
+   '#page-liderazgo #'+CARD+' p{margin:5px 0;font-size:13px;line-height:1.5;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;text-shadow:0 1px 2px rgba(58,20,7,.3)}',
+   '#page-liderazgo #'+CARD+' .r390-frequency{font-size:12px;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important}',
    '#page-liderazgo #'+CARD+' .r390-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}',
    '#page-liderazgo #'+CARD+' .r390-actions button{min-height:44px;padding:10px 13px;border:1px solid #0a77b4;border-radius:9px;background:linear-gradient(125deg,#008ca1,#1e70c2);color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation}',
    '#page-liderazgo #'+CARD+' .r390-actions .r390-history{background:var(--panel,#fff);color:var(--text,#17354d)!important;-webkit-text-fill-color:var(--text,#17354d)!important;border-color:var(--line,#a8bdce)}',
