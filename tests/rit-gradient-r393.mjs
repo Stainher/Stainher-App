@@ -5,7 +5,7 @@ import {chromium} from 'playwright';
 const js=readFileSync('assets/stainher-v1524-rit-control-modal-r390.js','utf8');
 const loader=readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 new Function(js);
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__='R393'/);
+assert.ok(Number(loader.match(/__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1])>=393,'R393 mantiene su diseño en revisiones posteriores');
 assert.match(js,/linear-gradient\(135deg,#f36b21 0%,#e85a0c 55%,#c9470a 100%\)/);
 assert.match(js,/#ffffff!important/);
 const browser=await chromium.launch({headless:true});
