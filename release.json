@@ -4,5 +4,13 @@
   "revision": "R397",
   "build": "20261107-r397-tv-widgets-admin",
   "path": "./",
-  "publishedAt": "2026-11-07"
+  "publishedAt": "2026-11-07",
+  "operationalStatus": {
+    "status": "funcional y operativa",
+    "confirmedBy": "Ismael Gálvez",
+    "confirmedOn": "2026-11-07",
+    "confirmation": "Todas las mejoras funcionan",
+    "sourceCommit": "773dbf7156786c5c57648db55e8775121b28377f",
+    "baselineBranch": "baseline/funcional-operativa-r397-20261107"
+  }
 }
