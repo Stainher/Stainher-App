@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R386')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R387')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R386';
+  window.__STAINHER_HP_LOADER_VERSION__='R387';
 
-  const BUILD='20261106-r386-extintores-field-type-fix';
+  const BUILD='20261106-r387-leadership-indicators-history';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -98,6 +98,12 @@
       await load('stainher-extintores-supervisor-r383','stainher-v1524-extintores-supervisor-r383.js');
       window.StainherExtintoresSupervisorR383?.install?.();
     }catch(error){console.warn('[R383] Supervisor Check List Extintores',error)}
+  }
+  async function refreshLeadershipIndicatorsR387(){
+    try{
+      await load('stainher-leadership-indicators-r387','stainher-v1524-leadership-indicators-r387.js');
+      window.StainherLeadershipIndicatorsR387?.install?.();
+    }catch(error){console.warn('[R387] Historial e indicadores de Liderazgo',error)}
   }
   async function refreshExtintoresPdfR378(){
     try{
@@ -547,6 +553,7 @@
     await refreshTurnReport();
     await refreshVehicleExpiryR109();
     await refreshLeadership();
+    await refreshLeadershipIndicatorsR387();
     await refreshExtintoresPdfR378();
     // R384: no volver a cargar el módulo R383 con observador global.
     // R386: sustituir R385; solución compatible con select o input real del wizard.
