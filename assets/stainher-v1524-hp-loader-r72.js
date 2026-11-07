@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R389')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R390')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R389';
+  window.__STAINHER_HP_LOADER_VERSION__='R390';
 
-  const BUILD='20261106-r389-rit-card-inside-controls';
+  const BUILD='20261106-r390-rit-modal-like-controls';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -69,6 +69,12 @@
     }
   }
 
+  async function refreshRITModalR390(){
+    try{
+      await load('stainher-rit-modal-r390','stainher-v1524-rit-control-modal-r390.js');
+      window.StainherRITModalR390?.install?.();
+    }catch(error){console.warn('[R390] Modal RIT de Controles Stainher',error)}
+  }
   async function refreshRITCardR389(){
     try{
       await load('stainher-rit-control-card-r389','stainher-v1524-rit-control-card-r389.js');
@@ -565,7 +571,7 @@
     // R386: sustituir R385; solución compatible con select o input real del wizard.
     await refreshExtintoresSupervisorR386();
     await refreshLeadershipExecuteR377();
-    await refreshRITCardR389();
+    await refreshRITModalR390();
     await refreshVehicleFatigueR379();
     await refreshSystem();
     await refreshSignature();
