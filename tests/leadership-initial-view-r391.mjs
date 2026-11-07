@@ -7,7 +7,7 @@ const modal=readFileSync('assets/stainher-v1524-rit-control-modal-r390.js','utf8
 const loader=readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 const access=readFileSync('assets/stainher-v1524-leadership-execution-access.js','utf8');
 for(const script of [disclosure,rit,modal,loader,access])new Function(script);
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__='R391'/);
+assert.ok(Number(loader.match(/__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1])>=391,'R391 conserva su corrección en las versiones siguientes');
 assert.match(access,/r391-20261106-rit-hidden/);
 assert.match(rit,/ritStaging\(root\)\.appendChild\(el\)/);
 assert.match(rit,/stainher-rit-stage-r391/);
