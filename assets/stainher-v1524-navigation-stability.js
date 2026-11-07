@@ -201,7 +201,7 @@
     title.replaceChildren();
     const iconNode=document.createElement('span');iconNode.className='stainher-mobile-title-icon';iconNode.textContent=icon;
     const labelNode=document.createElement('span');labelNode.className='stainher-mobile-title-label';labelNode.textContent=label;
-    title.append(iconNode,labelNode);title.dataset.stainherTitleValue=value;
+    title.append(iconNode,document.createTextNode(' '),labelNode);title.dataset.stainherTitleValue=value;
   }
   function normalizeMenuOrder(){
     document.querySelectorAll('.nav').forEach(nav=>{
