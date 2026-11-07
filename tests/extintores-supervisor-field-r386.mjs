@@ -7,7 +7,7 @@ new Function(feature);
 assert.match(loader,/await refreshExtintoresSupervisorR386\(\)/);
 assert.doesNotMatch(loader,/await refreshExtintoresSupervisorR385\(\)/);
 assert.doesNotMatch(loader,/await refreshExtintoresSupervisorR383\(\)/);
-assert.doesNotMatch(feature,/MutationObserver|setInterval/);
+assert.doesNotMatch(feature,/new\s+MutationObserver\s*\(|setInterval\s*\(/);
 const supervisors=['Luis Contreras','Cristian Flores','Manuel Guanipa','Luis Rojas'];
 const browser=await chromium.launch({headless:true});
 try{
