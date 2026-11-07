@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20260916-r87-leadership-dom-actions';
+  const BUILD='20261107-leadership-controls-first';
   if(window.__STAINHER_LEADERSHIP_DOM_ACTIONS_R87__===BUILD)return;
   window.__STAINHER_LEADERSHIP_DOM_ACTIONS_R87__=BUILD;
   const WRAP=Symbol('stainherLeadershipDomActionsR87');
@@ -96,6 +96,15 @@
   }
 
   async function enhanceAll(){
+    // Orden DOM: también respeta navegación por teclado y vista móvil.
+    const root=page();
+    root?.querySelectorAll('.v1512-lead-tabs,.v154-lead-tabs,.v156-lead-tabs').forEach(tabs=>{
+      const buttons=[...tabs.querySelectorAll(':scope > button')];
+      const controls=buttons.find(b=>norm(b.textContent)==='controles stainher');
+      const indicators=buttons.find(b=>norm(b.textContent)==='indicadores');
+      if(controls&&tabs.firstElementChild!==controls)tabs.prepend(controls);
+      if(indicators&&tabs.lastElementChild!==indicators)tabs.append(indicators);
+    });
     await enhanceDone();
     await enhanceProgramming();
   }
