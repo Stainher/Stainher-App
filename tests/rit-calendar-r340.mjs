@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {test} from "node:test";
 import {chromium} from "playwright";
 import {resolve} from "node:path";
+import {showRITFormInModal} from "./helpers/rit-modal-fixture.mjs";
 test("RIT calendar remains within the form on desktop and mobile",async()=>{
  const browser=await chromium.launch({headless:true});
  try{
@@ -17,6 +18,7 @@ test("RIT calendar remains within the form on desktop and mobile",async()=>{
     }};
    });
    await page.addScriptTag({path:resolve("assets/stainher-v1524-rit-r331.js")});
+  await showRITFormInModal(page);
    const container=page.locator(".rt-date-field");
    const input=container.locator("input.rt-date-display");
    assert.equal(await input.getAttribute("type"),"text");
