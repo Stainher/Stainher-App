@@ -4,6 +4,39 @@
   const STYLE_ID = 'stainher-v1524-date-picker-style';
   const INPUT_SELECTOR = 'input[type="date"], input[type="month"]';
   const valueSync = new WeakMap();
+  function contractualSelector(input,wrapper){
+    if(input.id!=='v1523PrevEdpMonth')return;
+    wrapper.style.setProperty('display','none','important');
+    wrapper.setAttribute('aria-hidden','true');input.tabIndex=-1;
+    let host=wrapper.parentElement.querySelector(':scope > [data-contractual-selector]');
+    if(host)return;
+    host=document.createElement('span');host.dataset.contractualSelector='1';
+    host.style.cssText='display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:8px;width:100%;min-width:0';
+    const month=document.createElement('select'),year=document.createElement('input');
+    month.className='field';month.setAttribute('aria-label','Mes contractual');
+    year.className='field';year.type='number';year.min='1';year.max='9999';year.setAttribute('aria-label','Año contractual');
+    for(const node of [month,year])node.style.cssText='box-sizing:border-box;width:100%;min-width:0;background:#fff!important;color:#17344d!important;-webkit-text-fill-color:#17344d!important;font-size:16px;min-height:46px;border:1px solid #b8ccdd;border-radius:10px';
+    const sync=()=>{
+      const [y,m]=String(input.value||'').split('-').map(Number);
+      const selectedYear=y||new Date().getFullYear();year.value=selectedYear;
+      month.replaceChildren();
+      for(let n=1;n<=12;n++){
+        const option=document.createElement('option');option.value=String(n);
+        const label=new Intl.DateTimeFormat('es-CL',{month:'long'}).format(new Date(2000,n-1,1));
+        option.textContent=label[0].toUpperCase()+label.slice(1)+' '+selectedYear;month.append(option);
+      }
+      month.value=String(m||1);month.disabled=year.disabled=input.disabled||input.readOnly;
+    };
+    const apply=()=>{
+      if(!year.checkValidity()||!year.value)return;
+      input.value=String(year.value).padStart(4,'0')+'-'+String(month.value).padStart(2,'0');
+      input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+    month.addEventListener('change',apply);year.addEventListener('change',apply);
+    input.addEventListener('change',sync);input.addEventListener('input',sync);
+    new MutationObserver(sync).observe(input,{attributes:true,attributeFilter:['value','disabled','readonly']});
+    host.append(month,year);wrapper.after(host);sync();
+  }
 
   function installStyles() {
     document.getElementById(STYLE_ID)?.remove();
@@ -197,6 +230,7 @@
       button.setAttribute('aria-disabled', button.disabled ? 'true' : 'false');
     };
     syncAvailability();
+    contractualSelector(input,wrapper);
 
     new MutationObserver(syncAvailability).observe(input, {
       attributes: true,
