@@ -2,7 +2,7 @@
    Sin MutationObservers, sin modificaciones de registros, PDF o permisos. */
 (()=>{
  'use strict';
- if(window.StainherLeadershipIndicatorsR387)return;
+ if(window.StainherLeadershipIndicatorsR387?.build==='R388')return;
  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const getPage=()=>document.getElementById('page-liderazgo');
@@ -228,7 +228,7 @@
   window.addEventListener('stainher:modules-ready',()=>{wrapRender();lastRender='';schedule()});
   schedule();
  }
- window.StainherLeadershipIndicatorsR387=Object.freeze({install,refresh,period,read,canDeleteRecord,deleteRecord});
+ window.StainherLeadershipIndicatorsR387=Object.freeze({build:'R388',install,refresh,period,read,canDeleteRecord,deleteRecord});
  install();
  [350,1100,2600].forEach(ms=>setTimeout(()=>{wrapRender();schedule()},ms));
 })();
