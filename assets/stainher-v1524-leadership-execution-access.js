@@ -95,13 +95,22 @@
   document.head.appendChild(script);
 })();
 
+/* R391: barrera visual inmediata contra el RIT antiguo fuera de su modal. */
+(()=>{
+ if(document.getElementById('stainher-rit-hide-legacy-r391'))return;
+ const style=document.createElement('style');
+ style.id='stainher-rit-hide-legacy-r391';
+ style.textContent='#page-liderazgo #rit-r331:not([data-r390-modal="1"]){display:none!important}';
+ document.head.appendChild(style);
+})();
+
 /* Desarrollo 29: cargar RIT sólo como módulo adicional de Liderazgo. */
 (()=>{
   if(window.__STAINHER_RIT_R331_LOADER__)return;
   window.__STAINHER_RIT_R331_LOADER__=true;
   const tag=document.createElement('script');
   const src=document.currentScript?.src||location.href;
-  tag.src=new URL('stainher-v1524-rit-r331.js',src).href+'?build=r341-20261103';
+  tag.src=new URL('stainher-v1524-rit-r331.js',src).href+'?build=r391-20261106-rit-hidden';
   tag.async=false;tag.dataset.stainherModule='stainher-v1524-rit-r331.js';
   tag.onerror=()=>console.error('[Stainher RIT] Falló la carga del asistente R331');
   document.head.appendChild(tag);
