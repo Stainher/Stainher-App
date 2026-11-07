@@ -6,13 +6,15 @@
 
   const norm=value=>String(value||'').replace(/\s+/g,' ').trim().toLowerCase();
   const DEFAULT_OPEN=new Set([
-    'Cumplimiento por usuario',
-    'Controles realizados',
     'Programación de controles',
     'Controles Stainher',
     'Dotación en turno hoy',
     'Personal de turno hoy'
   ].map(norm));
+
+  // R391: paneles de indicadores/historial contraídos al inicio.
+  // No forzar su cierre tras interacción: el usuario puede desplegarlos libremente.
+  const DEFAULT_CLOSED=new Set(['Cumplimiento por usuario','Controles realizados'].map(norm));
 
   function titleOf(details){
     const summary=details?.querySelector?.(':scope > summary');
@@ -36,7 +38,15 @@
     if(root?.tagName==='DETAILS')nodes.push(root);
     root?.querySelectorAll?.('details').forEach(node=>nodes.push(node));
     nodes.forEach(details=>{
-      if(!isTarget(details)||!readyForDefault(details))return;
+      if(!readyForDefault(details))return;
+      const title=titleOf(details);
+      if(DEFAULT_CLOSED.has(title)){
+        if(details.dataset.stainherDefaultClosedApplied==='1')return;
+        details.open=false;
+        details.dataset.stainherDefaultClosedApplied='1';
+        return;
+      }
+      if(!isTarget(details))return;
       if(!force&&details.dataset.stainherDefaultOpenApplied==='1')return;
       details.open=true;
       details.dataset.stainherDefaultOpenApplied='1';
