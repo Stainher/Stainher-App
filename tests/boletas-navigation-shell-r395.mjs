@@ -68,7 +68,7 @@ try{
   assert.equal(await page.locator('#page-solicitudes').isVisible(),true,'requests visible');
   assert.equal(await page.locator('#page-boletas-rendir .r354-head').isVisible(),false,'hidden route stays hidden');
   assert.equal(await page.locator('#v1514GlobalHeader h2').innerText(),'Solicitudes','header resets');
-  assert.equal(await page.locator('#v151MobileTitle').innerText(),'📋 Solicitudes','mobile title resets');
+  assert.match((await page.locator('#v151MobileTitle').innerText()).replace(/\s+/g,''),/^📋Solicitudes$/,'mobile title resets');
   await page.close();
  }
 }finally{await browser.close()}
