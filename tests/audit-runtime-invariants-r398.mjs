@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {chromium} from 'playwright';
+for(const file of ['app-r316.html','release-v1524-entry.html','release-v1524-hotfix1-entry.html']){
+ const html=readFileSync(file,'utf8');
+ assert.match(html,/new URL\('\.\/index\.html'/);
+ assert.match(html,/target.search=location.search/);
+ assert.match(html,/target.hash=location.hash/);
+ assert.doesNotMatch(html,/supabase.createClient|v1524r1\//);
+}
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:390,height:844}});
