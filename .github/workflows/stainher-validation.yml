@@ -28,6 +28,7 @@ jobs:
         run: |
           npm install --no-save playwright@1.56.1 @electric-sql/pglite
           npx playwright install --with-deps chromium
+          node tests/tv-widgets-r397.mjs
           node tests/leadership-visual-r220.mjs
           node tests/mobile-contrast-r226.mjs
           node tests/preventivo-mobile-visual-r276.mjs
