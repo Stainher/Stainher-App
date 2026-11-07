@@ -483,3 +483,19 @@ html[data-theme="dark"] #page-correctivo .r394-date-icon{background:#25506a!impo
  #page-correctivo .r394-date-field .r394-date-button{height:52px!important;min-height:52px!important}
  #stainher-corr-date-modal-r394{padding:max(10px,env(safe-area-inset-top,0px)) 12px max(10px,env(safe-area-inset-bottom,0px))!important}
 }
+
+/* Calendarios: superficie azul; las insignias de fecha no deben teñir el campo. */
+html body :is(#page-correctivo,#page-vehiculos,#page-preventivo) :is(.stainher-date-picker,.stainher-native-control-shell,.r394-date-button){
+ background:linear-gradient(135deg,#f3f9ff,#dcecf8)!important;
+ color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+ border-color:#b8ccdd!important;border-radius:12px!important;box-shadow:none!important;
+}
+html body :is(#page-correctivo,#page-vehiculos,#page-preventivo) :is(.stainher-date-picker,.stainher-native-control-shell) > .stainher-native-control-shell__value{
+ background:transparent!important;background-image:none!important;border:0!important;
+ box-shadow:none!important;border-radius:0!important;padding:0!important;
+ color:#17344d!important;-webkit-text-fill-color:#17344d!important;
+}
+html body :is(#page-correctivo,#page-vehiculos,#page-preventivo) :is(.stainher-date-picker,.stainher-native-control-shell) > .stainher-calendar-button{
+ background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;
+ color:#315d80!important;-webkit-text-fill-color:#315d80!important;
+}
