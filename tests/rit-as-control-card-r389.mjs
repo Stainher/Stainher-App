@@ -5,7 +5,7 @@ const source=readFileSync('assets/stainher-v1524-rit-control-card-r389.js','utf8
 const loader=readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 const rit=readFileSync('assets/stainher-v1524-rit-r331.js','utf8');
 new Function(source);new Function(loader);
-assert.match(loader,/await refreshRITCardR389\(\)/);
+assert.match(loader,/await refreshRITModalR390\(\)/);
 assert.match(loader,/stainher-v1524-rit-control-card-r389\.js/);
 assert.doesNotMatch(source,/new\s+MutationObserver|setInterval/);
 assert.match(rit,/record\.actividades\.length>=6/);
