@@ -28,17 +28,19 @@ async function authorize(){
 }
 async function readConfig(){const q=await sb.from(TABLE).select('valor,updated_at').eq('id',KEY).maybeSingle();if(q.error)throw new Error('No se pudo cargar la configuración TV: '+q.error.message);configStamp=q.data?.updated_at||null;config=normalize(q.data?.valor)}
 async function loadData(){
- const p=dateParts(),year=Number(p.year),month=Number(p.month),date=dayKey();
+ const p=dateParts(),year=Number(p.year),month=Number(p.month),date=`${p.year}-${p.month}-${p.day}`;
+ const edp=new Date(Date.UTC(year,month-1+(Number(p.day)>20?1:0),1));
+ const edpYear=edp.getUTCFullYear(),edpMonth=edp.getUTCMonth()+1;
  const queries=await Promise.all([
  sb.from('equipos').select('id,nombre,tipo,estado').order('nombre'),
- sb.from('programacion_preventiva').select('id,estado,equipo_id').eq('anio',year).eq('mes',month),
+ sb.from('programacion_preventiva').select('id,estado,equipo_id').eq('anio',edpYear).eq('mes',edpMonth),
  sb.from('perfiles').select('id,nombre,rol').eq('activo',true).order('nombre'),
  sb.from('turnos_malla_v1512').select('user_id,turno_base').eq('fecha',date).eq('estado_publicacion','publicado'),
  sb.from('liderazgo_cumplimiento').select('control_nombre,control_codigo,estado').eq('anio',year).eq('mes',month),
  sb.from('contrato_datos').select('empresa_contratista,numero_contrato,nombre_servicio').limit(1)
  ]);
  const errors=[];const take=(i,label)=>{try{return checked(queries[i],label)}catch(e){errors.push(e.message);return null}};
- return {date,month,year,updated:new Date(),errors,equipos:take(0,'Equipos'),prev:take(1,'Preventivo'),profiles:take(2,'Personal'),turns:take(3,'Turnos'),lead:take(4,'Liderazgo'),contract:take(5,'Contrato')?.[0]};
+ return {date,month:edpMonth,year:edpYear,updated:new Date(),errors,equipos:take(0,'Equipos'),prev:take(1,'Preventivo'),profiles:take(2,'Personal'),turns:take(3,'Turnos'),lead:take(4,'Liderazgo'),contract:take(5,'Contrato')?.[0]};
 }
 function bars(items){const max=Math.max(1,...items.map(i=>i.n));return `<div class="tv-bars">${items.map((i,k)=>`<div class="tv-bar"><span>${esc(i.label)}</span><div><i style="width:${Math.max(0,i.n)/max*100}%;background:${COLORS[k%COLORS.length]}"></i></div><b>${i.n}</b></div>`).join('')}</div>`}
 function donut(items,label){const total=items.reduce((s,i)=>s+i.n,0);if(!total)return '<p class="tv-empty">Sin registros para la fecha seleccionada.</p>';let angle=0;const stops=items.map((i,k)=>{const start=angle;angle+=i.n/total*100;return `${COLORS[k%COLORS.length]} ${start}% ${angle}%`});return `<div class="tv-donut-row"><div class="tv-donut" role="img" aria-label="${esc(items.map(i=>`${i.label}: ${i.n}`).join(', '))}" style="background:conic-gradient(${stops.join(',')})"><div><strong>${total}</strong><span>${esc(label)}</span></div></div><div class="tv-legend">${items.map((i,k)=>`<span><i style="background:${COLORS[k%COLORS.length]}"></i>${esc(i.label)} <b>${i.n}</b></span>`).join('')}</div></div>`}
