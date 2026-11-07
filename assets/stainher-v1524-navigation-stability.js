@@ -70,6 +70,7 @@
         // Los valores de formularios no son insignias de versión/fecha.
         if(node.closest('form,label,.stainher-date-picker,.stainher-native-control-shell,.r394-date-field,[data-contractual-selector]'))return;
         if(node.querySelector('input,select,textarea'))return;
+        if(node.children.length)return;
         if(node.children.length && node.matches('.page-header,header,.global-meta,.v1514-global-meta'))return;
         const value=String(node.textContent||'').trim();
         if(value.length>85)return;
