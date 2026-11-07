@@ -106,9 +106,9 @@
  function relocate(){
   const root=page(),overlay=root?.querySelector('#'+OVERLAY),slot=overlay?.querySelector('#'+SLOT);
   const rit=root?.querySelector('#rit-r331');
-  if(rit&&slot&&rit.parentElement!==slot){
+  if(rit&&slot){
    slot.querySelector('.r390-loading')?.remove();
-   slot.appendChild(rit); // moves the ORIGINAL node: the six-stage state remains intact
+   if(rit.parentElement!==slot)slot.appendChild(rit); // move, never clone
    rit.dataset.r390Modal='1';
   }
   return !!slot?.querySelector('#rit-r331');
