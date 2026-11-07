@@ -6,7 +6,7 @@ const src=readFileSync('assets/stainher-v1524-extintores-supervisor-r385.js','ut
 const loader=readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 test('R385: solo el selector seguro se carga y no observa todo el DOM',()=>{
  new Function(src);
- assert.match(loader,/refreshExtintoresSupervisorR385\(\);/);
+ assert.match(loader,/await refreshExtintoresSupervisorR386\(\);/);
  assert.match(loader,/stainher-v1524-extintores-supervisor-r385\.js/);
  assert.doesNotMatch(loader,/await refreshExtintoresSupervisorR383\(\)/);
  assert.doesNotMatch(src,/MutationObserver|setInterval/);
