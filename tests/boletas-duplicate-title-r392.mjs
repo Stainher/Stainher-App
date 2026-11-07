@@ -4,7 +4,7 @@ import {chromium} from 'playwright';
 const src=readFileSync('assets/stainher-v1524-boletas-rendir-r354.js','utf8');
 const loader=readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
 new Function(src);new Function(loader);
-assert.match(loader,/__STAINHER_HP_LOADER_VERSION__='R392'/);
+assert.ok(Number(loader.match(/__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)?.[1])>=392,'R392 se conserva en versiones posteriores');
 assert.match(src,/function markLegacySlugTitle/);
 assert.match(src,/data-r392-boletas-slug-title/);
 const browser=await chromium.launch({headless:true});
