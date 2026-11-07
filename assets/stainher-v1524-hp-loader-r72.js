@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R388')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R389')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R388';
+  window.__STAINHER_HP_LOADER_VERSION__='R389';
 
-  const BUILD='20261106-r388-leadership-records-delete';
+  const BUILD='20261106-r389-rit-card-inside-controls';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -69,6 +69,12 @@
     }
   }
 
+  async function refreshRITCardR389(){
+    try{
+      await load('stainher-rit-control-card-r389','stainher-v1524-rit-control-card-r389.js');
+      window.StainherRITCardR389?.install?.();
+    }catch(error){console.warn('[R389] RIT como ficha de Controles Stainher',error)}
+  }
   async function refreshLeadershipExecuteR377(){
     try{
       await load('stainher-leadership-execution-r377','stainher-v1524-leadership-execution-access.js');
@@ -559,6 +565,7 @@
     // R386: sustituir R385; solución compatible con select o input real del wizard.
     await refreshExtintoresSupervisorR386();
     await refreshLeadershipExecuteR377();
+    await refreshRITCardR389();
     await refreshVehicleFatigueR379();
     await refreshSystem();
     await refreshSignature();
