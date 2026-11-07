@@ -259,23 +259,36 @@
   function synchronizeBoletasHeader(page){
     const isBoletas=page==='boletas-rendir';
     const header=document.getElementById('v1514GlobalHeader');
-    document.documentElement.dataset.stainherBoletasHeader=(isBoletas&&!!header)?'1':'0';
+    const root=document.documentElement;
+    const status=(isBoletas&&!!header)?'1':'0';
+    if(root.dataset.stainherBoletasHeader!==status)root.dataset.stainherBoletasHeader=status;
+    // R396: ocultar acciones ajenas sin eliminarlas; restaurar al salir.
+    header?.querySelectorAll('.v1516-header-actions').forEach(node=>{
+      if(isBoletas){
+        if(!('r396OriginalHidden' in node.dataset))node.dataset.r396OriginalHidden=node.hidden?'1':'0';
+        if(!node.hidden)node.hidden=true;
+      }else if('r396OriginalHidden' in node.dataset){
+        const wasHidden=node.dataset.r396OriginalHidden==='1';
+        if(node.hidden!==wasHidden)node.hidden=wasHidden;
+        delete node.dataset.r396OriginalHidden;
+      }
+    });
     if(!isBoletas)return;
     const h2=header?.querySelector('h2');
     if(h2&&h2.textContent!=='Boletas a rendir')h2.textContent='Boletas a rendir';
     const p=header?.querySelector('p');
     const description='Rendición independiente de Administración del Contrato.';
     if(p&&p.textContent!==description)p.textContent=description;
-    header?.querySelectorAll('.v1516-header-actions').forEach(node=>node.remove());
     const title=document.getElementById('v151MobileTitle');
     if(title&&title.textContent!=='🧾 Boletas a rendir')title.textContent='🧾 Boletas a rendir';
-    closeDrawerForBoletas();
+    // R396: jamás cerrar el drawer desde sincronización de encabezados.
+    // El observador visual llama enforcePage también cuando se abre el menú.
   }
   function installBoletasHeaderStyle(){
     if(document.getElementById('stainher-boletas-route-r395-css'))return;
     const style=document.createElement('style');
     style.id='stainher-boletas-route-r395-css';
-    style.textContent='html[data-stainher-boletas-header="1"] #page-boletas-rendir .r354-head{display:none!important}';
+    style.textContent='html[data-stainher-boletas-header="1"] #page-boletas-rendir .r354-head,html[data-stainher-boletas-header="1"] #page-boletas-rendir .r354-head + .r354-muted{display:none!important}';
     document.head.appendChild(style);
   }
   function enforcePage(page){
@@ -299,6 +312,7 @@
     // R355: ruta propia de rendiciones. No pasarla por el ACL legado
     // que sólo reconoce módulos anteriores y muestra falso acceso denegado.
     if(page==='boletas-rendir'){
+      // Cerrar al ENTRAR, nunca durante posteriores refrescos del encabezado.
       closeDrawerForBoletas();
       window.StainherBoletasR354?.install?.();
       try{
