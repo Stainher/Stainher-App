@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R387')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R388')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R387';
+  window.__STAINHER_HP_LOADER_VERSION__='R388';
 
-  const BUILD='20261106-r387-leadership-indicators-history';
+  const BUILD='20261106-r388-leadership-records-delete';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -101,7 +101,7 @@
   }
   async function refreshLeadershipIndicatorsR387(){
     try{
-      await load('stainher-leadership-indicators-r387','stainher-v1524-leadership-indicators-r387.js');
+      await load('stainher-leadership-indicators-r388','stainher-v1524-leadership-indicators-r387.js');
       window.StainherLeadershipIndicatorsR387?.install?.();
     }catch(error){console.warn('[R387] Historial e indicadores de Liderazgo',error)}
   }
