@@ -246,6 +246,38 @@
       if(title==='Detalles'&&!content)details.remove();
     });
   }
+  /* R395: Boletas usa navegación independiente, pero debe compartir el
+   * cierre del menú lateral y encabezados de los demás módulos. Sin intervalos
+   * ni observadores nuevos: solo actuamos durante navegación/normalización.
+   */
+  function closeDrawerForBoletas(){
+    try{window.v151CloseDrawer?.()}catch(error){console.warn('[R395] cerrar menú',error)}
+    document.querySelector('.sidebar')?.classList.remove('v151-open');
+    document.getElementById('v151DrawerOverlay')?.classList.remove('v151-open');
+    document.body?.classList.remove('v151-drawer-open');
+  }
+  function synchronizeBoletasHeader(page){
+    const isBoletas=page==='boletas-rendir';
+    const header=document.getElementById('v1514GlobalHeader');
+    document.documentElement.dataset.stainherBoletasHeader=(isBoletas&&!!header)?'1':'0';
+    if(!isBoletas)return;
+    const h2=header?.querySelector('h2');
+    if(h2&&h2.textContent!=='Boletas a rendir')h2.textContent='Boletas a rendir';
+    const p=header?.querySelector('p');
+    const description='Rendición independiente de Administración del Contrato.';
+    if(p&&p.textContent!==description)p.textContent=description;
+    header?.querySelectorAll('.v1516-header-actions').forEach(node=>node.remove());
+    const title=document.getElementById('v151MobileTitle');
+    if(title&&title.textContent!=='🧾 Boletas a rendir')title.textContent='🧾 Boletas a rendir';
+    closeDrawerForBoletas();
+  }
+  function installBoletasHeaderStyle(){
+    if(document.getElementById('stainher-boletas-route-r395-css'))return;
+    const style=document.createElement('style');
+    style.id='stainher-boletas-route-r395-css';
+    style.textContent='html[data-stainher-boletas-header="1"] #page-boletas-rendir .r354-head{display:none!important}';
+    document.head.appendChild(style);
+  }
   function enforcePage(page){
     if(!page||page==='__more')return;
     activePage=page;
@@ -259,6 +291,7 @@
       button.classList.toggle('active',selected);button.setAttribute('aria-current',selected?'page':'false');
     });
     normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeModernDarkFormPanels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();
+    synchronizeBoletasHeader(page);
   }
   async function navigate(page){
     if(!page||page==='__more')return false;
@@ -266,9 +299,17 @@
     // R355: ruta propia de rendiciones. No pasarla por el ACL legado
     // que sólo reconoce módulos anteriores y muestra falso acceso denegado.
     if(page==='boletas-rendir'){
+      closeDrawerForBoletas();
       window.StainherBoletasR354?.install?.();
-      await window.StainherBoletasR354?.render?.();
-      if(token===sequence)enforcePage(page);
+      try{
+        await window.StainherBoletasR354?.render?.();
+      }finally{
+        if(token===sequence){
+          enforcePage(page);
+          requestAnimationFrame(()=>token===sequence&&enforcePage(page));
+          setTimeout(()=>token===sequence&&enforcePage(page),150);
+        }
+      }
       return true;
     }
     try{
@@ -395,7 +436,7 @@
     requestAnimationFrame(()=>{queued=false;normalizeVersion();normalizeEstandarizacionHeading();normalizeTopActionSurfaces();normalizeActionRows();normalizeCorrectivoSurfaces();normalizeRemainingSurfaces();normalizeTurnEventTables();normalizeTurnDayModalLabels();normalizeModernSurfaces();normalizeModernDarkFormPanels();normalizeMobileTitle();normalizeMenuOrder();normalizeHome();enforcePage(activePage)});
   }
   function boot(){
-    lockBrowserTitle();installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
+    installBoletasHeaderStyle();lockBrowserTitle();installNavigation();normalizeMenuOrder();activePage=document.querySelector('.nav button.active[data-page]')?.dataset.page||activePage;enforcePage(activePage);
     document.addEventListener('click',event=>{
       const button=event.target.closest?.('#v151MobileBottom button[data-v151-page],.nav button[data-page]');
       const page=button?.dataset.v151Page||button?.dataset.page;
