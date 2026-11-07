@@ -8,6 +8,7 @@ try{
   const page=await browser.newPage({viewport:{width:390,height:844}});
   await page.setContent(`<html data-theme="${theme}"><body><section class="page" id="page-preventivo"><label>Mes contractual<input type="month" id="v1523PrevEdpMonth" value="2026-11" onchange="window.selectedMonth=this.value"></label></section></body></html>`);
   await page.addScriptTag({content:code});
+  await page.addScriptTag({content:code});
   const month=page.getByRole('combobox',{name:'Mes contractual',exact:true});
   assert.equal(await month.isVisible(),true);
   assert.equal(await month.locator('option:checked').textContent(),'Noviembre 2026');
