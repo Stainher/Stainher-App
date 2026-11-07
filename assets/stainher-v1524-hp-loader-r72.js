@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R392')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R393')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R392';
+  window.__STAINHER_HP_LOADER_VERSION__='R393';
 
-  const BUILD='20261106-r392-boletas-title-duplicate';
+  const BUILD='20261107-r393-rit-orange-gradient';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
