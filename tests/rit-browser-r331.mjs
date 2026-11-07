@@ -3,6 +3,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {chromium} from "playwright";
 import {resolve} from "node:path";
+import {showRITFormInModal} from "./helpers/rit-modal-fixture.mjs";
 
 test("RIT: monta, selecciona asistentes, evalúa actividad y guarda borrador",async()=>{
  const browser=await chromium.launch({headless:true});
@@ -21,6 +22,7 @@ test("RIT: monta, selecciona asistentes, evalúa actividad y guarda borrador",as
    }};
   });
   await page.addScriptTag({path:resolve("assets/stainher-v1524-rit-r331.js")});
+  await showRITFormInModal(page);
   await page.locator('[data-act="next"]').click();
   assert.match(await page.locator("#rt-message").innerText(),/datos generales obligatorios/);
   assert.match(await page.locator(".rt-steps").innerText(),/Etapa 1/);
