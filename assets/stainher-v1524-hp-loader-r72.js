@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R393')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R394')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R393';
+  window.__STAINHER_HP_LOADER_VERSION__='R394';
 
-  const BUILD='20261107-r393-rit-orange-gradient';
+  const BUILD='20261107-r394-correctivo-calendar-mobile';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -488,6 +488,13 @@
       window.StainherObservacionesR370?.install?.();
     }catch(error){console.warn('[Correctivo observaciones R370]',error)}
   }
+  async function refreshCorrectivoCalendarR394(){
+    try{
+      await load('stainher-correctivo-calendar-r394','stainher-v1524-correctivo-calendar-r394.js');
+      window.StainherCorrectivoCalendarR394?.install?.();
+      window.StainherCorrectivoCalendarR394?.mount?.();
+    }catch(error){console.warn('[R394] Calendarios Correctivo',error)}
+  }
   async function refreshCorrectivoReplaceR364(){
     try{
       await load('stainher-correctivo-replace-r364','stainher-v1524-correctivo-replace-r364.js');
@@ -559,6 +566,7 @@
     await refreshHomeRemindersR361();
     await refreshTerrainSupervisorR376();
     await refreshCorrectivoReplaceR364();
+    await refreshCorrectivoCalendarR394();
     await refreshObservacionesR370();
     await refreshBudgets();
     await refreshContractForecast();
