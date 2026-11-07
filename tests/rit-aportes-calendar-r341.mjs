@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {test} from "node:test";
 import {chromium} from "playwright";
 import {resolve} from "node:path";
+import {showRITFormInModal} from "./helpers/rit-modal-fixture.mjs";
 test("RIT proposal dates: no native date controls, independent selections",async()=>{
  const browser=await chromium.launch({headless:true});
  try{
@@ -19,6 +20,7 @@ test("RIT proposal dates: no native date controls, independent selections",async
    }};
   });
   await page.addScriptTag({path:resolve("assets/stainher-v1524-rit-r331.js")});
+  await showRITFormInModal(page);
   await page.locator('[data-field="area"]').fill("Saladillo");
   await page.locator('[data-person="a"]').check();
   await page.locator('[data-act="next"]').click();
