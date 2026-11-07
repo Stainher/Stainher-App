@@ -10,10 +10,54 @@ const toast=(s,type='info')=>window.toast?.(s,type);
 let uid=null,profile=null,items=[],payments=[],busy=false;
 const manager=()=>uid===ISMAEL;
 const page=()=>document.getElementById('page-'+PAGE);
+/* R392: ocultar únicamente el título técnico duplicado "boletas-rendir".
+ * El encabezado interno "Boletas a rendir" es el título visible del módulo.
+ * Sin ocultar indicadores, pestañas, acciones, ni cambiar la navegación global.
+ */
+function markLegacySlugTitle(){
+ const contentRoot=page();
+ if(!contentRoot)return;
+ const slug=PAGE.toLowerCase();
+ const candidates=document.querySelectorAll(
+  'h1,h2,h3,h4,.page-title,.page-header-title,.section-title,[data-page-title],.v151-page-title,.v151-mobile-page-name'
+ );
+ let found=false;
+ for(const el of candidates){
+  if(contentRoot.contains(el))continue;
+  if(String(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()!==slug)continue;
+  el.dataset.r392BoletasSlugTitle='1';
+  found=true;
+ }
+ if(found)return;
+ // Some older mobile shells use a plain leaf span or div instead of a heading.
+ // Never mark a container with other information, such as the version/date badges.
+ for(const el of document.querySelectorAll('span,div')){
+  if(contentRoot.contains(el)||el.children.length)continue;
+  if(String(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()!==slug)continue;
+  if(el.closest('button,.nav,nav,[role="navigation"]'))continue;
+  const ancestor=el.closest('h1,h2,h3,h4,.page-title,[data-page-title]');
+  (ancestor||el).dataset.r392BoletasSlugTitle='1';
+ }
+}
+function scheduleSlugCleanup(){
+ [0,80,300].forEach(delay=>setTimeout(markLegacySlugTitle,delay));
+}
+function installSlugCleanup(){
+ if(document.documentElement.dataset.r392BoletasTitleInstalled==='1')return;
+ document.documentElement.dataset.r392BoletasTitleInstalled='1';
+ document.addEventListener('click',event=>{
+  if(event.target?.closest?.('[data-page="boletas-rendir"]'))scheduleSlugCleanup();
+ },true);
+ window.addEventListener('stainher:navigation',scheduleSlugCleanup);
+ window.addEventListener('stainher:modules-ready',scheduleSlugCleanup);
+ scheduleSlugCleanup();
+}
 function mount(){
  if(!document.getElementById('r354-css')){
   const s=document.createElement('style');s.id='r354-css';s.textContent=[
   '#page-boletas-rendir{padding:22px;box-sizing:border-box;max-width:100%;min-width:0}',
+  /* R392: ocultar solamente el rótulo técnico del encabezado duplicado. */
+  'html:has(#page-boletas-rendir:not(.hidden):not([hidden]):not([aria-hidden="true"])) [data-r392-boletas-slug-title="1"]{display:none!important}',
   '.nav button[data-page="boletas-rendir"]:not(.active){opacity:1!important;pointer-events:auto!important;cursor:pointer!important;color:inherit!important;filter:none!important}',
   '.nav button[data-page="boletas-rendir"].active{opacity:1!important;pointer-events:auto!important;cursor:pointer!important}',
   '#page-boletas-rendir .r354-head{font-size:26px;font-weight:750;margin:0;color:var(--text,#17334d)}',
@@ -206,12 +250,13 @@ async function render(){
   root.onchange=e=>{if(e.target.id==='r354-owner')documents();if(e.target.matches('[data-r354-check]'))syncTotal()};
   if(manager())documents();
  }catch(error){root.innerHTML='<h2 class="r354-head">Boletas a rendir</h2><p class="r354-muted">Error: '+esc(error.message)+'</p>'}
- finally{busy=false}
+ finally{busy=false;scheduleSlugCleanup()}
 }
 let navObserver=null,navQueued=false;
 function install(){
  if(!window.sb||!window.state?.session?.user)return;
  mount();
+ installSlugCleanup();
  if(navObserver)return;
  // Reponer sólo el enlace de menú cuando el menú legado es recreado
  // por cambios de permisos o de sesión. No reconstruir formularios.
