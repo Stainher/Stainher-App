@@ -10,7 +10,8 @@ try{
  const page=await browser.newPage({viewport:{width:1920,height:1080}});
  await page.clock.install({time:new Date('2026-11-22T15:00:00Z')});
  await page.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({body:'Prueba del reproductor'}));
- await page.setContent('<!doctype html><html><body><div id="appView"><aside class="sidebar"><nav class="nav"></nav></aside><p id="qa-status"></p></div></body></html>');
+ await page.route('https://fixture.invalid/**',route=>route.abort());
+ await page.setContent('<!doctype html><html><head><base href="https://fixture.invalid/"></head><body><div id="appView"><aside class="sidebar"><nav class="nav"></nav></aside><p id="qa-status"></p></div></body></html>');
  await page.addStyleTag({content:styles});
  await page.addScriptTag({content:fixture});
  await page.evaluate(()=>{
