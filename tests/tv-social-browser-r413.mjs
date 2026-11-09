@@ -111,7 +111,8 @@ try{
  assert.match(await manager.getByLabel('Pregunta',{exact:true}).inputValue(),/hexágono/);
  await manager.getByLabel('Duración').selectOption('60');
  await manager.getByRole('button',{name:'Iniciar juego automático'}).click();
- await tv.getByText(/palabra de cinco letras/).waitFor();
+ await manager.waitFor({state:'hidden'});
+ await tv.locator('[data-tv-social="desafio"]').getByText(/palabra de cinco letras/).waitFor();
  assert.equal(await tv.locator('[data-tv-social] img').count(),2);
  assert.equal(await tv.locator('.tv-social-answer').count(),0);
 
@@ -142,7 +143,7 @@ try{
  assert.match(await tv.locator('.tv-social-score').innerText(),/Ana QA.*1 punto/);
  now+=13000;
  await tv.clock.runFor(5000);
- await tv.getByText(/Cuántos lados tiene un hexágono/).waitFor();
+ await tv.locator('[data-tv-social="desafio"]').getByText(/Cuántos lados tiene un hexágono/).waitFor();
  await winner.getByRole('radio',{name:'B. Seis'}).waitFor({timeout:10000});
  assert.match(await tv.locator('.tv-social-score').innerText(),/Ana QA.*1 punto/);
 
