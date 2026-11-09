@@ -1,49 +1,58 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {chromium} from 'playwright';
+
 const src=fs.readFileSync('assets/stainher-v1524-home-reminders-r361.js','utf8');
-const loader=fs.readFileSync('assets/stainher-v1524-hp-loader-r72.js','utf8');
-new Function(src);new Function(loader);
-assert.match(loader,/refreshHomeRemindersR361/);
-assert.match(src,/recordatorios_alertas/);
-assert.match(src,/created_by:uid/);
-assert.match(src,/renderHomeAlertsV95/);
+const html=fs.readFileSync('index.html','utf8');
+const button=html.match(/<button[^>]+>\+ Nuevo recordatorio \/ alerta<\/button>/)?.[0];
+assert.ok(button);
+assert.match(html,/<script defer src="stainher-v1524-home-reminders-r361\.js\?build=/);
+
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:390,height:844}});
- await page.setContent('<html><head></head><body><section id="page-inicio"><button id="add">+ Nuevo recordatorio / alerta</button></section></body></html>');
- await page.evaluate(()=>{
+ await page.setContent('<section id="page-inicio">'+button+'</section>');
+ await page.addScriptTag({content:`
   window.__reminderWrites=[];
-  window.sb={
-   auth:{getUser:async()=>({data:{user:{id:'0f04d921-893a-4a1c-aaba-1e15236ce000'}}})},
-   from:(table)=>({
-    insert:(payload)=>({
-     select:()=>({
-      single:async()=>{
-       window.__reminderWrites.push({table,payload});
-       return {data:{id:'0c96f021-2941-4420-97b1-d9b2339e1e94'}};
-      }
-     })
-    })
-   })
-  };
+  window.preview=false;
+  window.failReminder=true;
+  const sb={rpc:async(name,payload)=>{
+   window.__reminderWrites.push({name,payload});
+   if(window.failReminder)return {error:{message:'Falla simulada'}};
+   return {data:'0c96f021-2941-4420-97b1-d9b2339e1e94'};
+  }};
   window.renderHomeAlertsV95=async()=>{window.__renderedReminders=true};
- });
+  window.v15MutationBlocked=()=>window.preview;
+  window.toast=message=>{window.lastMessage=message};
+  window.openReminderV95=()=>{throw new Error('Se llamó al formulario anterior')};
+ `});
  await page.addScriptTag({content:src});
- await page.click('#add');
- assert.equal(await page.locator('#r361-form').count(),1,'New reminder opens real form');
- await page.locator('[name="titulo"]').fill('Revisión de inspección');
- await page.locator('[name="fecha_evento"]').fill('2026-11-12');
- await page.locator('[name="descripcion"]').fill('Confirmar equipos');
- await page.locator('.r361-save').click();
- await page.waitForFunction(()=>window.__reminderWrites.length===1);
- const saved=await page.evaluate(()=>({writes:window.__reminderWrites,rendered:window.__renderedReminders,open:!!document.getElementById('r361-form')}));
- assert.equal(saved.writes[0].table,'recordatorios_alertas');
- assert.equal(saved.writes[0].payload.titulo,'Revisión de inspección');
- assert.equal(saved.writes[0].payload.fecha_evento,'2026-11-12');
- assert.equal(saved.writes[0].payload.visibilidad,'todos');
- assert.equal(saved.rendered,true);
- assert.equal(saved.open,false);
- await page.close();
+ const add=page.getByRole('button',{name:'+ Nuevo recordatorio / alerta'});
+ await add.click();
+ const form=page.locator('#r361-form');
+ await form.waitFor();
+ assert.equal(await page.evaluate(()=>window.sb),undefined,'El formulario funciona antes del puente de módulos');
+ await form.locator('[name="titulo"]').fill('Revisión de inspección');
+ await form.locator('[name="fecha_evento"]').fill('2026-11-12');
+ await form.locator('[name="descripcion"]').fill('Confirmar equipos');
+ await form.locator('.r361-save').click();
+ await form.getByRole('alert').filter({hasText:'Falla simulada'}).waitFor();
+ assert.equal(await form.locator('[name="titulo"]').inputValue(),'Revisión de inspección');
+ await page.evaluate(()=>{window.failReminder=false});
+ await form.locator('.r361-save').click();
+ await form.waitFor({state:'detached'});
+ await page.waitForFunction(()=>window.__renderedReminders);
+ const calls=await page.evaluate(()=>window.__reminderWrites);
+ assert.equal(calls.length,2);
+ assert.deepEqual(calls[1],{
+  name:'crear_recordatorio_v153',payload:{
+   p_titulo:'Revisión de inspección',p_descripcion:'Confirmar equipos',p_fecha_evento:'2026-11-12',
+   p_tipo:'recordatorio',p_prioridad:'normal',p_visibilidad:'todos',
+  },
+ });
+ await page.evaluate(()=>{window.preview=true});
+ await add.click();
+ assert.equal(await form.count(),0);
+ assert.match(await page.evaluate(()=>window.lastMessage),/Modo prueba/);
 }finally{await browser.close()}
-console.log('R361: botón abre modal, formulario guarda en la tabla existente y actualiza Inicio');
+console.log('Recordatorios: botón de Inicio, cliente disponible desde el arranque, reintento y recarga de alertas.');

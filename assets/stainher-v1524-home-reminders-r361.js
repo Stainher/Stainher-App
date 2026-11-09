@@ -2,11 +2,10 @@
 (()=>{
 'use strict';
 if(window.StainherReminderR361)return;
-const table='recordatorios_alertas';
-const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 const notify=(s,type)=>window.toast?.(s,type)||console.info('[Recordatorios]',s);
 let saving=false;
+const previewBlocked=()=>window.v15MutationBlocked?.();
 function style(){
  if(document.getElementById('stainher-reminder-r361-style'))return;
  const sheet=document.createElement('style');sheet.id='stainher-reminder-r361-style';
@@ -29,11 +28,13 @@ function style(){
  ].join('\n');document.head.appendChild(sheet);
 }
 function close(){
+ if(saving)return;
  const root=document.getElementById('stainher-reminder-r361');
  if(root)root.remove();document.removeEventListener('keydown',escapeKey,true);
 }
 function escapeKey(e){if(e.key==='Escape'){e.preventDefault();close()}}
 function open(){
+ if(previewBlocked()){notify('Modo prueba: las acciones de escritura están bloqueadas.','warn');return}
  style();if(document.getElementById('stainher-reminder-r361'))return;
  const overlay=document.createElement('div');overlay.id='stainher-reminder-r361';overlay.setAttribute('role','presentation');
  overlay.innerHTML='<div class="r361-dialog" role="dialog" aria-modal="true" aria-labelledby="r361-title">'+
@@ -60,43 +61,28 @@ async function save(e){
  const form=e.currentTarget,submit=form.querySelector('[type="submit"]'),err=form.querySelector('.r361-error');
  const fd=new FormData(form),title=String(fd.get('titulo')||'').trim(),date=String(fd.get('fecha_evento')||'');
  if(title.length<3||! /^\d{4}-\d{2}-\d{2}$/.test(date)){err.hidden=false;err.textContent='Ingrese un título y una fecha válidos.';return}
- const sb=window.sb;
- if(!sb?.auth?.getUser){err.hidden=false;err.textContent='La sesión no está disponible.';return}
+ const client=typeof sb==='undefined'?window.sb:sb;
+ if(previewBlocked()){err.hidden=false;err.textContent='Modo prueba: las acciones de escritura están bloqueadas.';return}
+ if(!client?.rpc){err.hidden=false;err.textContent='La sesión no está disponible.';return}
  saving=true;submit.disabled=true;err.hidden=true;
+ let id;
  try{
-  const auth=await sb.auth.getUser();if(auth.error)throw auth.error;
-  const uid=auth.data?.user?.id;if(!uid)throw Error('Debe iniciar sesión.');
-  const payload={
-   titulo:title,descripcion:String(fd.get('descripcion')||'').trim(),
-   fecha_evento:date,tipo:String(fd.get('tipo')),prioridad:String(fd.get('prioridad')),
-   visibilidad:String(fd.get('visibilidad')),activo:true,created_by:uid
-  };
-  const result=await sb.from(table).insert(payload).select('id').single();
-  if(result.error)throw result.error;
-  close();notify('Recordatorio / alerta creado correctamente.','success');
-  try{
-   if(typeof window.renderHomeAlertsV95==='function')await window.renderHomeAlertsV95();
-   else if(typeof window.renderInicio==='function')await window.renderInicio();
-   window.dispatchEvent(new CustomEvent('stainher:reminder-created-r361',{detail:{id:result.data.id}}));
-  }catch(error){console.warn('[R361] Guardado correctamente; visualización diferida',error)}
- }catch(error){err.hidden=false;err.textContent='No se pudo guardar: '+(error.message||'Error desconocido');}
- finally{saving=false;submit.disabled=false}
+  const {data,error}=await client.rpc('crear_recordatorio_v153',{
+   p_titulo:title,p_descripcion:String(fd.get('descripcion')||'').trim()||null,
+   p_fecha_evento:date,p_tipo:String(fd.get('tipo')),p_prioridad:String(fd.get('prioridad')),
+   p_visibilidad:String(fd.get('visibilidad'))
+  });
+  if(error)throw error;
+  id=data;
+ }catch(error){
+  err.hidden=false;err.textContent='No se pudo guardar: '+(error.message||'Error desconocido');return;
+ }finally{saving=false;submit.disabled=false}
+ close();notify('Recordatorio / alerta creado correctamente.','success');
+ try{
+  if(typeof window.renderHomeAlertsV95==='function')await window.renderHomeAlertsV95();
+  else if(typeof window.renderInicio==='function')await window.renderInicio();
+  window.dispatchEvent(new CustomEvent('stainher:reminder-created-r361',{detail:{id}}));
+ }catch(error){console.warn('[R361] Guardado correctamente; visualización diferida',error)}
 }
-function findButton(target){
- const btn=target?.closest?.('button,[role="button"],a');if(!btn)return null;
- if(!btn.closest('#page-inicio'))return null;
- const text=String(btn.textContent||'').replace(/\s+/g,' ').trim();
- return /nuevo recordatorio\s*\/\s*alerta/i.test(text)?btn:null;
-}
-function intercept(e){
- const btn=findButton(e.target);if(!btn)return;
- e.preventDefault();e.stopPropagation();e.stopImmediatePropagation?.();open();
-}
-function install(){
- style();
- // Captura anticipada para no depender del onclick heredado, que deja de actuar tras renderizar Inicio.
- document.addEventListener('click',intercept,true);
-}
-window.StainherReminderR361={install,open,close,save,findButton};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+window.StainherReminderR361=Object.freeze({open,close});
 })();

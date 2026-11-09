@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R404')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R405')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R404';
+  window.__STAINHER_HP_LOADER_VERSION__='R405';
 
-  const BUILD='20261109-r404-tv-reloj-analogico';
+  const BUILD='20261109-r405-actualizacion-recordatorios';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -525,12 +525,6 @@
       window.StainherTerrainSupervisorR376?.install?.();
     }catch(error){console.warn('[R376] Selector de supervisor',error)}
   }
-  async function refreshHomeRemindersR361(){
-    try{
-      await load('stainher-home-reminders-r361','stainher-v1524-home-reminders-r361.js');
-      window.StainherReminderR361?.install?.();
-    }catch(error){console.warn('[Inicio recordatorios R361]',error)}
-  }
   async function refreshUnifiedSummaryR360(){
     try{
       await load('stainher-unified-summary-r360','stainher-v1524-summary-design-r360.js');
@@ -565,7 +559,6 @@
     // al repintar los KPI y provocaban cambios de color visibles en móvil.
     await refreshStableKpiR365();
     await refreshRITMobileR366();
-    await refreshHomeRemindersR361();
     await refreshTerrainSupervisorR376();
     await refreshCorrectivoReplaceR364();
     await refreshCorrectivoCalendarR394();

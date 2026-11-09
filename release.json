@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R404",
-  "build": "20261109-r404-tv-reloj-analogico",
+  "revision": "R405",
+  "build": "20261109-r405-actualizacion-recordatorios",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {

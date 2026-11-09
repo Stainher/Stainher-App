@@ -29,14 +29,16 @@ test('Index refreshes stale module URLs and preloaded copies',()=>{
   assert.match(html,/link\.href=runtimeUrl\(module\.src\)/);
 });
 
-test('Update watcher checks the release before writing verified HTML',()=>{
+test('Update watcher verifies the release before navigating to it',()=>{
   assert.ok(watcher.includes('visibilitychange'));
   assert.ok(watcher.includes('pageshow'));
   assert.ok(watcher.includes("credentials:'same-origin'"));
   assert.ok(watcher.includes("cache:'no-store'"));
   assert.ok(watcher.includes('number(data.revision)>number(current)'));
   assert.ok(watcher.includes('number(live)<number(revision)'));
-  assert.ok(watcher.includes("document.write(html)"));
+  assert.ok(watcher.includes('location.replace(url.href)'));
+  assert.match(html,new RegExp('data-stainher-revision="'+release.revision+'"'));
+  assert.doesNotMatch(watcher,/document\.(open|write)\(/);
 });
 test('Inline current loader syntax parses',()=>{
   const pattern=/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g;
