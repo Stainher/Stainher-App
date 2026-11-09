@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R401",
-  "build": "20261109-r401-tv-video-fit",
+  "revision": "R402",
+  "build": "20261109-r402-correctivo-edicion",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {
