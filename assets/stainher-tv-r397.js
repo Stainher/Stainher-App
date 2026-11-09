@@ -23,7 +23,9 @@ const WEATHER_TYPES={
  sun:'Despejado',partly:'Parcialmente nublado',cloud:'Nublado',fog:'Niebla',
  rain:'Lluvia',sleet:'Aguanieve',snow:'Nieve',thunder:'Tormenta',unknown:'Sin detalle'
 };
-let weatherForecast=null,weatherRequest=null,weatherRetryAt=0;
+const WEATHER_LOCATIONS={andina:'Cordillera Andina · referencia a 3.500 m',santiago:'Santiago · sector centro'};
+const weatherState=Object.fromEntries(Object.keys(WEATHER_LOCATIONS).map(key=>[key,{forecast:null,request:null,retryAt:0}]));
+const weatherLocation=value=>Object.hasOwn(WEATHER_LOCATIONS,value)?value:'andina';
 const roleLabel=r=>({administrador:'Administración',tecnico:'Técnicos',supervisor:'Supervisión',prevencion:'Prevención',gerente:'Gerencia',recursos_humanos:'RR.HH.',planificador:'Planificación',confiabilidad:'Confiabilidad'}[r]||r||'Sin rol');
 const widget=(type,width=6,title=TYPES[type])=>({id:uid(),type,width,title,text:''});
 const clp=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'});
@@ -223,15 +225,15 @@ function weatherIcon(kind){
   (kind==='partly'?'<g transform="translate(-2 -3) scale(.82)">'+sun+'</g>':'')+cloud+(details[kind]||'');
  return `<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">${image}</svg>`;
 }
-function weatherContent(){
+function weatherContent(location){
  const now=Date.now(),{year,month,day}=dateParts();
  const today=`${year}-${month}-${day}`;
- const forecast=weatherForecast;
+ const {forecast,retryAt}=weatherState[location];
  const days=forecast&&now<=forecast.expiresAt+12*60*60*1000
   ?forecast.days.filter(d=>d.date>=today).slice(0,7):[];
- const heading='<p class="tv-weather-place">Cordillera Andina · referencia a 3.500 m</p>';
+ const heading=`<p class="tv-weather-place">${WEATHER_LOCATIONS[location]}</p>`;
  if(!days.length){
-  return heading+`<p class="tv-empty">${weatherRetryAt?'Pronóstico temporalmente no disponible.':'Cargando pronóstico…'}</p>`;
+  return heading+`<p class="tv-empty">${retryAt?'Pronóstico temporalmente no disponible.':'Cargando pronóstico…'}</p>`;
  }
  const cards=days.map(d=>{
   const kind=Object.hasOwn(WEATHER_TYPES,d.condition)?d.condition:'unknown';
@@ -247,28 +249,30 @@ function weatherContent(){
   <p class="tv-weather-source">${now>forecast.expiresAt?'Último pronóstico disponible · ':''}${esc(updated)} · °C ·
    Datos adaptados de <a href="https://api.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></p>`;
 }
-async function refreshWeather(){
+async function refreshWeather(location){
  const now=Date.now();
- if(!root?.querySelector('[data-tv-weather]')||weatherRequest||now<weatherRetryAt||now<weatherForecast?.expiresAt)return;
- weatherRequest=(async()=>{
+ const status=weatherState[location];
+ if(status.request||now<status.retryAt||now<status.forecast?.expiresAt)return;
+ status.request=(async()=>{
   try{
    const url=new URL('/functions/v1/tv-pronostico',window.STAINHER_CONFIG.SUPABASE_URL);
+   if(location!=='andina')url.searchParams.set('location',location);
    const response=await fetch(url,{signal:AbortSignal.timeout(10000)});
    if(!response.ok)throw new Error('Pronóstico no disponible');
    const forecast=await response.json();
-   if(!Number.isFinite(Date.parse(forecast.updatedAt))||!Number.isFinite(forecast.expiresAt)
+   if((forecast.location??'andina')!==location||!Number.isFinite(Date.parse(forecast.updatedAt))||!Number.isFinite(forecast.expiresAt)
       ||!Array.isArray(forecast.days)||!forecast.days.length
       ||!forecast.days.every(d=>/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&Number.isFinite(Date.parse(d.date))&&Number.isFinite(d.min)&&Number.isFinite(d.max))){
     throw new Error('Pronóstico inválido');
    }
-   weatherForecast=forecast;
-   weatherRetryAt=0;
+   status.forecast=forecast;
+   status.retryAt=0;
   }catch{
-   weatherRetryAt=Date.now()+5*60*1000;
+   status.retryAt=Date.now()+5*60*1000;
   }
  })();
- try{await weatherRequest}finally{weatherRequest=null}
- root?.querySelectorAll('[data-tv-weather]').forEach(node=>{node.innerHTML=weatherContent()});
+ try{await status.request}finally{status.request=null}
+ root?.querySelectorAll(`[data-tv-weather="${location}"]`).forEach(node=>{node.innerHTML=weatherContent(location)});
  requestAnimationFrame(fitPresentation);
 }
 function content(w){
@@ -288,7 +292,7 @@ function content(w){
  case 'aviso':return `<div class="tv-message">${esc(w.text||'Agrega un mensaje desde Editar pantallas.').replace(/\n/g,'<br>')}</div>`;
  case 'reloj':return clockContent();
  case 'calendario':return '<div data-tv-calendar></div>';
- case 'clima':return '<div data-tv-weather></div>';
+ case 'clima':return `<div data-tv-weather="${weatherLocation(w.text)}"></div>`;
  default:return '';
  }
 }
@@ -312,7 +316,10 @@ function render(){
  }
  root.querySelector('[data-tv-count]').textContent=`${screen+1} / ${config.screens.length}`;
  showStatus(data.errors.length?'Información parcial · '+data.errors.join(' · '):`Datos actualizados: ${new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(data.updated)}`,!!data.errors.length);
- tick();void refreshWeather();requestAnimationFrame(fitPresentation);
+ tick();
+ const locations=new Set([...grid.querySelectorAll('[data-tv-weather]')].map(node=>node.dataset.tvWeather));
+ for(const location of locations)void refreshWeather(location);
+ requestAnimationFrame(fitPresentation);
 }
 function fitPresentation(){if(!root)return;const grid=root.querySelector('[data-tv-grid]');grid.style.zoom='';if(!root.classList.contains('tv-presenting'))return;const footer=root.querySelector('.tv-footer');const available=root.clientHeight-grid.getBoundingClientRect().top-footer.offsetHeight-12;const ratio=Math.min(1,available/Math.max(1,grid.scrollHeight));grid.style.zoom=String(Math.max(.25,ratio))}
 function tick(){
@@ -356,7 +363,7 @@ function tick(){
  for(const node of weather){
   if(node.dataset.day===day)continue;
   node.dataset.day=day;
-  node.innerHTML=weatherContent();
+  node.innerHTML=weatherContent(node.dataset.tvWeather);
   dayChanged=true;
  }
  return dayChanged;
@@ -418,6 +425,9 @@ function chooseYoutube(button){
  box.querySelector('[data-tv-youtube-status]').textContent='Video seleccionado. Guarda las pantallas para mostrarlo.';
 }
 function widgetEditorField(widget){
+ if(widget.type==='clima')return `<label class="tv-wide">Ubicación<select data-tv-field="text">
+  ${Object.entries(WEATHER_LOCATIONS).map(([key,label])=>`<option value="${key}"${weatherLocation(widget.text)===key?' selected':''}>${label}</option>`).join('')}
+ </select></label>`;
  if(widget.type==='aviso')return `<label class="tv-wide">Mensaje<textarea data-tv-field="text" maxlength="1000" rows="3">${esc(widget.text)}</textarea></label>`;
  if(widget.type==='youtube')return `
   <div class="tv-wide tv-youtube-search" data-tv-youtube-search>
@@ -504,7 +514,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r406',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r407',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);

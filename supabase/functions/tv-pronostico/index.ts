@@ -1,5 +1,10 @@
-// Punto de referencia del Proyecto Traspaso Andina en el valle de Río Blanco (Codelco).
-const upstream = 'https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=-32.9833&lon=-70.2667&altitude=3500';
+const upstream = 'https://api.met.no/weatherapi/locationforecast/2.0/complete';
+const locations = new Map(Object.entries({
+  // Proyecto Traspaso Andina, valle de Río Blanco (Codelco).
+  andina: { lat: '-32.9833', lon: '-70.2667', altitude: '3500' },
+  // GeoNames 3871336, Santiago.
+  santiago: { lat: '-33.4569', lon: '-70.6482', altitude: '556' },
+}).map(([key, coordinates]) => [key, { coordinates, cached: null, lastModified: null, pending: null, retryAt: 0 }]));
 const origin = 'https://stainher.github.io';
 const minimumRefresh = 3 * 60 * 60 * 1000;
 const dayFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -9,10 +14,6 @@ function localDay(value) {
 }
 const localHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Santiago', hour: '2-digit', hourCycle: 'h23' });
 const rank = { unknown: -1, sun: 0, partly: 0, cloud: 0, fog: 1, rain: 2, sleet: 3, snow: 4, thunder: 5 };
-let cached = null;
-let lastModified = null;
-let pending = null;
-let retryAt = 0;
 
 function condition(code) {
   if (!code) return 'unknown';
@@ -56,24 +57,26 @@ function summarize(series, now) {
     .map(({ date, min, max, condition }) => ({ date, min: Math.round(min), max: Math.round(max), condition }));
 }
 
-async function refresh(now) {
+async function refresh(location, state, now) {
+  const url = new URL(upstream);
+  url.search = new URLSearchParams(state.coordinates).toString();
   const headers = { 'User-Agent': 'StainherApp/15.24 (https://github.com/Stainher/Stainher-App)' };
-  if (lastModified) headers['If-Modified-Since'] = lastModified;
-  const response = await fetch(upstream, { headers, signal: AbortSignal.timeout(8000) });
+  if (state.lastModified) headers['If-Modified-Since'] = state.lastModified;
+  const response = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
   const expiresAt = Math.max(now + minimumRefresh, Date.parse(response.headers.get('Expires') || '') || 0);
-  if (response.status === 304 && cached) return { ...cached, expiresAt };
+  if (response.status === 304 && state.cached) return { ...state.cached, expiresAt };
   if (response.status === 429) {
     const retry = response.headers.get('Retry-After');
     const retryDelay = Number(retry)*1000 || Date.parse(retry || '')-now;
-    if (Number.isFinite(retryDelay)) retryAt = now + retryDelay;
+    if (Number.isFinite(retryDelay)) state.retryAt = now + retryDelay;
   }
   if (!response.ok) throw new Error('MET Norway HTTP ' + response.status);
   const { properties } = await response.json();
   const days = summarize(properties.timeseries, now);
   const updatedAt = properties.meta?.updated_at;
   if (days.length < 7 || !Number.isFinite(Date.parse(updatedAt))) throw new Error('Pronóstico incompleto');
-  lastModified = response.headers.get('Last-Modified');
-  return { updatedAt, expiresAt, days };
+  state.lastModified = response.headers.get('Last-Modified');
+  return { location, updatedAt, expiresAt, days };
 }
 
 function json(status, body, maxAge = 0) {
@@ -85,17 +88,20 @@ function json(status, body, maxAge = 0) {
 
 Deno.serve(async request => {
   if (request.method !== 'GET') return json(405, { error: 'Método no permitido.' });
+  const location = new URL(request.url).searchParams.get('location') ?? 'andina';
+  const state = locations.get(location);
+  if (!state) return json(400, { error: 'Ubicación de pronóstico inválida.' });
   const now = Date.now();
   try {
-    if ((!cached || cached.expiresAt <= now) && now >= retryAt) {
-      pending ??= refresh(now).then(result => { cached = result; }).catch(error => {
-        retryAt = Math.max(retryAt, Date.now() + 15 * 60 * 1000);
+    if ((!state.cached || state.cached.expiresAt <= now) && now >= state.retryAt) {
+      state.pending ??= refresh(location, state, now).then(result => { state.cached = result; }).catch(error => {
+        state.retryAt = Math.max(state.retryAt, Date.now() + 15 * 60 * 1000);
         console.warn('[tv-pronostico]', error.message);
-      }).finally(() => { pending = null; });
-      await pending;
+      }).finally(() => { state.pending = null; });
+      await state.pending;
     }
-    if (!cached || cached.expiresAt <= now) return json(503, { error: 'Pronóstico temporalmente no disponible.' });
-    return json(200, cached, Math.max(1, Math.floor((cached.expiresAt - now) / 1000)));
+    if (!state.cached || state.cached.expiresAt <= now) return json(503, { error: 'Pronóstico temporalmente no disponible.' });
+    return json(200, state.cached, Math.max(1, Math.floor((state.cached.expiresAt - now) / 1000)));
   } catch {
     return json(503, { error: 'Pronóstico temporalmente no disponible.' });
   }

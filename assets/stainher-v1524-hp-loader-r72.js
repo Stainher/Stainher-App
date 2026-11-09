@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R406')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R407')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R406';
+  window.__STAINHER_HP_LOADER_VERSION__='R407';
 
-  const BUILD='20261109-r406-tv-pronostico';
+  const BUILD='20261109-r407-tv-santiago';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

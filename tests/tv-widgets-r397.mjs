@@ -9,14 +9,16 @@ try{
  const page=await browser.newPage({viewport:{width:1920,height:1080}});
  await page.clock.setFixedTime(new Date('2026-12-01T02:59:59Z'));
  await page.setContent('<!doctype html><html><head></head><body><div id="appView"><aside class="sidebar"><nav class="nav"></nav></aside><p id="qa-status"></p></div></body></html>');
- let weatherRequests=0;
- await page.route('https://pronostico-fixture.invalid/functions/v1/tv-pronostico',route=>{
-  weatherRequests++;
+ const weatherRequests={andina:0,santiago:0};
+ await page.route(/https:\/\/pronostico-fixture\.invalid\/functions\/v1\/tv-pronostico(?:\?.*)?$/,route=>{
+  const location=new URL(route.request().url()).searchParams.get('location')||'andina';
+  weatherRequests[location]++;
+  const delta=location==='santiago'?10:0;
   return route.fulfill({headers:{'Access-Control-Allow-Origin':'*'},json:{
-   updatedAt:'2026-11-30T22:00:00Z',expiresAt:Date.parse('2026-12-01T06:00:00Z'),
+   location,updatedAt:'2026-11-30T22:00:00Z',expiresAt:Date.parse('2026-12-01T06:00:00Z'),
    days:Array.from({length:8},(_,i)=>({
     date:new Date(Date.UTC(2026,10,30+i)).toISOString().slice(0,10),
-    min:i-2,max:i+5,condition:['sun','snow','rain','cloud','partly','sleet','thunder','fog'][i],
+    min:i-2+delta,max:i+5+delta,condition:['sun','snow','rain','cloud','partly','sleet','thunder','fog'][i],
    })),
   }});
  });
@@ -43,6 +45,8 @@ try{
  await page.locator('[data-tv-action="down"][data-index="0"]').click();
  await page.locator('[name="type"]').selectOption('calendario');await page.locator('[data-tv-action="add-widget"]').click();
  await page.locator('[name="type"]').selectOption('clima');await page.locator('[data-tv-action="add-widget"]').click();
+ await page.locator('[name="type"]').selectOption('clima');await page.locator('[data-tv-action="add-widget"]').click();
+ await page.getByLabel('Ubicación',{exact:false}).last().selectOption('santiago');
  await page.locator('[type="submit"]').click();await page.locator('[data-tv-editor]').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>tvQA.writes),1);assert.equal(await page.locator('.tv-message img').count(),0,'Custom messages must be escaped');
  assert.equal(await page.locator('[data-tv-tabs] button').count(),4);
@@ -51,12 +55,19 @@ try{
  const today=page.locator('.tv-calendar [aria-current="date"]');
  const weekday=page.locator('.tv-calendar th.tv-calendar-weekday');
  const hand=name=>clock.locator(`[data-clock-hand="${name}"]`);
- const forecast=page.locator('.tv-weather-day');
+ const andina=page.locator('[data-tv-weather="andina"]');
+ const santiago=page.locator('[data-tv-weather="santiago"]');
+ const forecast=andina.locator('.tv-weather-day');
+ const cityDays=santiago.locator('.tv-weather-day');
+ await cityDays.first().waitFor();
+ assert.equal(await cityDays.count(),7);
+ assert.match(await cityDays.first().innerText(),/Mín.*8°.*Máx.*15°/s);
+ assert.equal(await santiago.locator('.tv-weather-place').textContent(),'Santiago · sector centro');
  await forecast.first().waitFor();
  assert.equal(await forecast.count(),7);
  assert.equal(await forecast.locator('svg').count(),7);
  assert.match(await forecast.first().innerText(),/Hoy.*Despejado.*Mín.*-2°.*Máx.*5°/s);
- assert.equal(await page.locator('.tv-weather-source').getByRole('link',{name:'MET Norway'}).textContent(),'MET Norway');
+ assert.equal(await andina.locator('.tv-weather-source').getByRole('link',{name:'MET Norway'}).textContent(),'MET Norway');
  assert.equal(await clock.getAttribute('datetime'),'23:59:59');
  assert.equal(await clock.locator('svg text').count(),12);
  assert.equal(await hand('second').getAttribute('transform'),'rotate(354 100 100)');
@@ -91,7 +102,8 @@ try{
  await page.getByRole('button',{name:'Avisos',exact:true}).click();
  assert.equal(await today.getAttribute('datetime'),'2026-12-01','Saved calendar survives reopening');
  assert.equal(await forecast.count(),7,'El pronóstico guardado sigue visible');
- assert.equal(weatherRequests,1,'El pronóstico vigente se reutiliza al reabrir');
+ assert.equal(await cityDays.count(),7,'Santiago se conserva al reabrir');
+ assert.deepEqual(weatherRequests,{andina:1,santiago:1},'La caché es independiente para cada ubicación');
  await page.setViewportSize({width:390,height:844});assert.equal(await page.locator('#stainher-tv').evaluate(n=>n.scrollWidth<=n.clientWidth),true);
  await page.evaluate(()=>{state.profile.rol='tecnico';StainherTV.install()});assert.equal(await page.locator('#stainher-tv').count(),0,'Revoking admin closes TV');
  console.log('R397: admin-only entry, server authorization, live widgets, escaping, editing, shared persistence, conflict handling, rotation controls, mobile overflow and cleanup passed.');
