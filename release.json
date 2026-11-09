@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R402",
-  "build": "20261109-r402-correctivo-edicion",
+  "revision": "R403",
+  "build": "20261109-r403-tv-calendario-reloj",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {
