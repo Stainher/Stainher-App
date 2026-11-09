@@ -11,6 +11,9 @@ const documentFor=revision=>`<!doctype html><html data-stainher-revision="${revi
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage();
+ const requests=[];
+ page.on('request',request=>requests.push([request.isNavigationRequest(),request.url()]));
+ page.on('requestfailed',request=>requests.push([request.failure()?.errorText,request.url()]));
  let manifest='R405',available='R405';
  await page.route(site+'/**',route=>{
   const url=new URL(route.request().url());
@@ -38,11 +41,14 @@ try{
  await notice.getByText(/El servidor entrega R405 en lugar de R406/).waitFor();
  assert.equal(await page.evaluate(()=>window.previousDocument),true);
  available='R406';
- await Promise.all([
-  page.waitForURL(/index\.html\?verify=/),
-  notice.getByRole('button',{name:'Reintentar actualización'}).click(),
- ]);
- await page.getByRole('heading',{name:'R406'}).waitFor();
+ try{
+  await notice.getByRole('button',{name:'Reintentar actualización'}).click({noWaitAfter:true});
+  await page.getByRole('heading',{name:'R406'}).waitFor({timeout:10000});
+  assert.ok(new URL(page.url()).searchParams.has('verify'));
+ }catch(error){
+  const status=await page.locator('body').innerText().catch(()=>'-');
+  throw new Error(`Navegación a revisión verificada: ${page.url()} | ${status} | ${JSON.stringify(requests)}`,{cause:error});
+ }
  assert.equal(await page.evaluate(()=>window.previousDocument),undefined,'La nueva revisión inicia en un documento nuevo');
  assert.equal(await page.evaluate(()=>sessionStorage.getItem('test-session')),'persistente');
  await recheck();
