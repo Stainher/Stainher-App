@@ -48,3 +48,9 @@ dialog.tv-social-dialog::backdrop{background:#0c213bba}
 [data-social-review] article{background:white;border:1px solid #d2e0ef;border-radius:10px;padding:10px;overflow-wrap:anywhere}
 [data-social-review] p{margin:5px 0}
 @media(max-width:700px){.tv-social-manage{grid-template-columns:1fr}}
+
+.tv-social-score{margin-top:12px;padding:9px 12px;border-radius:8px;background:#eaf0fa;color:#1c395a}
+.tv-social-score ol{margin:5px 0 0;padding-left:1.5em}
+.tv-social-score li{padding:2px 0;overflow-wrap:anywhere}
+.tv-social-score li b{margin-left:10px;white-space:nowrap}
+.tv-social-score p{margin:4px 0 0}

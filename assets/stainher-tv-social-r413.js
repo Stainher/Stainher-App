@@ -22,17 +22,32 @@ async function request(query){
   if(result.error)throw result.error;
   return result.data;
 }
-async function round(){
-  const data=await request(client().rpc('tv_social_ronda'));
-  return {round:data?.ronda??null,serverTime:Date.parse(data?.ahora),received:performance.now()};
+async function round(tv=false){
+  const data=await request(client().rpc(tv?'tv_social_tv':'tv_social_ronda'));
+  return {round:data?.ronda??null,automatic:!!data?.automatico,score:data?.marcador??[],
+    serverTime:Date.parse(data?.ahora),received:performance.now()};
 }
 function timeLeft(snapshot){
-  if(!snapshot?.round)return 0;
+  if(!snapshot?.round?.cierre)return 0;
   return Date.parse(snapshot.round.cierre)-snapshot.serverTime-(performance.now()-snapshot.received);
 }
 function timeLabel(ms){
   const total=Math.max(0,Math.ceil(ms/1000));
   return `${Math.floor(total/60)}:${String(total%60).padStart(2,'0')}`;
+}
+function isOpen(snapshot){
+  return !!snapshot?.round&&!snapshot.round.correcta&&(snapshot.round.esperando||timeLeft(snapshot)>0);
+}
+function timerText(snapshot){
+  if(snapshot?.round?.esperando)return 'Esperando la primera respuesta';
+  if(snapshot?.round?.correcta)return 'Ronda finalizada';
+  const remaining=timeLeft(snapshot);
+  return remaining>0?timeLabel(remaining):'Mostrando solución…';
+}
+function scoreMarkup(score=[]){
+  return `<div class="tv-social-score"><strong>🏆 Marcador acumulado</strong>${score.length
+    ?`<ol>${score.map(entry=>`<li><span>${esc(entry.nombre)}</span><b>${esc(entry.puntos)} ${entry.puntos===1?'punto':'puntos'}</b></li>`).join('')}</ol>`
+    :'<p>Aún sin puntos.</p>'}</div>`;
 }
 function qr(type){
   const src=new URL(`tv-qr-${type}-r413.svg`,base).href;
@@ -43,11 +58,13 @@ function answerLabel(r){
 }
 function roundMarkup(snapshot){
   const r=snapshot?.round;
-  if(!r)return '<p class="tv-social-prompt">El próximo desafío aparecerá aquí cuando Administración lo inicie.</p>';
+  if(!r)return '<p class="tv-social-prompt">El próximo desafío aparecerá aquí cuando Administración lo inicie.</p>'+scoreMarkup(snapshot?.score);
   return `<div class="tv-social-top"><span class="tv-social-tag">${esc(CATEGORIES[r.categoria])}</span><strong data-social-countdown></strong></div>
     <p class="tv-social-prompt">${esc(r.pregunta)}</p>
     <ol class="tv-social-options">${r.opciones.map((option,index)=>`<li><b>${LETTERS[index]}</b>${esc(option)}</li>`).join('')}</ol>
-    ${r.correcta?`<div class="tv-social-answer"><b>Solución · ${esc(answerLabel(r))}</b>${r.explicacion?`<p>${esc(r.explicacion)}</p>`:''}</div>`:''}`;
+    ${r.correcta?`<div class="tv-social-answer"><b>${r.ganador?`🏆 Ganó ${esc(r.ganador)} · +1 punto`:'Ronda sin ganador'}</b>
+      <div>Solución · ${esc(answerLabel(r))}</div>${r.explicacion?`<p>${esc(r.explicacion)}</p>`:''}</div>`:''}
+    ${scoreMarkup(snapshot.score)}`;
 }
 function applauseMarkup(message){
   return message?`<div class="tv-social-applause"><span class="tv-social-tag">🙌 Reconocimiento del equipo</span><h3>Para ${esc(message.destinatario)}</h3><blockquote>${esc(message.mensaje)}</blockquote></div>`
@@ -62,17 +79,14 @@ function paint(root,state){
     const message=messages[Math.floor(performance.now()/9000)%messages.length];
     const error=state[type]?.error;
     const r=state.quiz?.round;
-    const key=error?'error':isQuiz?`${r?.id}:${r?.correcta}`:message?.id||'empty';
+    const key=error?'error':isQuiz?JSON.stringify([r?.id,r?.correcta,state.quiz?.score]):message?.id||'empty';
     if(node.dataset.content!==key){
       node.dataset.content=key;
       changed=true;
       node.innerHTML=`<div class="tv-social-main">${error?'<p class="tv-empty">No se pudo actualizar esta dinámica. Se reintentará.</p>':isQuiz?roundMarkup(state.quiz):applauseMarkup(message)}</div>${qr(type)}`;
     }
     const clock=node.querySelector('[data-social-countdown]');
-    if(clock){
-      const remaining=timeLeft(state.quiz);
-      clock.textContent=remaining>0?timeLabel(remaining):r?.correcta?'Resuelto':'Mostrando solución…';
-    }
+    if(clock)clock.textContent=timerText(state.quiz);
   }
   if(changed)state.onLayout?.();
 }
@@ -86,7 +100,7 @@ function tick(root,onLayout){
     const slot=state[type],now=performance.now();
     if(!root.querySelector(`[data-tv-social="${type}"]`)||slot.pending||now<(slot.retryAt||0))continue;
     slot.pending=true;
-    const job=type==='desafio'?round():request(client().from(APPLAUSE_TABLE).select(APPLAUSE_COLUMNS)
+    const job=type==='desafio'?round(true):request(client().from(APPLAUSE_TABLE).select(APPLAUSE_COLUMNS)
       .eq('estado','publicado').order('creado_at',{ascending:false}).limit(6));
     job.then(data=>{
       if(type==='desafio')state.quiz=data;
@@ -102,7 +116,8 @@ function tick(root,onLayout){
 function remainingForRotation(root){
   if(!root?.querySelector('[data-tv-social="desafio"]'))return 0;
   const snapshot=view.get(root)?.quiz;
-  return snapshot?.round?Math.max(0,timeLeft(snapshot)+14000):0;
+  if(snapshot?.automatic||snapshot?.round?.esperando)return 2500;
+  return snapshot?.round?Math.max(0,timeLeft(snapshot)+12000):0;
 }
 function dialog(container,title,body){
   const node=document.createElement('dialog');
@@ -117,7 +132,7 @@ function dialog(container,title,body){
   return node;
 }
 async function submit(form,action){
-  const button=form.querySelector('[type="submit"]'),status=form.querySelector('[role="status"]');
+  const button=form.querySelector('[type="submit"]'),status=form.querySelector('[data-social-submit-status]')||form.querySelector('[role="status"]');
   if(button.disabled)return;
   button.disabled=true;
   status.textContent='';
@@ -129,25 +144,64 @@ function manage(root,onStart){
   if(!admin()||root.querySelector('[data-tv-social-dialog]'))return;
   const node=dialog(root,'Gestionar dinámicas',`
     <div class="tv-social-manage">
-      <form data-social-start><h3>🧩 Iniciar desafío</h3>
+      <form data-social-start><h3>🧩 Desafío de sobremesa</h3>
+        <div class="tv-social-actions"><button type="button" data-social-auto disabled>Iniciar juego automático</button></div>
+        <p data-social-mode-status role="status">Consultando modo de juego…</p>
+        <label>Banco de preguntas<select name="banco" disabled><option value="">Elige una pregunta de prueba</option></select></label>
         <label>Categoría<select name="categoria">${Object.entries(CATEGORIES).map(([key,label])=>`<option value="${key}">${label}</option>`).join('')}</select></label>
         <label>Pregunta<textarea name="pregunta" required maxlength="180" rows="2"></textarea></label>
         ${LETTERS.map((letter,i)=>`<label>Alternativa ${letter}<input name="opcion${i+1}" required maxlength="70"></label>`).join('')}
         <div class="tv-social-fields"><label>Respuesta correcta<select name="correcta">${LETTERS.map((l,i)=>`<option value="${i+1}">${l}</option>`).join('')}</select></label>
         <label>Duración<select name="segundos"><option value="60">1 minuto</option><option value="90" selected>1 minuto y medio</option><option value="120">2 minutos</option></select></label></div>
         <label>Explicación al cierre <span>(opcional)</span><textarea name="explicacion" maxlength="250" rows="2"></textarea></label>
-        <div class="tv-social-actions"><button type="button" data-social-example>Cargar un ejemplo</button><button type="submit">Iniciar en la TV</button></div><p role="status"></p>
+        <div class="tv-social-actions"><button type="button" data-social-example>Cargar un ejemplo</button><button type="submit">Iniciar en la TV</button></div><p data-social-submit-status role="status"></p>
       </form>
       <section aria-label="Moderación de aplausos"><h3>🙌 Moderar aplausos</h3><p>Aprueba los mensajes que pueden aparecer en la TV o retira los que ya estén publicados.</p>
       <button type="button" data-social-refresh>Actualizar bandeja</button><p data-social-review-status role="status"></p><div data-social-review></div></section>
     </div>`);
   const form=node.querySelector('form');
-  form.querySelector('[data-social-example]').onclick=()=>{
-    form.elements.categoria.value='palabras';
-    form.elements.pregunta.value='¿Qué palabra de cinco letras se lee igual de izquierda a derecha que de derecha a izquierda?';
-    ['Radar','Reloj','Radio'].forEach((option,i)=>form.elements[`opcion${i+1}`].value=option);
-    form.elements.correcta.value='1';
-    form.elements.explicacion.value='RADAR es un palíndromo: se lee igual en ambos sentidos.';
+  const modeButton=form.querySelector('[data-social-auto]'),modeStatus=form.querySelector('[data-social-mode-status]');
+  const bankSelect=form.elements.banco;
+  let bank=[],automatic=false;
+  function loadQuestion(question){
+    form.elements.categoria.value=question.categoria;
+    form.elements.pregunta.value=question.pregunta;
+    question.opciones.forEach((option,i)=>form.elements[`opcion${i+1}`].value=option);
+    form.elements.correcta.value=String(question.correcta);
+    form.elements.explicacion.value=question.explicacion;
+  }
+  bankSelect.onchange=()=>{
+    const question=bank.find(entry=>String(entry.id)===bankSelect.value);
+    if(question)loadQuestion(question);
+  };
+  form.querySelector('[data-social-example]').onclick=()=>loadQuestion({
+    categoria:'palabras',pregunta:'¿Qué palabra de cinco letras se lee igual de izquierda a derecha que de derecha a izquierda?',
+    opciones:['Radar','Reloj','Radio'],correcta:1,explicacion:'RADAR es un palíndromo. Se lee igual en ambos sentidos.'
+  });
+  function refreshRound(){
+    const state=view.get(root);
+    if(state)state.desafio.retryAt=0;
+    node.close();
+    onStart();
+  }
+  round().then(snapshot=>{
+    automatic=snapshot.automatic;
+    modeButton.textContent=automatic?'Detener juego automático':'Iniciar juego automático';
+    modeButton.disabled=false;
+    modeStatus.textContent=automatic?'Juego automático en curso.':'El cronómetro empieza con la primera respuesta.';
+  }).catch(error=>{modeStatus.textContent=error.message||'No se pudo consultar el juego.'});
+  request(client().rpc('tv_social_banco')).then(data=>{
+    bank=data||[];
+    for(const question of bank)bankSelect.add(new Option(`${CATEGORIES[question.categoria]} · ${question.pregunta}`,question.id));
+    bankSelect.disabled=!bank.length;
+  }).catch(()=>{bankSelect.options[0].textContent='Banco temporalmente no disponible'});
+  modeButton.onclick=async()=>{
+    modeButton.disabled=true;
+    try{
+      await request(client().rpc('tv_social_modo',{activar:!automatic,duracion:Number(form.elements.segundos.value)}));
+      refreshRound();
+    }catch(error){modeStatus.textContent=error.message||'No se pudo cambiar el modo.'}
+    finally{modeButton.disabled=false}
   };
   form.onsubmit=event=>{
     event.preventDefault();
@@ -160,10 +214,7 @@ function manage(root,onStart){
         pregunta:question,categoria:fields.get('categoria'),opciones:options,correcta:Number(fields.get('correcta')),
         explicacion:String(fields.get('explicacion')).trim(),segundos:Number(fields.get('segundos'))
       }));
-      const state=view.get(root);
-      if(state)state.desafio.retryAt=0;
-      node.close();
-      onStart();
+      refreshRound();
     });
   };
   const list=node.querySelector('[data-social-review]'),status=node.querySelector('[data-social-review-status]');
@@ -219,12 +270,12 @@ function participantQuiz(node){
     finally{pending=false}
   }
   function paintQuiz(){
-    const r=snapshot?.round,remaining=timeLeft(snapshot);
-    const nextKey=`${r?.id}:${r?.correcta}:${answered}:${remaining>0}`;
+    const r=snapshot?.round,open=isOpen(snapshot);
+    const nextKey=JSON.stringify([r?.id,r?.correcta,answered,open,snapshot?.score]);
     if(key!==nextKey){
       key=nextKey;
       content.innerHTML=roundMarkup(snapshot);
-      if(r&&remaining>0&&!answered){
+      if(r&&open&&!answered){
         const options=content.querySelector('.tv-social-options');
         options.outerHTML=`<form data-social-answer><fieldset><legend>Elige una alternativa</legend>${r.opciones.map((option,i)=>`
           <label class="tv-social-choice"><input type="radio" name="opcion" value="${i+1}" required> ${LETTERS[i]}. ${esc(option)}</label>`).join('')}</fieldset>
@@ -233,13 +284,14 @@ function participantQuiz(node){
         form.onsubmit=event=>{
           event.preventDefault();
           void submit(form,async fields=>{
-            if(timeLeft(snapshot)<=0||snapshot.round.id!==r.id)throw new Error('El desafío terminó.');
+            if(!isOpen(snapshot)||snapshot.round.id!==r.id)throw new Error('El desafío terminó.');
             const option=Number(fields.get('opcion'));
             try{await request(client().from(ANSWERS_TABLE).insert({desafio_id:r.id,opcion:option}))}
             catch(error){if(error.code!=='23505')throw error}
             if(snapshot.round.id!==r.id)return;
             answered=option;
             paintQuiz();
+            void load();
           });
         };
       }else if(answered&&r){
@@ -250,7 +302,7 @@ function participantQuiz(node){
       }
     }
     const timer=content.querySelector('[data-social-countdown]');
-    if(timer)timer.textContent=remaining>0?timeLabel(remaining):r?.correcta?'Resuelto':'Mostrando solución…';
+    if(timer)timer.textContent=timerText(snapshot);
   }
   const clock=setInterval(()=>{if(snapshot)paintQuiz()},1000);
   const poll=setInterval(load,3500);

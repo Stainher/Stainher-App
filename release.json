@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R413",
-  "build": "20261109-r413-pausa-oficina",
+  "revision": "R414",
+  "build": "20261109-r414-juego-mural",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {
