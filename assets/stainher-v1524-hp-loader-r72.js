@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R402')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R403')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R402';
+  window.__STAINHER_HP_LOADER_VERSION__='R403';
 
-  const BUILD='20261109-r402-correctivo-edicion';
+  const BUILD='20261109-r403-tv-calendario-reloj';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

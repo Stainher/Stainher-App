@@ -3,15 +3,20 @@
 'use strict';
 if(window.StainherTV)return;
 const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12;
-const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Fecha y hora',
+const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj digital',calendario:'Calendario mensual',
  contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube'};
 const COLORS=['#087f8c','#176fc1','#ff7a2f','#7162cc','#729ec1','#50b2a7','#b28bcc','#aabfce'];
 let root=null,config=null,draft=null,data=null,screen=0,playing=false,rotation=null,refresh=null,clock=null,busy=false,configStamp=null,epoch=0,unsubscribe=null,priorFocus=null,inertNodes=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>globalThis.crypto?.randomUUID?.()||`tv-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const localAdmin=()=>typeof state!=='undefined'&&state.profile?.rol==='administrador'&&state.profile?.activo!==false&&!!state.session?.user;
-const dateParts=(date=new Date())=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
-const dayKey=()=>{const p=dateParts();return `${p.year}-${p.month}-${p.day}`};
+const TIME_ZONE='America/Santiago';
+const dateFormatter=new Intl.DateTimeFormat('en-CA',{timeZone:TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit'});
+const timeFormatter=new Intl.DateTimeFormat('es-CL',{timeZone:TIME_ZONE,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+const fullDateFormatter=new Intl.DateTimeFormat('es-CL',{timeZone:TIME_ZONE,dateStyle:'full'});
+const calendarMonthFormatter=new Intl.DateTimeFormat('es-CL',{timeZone:TIME_ZONE,month:'long',year:'numeric'});
+const parts=(formatter,date)=>Object.fromEntries(formatter.formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+const dateParts=(date=new Date())=>parts(dateFormatter,date);
 const roleLabel=r=>({administrador:'Administración',tecnico:'Técnicos',supervisor:'Supervisión',prevencion:'Prevención',gerente:'Gerencia',recursos_humanos:'RR.HH.',planificador:'Planificación',confiabilidad:'Confiabilidad'}[r]||r||'Sin rol');
 const widget=(type,width=6,title=TYPES[type])=>({id:uid(),type,width,title,text:''});
 const clp=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'});
@@ -77,6 +82,7 @@ async function loadExpenses(types,year,month,edpYear,edpMonth){
 function defaults(){return {version:1,seconds:25,screens:[{id:uid(),title:'Resumen del contrato',widgets:[widget('resumen',12),widget('equipos',6),widget('preventivo',6),widget('liderazgo',6),{...widget('aviso',6,'Información del contrato'),text:'Mantenimiento y Certificación para Ascensores y Montacargas · Contrato 4600029879'}]},{id:uid(),title:'Turnos · programación del día',widgets:[widget('turnos',4),widget('nomina',8),widget('reloj',12)]},{id:uid(),title:'Personal · nuestro equipo',widgets:[widget('personal',4),widget('directorio',8)]}]}}
 function widgetTitle(w){
  if(w.type==='youtube'&&w.title==='Video de YouTube en bucle')return TYPES.youtube;
+ if(w.type==='reloj'&&w.title==='Fecha y hora')return TYPES.reloj;
  return String(w.title||TYPES[w.type]).slice(0,80);
 }
 function normalize(value){
@@ -151,6 +157,24 @@ function videoContent(widget){
 }
 function prevCounts(){return [{label:'Ejecutados',n:data.prev.filter(r=>r.estado==='ejecutado').length},{label:'Programados',n:data.prev.filter(r=>r.estado==='programado').length},{label:'Pendientes',n:data.prev.filter(r=>!['ejecutado','programado'].includes(r.estado)).length}]}
 function turnCounts(){const counts=new Map();data.turns.forEach(t=>counts.set(t.turno_base,(counts.get(t.turno_base)||0)+1));return [...counts].sort(([a],[b])=>a.localeCompare(b)).map(([k,n])=>({label:k==='L'?'Libre':`Turno ${k}`,n}))}
+function calendarContent(now,{year,month,day}){
+ const first=new Date(Date.UTC(Number(year),Number(month)-1,1));
+ const offset=(first.getUTCDay()+6)%7;
+ const last=new Date(Date.UTC(Number(year),Number(month),0)).getUTCDate();
+ const weekdays=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+ const rows=Array.from({length:Math.ceil((offset+last)/7)},(_,week)=>{
+  const cells=weekdays.map((_,index)=>{
+   const number=week*7+index-offset+1;
+   if(number<1||number>last)return '<td></td>';
+   if(number===Number(day))return `<td><time class="tv-calendar-today" datetime="${year}-${month}-${day}" aria-current="date">${number}</time></td>`;
+   return `<td><span>${number}</span></td>`;
+  });
+  return '<tr>'+cells.join('')+'</tr>';
+ });
+ return `<table class="tv-calendar"><caption>${esc(calendarMonthFormatter.format(now))}</caption>
+  <thead><tr>${weekdays.map(name=>`<th scope="col" aria-label="${name}">${name.slice(0,3)}</th>`).join('')}</tr></thead>
+  <tbody>${rows.join('')}</tbody></table>`;
+}
 function content(w){
  switch(w.type){
  case 'contrato':return contractContent();
@@ -166,7 +190,8 @@ function content(w){
  case 'directorio':{if(!data.profiles)return missing();const groups=new Map();data.profiles.forEach(p=>{if(!groups.has(p.rol))groups.set(p.rol,[]);groups.get(p.rol).push(p)});return `<div class="tv-directory">${[...groups].map(([r,people])=>`<section><h3>${esc(roleLabel(r))}</h3>${people.map(p=>`<p>${esc(p.nombre)}</p>`).join('')}</section>`).join('')}</div>`}
  case 'liderazgo':{if(!data.lead)return missing();const counts=new Map();data.lead.filter(c=>c.estado==='realizado').forEach(c=>{const name=c.control_nombre||c.control_codigo||'Control';counts.set(name,(counts.get(name)||0)+1)});return counts.size?bars([...counts].map(([label,n])=>({label,n})))+'<p class="tv-note">Realizados durante el mes calendario actual.</p>':'<p class="tv-empty">Sin controles realizados este mes.</p>'}
  case 'aviso':return `<div class="tv-message">${esc(w.text||'Agrega un mensaje desde Editar pantallas.').replace(/\n/g,'<br>')}</div>`;
- case 'reloj':return '<div class="tv-clock" data-tv-clock></div>';
+ case 'reloj':return '<div class="tv-clock" data-tv-clock><span class="tv-clock-zone">Hora de Chile continental</span><time class="tv-clock-time"><strong></strong><span></span></time><div class="tv-clock-date"></div></div>';
+ case 'calendario':return '<div data-tv-calendar></div>';
  default:return '';
  }
 }
@@ -183,9 +208,9 @@ function render(){
   grid.innerHTML=s.widgets.length?s.widgets.map(w=>`<article class="tv-widget tv-type-${w.type}" style="grid-column:span ${w.width}"><h2>${esc(w.title)}</h2><div class="tv-widget-content">${content(w)}</div></article>`).join(''):'<p class="tv-empty">Pantalla sin widgets. Usa Editar pantallas para agregar contenido.</p>';
   grid.dataset.layout=layout;
  }else{
-  // Mantener montado el reproductor durante las actualizaciones de datos.
+  // Mantener los widgets independientes de los datos durante las actualizaciones.
   s.widgets.forEach((w,i)=>{
-   if(w.type!=='youtube')grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
+   if(!['youtube','reloj','calendario'].includes(w.type))grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
   });
  }
  root.querySelector('[data-tv-count]').textContent=`${screen+1} / ${config.screens.length}`;
@@ -193,7 +218,41 @@ function render(){
  tick();requestAnimationFrame(fitPresentation);
 }
 function fitPresentation(){if(!root)return;const grid=root.querySelector('[data-tv-grid]');grid.style.zoom='';if(!root.classList.contains('tv-presenting'))return;const footer=root.querySelector('.tv-footer');const available=root.clientHeight-grid.getBoundingClientRect().top-footer.offsetHeight-12;const ratio=Math.min(1,available/Math.max(1,grid.scrollHeight));grid.style.zoom=String(Math.max(.25,ratio))}
-function tick(){if(!root)return;root.querySelectorAll('[data-tv-clock]').forEach(n=>{n.textContent=new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'full',timeStyle:'short'}).format(new Date())})}
+function tick(){
+ if(!root)return false;
+ const clocks=root.querySelectorAll('[data-tv-clock]');
+ const calendars=root.querySelectorAll('[data-tv-calendar]');
+ if(!clocks.length&&!calendars.length)return false;
+ const now=new Date();
+ const date=dateParts(now);
+ const day=`${date.year}-${date.month}-${date.day}`;
+ let dayChanged=false;
+ if(clocks.length){
+  const {hour,minute,second}=parts(timeFormatter,now);
+  const time=`${hour}:${minute}`;
+  const timestamp=`${time}:${second}`;
+  for(const node of clocks){
+   const display=node.querySelector('time');
+   if(display.dateTime!==timestamp){
+    display.dateTime=timestamp;
+    display.querySelector('strong').textContent=time;
+    display.querySelector('span').textContent=second;
+   }
+   if(node.dataset.day!==day){
+    node.dataset.day=day;
+    node.querySelector('.tv-clock-date').textContent=fullDateFormatter.format(now);
+    dayChanged=true;
+   }
+  }
+ }
+ for(const node of calendars){
+  if(node.dataset.day===day)continue;
+  node.dataset.day=day;
+  node.innerHTML=calendarContent(now,date);
+  dayChanged=true;
+ }
+ return dayChanged;
+}
 function schedule(){clearTimeout(rotation);if(playing&&!draft&&root)rotation=setTimeout(()=>{screen=(screen+1)%config.screens.length;render();schedule()},config.seconds*1000);root?.querySelector('[data-tv-action="play"]')?.setAttribute('aria-pressed',String(playing));const b=root?.querySelector('[data-tv-action="play"]');if(b)b.textContent=playing?'Pausar rotación':'Iniciar rotación'}
 async function refreshData(){
  if(!root||busy||draft)return;
@@ -327,7 +386,7 @@ async function open(){
  try{await authorize();await readConfig();const next=await loadData();if(token!==epoch)return;data=next;priorFocus=document.activeElement;
  root=document.createElement('section');root.id='stainher-tv';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Diario mural Stainher App');
  root.innerHTML=`<header class="tv-header"><div class="tv-brand"><div class="tv-brandmark">S</div><div><strong>STAINHER APP</strong><small>Gestión Integral de Contratos</small></div></div><div class="tv-site">CODELCO · DIVISIÓN ANDINA</div><button type="button" data-tv-action="controls" class="tv-show-controls">Mostrar controles</button><button type="button" data-tv-action="close">Salir del modo TV</button></header><div class="tv-heading"><div><h1 data-tv-title></h1><p data-tv-contract></p></div><span data-tv-count></span></div><nav class="tv-toolbar" aria-label="Pantallas TV"><div data-tv-tabs></div><div class="tv-tools"><button type="button" data-tv-action="previous" aria-label="Pantalla anterior">←</button><button type="button" data-tv-action="next" aria-label="Pantalla siguiente">→</button><button type="button" data-tv-action="play">Iniciar rotación</button><button type="button" data-tv-action="refresh">Actualizar datos</button><button type="button" data-tv-action="fullscreen">Pantalla completa</button><button type="button" data-tv-action="edit" class="tv-primary">Editar pantallas</button></div></nav><main class="tv-grid" data-tv-grid></main><footer class="tv-footer"><span data-tv-status role="status"></span><span>Diario mural · America/Santiago</span></footer><section class="tv-editor" data-tv-editor hidden aria-label="Editor de pantallas"></section>`;
- document.body.append(root);inertNodes=[...document.body.children].filter(n=>n!==root&&n instanceof HTMLElement&&!['SCRIPT','STYLE','LINK'].includes(n.tagName)).map(n=>({node:n,inert:n.inert}));inertNodes.forEach(x=>x.node.inert=true);document.body.classList.add('stainher-tv-open');root.addEventListener('click',action);document.addEventListener('keydown',keydown);window.v151CloseDrawer?.();screen=0;playing=false;render();root.querySelector('[data-tv-action="close"]').focus();refresh=setTimeout(refreshData,60000);clock=setInterval(tick,10000);
+ document.body.append(root);inertNodes=[...document.body.children].filter(n=>n!==root&&n instanceof HTMLElement&&!['SCRIPT','STYLE','LINK'].includes(n.tagName)).map(n=>({node:n,inert:n.inert}));inertNodes.forEach(x=>x.node.inert=true);document.body.classList.add('stainher-tv-open');root.addEventListener('click',action);document.addEventListener('keydown',keydown);window.v151CloseDrawer?.();screen=0;playing=false;render();root.querySelector('[data-tv-action="close"]').focus();refresh=setTimeout(refreshData,60000);clock=setInterval(()=>{if(tick())fitPresentation()},1000);
  }catch(e){if(typeof toast==='function')toast(e.message,'error');else console.error(e.message)}finally{if(token===epoch)busy=false}
 }
 function close(){++epoch;clearTimeout(rotation);clearTimeout(refresh);clearInterval(clock);playing=false;busy=false;draft=null;if(root&&document.fullscreenElement===root)document.exitFullscreen().catch(()=>{});root?.remove();root=null;inertNodes.forEach(x=>{if(x.node.isConnected)x.node.inert=x.inert});inertNodes=[];document.body.classList.remove('stainher-tv-open');document.removeEventListener('keydown',keydown);priorFocus?.focus?.()}
@@ -337,7 +396,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r401',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r403',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);
