@@ -1,10 +1,13 @@
-/* R318: verified in-place HTML update, no automatic reload. Never auto-reload or modify auth/cache. */
+/* El usuario abre la versión verificada mediante una navegación del mismo origen. */
 (()=>{
 'use strict';
 if(window.__STAINHER_RELEASE_NOTICE_R311__)return;
 window.__STAINHER_RELEASE_NOTICE_R311__=true;
 const root=new URL('../release.json',document.currentScript?.src||document.baseURI);
 const number=v=>Number(String(v||'').match(/^R(\d+)$/)?.[1]||0);
+const current=document.documentElement.dataset.stainherRevision
+ ||window.STAINHER_RELEASE?.revision
+ ||document.title.match(/R\d{2,4}/)?.[0];
 let busy=false,dismissed='';
 function show(revision){
  if(dismissed===revision||document.getElementById('stainher-release-notice'))return;
@@ -20,17 +23,14 @@ function show(revision){
    try{
      const url=new URL('index.html',root);
      url.searchParams.set('verify',String(Date.now()));
-     const response=await fetch(url.href,{cache:'no-store',credentials:'same-origin',redirect:'follow'});
+     const response=await fetch(url.href,{cache:'no-store',credentials:'same-origin',redirect:'error'});
      if(!response.ok)throw new Error('HTTP '+response.status);
      const html=await response.text();
-     const live=(new DOMParser().parseFromString(html,'text/html').title.match(/R[0-9]{2,4}/)||[])[0]||'';
+     const next=new DOMParser().parseFromString(html,'text/html');
+     const live=next.documentElement.dataset.stainherRevision||next.title.match(/R\d{2,4}/)?.[0];
      if(number(live)<number(revision))throw new Error('El servidor entrega '+(live||'una versión desconocida')+' en lugar de '+revision);
      yes.textContent='Abriendo '+live+'…';
-     // Escritura del HTML verificado evita que la navegación reabra index.html cacheado.
-     // La sesión sigue en el mismo origen; no se eliminan tokens ni datos locales.
-     document.open('text/html','replace');
-     document.write(html);
-     document.close();
+     location.replace(url.href);
    }catch(error){
      yes.disabled=false;yes.textContent='Reintentar actualización';
      label.textContent='No se pudo cargar la versión nueva: '+String(error.message||error)+'. Se conserva tu pantalla y sesión.';
@@ -49,8 +49,7 @@ async function check(){
   const response=await fetch(url,{cache:'no-store',credentials:'same-origin'});
   if(!response.ok)return;
   const data=await response.json();
-  const current=document.title.match(/R\d{2,4}/)?.[0]||'R311';
-  if(number(data.revision)>number(current))show(data.revision);
+  if(number(current)&&number(data.revision)>number(current))show(data.revision);
  }catch(e){console.debug('[Stainher version check]',e)}
  finally{busy=false}
 }

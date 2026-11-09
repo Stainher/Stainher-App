@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-stainher-revision="R405">
 <head>
   <base href="./assets/">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -7,7 +7,8 @@
   <meta http-equiv="Expires" content="0">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <script defer src="stainher-v1524-release-refresh-r231.js?build=20261109-r404-tv-reloj-analogico"></script>
+  <script defer src="stainher-v1524-release-refresh-r231.js?build=20261109-r405-actualizacion-recordatorios"></script>
+  <script defer src="stainher-v1524-home-reminders-r361.js?build=20261109-r405-actualizacion-recordatorios"></script>
   <style id="stainher-r240-mobile-header-guarantee">
     @media(max-width:780px){
       html body #v151MobileHead .v151-mobile-title,html body #v151MobileHead .v151-mobile-title *,
@@ -19,7 +20,7 @@
     }
   </style>
   <!-- Stainher App V15.24 r19 · revisión modular 02-09-2026 · Desarrollado por Ismael Gálvez -->
-  <title>Stainher App V15.24 R404</title>
+  <title>Stainher App V15.24 R405</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -32,7 +33,7 @@
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = '20261109-r404-tv-reloj-analogico';
+window.STAINHER_BUILD = '20261109-r405-actualizacion-recordatorios';
 
 /* Stainher App V15.24 r19 · arranque visual estable en Inicio.
  * Este bloque se ejecuta desde config.js antes del primer renderizado visible.
@@ -323,8 +324,8 @@ window.STAINHER_BUILD = '20261109-r404-tv-reloj-analogico';
 }
 
 </style>
-<script defer src="stainher-tv-r397.js?build=20261109-r404-tv-reloj-analogico"></script>
-<script defer src="stainher-correctivo-edit-r402.js?build=20261109-r404-tv-reloj-analogico"></script>
+<script defer src="stainher-tv-r397.js?build=20261109-r405-actualizacion-recordatorios"></script>
+<script defer src="stainher-correctivo-edit-r402.js?build=20261109-r405-actualizacion-recordatorios"></script>
 </head>
 <body class="v156-login-mode">
 <div id="loginView" class="login-wrap">
@@ -1788,7 +1789,7 @@ renderInicio=function(){
   const head=document.querySelector('#page-inicio .home-impact-head');
   if(head&&!document.querySelector('#homeActionsV95')){
     const a=document.createElement('div');a.id='homeActionsV95';a.className='home-actions-v95';
-    a.innerHTML=`<button class="btn primary" onclick="openReminderV95()">+ Nuevo recordatorio / alerta</button>${isAdmin()?'<button class="btn" onclick="openReajusteV95()">+ Ingresar nuevo reajuste</button>':''}`;
+    a.innerHTML=`<button type="button" class="btn primary" onclick="(window.StainherReminderR361?.open || openReminderV95)()">+ Nuevo recordatorio / alerta</button>${isAdmin()?'<button class="btn" onclick="openReajusteV95()">+ Ingresar nuevo reajuste</button>':''}`;
     head.insertAdjacentElement('afterend',a);
   }
 };
@@ -4207,7 +4208,7 @@ function v153RenderAlerts(items){
     <div class="v153-home-head">
       <div><h3>Alertas y próximos hitos</h3><small>${filtered.length} evento(s)</small></div>
       <div class="v153-home-actions">
-        <button class="btn primary" onclick="openReminderV95()">+ Nuevo recordatorio / alerta</button>
+        <button type="button" class="btn primary" onclick="(window.StainherReminderR361?.open || openReminderV95)()">+ Nuevo recordatorio / alerta</button>
         ${filtered.length>5?`<button class="btn" onclick="v152ShowAll=!v152ShowAll;renderHomeAlertsV95()">${v152ShowAll?'Ver menos':'Ver todas'}</button>`:''}
       </div>
     </div>
@@ -4278,6 +4279,7 @@ renderHomeAlertsV95=async function(){
 renderHomeAlertsV77=renderHomeAlertsV95;
 
 openReminderV95=function(){
+  if(v15MutationBlocked())return toast('Modo prueba: las acciones de escritura están bloqueadas.','warn');
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal">
     <div class="row-between"><h3>Nuevo recordatorio / alerta</h3><button class="btn" onclick="closeModal()">Cerrar</button></div>
@@ -4297,7 +4299,8 @@ openReminderV95=function(){
     </form>
   </div></div>`;
   document.getElementById('reminderFormV153').onsubmit=async e=>{
-    e.preventDefault();const o=Object.fromEntries(new FormData(e.target));
+    e.preventDefault();if(v15MutationBlocked())return toast('Modo prueba: las acciones de escritura están bloqueadas.','warn');
+    const o=Object.fromEntries(new FormData(e.target));
     const {error}=await sb.rpc('crear_recordatorio_v153',{
       p_titulo:o.titulo,p_descripcion:o.descripcion||null,p_fecha_evento:o.fecha_evento,
       p_tipo:o.tipo,p_prioridad:o.prioridad,p_visibilidad:o.visibilidad
@@ -9866,7 +9869,7 @@ renderLiderazgoV95=async function(){if(['supervisor','tecnico'].includes(v11Role
 function v1517InCurrentYear(date,days){const y=new Date().getFullYear();if(date){const d=new Date(String(date).slice(0,10)+'T12:00:00');return !Number.isNaN(d.getTime())&&d.getFullYear()===y&&d>=new Date(new Date().setHours(0,0,0,0))}const end=new Date(y,11,31,23,59,59);return Number(days)>=0&&Number(days)<=Math.ceil((end-new Date())/86400000)}
 function v1517RenderAlerts(items){
   const box=document.getElementById('homeImpactAlerts');if(!box)return;const sorted=[...items].sort((a,b)=>(a.days??99999)-(b.days??99999)),filtered=sorted.filter(a=>v152AlertFilter==='todas'||a.kind===v152AlertFilter),filters=[['todas','Todas'],['dotacion','Dotación'],['cumpleanos','Cumpleaños'],['feriados','Feriados'],['recordatorios','Recordatorios']];
-  box.innerHTML=`<div class="v153-home-head"><div><h3>Alertas y próximos hitos</h3><small>${filtered.length} evento(s) pendientes en ${new Date().getFullYear()}</small></div><div class="v153-home-actions"><button class="btn primary" onclick="openReminderV95()">+ Nuevo recordatorio / alerta</button></div></div><div class="v152-alert-filterbar">${filters.map(([k,l])=>`<button class="btn ${v152AlertFilter===k?'primary':''}" onclick="v152SetAlertFilter('${k}')">${l}</button>`).join('')}</div><div class="v152-alert-list">${filtered.map(a=>{const lv=v152AlertLevel(a.days),canDelete=a.manual&&(isAdmin()||a.creator===state.session?.user?.id);return `<div class="v152-alert-card ${lv} ${a.manual?'manual':''}"><div class="v152-alert-icon">${a.icon||'🔔'}</div><div class="v152-alert-main"><b>${esc(a.title||'Alerta')}</b><small>${esc(a.txt||'')}</small>${a.manual?`<span class="v153-scope">${esc(v153ScopeLabel(a.scope))}</span>`:''}</div><div class="v152-alert-days"><b>${a.days==null?'—':Math.abs(a.days)}</b><small>${a.days<0?'días vencido':'días'}</small></div>${canDelete?`<button class="v152-alert-delete" title="Eliminar recordatorio" onclick="deleteReminderV95('${a.id}')">×</button>`:''}</div>`}).join('')||'<div class="empty">Sin alertas pendientes para el año vigente.</div>'}</div>`;
+  box.innerHTML=`<div class="v153-home-head"><div><h3>Alertas y próximos hitos</h3><small>${filtered.length} evento(s) pendientes en ${new Date().getFullYear()}</small></div><div class="v153-home-actions"><button type="button" class="btn primary" onclick="(window.StainherReminderR361?.open || openReminderV95)()">+ Nuevo recordatorio / alerta</button></div></div><div class="v152-alert-filterbar">${filters.map(([k,l])=>`<button class="btn ${v152AlertFilter===k?'primary':''}" onclick="v152SetAlertFilter('${k}')">${l}</button>`).join('')}</div><div class="v152-alert-list">${filtered.map(a=>{const lv=v152AlertLevel(a.days),canDelete=a.manual&&(isAdmin()||a.creator===state.session?.user?.id);return `<div class="v152-alert-card ${lv} ${a.manual?'manual':''}"><div class="v152-alert-icon">${a.icon||'🔔'}</div><div class="v152-alert-main"><b>${esc(a.title||'Alerta')}</b><small>${esc(a.txt||'')}</small>${a.manual?`<span class="v153-scope">${esc(v153ScopeLabel(a.scope))}</span>`:''}</div><div class="v152-alert-days"><b>${a.days==null?'—':Math.abs(a.days)}</b><small>${a.days<0?'días vencido':'días'}</small></div>${canDelete?`<button class="v152-alert-delete" title="Eliminar recordatorio" onclick="deleteReminderV95('${a.id}')">×</button>`:''}</div>`}).join('')||'<div class="empty">Sin alertas pendientes para el año vigente.</div>'}</div>`;
 }
 renderHomeAlertsV95=async function(){
   const box=document.getElementById('homeImpactAlerts');if(!box)return;const items=[],year=new Date().getFullYear(),today=new Date();today.setHours(0,0,0,0);
@@ -10047,7 +10050,7 @@ const _v1518LeadBase=renderLiderazgoV95;renderLiderazgoV95=async function(){if([
 function v1518Weekday(dateStr){if(!dateStr)return '';const d=new Date(String(dateStr).slice(0,10)+'T12:00:00');return d.toLocaleDateString('es-CL',{weekday:'long'}).toUpperCase()}
 function v1518AlertDate(a){return a.date||a.fecha||a.fecha_evento||a.fecha_vencimiento||a.rawDate||null}
 function v1518RenderAlerts(items){
- const box=document.getElementById('homeAlertsV95');if(!box)return;const now=new Date(),year=now.getFullYear(),month=now.getMonth(),filters=[['todas','Todas'],['dotacion','Dotación'],['cumpleanos','Cumpleaños'],['feriados','Feriados'],['recordatorios','Recordatorios']];let filtered=(items||[]).filter(a=>{const ds=v1518AlertDate(a),d=ds?new Date(String(ds).slice(0,10)+'T12:00:00'):null;if(a.days!=null&&a.days<0&&!a.manual)return false;if(!d)return true;if(d.getFullYear()!==year)return false;return v152AlertFilter==='todas'?d.getMonth()===month:true});if(v152AlertFilter!=='todas')filtered=filtered.filter(a=>a.type===v152AlertFilter||a.tipo===v152AlertFilter||a.category===v152AlertFilter||a.scope===v152AlertFilter||String(a.type||'').includes(v152AlertFilter));filtered.sort((a,b)=>(a.days??9999)-(b.days??9999));box.innerHTML=`<div class="v153-home-head"><div><h3>Alertas y próximos hitos</h3><small>${filtered.length} evento(s) ${v152AlertFilter==='todas'?'del mes en curso':'pendientes del año vigente'}</small></div><div class="v153-home-actions"><button class="btn primary" onclick="openReminderV95()">+ Nuevo recordatorio / alerta</button></div></div><div class="v152-alert-filterbar">${filters.map(([k,l])=>`<button class="btn ${v152AlertFilter===k?'primary':''}" onclick="v152SetAlertFilter('${k}')">${l}</button>`).join('')}</div><div class="v152-alert-list">${filtered.map(a=>{const lv=v152AlertLevel(a.days),canDelete=a.manual&&(isAdmin()||a.creator===state.session?.user?.id),wd=v1518Weekday(v1518AlertDate(a));return `<div class="v152-alert-card ${lv} ${a.manual?'manual':''}"><div class="v152-alert-icon">${a.icon||'🔔'}</div><div class="v152-alert-main"><b>${esc(a.title||'Alerta')}</b><small>${esc(a.txt||'')}</small>${a.manual?`<span class="v153-scope">${esc(v153ScopeLabel(a.scope))}</span>`:''}</div>${wd?`<div class="v1518-weekday">${esc(wd)}</div>`:''}<div class="v152-alert-days"><b>${a.days==null?'—':Math.abs(a.days)}</b><small>${a.days<0?'días vencido':'días'}</small></div>${canDelete?`<button class="v152-alert-delete" title="Eliminar recordatorio" onclick="deleteReminderV95('${a.id}')">×</button>`:''}</div>`}).join('')||'<div class="empty">Sin alertas para el filtro seleccionado.</div>'}</div>`}
+ const box=document.getElementById('homeAlertsV95');if(!box)return;const now=new Date(),year=now.getFullYear(),month=now.getMonth(),filters=[['todas','Todas'],['dotacion','Dotación'],['cumpleanos','Cumpleaños'],['feriados','Feriados'],['recordatorios','Recordatorios']];let filtered=(items||[]).filter(a=>{const ds=v1518AlertDate(a),d=ds?new Date(String(ds).slice(0,10)+'T12:00:00'):null;if(a.days!=null&&a.days<0&&!a.manual)return false;if(!d)return true;if(d.getFullYear()!==year)return false;return v152AlertFilter==='todas'?d.getMonth()===month:true});if(v152AlertFilter!=='todas')filtered=filtered.filter(a=>a.type===v152AlertFilter||a.tipo===v152AlertFilter||a.category===v152AlertFilter||a.scope===v152AlertFilter||String(a.type||'').includes(v152AlertFilter));filtered.sort((a,b)=>(a.days??9999)-(b.days??9999));box.innerHTML=`<div class="v153-home-head"><div><h3>Alertas y próximos hitos</h3><small>${filtered.length} evento(s) ${v152AlertFilter==='todas'?'del mes en curso':'pendientes del año vigente'}</small></div><div class="v153-home-actions"><button type="button" class="btn primary" onclick="(window.StainherReminderR361?.open || openReminderV95)()">+ Nuevo recordatorio / alerta</button></div></div><div class="v152-alert-filterbar">${filters.map(([k,l])=>`<button class="btn ${v152AlertFilter===k?'primary':''}" onclick="v152SetAlertFilter('${k}')">${l}</button>`).join('')}</div><div class="v152-alert-list">${filtered.map(a=>{const lv=v152AlertLevel(a.days),canDelete=a.manual&&(isAdmin()||a.creator===state.session?.user?.id),wd=v1518Weekday(v1518AlertDate(a));return `<div class="v152-alert-card ${lv} ${a.manual?'manual':''}"><div class="v152-alert-icon">${a.icon||'🔔'}</div><div class="v152-alert-main"><b>${esc(a.title||'Alerta')}</b><small>${esc(a.txt||'')}</small>${a.manual?`<span class="v153-scope">${esc(v153ScopeLabel(a.scope))}</span>`:''}</div>${wd?`<div class="v1518-weekday">${esc(wd)}</div>`:''}<div class="v152-alert-days"><b>${a.days==null?'—':Math.abs(a.days)}</b><small>${a.days<0?'días vencido':'días'}</small></div>${canDelete?`<button class="v152-alert-delete" title="Eliminar recordatorio" onclick="deleteReminderV95('${a.id}')">×</button>`:''}</div>`}).join('')||'<div class="empty">Sin alertas para el filtro seleccionado.</div>'}</div>`}
 const _v1518HomeAlertsBase=renderHomeAlertsV95;renderHomeAlertsV95=async function(){await _v1518HomeAlertsBase();if(state.v152AlertItems||state.homeAlerts){v1518RenderAlerts(state.v152AlertItems||state.homeAlerts)}};
 
 /* Correctivo: una sola acción Registrar incidente y botones en zona superior. */
@@ -10100,7 +10103,7 @@ renderHomeAlertsV95=async function(){
   try{const rows=await v1512AlertDotacionRows();(rows||[]).filter(p=>p.estado==='activo').forEach(p=>(V13_EXP_FIELDS||[]).forEach(([k,l])=>{if(k==='fecha_exp_licencia_interna'&&typeof v14HasInternalLicense==='function'&&!v14HasInternalLicense(p))return;if(p[k])items.push({kind:'dotacion',icon:'📄',title:l,txt:`${p.nombre} · ${v95TextDate(p[k])}`,date:p[k],days:v12Days(p[k])})}))}catch(e){console.warn('dotación',e)}
   try{const {data:r,error}=await sb.rpc('recordatorios_visibles_v153');if(error)throw error;(r||[]).forEach(x=>items.push({kind:'recordatorios',manual:true,id:x.id,creator:x.created_by,scope:x.visibilidad,icon:x.tipo==='alerta'?'⚠️':x.tipo==='hito'?'◆':'🔔',title:x.titulo||'Recordatorio',txt:`${x.descripcion||x.tipo||'Recordatorio'} · ${v95TextDate(x.fecha_evento)}`,date:x.fecha_evento,days:v95Days? v95Days(x.fecha_evento):v12Days(x.fecha_evento)}))}catch(e){console.warn('recordatorios',e)}
   const filters=[['todas','Todas'],['dotacion','Dotación'],['cumpleanos','Cumpleaños'],['feriados','Feriados'],['recordatorios','Recordatorios']];let filtered=items.filter(a=>{if(a.days!=null&&a.days<0&&!a.manual)return false;const d=a.date?new Date(String(a.date).slice(0,10)+'T12:00:00'):null;if(!d||Number.isNaN(d.getTime()))return true;if(d.getFullYear()!==year)return false;if(v152AlertFilter==='todas')return d.getMonth()===month;return a.kind===v152AlertFilter});filtered.sort((a,b)=>(a.days??99999)-(b.days??99999));
-  box.innerHTML=`<div class="v153-home-head"><div><h3>Alertas y próximos hitos</h3><small>${filtered.length} evento(s) ${v152AlertFilter==='todas'?'del mes en curso':'pendientes del año vigente'}</small></div><div class="v153-home-actions"><button class="btn primary" onclick="openReminderV95()">+ Nuevo recordatorio / alerta</button></div></div><div class="v152-alert-filterbar">${filters.map(([k,l])=>`<button class="btn ${v152AlertFilter===k?'primary':''}" onclick="v152SetAlertFilter('${k}')">${l}</button>`).join('')}</div><div class="v152-alert-list">${filtered.map(a=>{const lv=v152AlertLevel(a.days),canDelete=a.manual&&(isAdmin()||a.creator===state.session?.user?.id),wd=v1518Weekday(a.date);return `<div class="v152-alert-card ${lv} ${a.manual?'manual':''}"><div class="v152-alert-icon">${a.icon||'🔔'}</div><div class="v152-alert-main"><b>${esc(a.title||'Alerta')}</b><small>${esc(a.txt||'')}</small>${a.manual?`<span class="v153-scope">${esc(v153ScopeLabel(a.scope))}</span>`:''}</div>${wd?`<div class="v1518-weekday">${esc(wd)}</div>`:''}<div class="v152-alert-days"><b>${a.days==null?'—':Math.abs(a.days)}</b><small>${a.days<0?'días vencido':'días'}</small></div>${canDelete?`<button class="v152-alert-delete" title="Eliminar recordatorio" onclick="deleteReminderV95('${a.id}')">×</button>`:''}</div>`}).join('')||'<div class="empty">Sin alertas para el filtro seleccionado.</div>'}</div>`;
+  box.innerHTML=`<div class="v153-home-head"><div><h3>Alertas y próximos hitos</h3><small>${filtered.length} evento(s) ${v152AlertFilter==='todas'?'del mes en curso':'pendientes del año vigente'}</small></div><div class="v153-home-actions"><button type="button" class="btn primary" onclick="(window.StainherReminderR361?.open || openReminderV95)()">+ Nuevo recordatorio / alerta</button></div></div><div class="v152-alert-filterbar">${filters.map(([k,l])=>`<button class="btn ${v152AlertFilter===k?'primary':''}" onclick="v152SetAlertFilter('${k}')">${l}</button>`).join('')}</div><div class="v152-alert-list">${filtered.map(a=>{const lv=v152AlertLevel(a.days),canDelete=a.manual&&(isAdmin()||a.creator===state.session?.user?.id),wd=v1518Weekday(a.date);return `<div class="v152-alert-card ${lv} ${a.manual?'manual':''}"><div class="v152-alert-icon">${a.icon||'🔔'}</div><div class="v152-alert-main"><b>${esc(a.title||'Alerta')}</b><small>${esc(a.txt||'')}</small>${a.manual?`<span class="v153-scope">${esc(v153ScopeLabel(a.scope))}</span>`:''}</div>${wd?`<div class="v1518-weekday">${esc(wd)}</div>`:''}<div class="v152-alert-days"><b>${a.days==null?'—':Math.abs(a.days)}</b><small>${a.days<0?'días vencido':'días'}</small></div>${canDelete?`<button class="v152-alert-delete" title="Eliminar recordatorio" onclick="deleteReminderV95('${a.id}')">×</button>`:''}</div>`}).join('')||'<div class="empty">Sin alertas para el filtro seleccionado.</div>'}</div>`;
 };renderHomeAlertsV77=renderHomeAlertsV95;
 
 v1512RenderEdpHistory=function(){
@@ -11956,7 +11959,7 @@ openPlanModal=async function(){
   document.getElementById('planForm').onsubmit=async event=>{event.preventDefault();const values=Object.fromEntries(new FormData(event.target));if(!dateInEdp(values.fecha_programada,period.year,period.month))return toast(`La fecha debe quedar entre ${fmtDateCL(range.start)} y ${fmtDateCL(range.end)}.`,'error');values.anio=period.year;values.mes=period.month;const query=await sb.from('programacion_preventiva').insert(values);if(query.error)return toast(query.error.message,'error');state.v1519PlanCatalogLoaded=false;closeModal();await renderPreventivo();toast('Actividad programada dentro del período contractual','success')};
 };
 </script>
-<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'R404',build:'20261109-r404-tv-reloj-analogico'};const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');const build=file==='stainher-turnos-direct-r18.js'?'20260909-r29-calendar-groups':file==='stainher-turn-pdf-final-r18.js'?'20260924-r112-loader-consolidation':file==='stainher-vehicle-expiry-alerts-r18.js'?'20260924-r109-vehicle-control-gases' :'20261031-r310-boot-refresh';s.src=file+'?build='+build+'&app_build=R404';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.catch(error=>console.error('[r112]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
+<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'R405',build:'20261109-r405-actualizacion-recordatorios'};const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');const build=file==='stainher-turnos-direct-r18.js'?'20260909-r29-calendar-groups':file==='stainher-turn-pdf-final-r18.js'?'20260924-r112-loader-consolidation':file==='stainher-vehicle-expiry-alerts-r18.js'?'20260924-r109-vehicle-control-gases' :'20261031-r310-boot-refresh';s.src=file+'?build='+build+'&app_build=R405';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.catch(error=>console.error('[r112]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
 <script id="stainher-permission-selector-r304">
 /* R319: selector de novedades sin observadores ni bucles de renderizado. */
 (function(){
