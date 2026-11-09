@@ -3,7 +3,7 @@
 'use strict';
 if(window.StainherTV)return;
 const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12;
-const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj analógico',calendario:'Calendario mensual',
+const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj analógico',calendario:'Calendario mensual',clima:'Pronóstico semanal',
  contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube'};
 const COLORS=['#087f8c','#176fc1','#ff7a2f','#7162cc','#729ec1','#50b2a7','#b28bcc','#aabfce'];
 let root=null,config=null,draft=null,data=null,screen=0,playing=false,rotation=null,refresh=null,clock=null,busy=false,configStamp=null,epoch=0,unsubscribe=null,priorFocus=null,inertNodes=[];
@@ -17,6 +17,13 @@ const fullDateFormatter=new Intl.DateTimeFormat('es-CL',{timeZone:TIME_ZONE,date
 const calendarMonthFormatter=new Intl.DateTimeFormat('es-CL',{timeZone:TIME_ZONE,month:'long',year:'numeric'});
 const parts=(formatter,date)=>Object.fromEntries(formatter.formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
 const dateParts=(date=new Date())=>parts(dateFormatter,date);
+const weatherDateFormatter=new Intl.DateTimeFormat('es-CL',{timeZone:'UTC',weekday:'short',day:'numeric',month:'short'});
+const weatherUpdateFormatter=new Intl.DateTimeFormat('es-CL',{timeZone:TIME_ZONE,dateStyle:'short',timeStyle:'short'});
+const WEATHER_TYPES={
+ sun:'Despejado',partly:'Parcialmente nublado',cloud:'Nublado',fog:'Niebla',
+ rain:'Lluvia',sleet:'Aguanieve',snow:'Nieve',thunder:'Tormenta',unknown:'Sin detalle'
+};
+let weatherForecast=null,weatherRequest=null,weatherRetryAt=0;
 const roleLabel=r=>({administrador:'Administración',tecnico:'Técnicos',supervisor:'Supervisión',prevencion:'Prevención',gerente:'Gerencia',recursos_humanos:'RR.HH.',planificador:'Planificación',confiabilidad:'Confiabilidad'}[r]||r||'Sin rol');
 const widget=(type,width=6,title=TYPES[type])=>({id:uid(),type,width,title,text:''});
 const clp=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'});
@@ -202,6 +209,68 @@ function calendarContent(now,{year,month,day}){
   }).join('')}</tr></thead>
   <tbody>${rows.join('')}</tbody></table>`;
 }
+function weatherIcon(kind){
+ const sun='<g class="tv-weather-sun"><circle cx="16" cy="16" r="5"/><path d="M16 4v3m0 18v3M4 16h3m18 0h3M7.5 7.5l2 2m13 13 2 2m0-17-2 2m-13 13-2 2"/></g>';
+ const cloud='<path class="tv-weather-cloud" d="M8 21h15a5 5 0 0 0 .4-10 7 7 0 0 0-13.2 1.6A4.3 4.3 0 1 0 8 21Z"/>';
+ const details={
+  fog:'<path d="M6 25h20M9 29h14"/>',
+  rain:'<path d="m10 24-2 4m8-4-2 4m8-4-2 4"/>',
+  sleet:'<path d="m10 24-2 4m12-5v6m-3-3h6"/>',
+  snow:'<path d="M11 23v6m-3-3h6m7-3v6m-3-3h6"/>',
+  thunder:'<path class="tv-weather-sun" d="m17 21-4 5h5l-3 4"/>',
+ };
+ const image=kind==='sun'?sun:kind==='unknown'?'<path d="M10 16h12"/>':
+  (kind==='partly'?'<g transform="translate(-2 -3) scale(.82)">'+sun+'</g>':'')+cloud+(details[kind]||'');
+ return `<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">${image}</svg>`;
+}
+function weatherContent(){
+ const now=Date.now(),{year,month,day}=dateParts();
+ const today=`${year}-${month}-${day}`;
+ const forecast=weatherForecast;
+ const days=forecast&&now<=forecast.expiresAt+12*60*60*1000
+  ?forecast.days.filter(d=>d.date>=today).slice(0,7):[];
+ const heading='<p class="tv-weather-place">Cordillera Andina · referencia a 3.500 m</p>';
+ if(!days.length){
+  return heading+`<p class="tv-empty">${weatherRetryAt?'Pronóstico temporalmente no disponible.':'Cargando pronóstico…'}</p>`;
+ }
+ const cards=days.map(d=>{
+  const kind=Object.hasOwn(WEATHER_TYPES,d.condition)?d.condition:'unknown';
+  const label=weatherDateFormatter.format(new Date(d.date+'T12:00:00Z'));
+  return `<li class="tv-weather-day${d.date===today?' tv-weather-today':''}">
+   <time datetime="${esc(d.date)}"${d.date===today?' aria-current="date"':''}>${d.date===today?'Hoy · ':''}${esc(label)}</time>
+   ${weatherIcon(kind)}<span class="tv-weather-condition">${WEATHER_TYPES[kind]}</span>
+   <div class="tv-weather-temperatures"><span><small>Mín.</small> ${d.min}°</span><strong><small>Máx.</small> ${d.max}°</strong></div>
+  </li>`;
+ });
+ const updated=weatherUpdateFormatter.format(new Date(forecast.updatedAt));
+ return heading+`<ul class="tv-weather-grid">${cards.join('')}</ul>
+  <p class="tv-weather-source">${now>forecast.expiresAt?'Último pronóstico disponible · ':''}${esc(updated)} · °C ·
+   Datos adaptados de <a href="https://api.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a></p>`;
+}
+async function refreshWeather(){
+ const now=Date.now();
+ if(!root?.querySelector('[data-tv-weather]')||weatherRequest||now<weatherRetryAt||now<weatherForecast?.expiresAt)return;
+ weatherRequest=(async()=>{
+  try{
+   const url=new URL('/functions/v1/tv-pronostico',window.STAINHER_CONFIG.SUPABASE_URL);
+   const response=await fetch(url,{signal:AbortSignal.timeout(10000)});
+   if(!response.ok)throw new Error('Pronóstico no disponible');
+   const forecast=await response.json();
+   if(!Number.isFinite(Date.parse(forecast.updatedAt))||!Number.isFinite(forecast.expiresAt)
+      ||!Array.isArray(forecast.days)||!forecast.days.length
+      ||!forecast.days.every(d=>/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&Number.isFinite(Date.parse(d.date))&&Number.isFinite(d.min)&&Number.isFinite(d.max))){
+    throw new Error('Pronóstico inválido');
+   }
+   weatherForecast=forecast;
+   weatherRetryAt=0;
+  }catch{
+   weatherRetryAt=Date.now()+5*60*1000;
+  }
+ })();
+ try{await weatherRequest}finally{weatherRequest=null}
+ root?.querySelectorAll('[data-tv-weather]').forEach(node=>{node.innerHTML=weatherContent()});
+ requestAnimationFrame(fitPresentation);
+}
 function content(w){
  switch(w.type){
  case 'contrato':return contractContent();
@@ -219,6 +288,7 @@ function content(w){
  case 'aviso':return `<div class="tv-message">${esc(w.text||'Agrega un mensaje desde Editar pantallas.').replace(/\n/g,'<br>')}</div>`;
  case 'reloj':return clockContent();
  case 'calendario':return '<div data-tv-calendar></div>';
+ case 'clima':return '<div data-tv-weather></div>';
  default:return '';
  }
 }
@@ -242,14 +312,15 @@ function render(){
  }
  root.querySelector('[data-tv-count]').textContent=`${screen+1} / ${config.screens.length}`;
  showStatus(data.errors.length?'Información parcial · '+data.errors.join(' · '):`Datos actualizados: ${new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(data.updated)}`,!!data.errors.length);
- tick();requestAnimationFrame(fitPresentation);
+ tick();void refreshWeather();requestAnimationFrame(fitPresentation);
 }
 function fitPresentation(){if(!root)return;const grid=root.querySelector('[data-tv-grid]');grid.style.zoom='';if(!root.classList.contains('tv-presenting'))return;const footer=root.querySelector('.tv-footer');const available=root.clientHeight-grid.getBoundingClientRect().top-footer.offsetHeight-12;const ratio=Math.min(1,available/Math.max(1,grid.scrollHeight));grid.style.zoom=String(Math.max(.25,ratio))}
 function tick(){
  if(!root)return false;
  const clocks=root.querySelectorAll('[data-tv-clock]');
  const calendars=root.querySelectorAll('[data-tv-calendar]');
- if(!clocks.length&&!calendars.length)return false;
+ const weather=root.querySelectorAll('[data-tv-weather]');
+ if(!clocks.length&&!calendars.length&&!weather.length)return false;
  const now=new Date();
  const date=dateParts(now);
  const day=`${date.year}-${date.month}-${date.day}`;
@@ -280,6 +351,12 @@ function tick(){
   if(node.dataset.day===day)continue;
   node.dataset.day=day;
   node.innerHTML=calendarContent(now,date);
+  dayChanged=true;
+ }
+ for(const node of weather){
+  if(node.dataset.day===day)continue;
+  node.dataset.day=day;
+  node.innerHTML=weatherContent();
   dayChanged=true;
  }
  return dayChanged;
@@ -404,7 +481,7 @@ async function action(e){
  if(a==='screen-down'&&screen<draft.screens.length-1){[draft.screens[screen+1],draft.screens[screen]]=[draft.screens[screen],draft.screens[screen+1]];screen++}
  if(a==='add-widget'&&s.widgets.length<MAX_WIDGETS){
   const type=root.querySelector('[name="type"]').value;
-  s.widgets.push(widget(type,type==='youtube'?12:6));
+  s.widgets.push(widget(type,['youtube','clima'].includes(type)?12:6));
  }
  if(a==='remove')s.widgets.splice(i,1);
  if(a==='up'&&i>0)[s.widgets[i-1],s.widgets[i]]=[s.widgets[i],s.widgets[i-1]];
@@ -427,7 +504,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r404',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r406',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);

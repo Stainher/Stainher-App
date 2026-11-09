@@ -9,7 +9,20 @@ try{
  const page=await browser.newPage({viewport:{width:1920,height:1080}});
  await page.clock.setFixedTime(new Date('2026-12-01T02:59:59Z'));
  await page.setContent('<!doctype html><html><head></head><body><div id="appView"><aside class="sidebar"><nav class="nav"></nav></aside><p id="qa-status"></p></div></body></html>');
- await page.addStyleTag({content:css});await page.addScriptTag({content:fixture});await page.addScriptTag({content:js});
+ let weatherRequests=0;
+ await page.route('https://pronostico-fixture.invalid/functions/v1/tv-pronostico',route=>{
+  weatherRequests++;
+  return route.fulfill({headers:{'Access-Control-Allow-Origin':'*'},json:{
+   updatedAt:'2026-11-30T22:00:00Z',expiresAt:Date.parse('2026-12-01T06:00:00Z'),
+   days:Array.from({length:8},(_,i)=>({
+    date:new Date(Date.UTC(2026,10,30+i)).toISOString().slice(0,10),
+    min:i-2,max:i+5,condition:['sun','snow','rain','cloud','partly','sleet','thunder','fog'][i],
+   })),
+  }});
+ });
+ await page.addStyleTag({content:css});await page.addScriptTag({content:fixture});
+ await page.evaluate(()=>{window.STAINHER_CONFIG={SUPABASE_URL:'https://pronostico-fixture.invalid'}});
+ await page.addScriptTag({content:js});
  await page.evaluate(()=>{state.profile.rol='tecnico';StainherTV.install()});
  assert.equal(await page.locator('#stainher-tv-open').count(),0);
  await page.evaluate(()=>StainherTV.open());assert.equal(await page.locator('#stainher-tv').count(),0);
@@ -29,6 +42,7 @@ try{
  await page.locator('[data-tv-field="width"]').first().selectOption('12');
  await page.locator('[data-tv-action="down"][data-index="0"]').click();
  await page.locator('[name="type"]').selectOption('calendario');await page.locator('[data-tv-action="add-widget"]').click();
+ await page.locator('[name="type"]').selectOption('clima');await page.locator('[data-tv-action="add-widget"]').click();
  await page.locator('[type="submit"]').click();await page.locator('[data-tv-editor]').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>tvQA.writes),1);assert.equal(await page.locator('.tv-message img').count(),0,'Custom messages must be escaped');
  assert.equal(await page.locator('[data-tv-tabs] button').count(),4);
@@ -37,6 +51,12 @@ try{
  const today=page.locator('.tv-calendar [aria-current="date"]');
  const weekday=page.locator('.tv-calendar th.tv-calendar-weekday');
  const hand=name=>clock.locator(`[data-clock-hand="${name}"]`);
+ const forecast=page.locator('.tv-weather-day');
+ await forecast.first().waitFor();
+ assert.equal(await forecast.count(),7);
+ assert.equal(await forecast.locator('svg').count(),7);
+ assert.match(await forecast.first().innerText(),/Hoy.*Despejado.*Mín.*-2°.*Máx.*5°/s);
+ assert.equal(await page.locator('.tv-weather-source a').textContent(),'MET Norway');
  assert.equal(await clock.getAttribute('datetime'),'23:59:59');
  assert.equal(await clock.locator('svg text').count(),12);
  assert.equal(await hand('second').getAttribute('transform'),'rotate(354 100 100)');
@@ -51,6 +71,8 @@ try{
  await page.locator('.tv-calendar [datetime="2026-12-01"]').waitFor();
  assert.equal(await today.evaluate(node=>node.parentElement.cellIndex),1);
  assert.equal(await weekday.getAttribute('aria-label'),'Martes, día de la semana actual');
+ assert.equal(await forecast.first().locator('time').getAttribute('datetime'),'2026-12-01');
+ assert.match(await forecast.first().innerText(),/Nieve/);
  assert.equal(await hand('second').getAttribute('transform'),'rotate(30 100 100)');
  assert.equal(await hand('minute').getAttribute('transform'),'rotate(0.5 100 100)');
  assert.equal(await page.locator('.tv-calendar caption').textContent(),'diciembre de 2026');
@@ -68,6 +90,8 @@ try{
  await page.locator('[data-tv-action="play"]').click();
  await page.getByRole('button',{name:'Avisos',exact:true}).click();
  assert.equal(await today.getAttribute('datetime'),'2026-12-01','Saved calendar survives reopening');
+ assert.equal(await forecast.count(),7,'El pronóstico guardado sigue visible');
+ assert.equal(weatherRequests,1,'El pronóstico vigente se reutiliza al reabrir');
  await page.setViewportSize({width:390,height:844});assert.equal(await page.locator('#stainher-tv').evaluate(n=>n.scrollWidth<=n.clientWidth),true);
  await page.evaluate(()=>{state.profile.rol='tecnico';StainherTV.install()});assert.equal(await page.locator('#stainher-tv').count(),0,'Revoking admin closes TV');
  console.log('R397: admin-only entry, server authorization, live widgets, escaping, editing, shared persistence, conflict handling, rotation controls, mobile overflow and cleanup passed.');
