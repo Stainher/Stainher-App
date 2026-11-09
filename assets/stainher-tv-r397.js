@@ -205,9 +205,58 @@ async function refreshData(){
  }
 }
 function selectScreen(i){if(draft)return;screen=Math.max(0,Math.min(config.screens.length-1,i));render();schedule()}
+async function searchYoutube(button){
+ const box=button.closest('[data-tv-youtube-search]');
+ if(!box||button.disabled)return;
+ const query=box.querySelector('[data-tv-youtube-query]').value.trim();
+ const status=box.querySelector('[data-tv-youtube-status]');
+ const results=box.querySelector('[data-tv-youtube-results]');
+ const external=box.querySelector('[data-tv-youtube-external]');
+ results.replaceChildren();external.hidden=true;
+ if(query.length<2){status.textContent='Escribe al menos dos caracteres para buscar.';return}
+ external.href='https://www.youtube.com/results?search_query='+encodeURIComponent(query);
+ button.disabled=true;results.setAttribute('aria-busy','true');status.textContent='Buscando videos…';
+ try{
+  const {data,error}=await sb.functions.invoke('tv-youtube-search',{body:{query}});
+  if(error){
+   let message='La búsqueda integrada no está disponible.';
+   if(error.context instanceof Response){
+    const response=await error.context.json().catch(()=>null);
+    if(typeof response?.error==='string')message=response.error;
+   }
+   throw new Error(message);
+  }
+  if(!box.isConnected)return;
+  const items=(Array.isArray(data?.items)?data.items:[]).filter(item=>/^[\w-]{11}$/.test(item?.id||''));
+  results.innerHTML=items.map(item=>`<li><button type="button" data-tv-action="youtube-select" data-video="${item.id}"><strong>${esc(item.title)}</strong><small>${esc(item.channel)}</small></button></li>`).join('');
+  status.textContent=items.length?`${items.length} videos disponibles. Elige uno.`:'No se encontraron videos insertables.';
+  external.hidden=items.length>0;
+ }catch(error){
+  if(box.isConnected){status.textContent=error.message;external.hidden=false}
+ }finally{
+  button.disabled=false;results.removeAttribute('aria-busy');
+ }
+}
+function chooseYoutube(button){
+ const id=button.dataset.video;
+ const box=button.closest('[data-tv-youtube-search]');
+ if(!box||!/^[\w-]{11}$/.test(id||''))return;
+ const input=box.closest('fieldset').querySelector('input[data-tv-field="text"]');
+ input.value='https://youtu.be/'+id;
+ input.dispatchEvent(new Event('input',{bubbles:true}));
+ box.querySelector('[data-tv-youtube-status]').textContent='Video seleccionado. Guarda las pantallas para mostrarlo.';
+}
 function widgetEditorField(widget){
  if(widget.type==='aviso')return `<label class="tv-wide">Mensaje<textarea data-tv-field="text" maxlength="1000" rows="3">${esc(widget.text)}</textarea></label>`;
- if(widget.type==='youtube')return `<label class="tv-wide">Enlace de YouTube<input type="url" data-tv-field="text" maxlength="1000" required value="${esc(widget.text)}" placeholder="https://www.youtube.com/watch?v=…"><small>Reproducción en bucle sin sonido. Pausa la rotación para mantener esta pantalla visible.</small></label>`;
+ if(widget.type==='youtube')return `
+  <div class="tv-wide tv-youtube-search" data-tv-youtube-search>
+   <label>Buscar en YouTube<input type="search" data-tv-youtube-query maxlength="120" placeholder="Nombre del video o del canal"></label>
+   <button type="button" data-tv-action="youtube-search">Buscar videos</button>
+   <p data-tv-youtube-status role="status"></p>
+   <ul class="tv-youtube-results" data-tv-youtube-results></ul>
+   <a data-tv-youtube-external target="_blank" rel="noopener noreferrer" hidden>Buscar en YouTube y copiar el enlace</a>
+  </div>
+  <label class="tv-wide">Enlace de YouTube<input type="url" data-tv-field="text" maxlength="1000" required value="${esc(widget.text)}" placeholder="https://www.youtube.com/watch?v=…"><small>Reproducción en bucle sin sonido. Pausa la rotación para mantener esta pantalla visible.</small></label>`;
  return '';
 }
 function editor(){
@@ -215,6 +264,12 @@ function editor(){
  const panel=root.querySelector('[data-tv-editor]');panel.hidden=false;[...root.children].forEach(n=>{if(n!==panel)n.inert=true});
  panel.innerHTML=`<form data-tv-form><header><h2>Editar pantallas</h2><button type="button" data-tv-action="cancel">Cerrar editor</button></header><p>Los cambios se comparten entre sesiones de Administrador al guardar.</p><div class="tv-editor-fields"><label>Pantalla<select name="screen">${draft.screens.map((s,i)=>`<option value="${i}" ${i===screen?'selected':''}>${esc(s.title)}</option>`).join('')}</select></label><label>Título<input name="title" maxlength="80" required value="${esc(s.title)}"></label><label>Segundos por pantalla<input name="seconds" type="number" min="10" max="300" value="${draft.seconds}" required></label></div><div class="tv-editor-actions"><button type="button" data-tv-action="add-screen">Agregar pantalla</button><button type="button" data-tv-action="screen-up" ${screen===0?'disabled':''}>← Mover pantalla</button><button type="button" data-tv-action="screen-down" ${screen===draft.screens.length-1?'disabled':''}>Mover pantalla →</button><button type="button" data-tv-action="delete-screen" ${draft.screens.length===1?'disabled':''}>Eliminar pantalla</button></div><div class="tv-widget-edit-list">${s.widgets.map((w,i)=>`<fieldset data-tv-widget="${i}"><legend>${esc(TYPES[w.type])}</legend><label>Título<input data-tv-field="title" maxlength="80" value="${esc(w.title)}"></label><label>Ancho<select data-tv-field="width">${[[4,'⅓ pantalla'],[6,'½ pantalla'],[8,'⅔ pantalla'],[12,'Pantalla completa']].map(([n,l])=>`<option value="${n}" ${w.width===n?'selected':''}>${l}</option>`).join('')}</select></label>${widgetEditorField(w)}<div class="tv-editor-actions tv-wide"><button type="button" data-tv-action="up" data-index="${i}" ${i===0?'disabled':''}>↑ Subir</button><button type="button" data-tv-action="down" data-index="${i}" ${i===s.widgets.length-1?'disabled':''}>↓ Bajar</button><button type="button" data-tv-action="remove" data-index="${i}">Quitar widget</button></div></fieldset>`).join('')}</div><div class="tv-editor-actions"><label>Agregar widget<select name="type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><button type="button" data-tv-action="add-widget">Agregar widget</button></div><p data-tv-save-error role="status"></p><footer><button type="button" data-tv-action="cancel">Descartar cambios</button><button type="submit" class="tv-primary">Guardar pantallas</button></footer></form>`;
  panel.querySelector('form').onsubmit=save;panel.querySelector('[data-tv-action="cancel"]').focus();
+ panel.onkeydown=event=>{
+  if(event.key==='Enter'&&event.target.matches('[data-tv-youtube-query]')){
+   event.preventDefault();
+   event.target.closest('[data-tv-youtube-search]').querySelector('[data-tv-action="youtube-search"]').click();
+  }
+ };
  panel.oninput=e=>{const n=e.target;if(n.name==='title')s.title=n.value;if(n.name==='seconds')draft.seconds=Number(n.value);const row=n.closest('[data-tv-widget]');if(row&&n.dataset.tvField){const w=s.widgets[Number(row.dataset.tvWidget)];w[n.dataset.tvField]=n.dataset.tvField==='width'?Number(n.value):n.value}};
  panel.onchange=e=>{if(e.target.name==='screen'){screen=Number(e.target.value);editor()}};
 }
@@ -247,6 +302,8 @@ async function action(e){
  if(a==='controls'){root.classList.remove('tv-presenting');fitPresentation();return}
  if(a==='fullscreen'){root.classList.add('tv-presenting');fitPresentation();try{if(!document.fullscreenElement&&root.requestFullscreen)await root.requestFullscreen();else if(!root.requestFullscreen)showStatus('Presentación activada. Este navegador no admite pantalla completa.')}catch(_){showStatus('Presentación activada; el navegador no permitió pantalla completa.')}requestAnimationFrame(fitPresentation);return}
  if(!draft)return;const s=draft.screens[screen],i=Number(b.dataset.index);
+ if(a==='youtube-search')return searchYoutube(b);
+ if(a==='youtube-select')return chooseYoutube(b);
  if(a==='add-screen'&&draft.screens.length<MAX_SCREENS){draft.screens.push({id:uid(),title:'Nueva pantalla',widgets:[widget('aviso',12)]});screen=draft.screens.length-1}
  if(a==='delete-screen'&&draft.screens.length>1){draft.screens.splice(screen,1);screen=Math.min(screen,draft.screens.length-1)}
  if(a==='screen-up'&&screen>0){[draft.screens[screen-1],draft.screens[screen]]=[draft.screens[screen],draft.screens[screen-1]];screen--}
@@ -276,7 +333,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r399',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r400',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);

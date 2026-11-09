@@ -65,11 +65,31 @@ try{
   await page.locator('[data-tv-action="add-widget"]').click();
  }
  const link=page.getByLabel('Enlace de YouTube');
+ const search=page.getByRole('searchbox',{name:'Buscar en YouTube'});
+ await page.evaluate(()=>{
+  sb.functions={invoke:async()=>({error:{context:Response.json({error:'La búsqueda integrada requiere activar la conexión con YouTube.'},{status:503})}})};
+ });
+ await search.fill('Ascensores & rescate');
+ await search.press('Enter');
+ await page.getByText('La búsqueda integrada requiere activar la conexión con YouTube.').waitFor();
+ const external=page.getByRole('link',{name:'Buscar en YouTube y copiar el enlace'});
+ assert.equal(new URL(await external.getAttribute('href')).searchParams.get('search_query'),'Ascensores & rescate');
+ assert.equal(await page.evaluate(()=>tvQA.writes),0);
+ await page.evaluate(()=>{
+  sb.functions.invoke=async(name,{body})=>{
+   if(name!=='tv-youtube-search'||body.query!=='Seguridad Andina')throw Error('Solicitud inesperada');
+   return {data:{items:[{id:'M7lc1UVf-VE',title:'Seguridad <Andina>',channel:'Canal QA'}]}};
+  };
+ });
  await link.fill('https://youtube.com.example.org/watch?v=M7lc1UVf-VE');
  await page.getByRole('button',{name:'Guardar pantallas'}).click();
  await page.getByText(/Ingresa un enlace válido de YouTube/).waitFor();
  assert.equal(await page.evaluate(()=>tvQA.writes),0);
- await link.fill('https://www.youtube.com/shorts/M7lc1UVf-VE');
+ await search.fill('Seguridad Andina');
+ await page.getByRole('button',{name:'Buscar videos'}).click();
+ await page.getByRole('button',{name:'Seguridad <Andina> Canal QA'}).click();
+ assert.equal(await link.inputValue(),'https://youtu.be/M7lc1UVf-VE');
+ assert.equal(await page.evaluate(()=>tvQA.writes),0);
  await page.getByRole('button',{name:'Guardar pantallas'}).click();
  await page.locator('[data-tv-editor]').waitFor({state:'hidden'});
  await page.locator('.tv-type-operativos .tv-money').waitFor();

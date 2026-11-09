@@ -96,3 +96,11 @@ body.stainher-tv-open{overflow:hidden!important}
 #stainher-tv :is(.tv-type-contrato,.tv-type-reembolsables,.tv-type-operativos) .tv-bar b{white-space:nowrap;font-variant-numeric:tabular-nums}
 #stainher-tv .tv-youtube{display:block;width:100%;aspect-ratio:16/9;min-height:200px;border:0;border-radius:10px;background:#142c43}
 @media(max-width:650px){#stainher-tv .tv-contract-data{grid-template-columns:1fr}}
+
+#stainher-tv .tv-youtube-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:end}
+#stainher-tv .tv-youtube-search :is(p,ul,a){grid-column:1/-1;margin:0}
+#stainher-tv .tv-youtube-results{list-style:none;padding:0;display:grid;gap:6px}
+#stainher-tv .tv-youtube-results button{width:100%;text-align:left;overflow-wrap:anywhere}
+#stainher-tv .tv-youtube-results small{display:block;color:#46647d}
+#stainher-tv .tv-youtube-search a{color:#176493}
+@media(max-width:500px){#stainher-tv .tv-youtube-search{grid-template-columns:minmax(0,1fr)}}
