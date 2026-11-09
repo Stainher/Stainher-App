@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {PGlite} from '@electric-sql/pglite';
 
-test('el primer envío inicia el tiempo, un acierto cierra y el ciclo conserva el marcador',async()=>{
+test('el reloj espera el primer envío y diez preguntas definen un ganador con reinicio de puntos',async()=>{
   const db=new PGlite();
   const admin='00000000-0000-0000-0000-000000000001';
   const ana='00000000-0000-0000-0000-000000000002';
@@ -31,7 +31,7 @@ test('el primer envío inicia el tiempo, un acierto cierra y el ciclo conserva e
         $$ select coalesce((select rol from public.perfiles where id=auth.uid()),'') $$;
       create table tv_pantallas_r397 (id text primary key,valor jsonb,updated_at timestamptz);
     `);
-    for(const file of ['20261109195732_tv_social_r413.sql','20261109201757_tv_social_juego_r414.sql'])
+    for(const file of ['20261109195732_tv_social_r413.sql','20261109201757_tv_social_juego_r414.sql','20261109204246_tv_social_partidas_r415.sql'])
       await db.exec(readFileSync('supabase/migrations/'+file,'utf8'));
     await role(admin);
     const {value:bank}=await first('select tv_social_banco() value');
@@ -71,29 +71,53 @@ test('el primer envío inicia el tiempo, un acierto cierra y el ciclo conserva e
     await db.exec('reset role');
     await db.query("update tv_social_desafios set resuelto_at=now()-interval '3 hours' where id=$1",[id]);
     await role(admin);
-    const automatic=await status('tv_social_tv');
+    let automatic=await status('tv_social_tv');
     assert.equal(automatic.automatico,true);
     assert.notEqual(automatic.ronda.id,id);
-    assert.equal(automatic.ronda.esperando,true);
-    assert.deepEqual(automatic.marcador,win.marcador);
-    assert.equal((await status('tv_social_tv')).ronda.id,automatic.ronda.id);
-    const chosen=bank.find(entry=>entry.pregunta===automatic.ronda.pregunta);
-    assert.ok(chosen);
-    await role(ana);
-    await answer(automatic.ronda.id,chosen.correcta);
-    assert.equal((await status()).ronda.ganador,'Ana QA','El primer envío correcto gana al instante');
-    assert.deepEqual((await status()).marcador,[{nombre:'Ana QA',puntos:1},{nombre:'Diego QA',puntos:1}]);
-
-    await db.exec('reset role');
-    await db.query("update tv_social_desafios set inicio=now()-interval '3 minutes',cierre=now()-interval '2 minutes',resuelto_at=now()-interval '13 seconds' where id=$1",[automatic.ronda.id]);
-    await role(admin);
-    const next=await status('tv_social_tv');
-    assert.notEqual(next.ronda.pregunta,automatic.ronda.pregunta);
-    assert.notEqual(next.ronda.categoria,automatic.ronda.categoria);
+    assert.deepEqual(automatic.marcador,[]);
+    const match=automatic.partida.id;
+    const seen=new Set();
+    let previousCategory=null;
+    for(let number=1;number<=10;number++){
+      assert.equal(automatic.partida.numero,number);
+      assert.equal(automatic.partida.total,10);
+      assert.equal(automatic.partida.id,match);
+      assert.equal(automatic.ronda.esperando,true);
+      assert.notEqual(automatic.ronda.categoria,previousCategory);
+      previousCategory=automatic.ronda.categoria;
+      assert.ok(!seen.has(automatic.ronda.pregunta),'La partida no repite preguntas');
+      seen.add(automatic.ronda.pregunta);
+      const chosen=bank.find(entry=>entry.pregunta===automatic.ronda.pregunta);
+      assert.ok(chosen);
+      await role(number<=5?ana:diego);
+      await answer(automatic.ronda.id,chosen.correcta);
+      assert.equal((await status()).ronda.ganador,number<=5?'Ana QA':'Diego QA');
+      await role(admin);
+      assert.equal((await status('tv_social_tv')).ronda.id,automatic.ronda.id,'Se deja visible el resultado de cada pregunta');
+      await db.exec('reset role');
+      await db.query(`update tv_social_desafios set
+        inicio=now()-interval '20 minutes'+numero*interval '15 seconds',
+        cierre=now()-interval '19 minutes'+numero*interval '15 seconds',
+        resuelto_at=now()-interval '20 minutes'+numero*interval '15 seconds'+interval '1 second'
+        where id=$1`,[automatic.ronda.id]);
+      await role(admin);
+      automatic=await status('tv_social_tv');
+    }
+    assert.equal(automatic.automatico,false);
+    assert.equal(automatic.partida.estado,'finalizada');
+    assert.equal(automatic.partida.numero,10);
+    assert.deepEqual(automatic.marcador,[{nombre:'Ana QA',puntos:5},{nombre:'Diego QA',puntos:5}]);
+    assert.deepEqual(automatic.partida.ganador,{nombre:'Ana QA',puntos:5},'Desempata quien llegó primero al puntaje final');
+    assert.equal((await status('tv_social_tv')).ronda.id,automatic.ronda.id,'La pregunta once espera otra partida');
+    await db.query('select tv_social_modo(true,60)');
+    const restarted=await status('tv_social_tv');
+    assert.equal(restarted.partida.numero,1);
+    assert.notEqual(restarted.partida.id,match);
+    assert.deepEqual(restarted.marcador,[]);
     await db.query('select tv_social_modo(false,60)');
     const stopped=await status('tv_social_tv');
+    assert.equal(stopped.partida.estado,'cancelada');
     assert.equal(stopped.automatico,false);
     assert.equal(stopped.ronda.esperando,false);
-    assert.equal(stopped.ronda.id,next.ronda.id);
   }finally{await db.close()}
 });

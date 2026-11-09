@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R414",
-  "build": "20261109-r414-juego-mural",
+  "revision": "R415",
+  "build": "20261109-r415-partidas-mural",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {
