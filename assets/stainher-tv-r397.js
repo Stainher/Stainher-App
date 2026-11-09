@@ -3,7 +3,7 @@
 'use strict';
 if(window.StainherTV)return;
 const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12;
-const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj digital',calendario:'Calendario mensual',
+const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj analógico',calendario:'Calendario mensual',
  contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube'};
 const COLORS=['#087f8c','#176fc1','#ff7a2f','#7162cc','#729ec1','#50b2a7','#b28bcc','#aabfce'];
 let root=null,config=null,draft=null,data=null,screen=0,playing=false,rotation=null,refresh=null,clock=null,busy=false,configStamp=null,epoch=0,unsubscribe=null,priorFocus=null,inertNodes=[];
@@ -82,7 +82,7 @@ async function loadExpenses(types,year,month,edpYear,edpMonth){
 function defaults(){return {version:1,seconds:25,screens:[{id:uid(),title:'Resumen del contrato',widgets:[widget('resumen',12),widget('equipos',6),widget('preventivo',6),widget('liderazgo',6),{...widget('aviso',6,'Información del contrato'),text:'Mantenimiento y Certificación para Ascensores y Montacargas · Contrato 4600029879'}]},{id:uid(),title:'Turnos · programación del día',widgets:[widget('turnos',4),widget('nomina',8),widget('reloj',12)]},{id:uid(),title:'Personal · nuestro equipo',widgets:[widget('personal',4),widget('directorio',8)]}]}}
 function widgetTitle(w){
  if(w.type==='youtube'&&w.title==='Video de YouTube en bucle')return TYPES.youtube;
- if(w.type==='reloj'&&w.title==='Fecha y hora')return TYPES.reloj;
+ if(w.type==='reloj'&&['Fecha y hora','Reloj digital'].includes(w.title))return TYPES.reloj;
  return String(w.title||TYPES[w.type]).slice(0,80);
 }
 function normalize(value){
@@ -157,22 +157,49 @@ function videoContent(widget){
 }
 function prevCounts(){return [{label:'Ejecutados',n:data.prev.filter(r=>r.estado==='ejecutado').length},{label:'Programados',n:data.prev.filter(r=>r.estado==='programado').length},{label:'Pendientes',n:data.prev.filter(r=>!['ejecutado','programado'].includes(r.estado)).length}]}
 function turnCounts(){const counts=new Map();data.turns.forEach(t=>counts.set(t.turno_base,(counts.get(t.turno_base)||0)+1));return [...counts].sort(([a],[b])=>a.localeCompare(b)).map(([k,n])=>({label:k==='L'?'Libre':`Turno ${k}`,n}))}
+function clockContent(){
+ const ticks=Array.from({length:60},(_,i)=>{
+  const major=i%5===0;
+  return `<line class="${major?'tv-clock-major':'tv-clock-minor'}" x1="100" y1="12" x2="100" y2="${major?20:16}" transform="rotate(${i*6} 100 100)"/>`;
+ });
+ const numbers=Array.from({length:12},(_,i)=>{
+  const angle=i*Math.PI/6;
+  return `<text x="${100+66*Math.sin(angle)}" y="${100-66*Math.cos(angle)}">${i||12}</text>`;
+ });
+ return `<div class="tv-clock" data-tv-clock>
+  <span class="tv-clock-zone">Hora de Santiago</span>
+  <time class="tv-clock-time"><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+   <circle class="tv-clock-rim" cx="100" cy="100" r="95"/>
+   ${ticks.join('')}${numbers.join('')}
+   <line data-clock-hand="hour" x1="100" y1="104" x2="100" y2="58"/>
+   <line data-clock-hand="minute" x1="100" y1="107" x2="100" y2="43"/>
+   <line data-clock-hand="second" x1="100" y1="116" x2="100" y2="29"/>
+   <circle class="tv-clock-pivot" cx="100" cy="100" r="4"/>
+  </svg><span class="tv-clock-readable"></span></time>
+  <div class="tv-clock-date"></div>
+ </div>`;
+}
 function calendarContent(now,{year,month,day}){
  const first=new Date(Date.UTC(Number(year),Number(month)-1,1));
  const offset=(first.getUTCDay()+6)%7;
  const last=new Date(Date.UTC(Number(year),Number(month),0)).getUTCDate();
  const weekdays=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+ const activeWeekday=(offset+Number(day)-1)%7;
  const rows=Array.from({length:Math.ceil((offset+last)/7)},(_,week)=>{
   const cells=weekdays.map((_,index)=>{
    const number=week*7+index-offset+1;
    if(number<1||number>last)return '<td></td>';
-   if(number===Number(day))return `<td><time class="tv-calendar-today" datetime="${year}-${month}-${day}" aria-current="date">${number}</time></td>`;
-   return `<td><span>${number}</span></td>`;
+   const cell=index===activeWeekday?'<td class="tv-calendar-weekday">':'<td>';
+   if(number===Number(day))return `${cell}<time class="tv-calendar-today" datetime="${year}-${month}-${day}" aria-current="date">${number}</time></td>`;
+   return `${cell}<span>${number}</span></td>`;
   });
   return '<tr>'+cells.join('')+'</tr>';
  });
  return `<table class="tv-calendar"><caption>${esc(calendarMonthFormatter.format(now))}</caption>
-  <thead><tr>${weekdays.map(name=>`<th scope="col" aria-label="${name}">${name.slice(0,3)}</th>`).join('')}</tr></thead>
+  <thead><tr>${weekdays.map((name,index)=>{
+   const current=index===activeWeekday;
+   return `<th scope="col"${current?' class="tv-calendar-weekday"':''} aria-label="${name}${current?', día de la semana actual':''}">${name.slice(0,3)}</th>`;
+  }).join('')}</tr></thead>
   <tbody>${rows.join('')}</tbody></table>`;
 }
 function content(w){
@@ -190,7 +217,7 @@ function content(w){
  case 'directorio':{if(!data.profiles)return missing();const groups=new Map();data.profiles.forEach(p=>{if(!groups.has(p.rol))groups.set(p.rol,[]);groups.get(p.rol).push(p)});return `<div class="tv-directory">${[...groups].map(([r,people])=>`<section><h3>${esc(roleLabel(r))}</h3>${people.map(p=>`<p>${esc(p.nombre)}</p>`).join('')}</section>`).join('')}</div>`}
  case 'liderazgo':{if(!data.lead)return missing();const counts=new Map();data.lead.filter(c=>c.estado==='realizado').forEach(c=>{const name=c.control_nombre||c.control_codigo||'Control';counts.set(name,(counts.get(name)||0)+1)});return counts.size?bars([...counts].map(([label,n])=>({label,n})))+'<p class="tv-note">Realizados durante el mes calendario actual.</p>':'<p class="tv-empty">Sin controles realizados este mes.</p>'}
  case 'aviso':return `<div class="tv-message">${esc(w.text||'Agrega un mensaje desde Editar pantallas.').replace(/\n/g,'<br>')}</div>`;
- case 'reloj':return '<div class="tv-clock" data-tv-clock><span class="tv-clock-zone">Hora de Chile continental</span><time class="tv-clock-time"><strong></strong><span></span></time><div class="tv-clock-date"></div></div>';
+ case 'reloj':return clockContent();
  case 'calendario':return '<div data-tv-calendar></div>';
  default:return '';
  }
@@ -229,14 +256,18 @@ function tick(){
  let dayChanged=false;
  if(clocks.length){
   const {hour,minute,second}=parts(timeFormatter,now);
-  const time=`${hour}:${minute}`;
-  const timestamp=`${time}:${second}`;
+  const timestamp=`${hour}:${minute}:${second}`;
+  const seconds=Number(second);
+  const minutes=Number(minute)+seconds/60;
+  const angles={hour:(Number(hour)%12+minutes/60)*30,minute:minutes*6,second:seconds*6};
   for(const node of clocks){
    const display=node.querySelector('time');
    if(display.dateTime!==timestamp){
     display.dateTime=timestamp;
-    display.querySelector('strong').textContent=time;
-    display.querySelector('span').textContent=second;
+    display.querySelector('.tv-clock-readable').textContent=timestamp;
+    for(const [hand,angle] of Object.entries(angles)){
+     display.querySelector(`[data-clock-hand="${hand}"]`).setAttribute('transform',`rotate(${angle} 100 100)`);
+    }
    }
    if(node.dataset.day!==day){
     node.dataset.day=day;
@@ -396,7 +427,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r403',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r404',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);
