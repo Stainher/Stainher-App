@@ -100,9 +100,11 @@ try{
  const player=page.locator('.tv-youtube');
  const url=new URL(await player.getAttribute('src'));
  assert.equal(url.origin,'https://www.youtube-nocookie.com');
- for(const [key,value] of Object.entries({autoplay:'1',mute:'1',loop:'1',playlist:'M7lc1UVf-VE',playsinline:'1'})){
+ for(const [key,value] of Object.entries({autoplay:'1',mute:'1',playsinline:'1'})){
   assert.equal(url.searchParams.get(key),value);
  }
+ assert.equal(url.searchParams.has('loop'),false);
+ assert.equal(url.searchParams.has('playlist'),false);
  await player.evaluate(node=>{window.originalVideo=node});
  await page.evaluate(()=>{tvQA.operativeDelta=1});
  await page.locator('[data-tv-action="refresh"]').click();
@@ -113,7 +115,35 @@ try{
  await page.getByRole('button',{name:'Administración del contrato',exact:true}).click();
  assert.equal(await player.count(),1);
  assert.equal(await page.evaluate(()=>tvQA.saved.valor.screens.at(-1).widgets.at(-1).text),'https://youtu.be/M7lc1UVf-VE');
+ await page.locator('[data-tv-action="close"]').click();
+ await page.evaluate(()=>{
+  const screens=tvQA.saved.valor.screens;
+  const video=screens.at(-1).widgets.at(-1);
+  video.title='Inducción de seguridad';
+  screens.push({title:'Novedades',widgets:[{...video,title:'Video de YouTube en bucle'}]});
+ });
+ await page.locator('#stainher-tv-open').click();
+ await page.getByRole('button',{name:'Administración del contrato',exact:true}).click();
+ await page.getByRole('heading',{name:'Inducción de seguridad',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Novedades',exact:true}).click();
+ await page.getByRole('heading',{name:'Video de YouTube',exact:true}).waitFor();
+ assert.equal(await player.getAttribute('title'),'Video de YouTube');
+ await page.locator('[data-tv-action="fullscreen"]').click();
+ await page.locator('#stainher-tv.tv-presenting').waitFor();
+ for(const {width,height} of [{width:1920,height:1080},{width:1280,height:720}]){
+  await page.setViewportSize({width,height});
+  await page.waitForFunction(()=>{
+   const tv=document.querySelector('#stainher-tv');
+   const video=tv.querySelector('.tv-youtube').getBoundingClientRect();
+   const footer=tv.querySelector('.tv-footer').getBoundingClientRect();
+   return video.height>0&&video.height<=tv.clientHeight*.55&&video.bottom<=footer.top&&footer.bottom<=tv.clientHeight+1;
+  });
+  const video=await player.boundingBox();
+  assert.ok(Math.abs(video.width/video.height-16/9)<.02);
+  assert.ok(Math.abs(video.x+video.width/2-width/2)<2);
+ }
+ await page.locator('[data-tv-action="controls"]').click();
  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.locator('#stainher-tv').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
- console.log('R399: acceso mediante editor, agregados mensuales, anulados excluidos, URL validada, persistencia y reproducción conservada al actualizar.');
+ console.log('TV: editor, agregados mensuales, URL validada, persistencia, reproducción sin repetición y tamaño en pantalla completa.');
 }finally{await browser.close()}
