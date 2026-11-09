@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R414')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R415')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R414';
+  window.__STAINHER_HP_LOADER_VERSION__='R415';
 
-  const BUILD='20261109-r414-juego-mural';
+  const BUILD='20261109-r415-partidas-mural';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

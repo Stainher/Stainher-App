@@ -6,7 +6,7 @@ const root='https://stainher.github.io/Stainher-App/';
 const read=path=>readFileSync(path,'utf8');
 const fixture=read('tests/fixtures/tv-r397-fixture.js');
 const browser=await chromium.launch({headless:true});
-let round=null,automatic=false,started=0,closedAt=null,now=Date.parse('2026-11-09T17:00:00Z');
+let round=null,match=null,matchCount=0,automatic=false,started=0,closedAt=null,now=Date.parse('2026-11-09T17:00:00Z');
 const votes=new Map(),applauses=[],scores=new Map();
 const bank=[
  {id:1,pregunta:'¿Qué palabra de cinco letras se lee igual en ambos sentidos?',categoria:'palabras',opciones:['Radar','Reloj','Radio'],correcta:1,explicacion:'Radar es un palíndromo.'},
@@ -25,13 +25,25 @@ async function session({mobile=false,route='',signedIn=true,player='qa-worker'}=
   if(op==='tv_social_banco')return {data:bank};
   if(op==='tv_social_modo'){
    automatic=payload.activar;
-   if(automatic&&!round)start({...bank[0],segundos:payload.duracion});
+   if(automatic){
+    match={id:'match-'+(++matchCount),estado:'en_curso',numero:1,total:10};
+    scores.clear();
+    start({...bank[0],segundos:payload.duracion});
+   }
    return {data:null};
   }
   if(['tv_social_ronda','tv_social_tv'].includes(op)){
-   if(op==='tv_social_tv'&&automatic&&closedAt!==null&&now-closedAt>=12000)start({...bank[started%bank.length],segundos:round.segundos});
+   if(op==='tv_social_tv'&&automatic&&closedAt!==null&&now-closedAt>=12000){
+    if(match.numero===10){
+     automatic=false;
+     match={...match,estado:'finalizada',finalizada_en:new Date(now).toISOString(),ganador:{nombre:'Ana QA',puntos:scores.get('Ana QA')}};
+    }else{
+     match.numero++;
+     start({...bank[started%bank.length],segundos:round.segundos});
+    }
+   }
    const ended=round&&!round.esperando&&Date.parse(round.cierre)<=now;
-   return {data:{ahora:new Date(now).toISOString(),automatico:automatic,ronda:round&&{
+   return {data:{ahora:new Date(now).toISOString(),automatico:automatic,partida:match,ronda:round&&{
     ...round,correcta:ended?round.correcta:null,explicacion:ended?round.explicacion:null,
    },marcador:[...scores].map(([nombre,puntos])=>({nombre,puntos}))}};
   }
@@ -110,9 +122,10 @@ try{
  await manager.getByLabel('Banco de preguntas').selectOption('2');
  assert.match(await manager.getByLabel('Pregunta',{exact:true}).inputValue(),/hexágono/);
  await manager.getByLabel('Duración').selectOption('60');
- await manager.getByRole('button',{name:'Iniciar juego automático'}).click();
+ await manager.getByRole('button',{name:'Iniciar partida de 10 preguntas'}).click();
  await manager.waitFor({state:'hidden'});
  await tv.locator('[data-tv-social="desafio"]').getByText(/palabra de cinco letras/).waitFor();
+ await tv.getByText('Pregunta 1 de 10',{exact:true}).waitFor();
  assert.equal(await tv.locator('[data-tv-social] img').count(),2);
  assert.equal(await tv.locator('.tv-social-answer').count(),0);
 
@@ -146,6 +159,28 @@ try{
  await tv.locator('[data-tv-social="desafio"]').getByText(/Cuántos lados tiene un hexágono/).waitFor();
  await winner.getByRole('radio',{name:'B. Seis'}).waitFor({timeout:10000});
  assert.match(await tv.locator('.tv-social-score').innerText(),/Ana QA.*1 punto/);
+ await tv.getByText('Pregunta 2 de 10',{exact:true}).waitFor();
+ await tv.getByRole('button',{name:'Pausar rotación'}).click();
+ match.numero=10;
+ round.esperando=false;
+ round.cierre=new Date(now).toISOString();
+ closedAt=now;
+ await tv.clock.runFor(4000);
+ await tv.getByText('Pregunta 10 de 10',{exact:true}).waitFor();
+ now+=13000;
+ await tv.clock.runFor(4000);
+ await tv.getByText('Ganador de la partida',{exact:false}).waitFor();
+ assert.equal(await tv.locator('.tv-social-final h3').textContent(),'Ana QA');
+ assert.equal(await tv.locator('.tv-social-firework').count(),5);
+ assert.equal(await tv.locator('.tv-social-balloons i').count(),6);
+ assert.equal(await tv.locator('.tv-social-firework').first().evaluate(node=>getComputedStyle(node).animationName),'tv-social-burst');
+ await winner.getByText('Ganador de la partida',{exact:false}).waitFor();
+ assert.equal(await winner.locator('.tv-social-victory-effects').count(),0);
+ await tv.getByRole('button',{name:'Gestionar dinámicas'}).click();
+ await manager.getByRole('button',{name:'Iniciar partida de 10 preguntas'}).click();
+ await manager.waitFor({state:'hidden'});
+ await tv.getByText('Pregunta 1 de 10',{exact:true}).waitFor();
+ await tv.getByText('Aún sin puntos.').waitFor();
 
  const phone=await session({mobile:true,route:'?mural=aplausos'});
  await phone.getByLabel('¿A quién va dirigido?').fill('Equipo QA');

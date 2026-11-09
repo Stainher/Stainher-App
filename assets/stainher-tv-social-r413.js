@@ -24,7 +24,7 @@ async function request(query){
 }
 async function round(tv=false){
   const data=await request(client().rpc(tv?'tv_social_tv':'tv_social_ronda'));
-  return {round:data?.ronda??null,automatic:!!data?.automatico,score:data?.marcador??[],
+  return {round:data?.ronda??null,automatic:!!data?.automatico,score:data?.marcador??[],match:data?.partida??null,
     serverTime:Date.parse(data?.ahora),received:performance.now()};
 }
 function timeLeft(snapshot){
@@ -44,8 +44,8 @@ function timerText(snapshot){
   const remaining=timeLeft(snapshot);
   return remaining>0?timeLabel(remaining):'Mostrando solución…';
 }
-function scoreMarkup(score=[]){
-  return `<div class="tv-social-score"><strong>🏆 Marcador acumulado</strong>${score.length
+function scoreMarkup(score=[],match=false){
+  return `<div class="tv-social-score"><strong>🏆 ${match?'Marcador de la partida':'Marcador acumulado'}</strong>${score.length
     ?`<ol>${score.map(entry=>`<li><span>${esc(entry.nombre)}</span><b>${esc(entry.puntos)} ${entry.puntos===1?'punto':'puntos'}</b></li>`).join('')}</ol>`
     :'<p>Aún sin puntos.</p>'}</div>`;
 }
@@ -56,15 +56,32 @@ function qr(type){
 function answerLabel(r){
   return `${LETTERS[r.correcta-1]}. ${r.opciones[r.correcta-1]}`;
 }
-function roundMarkup(snapshot){
+function victoryMarkup(snapshot,animate){
+  const winner=snapshot.match.ganador;
+  const effects=winner&&animate?`<div class="tv-social-victory-effects" aria-hidden="true">
+    <i class="tv-social-firework"></i><i class="tv-social-firework"></i><i class="tv-social-firework"></i>
+    <i class="tv-social-firework"></i><i class="tv-social-firework"></i>
+    <div class="tv-social-balloons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>`:'';
+  return `<div class="tv-social-final">
+    ${effects}<div class="tv-social-final-copy">
+      <span class="tv-social-tag">Partida finalizada · ${esc(snapshot.match.total)} preguntas</span>
+      ${winner?`<p>🏆 Ganador de la partida</p><h3>${esc(winner.nombre)}</h3><strong>${esc(winner.puntos)} ${winner.puntos===1?'punto':'puntos'}</strong>`
+        :'<h3>Partida sin ganador</h3><p>Nadie acertó en las diez preguntas.</p>'}
+      <p>Esperando una nueva partida.</p>
+    </div></div>${scoreMarkup(snapshot.score,true)}`;
+}
+function roundMarkup(snapshot,animate=false){
+  const match=snapshot?.match;
+  if(match?.estado==='finalizada')return victoryMarkup(snapshot,animate);
   const r=snapshot?.round;
-  if(!r)return '<p class="tv-social-prompt">El próximo desafío aparecerá aquí cuando Administración lo inicie.</p>'+scoreMarkup(snapshot?.score);
-  return `<div class="tv-social-top"><span class="tv-social-tag">${esc(CATEGORIES[r.categoria])}</span><strong data-social-countdown></strong></div>
+  if(!r)return '<p class="tv-social-prompt">El próximo desafío aparecerá aquí cuando Administración lo inicie.</p>'+scoreMarkup(snapshot?.score,!!match);
+  return `<div class="tv-social-top">${match?.numero?`<b>Pregunta ${esc(match.numero)} de ${esc(match.total)}</b>`:''}<span class="tv-social-tag">${esc(CATEGORIES[r.categoria])}</span><strong data-social-countdown></strong></div>
     <p class="tv-social-prompt">${esc(r.pregunta)}</p>
     <ol class="tv-social-options">${r.opciones.map((option,index)=>`<li><b>${LETTERS[index]}</b>${esc(option)}</li>`).join('')}</ol>
     ${r.correcta?`<div class="tv-social-answer"><b>${r.ganador?`🏆 Ganó ${esc(r.ganador)} · +1 punto`:'Ronda sin ganador'}</b>
       <div>Solución · ${esc(answerLabel(r))}</div>${r.explicacion?`<p>${esc(r.explicacion)}</p>`:''}</div>`:''}
-    ${scoreMarkup(snapshot.score)}`;
+    ${scoreMarkup(snapshot.score,!!match)}`;
 }
 function applauseMarkup(message){
   return message?`<div class="tv-social-applause"><span class="tv-social-tag">🙌 Reconocimiento del equipo</span><h3>Para ${esc(message.destinatario)}</h3><blockquote>${esc(message.mensaje)}</blockquote></div>`
@@ -79,11 +96,11 @@ function paint(root,state){
     const message=messages[Math.floor(performance.now()/9000)%messages.length];
     const error=state[type]?.error;
     const r=state.quiz?.round;
-    const key=error?'error':isQuiz?JSON.stringify([r?.id,r?.correcta,state.quiz?.score]):message?.id||'empty';
+    const key=error?'error':isQuiz?JSON.stringify([r?.id,r?.correcta,state.quiz?.score,state.quiz?.match]):message?.id||'empty';
     if(node.dataset.content!==key){
       node.dataset.content=key;
       changed=true;
-      node.innerHTML=`<div class="tv-social-main">${error?'<p class="tv-empty">No se pudo actualizar esta dinámica. Se reintentará.</p>':isQuiz?roundMarkup(state.quiz):applauseMarkup(message)}</div>${qr(type)}`;
+      node.innerHTML=`<div class="tv-social-main">${error?'<p class="tv-empty">No se pudo actualizar esta dinámica. Se reintentará.</p>':isQuiz?roundMarkup(state.quiz,true):applauseMarkup(message)}</div>${qr(type)}`;
     }
     const clock=node.querySelector('[data-social-countdown]');
     if(clock)clock.textContent=timerText(state.quiz);
@@ -117,6 +134,10 @@ function remainingForRotation(root){
   if(!root?.querySelector('[data-tv-social="desafio"]'))return 0;
   const snapshot=view.get(root)?.quiz;
   if(snapshot?.automatic||snapshot?.round?.esperando)return 2500;
+  if(snapshot?.match?.estado==='finalizada'){
+    const elapsed=snapshot.serverTime-Date.parse(snapshot.match.finalizada_en)+performance.now()-snapshot.received;
+    return Math.max(0,12000-elapsed);
+  }
   return snapshot?.round?Math.max(0,timeLeft(snapshot)+12000):0;
 }
 function dialog(container,title,body){
@@ -145,7 +166,7 @@ function manage(root,onStart){
   const node=dialog(root,'Gestionar dinámicas',`
     <div class="tv-social-manage">
       <form data-social-start><h3>🧩 Desafío de sobremesa</h3>
-        <div class="tv-social-actions"><button type="button" data-social-auto disabled>Iniciar juego automático</button></div>
+        <div class="tv-social-actions"><button type="button" data-social-auto disabled>Iniciar partida de 10 preguntas</button></div>
         <p data-social-mode-status role="status">Consultando modo de juego…</p>
         <label>Banco de preguntas<select name="banco" disabled><option value="">Elige una pregunta de prueba</option></select></label>
         <label>Categoría<select name="categoria">${Object.entries(CATEGORIES).map(([key,label])=>`<option value="${key}">${label}</option>`).join('')}</select></label>
@@ -186,9 +207,9 @@ function manage(root,onStart){
   }
   round().then(snapshot=>{
     automatic=snapshot.automatic;
-    modeButton.textContent=automatic?'Detener juego automático':'Iniciar juego automático';
+    modeButton.textContent=automatic?'Detener partida automática':'Iniciar partida de 10 preguntas';
     modeButton.disabled=false;
-    modeStatus.textContent=automatic?'Juego automático en curso.':'El cronómetro empieza con la primera respuesta.';
+    modeStatus.textContent=automatic?'Partida automática en curso.':'El cronómetro de cada pregunta empieza con la primera respuesta.';
   }).catch(error=>{modeStatus.textContent=error.message||'No se pudo consultar el juego.'});
   request(client().rpc('tv_social_banco')).then(data=>{
     bank=data||[];
@@ -271,7 +292,7 @@ function participantQuiz(node){
   }
   function paintQuiz(){
     const r=snapshot?.round,open=isOpen(snapshot);
-    const nextKey=JSON.stringify([r?.id,r?.correcta,answered,open,snapshot?.score]);
+    const nextKey=JSON.stringify([r?.id,r?.correcta,answered,open,snapshot?.score,snapshot?.match]);
     if(key!==nextKey){
       key=nextKey;
       content.innerHTML=roundMarkup(snapshot);
@@ -294,7 +315,7 @@ function participantQuiz(node){
             void load();
           });
         };
-      }else if(answered&&r){
+      }else if(answered&&r&&snapshot.match?.estado!=='finalizada'){
         const note=document.createElement('p');
         note.className='tv-social-tag';
         note.textContent='Tu respuesta quedó registrada.';
