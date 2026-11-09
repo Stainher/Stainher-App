@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R399",
-  "build": "20261109-r399-tv-contrato-video",
+  "revision": "R400",
+  "build": "20261109-r400-tv-youtube-search",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {

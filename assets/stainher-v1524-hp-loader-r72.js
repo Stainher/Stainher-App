@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R399')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R400')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R399';
+  window.__STAINHER_HP_LOADER_VERSION__='R400';
 
-  const BUILD='20261109-r399-tv-contrato-video';
+  const BUILD='20261109-r400-tv-youtube-search';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
