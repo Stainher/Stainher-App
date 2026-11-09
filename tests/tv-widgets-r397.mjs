@@ -41,9 +41,11 @@ try{
  await page.locator('[data-tv-field="text"]').fill('<img src=x onerror=alert(1)> Mensaje de prueba');
  await page.locator('[name="type"]').selectOption('reloj');await page.locator('[data-tv-action="add-widget"]').click();
  await page.locator('[data-tv-action="up"][data-index="1"]').click();
- await page.locator('[data-tv-field="width"]').first().selectOption('12');
+ await page.locator('[data-tv-field="width"]').first().selectOption('4');
  await page.locator('[data-tv-action="down"][data-index="0"]').click();
  await page.locator('[name="type"]').selectOption('calendario');await page.locator('[data-tv-action="add-widget"]').click();
+ await page.locator('[data-tv-field="width"]').nth(0).selectOption('4');
+ await page.locator('[data-tv-field="width"]').nth(2).selectOption('4');
  await page.locator('[name="type"]').selectOption('clima');await page.locator('[data-tv-action="add-widget"]').click();
  await page.locator('[name="type"]').selectOption('clima');await page.locator('[data-tv-action="add-widget"]').click();
  await page.getByLabel('Ubicación',{exact:false}).last().selectOption('santiago');
@@ -74,6 +76,24 @@ try{
  assert.equal(await weekday.getAttribute('aria-label'),'Lunes, día de la semana actual');
  assert.equal(await page.locator('.tv-calendar td.tv-calendar-weekday').count(),5);
  assert.equal(await weekday.evaluate(th=>getComputedStyle(th).backgroundColor),'rgb(23, 100, 125)');
+ const calendarSize=()=>page.evaluate(()=>{
+  const clock=document.querySelector('.tv-clock').getBoundingClientRect();
+  const calendar=document.querySelector('.tv-calendar caption').getBoundingClientRect();
+  const lastWeek=document.querySelector('.tv-calendar tbody tr:last-child').getBoundingClientRect();
+  const date=document.querySelector('.tv-calendar-current-cell');
+  return {heightRatio:(lastWeek.bottom-calendar.top)/clock.height,topDifference:Math.abs(calendar.top-clock.top),
+   dateFont:parseFloat(getComputedStyle(date).fontSize),currentColor:getComputedStyle(date).backgroundColor};
+ });
+ const normal=await calendarSize();
+ assert.ok(normal.heightRatio>=.94&&normal.heightRatio<=1.04,JSON.stringify(normal));
+ assert.ok(normal.topDifference<=2,JSON.stringify(normal));
+ assert.ok(normal.dateFont>=20,JSON.stringify(normal));
+ assert.equal(normal.currentColor,'rgb(18, 97, 128)');
+ await page.locator('[data-tv-action="fullscreen"]').click();
+ await page.waitForFunction(()=>Number(document.querySelector('[data-tv-grid]').style.zoom)>0);
+ const fullscreen=await calendarSize();
+ assert.ok(fullscreen.heightRatio>=.94&&fullscreen.heightRatio<=1.04,JSON.stringify(fullscreen));
+ await page.locator('[data-tv-action="controls"]').click();
  assert.equal(await page.locator('.tv-calendar caption').textContent(),'noviembre de 2026');
  assert.equal(await today.getAttribute('datetime'),'2026-11-30');
  assert.equal(await today.evaluate(node=>node.parentElement.cellIndex),0);
