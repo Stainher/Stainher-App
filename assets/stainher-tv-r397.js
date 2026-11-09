@@ -199,7 +199,7 @@ function calendarContent(now,{year,month,day}){
    const number=week*7+index-offset+1;
    if(number<1||number>last)return '<td></td>';
    const cell=index===activeWeekday?'<td class="tv-calendar-weekday">':'<td>';
-   if(number===Number(day))return `${cell}<time class="tv-calendar-today" datetime="${year}-${month}-${day}" aria-current="date">${number}</time></td>`;
+   if(number===Number(day))return `<td class="tv-calendar-weekday tv-calendar-current-cell"><time class="tv-calendar-today" datetime="${year}-${month}-${day}" aria-current="date">${number}</time></td>`;
    return `${cell}<span>${number}</span></td>`;
   });
   return '<tr>'+cells.join('')+'</tr>';
@@ -514,7 +514,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r407',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r408',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);
