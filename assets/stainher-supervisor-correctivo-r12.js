@@ -119,6 +119,7 @@
       ${row('Duración',fmtHours(r.duracion_horas))}
       ${row('Estado final',`<span class="corr-r12-status">${status}</span>`,true)}
       ${row('Observación',r.observaciones||'—')}
+      ${typeof v1520CanEdit==='function'&&v1520CanEdit('correctivo')?`<button type="button" class="btn" data-corr-edit-id="${esc(r.id)}">Editar</button>`:''}
     </article>`;
   }
 
