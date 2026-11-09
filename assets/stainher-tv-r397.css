@@ -140,4 +140,5 @@ body.stainher-tv-open{overflow:hidden!important}
 #stainher-tv .tv-weather-condition{font-size:.82em;min-height:2.5em}
 #stainher-tv .tv-weather-temperatures{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;font-variant-numeric:tabular-nums}
 #stainher-tv .tv-weather-temperatures small{font-size:.64em;color:#45677d}
-#stainher-tv .tv-weather-source,#stainher-tv .tv-weather-source a{color:#41647c;font-size:.8em}
+#stainher-tv .tv-weather-source{color:#41647c;font-size:.8em}
+#stainher-tv .tv-weather-source a{color:inherit}

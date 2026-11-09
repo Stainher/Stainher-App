@@ -56,7 +56,7 @@ try{
  assert.equal(await forecast.count(),7);
  assert.equal(await forecast.locator('svg').count(),7);
  assert.match(await forecast.first().innerText(),/Hoy.*Despejado.*Mín.*-2°.*Máx.*5°/s);
- assert.equal(await page.locator('.tv-weather-source a').textContent(),'MET Norway');
+ assert.equal(await page.locator('.tv-weather-source').getByRole('link',{name:'MET Norway'}).textContent(),'MET Norway');
  assert.equal(await clock.getAttribute('datetime'),'23:59:59');
  assert.equal(await clock.locator('svg text').count(),12);
  assert.equal(await hand('second').getAttribute('transform'),'rotate(354 100 100)');

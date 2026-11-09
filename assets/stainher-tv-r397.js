@@ -245,7 +245,7 @@ function weatherContent(){
  const updated=weatherUpdateFormatter.format(new Date(forecast.updatedAt));
  return heading+`<ul class="tv-weather-grid">${cards.join('')}</ul>
   <p class="tv-weather-source">${now>forecast.expiresAt?'Último pronóstico disponible · ':''}${esc(updated)} · °C ·
-   Datos adaptados de <a href="https://api.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a></p>`;
+   Datos adaptados de <a href="https://api.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></p>`;
 }
 async function refreshWeather(){
  const now=Date.now();
