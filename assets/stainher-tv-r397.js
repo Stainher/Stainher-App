@@ -3,7 +3,8 @@
 'use strict';
 if(window.StainherTV)return;
 const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12;
-const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Fecha y hora'};
+const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Fecha y hora',
+ contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube en bucle'};
 const COLORS=['#087f8c','#176fc1','#ff7a2f','#7162cc','#729ec1','#50b2a7','#b28bcc','#aabfce'];
 let root=null,config=null,draft=null,data=null,screen=0,playing=false,rotation=null,refresh=null,clock=null,busy=false,configStamp=null,epoch=0,unsubscribe=null,priorFocus=null,inertNodes=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -13,6 +14,66 @@ const dateParts=(date=new Date())=>Object.fromEntries(new Intl.DateTimeFormat('e
 const dayKey=()=>{const p=dateParts();return `${p.year}-${p.month}-${p.day}`};
 const roleLabel=r=>({administrador:'Administración',tecnico:'Técnicos',supervisor:'Supervisión',prevencion:'Prevención',gerente:'Gerencia',recursos_humanos:'RR.HH.',planificador:'Planificación',confiabilidad:'Confiabilidad'}[r]||r||'Sin rol');
 const widget=(type,width=6,title=TYPES[type])=>({id:uid(),type,width,title,text:''});
+const clp=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'});
+const monthLabel=new Intl.DateTimeFormat('es-CL',{month:'short',year:'numeric',timeZone:'UTC'});
+const money=value=>clp.format(Number(value)||0);
+function videoId(text){
+ try{
+  const url=new URL(String(text).trim());
+  if(url.protocol!=='https:'||url.username||url.password||url.port)return '';
+  const [route,id]=url.pathname.split('/').filter(Boolean);
+  let video;
+  if(url.hostname==='youtu.be')video=route;
+  else if(['youtube.com','www.youtube.com','m.youtube.com','www.youtube-nocookie.com'].includes(url.hostname)){
+   video=route==='watch'?url.searchParams.get('v'):['shorts','embed','live'].includes(route)?id:'';
+  }
+  return /^[\w-]{11}$/.test(video||'')?video:'';
+ }catch{return ''}
+}
+function monthsEnding(year,month){
+ return Array.from({length:6},(_,index)=>{
+  const date=new Date(Date.UTC(year,month-6+index,1));
+  const key=date.toISOString().slice(0,7);
+  return {key,year:date.getUTCFullYear(),label:monthLabel.format(date)};
+ });
+}
+async function expenseSeries(periods,queryForPage,keyForRow,amountColumn){
+ const totals=new Map(periods.map(p=>[p.key,0]));
+ let count=0;
+ const pageSize=500;
+ for(let offset=0;;offset+=pageSize){
+  const result=await queryForPage().order('id').range(offset,offset+pageSize-1);
+  if(result.error)return {error:result.error};
+  const rows=result.data||[];
+  for(const row of rows){
+   const key=keyForRow(row);
+   if(!totals.has(key))continue;
+   totals.set(key,totals.get(key)+(Number(row[amountColumn])||0));
+   count++;
+  }
+  if(rows.length<pageSize)break;
+ }
+ return {data:{count,items:periods.map(p=>({label:p.label,n:totals.get(p.key)}))}};
+}
+async function loadExpenses(types,year,month,edpYear,edpMonth){
+ const jobs=[];
+ if(types.has('reembolsables')){
+  const periods=monthsEnding(edpYear,edpMonth);
+  const query=()=>sb.from('gastos_reembolsables').select('id,anio_edp,mes_edp,monto_detalle')
+   .gte('anio_edp',periods[0].year).lte('anio_edp',edpYear);
+  jobs.push(expenseSeries(periods,query,row=>`${row.anio_edp}-${String(row.mes_edp).padStart(2,'0')}`,'monto_detalle')
+   .then(result=>['reembolsables',result]));
+ }
+ if(types.has('operativos')){
+  const periods=monthsEnding(year,month);
+  const nextMonth=new Date(Date.UTC(year,month,1)).toISOString().slice(0,10);
+  const query=()=>sb.from('gastos_operacionales_r342').select('id,fecha,monto')
+   .gte('fecha',periods[0].key+'-01').lt('fecha',nextMonth).not('anulado','is',true);
+  jobs.push(expenseSeries(periods,query,row=>String(row.fecha).slice(0,7),'monto')
+   .then(result=>['operativos',result]));
+ }
+ return Object.fromEntries(await Promise.all(jobs));
+}
 function defaults(){return {version:1,seconds:25,screens:[{id:uid(),title:'Resumen del contrato',widgets:[widget('resumen',12),widget('equipos',6),widget('preventivo',6),widget('liderazgo',6),{...widget('aviso',6,'Información del contrato'),text:'Mantenimiento y Certificación para Ascensores y Montacargas · Contrato 4600029879'}]},{id:uid(),title:'Turnos · programación del día',widgets:[widget('turnos',4),widget('nomina',8),widget('reloj',12)]},{id:uid(),title:'Personal · nuestro equipo',widgets:[widget('personal',4),widget('directorio',8)]}]}}
 function normalize(value){
  if(!value||!Array.isArray(value.screens)||!value.screens.length)return defaults();
@@ -31,24 +92,67 @@ async function loadData(){
  const p=dateParts(),year=Number(p.year),month=Number(p.month),date=`${p.year}-${p.month}-${p.day}`;
  const edp=new Date(Date.UTC(year,month-1+(Number(p.day)>20?1:0),1));
  const edpYear=edp.getUTCFullYear(),edpMonth=edp.getUTCMonth()+1;
+ const types=new Set(config.screens.flatMap(s=>s.widgets.map(w=>w.type)));
+ const contractFields='empresa_contratista,numero_contrato,nombre_servicio'
+  +(types.has('contrato')?',fecha_inicio,fecha_termino,valor_inicial,valor_vigente,dotacion_contractual':'');
  const queries=await Promise.all([
  sb.from('equipos').select('id,nombre,tipo,estado').order('nombre'),
  sb.from('programacion_preventiva').select('id,estado,equipo_id').eq('anio',edpYear).eq('mes',edpMonth),
  sb.from('perfiles').select('id,nombre,rol').eq('activo',true).order('nombre'),
  sb.from('turnos_malla_v1512').select('user_id,turno_base').eq('fecha',date).eq('estado_publicacion','publicado'),
  sb.from('liderazgo_cumplimiento').select('control_nombre,control_codigo,estado').eq('anio',year).eq('mes',month),
- sb.from('contrato_datos').select('empresa_contratista,numero_contrato,nombre_servicio').limit(1)
+ sb.from('contrato_datos').select(contractFields).limit(1),
+ loadExpenses(types,year,month,edpYear,edpMonth)
  ]);
  const errors=[];const take=(i,label)=>{try{return checked(queries[i],label)}catch(e){errors.push(e.message);return null}};
- return {date,month:edpMonth,year:edpYear,updated:new Date(),errors,equipos:take(0,'Equipos'),prev:take(1,'Preventivo'),profiles:take(2,'Personal'),turns:take(3,'Turnos'),lead:take(4,'Liderazgo'),contract:take(5,'Contrato')?.[0]};
+ const expenses={};
+ for(const [type,result] of Object.entries(queries[6])){
+  try{expenses[type]=checked(result,TYPES[type])}catch(e){errors.push(e.message)}
+ }
+ return {date,month:edpMonth,year:edpYear,updated:new Date(),errors,equipos:take(0,'Equipos'),prev:take(1,'Preventivo'),profiles:take(2,'Personal'),turns:take(3,'Turnos'),lead:take(4,'Liderazgo'),contract:take(5,'Contrato')?.[0],expenses};
 }
-function bars(items){const max=Math.max(1,...items.map(i=>i.n));return `<div class="tv-bars">${items.map((i,k)=>`<div class="tv-bar"><span>${esc(i.label)}</span><div><i style="width:${Math.max(0,i.n)/max*100}%;background:${COLORS[k%COLORS.length]}"></i></div><b>${i.n}</b></div>`).join('')}</div>`}
+function bars(items,format=String){
+ const max=Math.max(1,...items.map(i=>Math.abs(i.n)));
+ return `<div class="tv-bars">${items.map((i,k)=>`<div class="tv-bar"><span>${esc(i.label)}</span><div><i style="width:${Math.abs(i.n)/max*100}%;background:${COLORS[k%COLORS.length]}"></i></div><b>${esc(format(i.n))}</b></div>`).join('')}</div>`;
+}
 function donut(items,label){const total=items.reduce((s,i)=>s+i.n,0);if(!total)return '<p class="tv-empty">Sin registros para la fecha seleccionada.</p>';let angle=0;const stops=items.map((i,k)=>{const start=angle;angle+=i.n/total*100;return `${COLORS[k%COLORS.length]} ${start}% ${angle}%`});return `<div class="tv-donut-row"><div class="tv-donut" role="img" aria-label="${esc(items.map(i=>`${i.label}: ${i.n}`).join(', '))}" style="background:conic-gradient(${stops.join(',')})"><div><strong>${total}</strong><span>${esc(label)}</span></div></div><div class="tv-legend">${items.map((i,k)=>`<span><i style="background:${COLORS[k%COLORS.length]}"></i>${esc(i.label)} <b>${i.n}</b></span>`).join('')}</div></div>`}
 const missing=()=>'<p class="tv-empty">Información no disponible. Revisa la conexión o los permisos.</p>';
+function contractContent(){
+ const c=data.contract;
+ if(!c)return missing();
+ const date=value=>value?value.split('-').reverse().join('-'):'—';
+ const details=[
+  ['Contrato',c.numero_contrato],['Contratista',c.empresa_contratista],['Servicio',c.nombre_servicio],
+  ['Vigencia',`${date(c.fecha_inicio)} al ${date(c.fecha_termino)}`],['Dotación contractual',c.dotacion_contractual]
+ ];
+ const values=[{label:'Inicial',value:c.valor_inicial},{label:'Vigente',value:c.valor_vigente}]
+  .filter(item=>item.value!=null).map(item=>({label:item.label,n:Number(item.value)}));
+ return `<dl class="tv-contract-data">${details.map(([label,value])=>`<div><dt>${label}</dt><dd>${esc(value??'—')}</dd></div>`).join('')}</dl>`
+  +(values.length?bars(values,money):'');
+}
+function expenseContent(type){
+ const series=data.expenses[type];
+ if(!series)return missing();
+ if(!series.count)return '<p class="tv-empty">Sin gastos registrados en los últimos seis meses.</p>';
+ const label=type==='reembolsables'?'Detalle documentado · mes EDP':'Gastos vigentes · mes calendario';
+ const total=series.items.reduce((sum,item)=>sum+item.n,0);
+ return `<p class="tv-note">${label}</p><div class="tv-total tv-money"><strong>${money(total)}</strong><span>Últimos seis meses</span></div>`
+  +bars(series.items,money);
+}
+function videoContent(widget){
+ const id=videoId(widget.text);
+ if(!id)return '<p class="tv-empty">Agrega un enlace de YouTube en Editar pantallas.</p>';
+ const src=`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&playsinline=1`;
+ return `<iframe class="tv-youtube" title="${esc(widget.title)}" src="${esc(src)}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+}
 function prevCounts(){return [{label:'Ejecutados',n:data.prev.filter(r=>r.estado==='ejecutado').length},{label:'Programados',n:data.prev.filter(r=>r.estado==='programado').length},{label:'Pendientes',n:data.prev.filter(r=>!['ejecutado','programado'].includes(r.estado)).length}]}
 function turnCounts(){const counts=new Map();data.turns.forEach(t=>counts.set(t.turno_base,(counts.get(t.turno_base)||0)+1));return [...counts].sort(([a],[b])=>a.localeCompare(b)).map(([k,n])=>({label:k==='L'?'Libre':`Turno ${k}`,n}))}
 function content(w){
  switch(w.type){
+ case 'contrato':return contractContent();
+ case 'reembolsables':
+ case 'operativos':return expenseContent(w.type);
+ case 'youtube':return videoContent(w);
  case 'resumen':{const counts=data.prev&&prevCounts();return `<div class="tv-kpis">${[[data.equipos?.length,'Equipos registrados'],[data.prev?`${counts[0].n} / ${data.prev.length}`:null,'Actividades ejecutadas · mes contractual'],[data.profiles?.length,'Perfiles activos'],[data.lead?.filter(x=>x.estado==='realizado').length,'Controles realizados · mes calendario']].map(([v,l])=>`<div><strong>${v??'—'}</strong><span>${l}</span></div>`).join('')}</div>`}
  case 'equipos':return data.equipos?`<div class="tv-equipment">${data.equipos.map(e=>`<div><span aria-hidden="true">↕</span><b>${esc(e.nombre)}</b><small>${esc(e.tipo||'Equipo')}</small></div>`).join('')}</div><p class="tv-note">Registro del parque; no representa disponibilidad operacional.</p>`:missing();
  case 'preventivo':return data.prev?donut(prevCounts(),'actividades')+`<p class="tv-note">Mes contractual ${data.month}/${data.year} · corte 21 → 20.</p>`:missing();
@@ -69,7 +173,17 @@ function render(){
  root.querySelector('[data-tv-title]').textContent=s.title;
  root.querySelector('[data-tv-contract]').textContent=`${data.contract?.empresa_contratista||'Stainher App'} · Contrato ${data.contract?.numero_contrato||'—'}`;
  root.querySelector('[data-tv-tabs]').innerHTML=config.screens.map((s,i)=>`<button type="button" data-tv-screen="${i}" aria-current="${i===screen?'page':'false'}">${esc(s.title)}</button>`).join('');
- root.querySelector('[data-tv-grid]').innerHTML=s.widgets.length?s.widgets.map(w=>`<article class="tv-widget tv-type-${w.type}" style="grid-column:span ${w.width}"><h2>${esc(w.title)}</h2><div class="tv-widget-content">${content(w)}</div></article>`).join(''):'<p class="tv-empty">Pantalla sin widgets. Usa Editar pantallas para agregar contenido.</p>';
+ const grid=root.querySelector('[data-tv-grid]');
+ const layout=JSON.stringify(s.widgets);
+ if(grid.dataset.layout!==layout){
+  grid.innerHTML=s.widgets.length?s.widgets.map(w=>`<article class="tv-widget tv-type-${w.type}" style="grid-column:span ${w.width}"><h2>${esc(w.title)}</h2><div class="tv-widget-content">${content(w)}</div></article>`).join(''):'<p class="tv-empty">Pantalla sin widgets. Usa Editar pantallas para agregar contenido.</p>';
+  grid.dataset.layout=layout;
+ }else{
+  // Mantener montado el reproductor durante las actualizaciones de datos.
+  s.widgets.forEach((w,i)=>{
+   if(w.type!=='youtube')grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
+  });
+ }
  root.querySelector('[data-tv-count]').textContent=`${screen+1} / ${config.screens.length}`;
  showStatus(data.errors.length?'Información parcial · '+data.errors.join(' · '):`Datos actualizados: ${new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(data.updated)}`,!!data.errors.length);
  tick();requestAnimationFrame(fitPresentation);
@@ -77,12 +191,29 @@ function render(){
 function fitPresentation(){if(!root)return;const grid=root.querySelector('[data-tv-grid]');grid.style.zoom='';if(!root.classList.contains('tv-presenting'))return;const footer=root.querySelector('.tv-footer');const available=root.clientHeight-grid.getBoundingClientRect().top-footer.offsetHeight-12;const ratio=Math.min(1,available/Math.max(1,grid.scrollHeight));grid.style.zoom=String(Math.max(.25,ratio))}
 function tick(){if(!root)return;root.querySelectorAll('[data-tv-clock]').forEach(n=>{n.textContent=new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'full',timeStyle:'short'}).format(new Date())})}
 function schedule(){clearTimeout(rotation);if(playing&&!draft&&root)rotation=setTimeout(()=>{screen=(screen+1)%config.screens.length;render();schedule()},config.seconds*1000);root?.querySelector('[data-tv-action="play"]')?.setAttribute('aria-pressed',String(playing));const b=root?.querySelector('[data-tv-action="play"]');if(b)b.textContent=playing?'Pausar rotación':'Iniciar rotación'}
-async function refreshData(){if(!root||busy||draft)return;busy=true;const token=epoch;try{await authorize();const next=await loadData();if(root&&token===epoch){data=next;render()}}catch(e){if(root&&token===epoch){showStatus(e.message,true);if(!localAdmin()||/sesión|Administrador/.test(e.message))close()}}finally{if(token===epoch){busy=false;if(root)refresh=setTimeout(refreshData,60000)}}}
+async function refreshData(){
+ if(!root||busy||draft)return;
+ clearTimeout(refresh);busy=true;
+ const token=epoch,requestedConfig=config;
+ try{
+  await authorize();const next=await loadData();
+  if(root&&token===epoch&&requestedConfig===config){data=next;render()}
+ }catch(e){
+  if(root&&token===epoch){showStatus(e.message,true);if(!localAdmin()||/sesión|Administrador/.test(e.message))close()}
+ }finally{
+  if(token===epoch){busy=false;if(root)refresh=setTimeout(refreshData,requestedConfig===config?60000:0)}
+ }
+}
 function selectScreen(i){if(draft)return;screen=Math.max(0,Math.min(config.screens.length-1,i));render();schedule()}
+function widgetEditorField(widget){
+ if(widget.type==='aviso')return `<label class="tv-wide">Mensaje<textarea data-tv-field="text" maxlength="1000" rows="3">${esc(widget.text)}</textarea></label>`;
+ if(widget.type==='youtube')return `<label class="tv-wide">Enlace de YouTube<input type="url" data-tv-field="text" maxlength="1000" required value="${esc(widget.text)}" placeholder="https://www.youtube.com/watch?v=…"><small>Reproducción en bucle sin sonido. Pausa la rotación para mantener esta pantalla visible.</small></label>`;
+ return '';
+}
 function editor(){
  if(!localAdmin())return close();if(!draft)draft=structuredClone(config);clearTimeout(rotation);const s=draft.screens[screen];
  const panel=root.querySelector('[data-tv-editor]');panel.hidden=false;[...root.children].forEach(n=>{if(n!==panel)n.inert=true});
- panel.innerHTML=`<form data-tv-form><header><h2>Editar pantallas</h2><button type="button" data-tv-action="cancel">Cerrar editor</button></header><p>Los cambios se comparten entre sesiones de Administrador al guardar.</p><div class="tv-editor-fields"><label>Pantalla<select name="screen">${draft.screens.map((s,i)=>`<option value="${i}" ${i===screen?'selected':''}>${esc(s.title)}</option>`).join('')}</select></label><label>Título<input name="title" maxlength="80" required value="${esc(s.title)}"></label><label>Segundos por pantalla<input name="seconds" type="number" min="10" max="300" value="${draft.seconds}" required></label></div><div class="tv-editor-actions"><button type="button" data-tv-action="add-screen">Agregar pantalla</button><button type="button" data-tv-action="screen-up" ${screen===0?'disabled':''}>← Mover pantalla</button><button type="button" data-tv-action="screen-down" ${screen===draft.screens.length-1?'disabled':''}>Mover pantalla →</button><button type="button" data-tv-action="delete-screen" ${draft.screens.length===1?'disabled':''}>Eliminar pantalla</button></div><div class="tv-widget-edit-list">${s.widgets.map((w,i)=>`<fieldset data-tv-widget="${i}"><legend>${esc(TYPES[w.type])}</legend><label>Título<input data-tv-field="title" maxlength="80" value="${esc(w.title)}"></label><label>Ancho<select data-tv-field="width">${[[4,'⅓ pantalla'],[6,'½ pantalla'],[8,'⅔ pantalla'],[12,'Pantalla completa']].map(([n,l])=>`<option value="${n}" ${w.width===n?'selected':''}>${l}</option>`).join('')}</select></label>${w.type==='aviso'?`<label class="tv-wide">Mensaje<textarea data-tv-field="text" maxlength="1000" rows="3">${esc(w.text)}</textarea></label>`:''}<div class="tv-editor-actions tv-wide"><button type="button" data-tv-action="up" data-index="${i}" ${i===0?'disabled':''}>↑ Subir</button><button type="button" data-tv-action="down" data-index="${i}" ${i===s.widgets.length-1?'disabled':''}>↓ Bajar</button><button type="button" data-tv-action="remove" data-index="${i}">Quitar widget</button></div></fieldset>`).join('')}</div><div class="tv-editor-actions"><label>Agregar widget<select name="type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><button type="button" data-tv-action="add-widget">Agregar widget</button></div><p data-tv-save-error role="status"></p><footer><button type="button" data-tv-action="cancel">Descartar cambios</button><button type="submit" class="tv-primary">Guardar pantallas</button></footer></form>`;
+ panel.innerHTML=`<form data-tv-form><header><h2>Editar pantallas</h2><button type="button" data-tv-action="cancel">Cerrar editor</button></header><p>Los cambios se comparten entre sesiones de Administrador al guardar.</p><div class="tv-editor-fields"><label>Pantalla<select name="screen">${draft.screens.map((s,i)=>`<option value="${i}" ${i===screen?'selected':''}>${esc(s.title)}</option>`).join('')}</select></label><label>Título<input name="title" maxlength="80" required value="${esc(s.title)}"></label><label>Segundos por pantalla<input name="seconds" type="number" min="10" max="300" value="${draft.seconds}" required></label></div><div class="tv-editor-actions"><button type="button" data-tv-action="add-screen">Agregar pantalla</button><button type="button" data-tv-action="screen-up" ${screen===0?'disabled':''}>← Mover pantalla</button><button type="button" data-tv-action="screen-down" ${screen===draft.screens.length-1?'disabled':''}>Mover pantalla →</button><button type="button" data-tv-action="delete-screen" ${draft.screens.length===1?'disabled':''}>Eliminar pantalla</button></div><div class="tv-widget-edit-list">${s.widgets.map((w,i)=>`<fieldset data-tv-widget="${i}"><legend>${esc(TYPES[w.type])}</legend><label>Título<input data-tv-field="title" maxlength="80" value="${esc(w.title)}"></label><label>Ancho<select data-tv-field="width">${[[4,'⅓ pantalla'],[6,'½ pantalla'],[8,'⅔ pantalla'],[12,'Pantalla completa']].map(([n,l])=>`<option value="${n}" ${w.width===n?'selected':''}>${l}</option>`).join('')}</select></label>${widgetEditorField(w)}<div class="tv-editor-actions tv-wide"><button type="button" data-tv-action="up" data-index="${i}" ${i===0?'disabled':''}>↑ Subir</button><button type="button" data-tv-action="down" data-index="${i}" ${i===s.widgets.length-1?'disabled':''}>↓ Bajar</button><button type="button" data-tv-action="remove" data-index="${i}">Quitar widget</button></div></fieldset>`).join('')}</div><div class="tv-editor-actions"><label>Agregar widget<select name="type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><button type="button" data-tv-action="add-widget">Agregar widget</button></div><p data-tv-save-error role="status"></p><footer><button type="button" data-tv-action="cancel">Descartar cambios</button><button type="submit" class="tv-primary">Guardar pantallas</button></footer></form>`;
  panel.querySelector('form').onsubmit=save;panel.querySelector('[data-tv-action="cancel"]').focus();
  panel.oninput=e=>{const n=e.target;if(n.name==='title')s.title=n.value;if(n.name==='seconds')draft.seconds=Number(n.value);const row=n.closest('[data-tv-widget]');if(row&&n.dataset.tvField){const w=s.widgets[Number(row.dataset.tvWidget)];w[n.dataset.tvField]=n.dataset.tvField==='width'?Number(n.value):n.value}};
  panel.onchange=e=>{if(e.target.name==='screen'){screen=Number(e.target.value);editor()}};
@@ -90,12 +221,21 @@ function editor(){
 function cancelEdit(){draft=null;root.querySelector('[data-tv-editor]').hidden=true;[...root.children].forEach(n=>n.inert=false);render();schedule();clearTimeout(refresh);refresh=setTimeout(refreshData,60000);root.querySelector('[data-tv-action="edit"]').focus()}
 async function save(e){
  e.preventDefault();if(!draft||!root)return;const form=e.target,button=form.querySelector('[type="submit"]');button.disabled=true;const token=epoch;
- try{const user=await authorize(),value=normalize(draft);const now=new Date().toISOString();let q;
+ try{
+  const value=normalize(draft);
+  for(const current of value.screens){
+   for(const widget of current.widgets.filter(w=>w.type==='youtube')){
+    const id=videoId(widget.text);
+    if(!id)throw new Error(`Ingresa un enlace válido de YouTube en «${current.title}».`);
+    widget.text=`https://youtu.be/${id}`;
+   }
+  }
+  const user=await authorize();const now=new Date().toISOString();let q;
  if(configStamp)q=await sb.from(TABLE).update({valor:value,updated_at:now,updated_by:user}).eq('id',KEY).eq('updated_at',configStamp).select('updated_at');
  else q=await sb.from(TABLE).insert({id:KEY,valor:value,updated_at:now,updated_by:user}).select('updated_at');
  if(q.error)throw new Error(q.error.code==='23505'?'Otra sesión creó las pantallas. Cierra y abre el modo TV para cargar su configuración.':q.error.message);
  if(!q.data?.length)throw new Error('La configuración cambió en otra sesión. Cierra y abre el modo TV antes de editar nuevamente.');
- if(root&&token===epoch){config=value;configStamp=q.data[0].updated_at;cancelEdit();showStatus('Pantallas guardadas para todos los Administradores.')}
+ if(root&&token===epoch){config=value;configStamp=q.data[0].updated_at;cancelEdit();showStatus('Pantallas guardadas para todos los Administradores.');void refreshData()}
  }catch(err){if(root&&token===epoch)form.querySelector('[data-tv-save-error]').textContent=err.message}finally{button.disabled=false}
 }
 async function action(e){
@@ -111,7 +251,10 @@ async function action(e){
  if(a==='delete-screen'&&draft.screens.length>1){draft.screens.splice(screen,1);screen=Math.min(screen,draft.screens.length-1)}
  if(a==='screen-up'&&screen>0){[draft.screens[screen-1],draft.screens[screen]]=[draft.screens[screen],draft.screens[screen-1]];screen--}
  if(a==='screen-down'&&screen<draft.screens.length-1){[draft.screens[screen+1],draft.screens[screen]]=[draft.screens[screen],draft.screens[screen+1]];screen++}
- if(a==='add-widget'&&s.widgets.length<MAX_WIDGETS)s.widgets.push(widget(root.querySelector('[name="type"]').value));
+ if(a==='add-widget'&&s.widgets.length<MAX_WIDGETS){
+  const type=root.querySelector('[name="type"]').value;
+  s.widgets.push(widget(type,type==='youtube'?12:6));
+ }
  if(a==='remove')s.widgets.splice(i,1);
  if(a==='up'&&i>0)[s.widgets[i-1],s.widgets[i]]=[s.widgets[i],s.widgets[i-1]];
  if(a==='down'&&i<s.widgets.length-1)[s.widgets[i+1],s.widgets[i]]=[s.widgets[i],s.widgets[i+1]];
@@ -133,7 +276,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261107-r397',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r399',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);

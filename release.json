@@ -1,12 +1,12 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R398",
-  "build": "20261107-r398-runtime-audit",
+  "revision": "R399",
+  "build": "20261109-r399-tv-contrato-video",
   "path": "./",
-  "publishedAt": "2026-11-07",
+  "publishedAt": "2026-11-09",
   "operationalStatus": {
-    "status": "base funcional confirmada; mantenimiento R398 sujeto a verificación técnica",
+    "status": "base funcional confirmada",
     "confirmedBy": "Ismael Gálvez",
     "confirmedOn": "2026-11-07",
     "confirmation": "Todas las mejoras funcionan",
