@@ -49,6 +49,7 @@ try{
  await page.locator('[name="type"]').selectOption('clima');await page.locator('[data-tv-action="add-widget"]').click();
  await page.locator('[name="type"]').selectOption('clima');await page.locator('[data-tv-action="add-widget"]').click();
  await page.getByLabel('Ubicación',{exact:false}).last().selectOption('santiago');
+ await page.locator('[name="type"]').selectOption('portal');await page.locator('[data-tv-action="add-widget"]').click();
  await page.locator('[type="submit"]').click();await page.locator('[data-tv-editor]').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>tvQA.writes),1);assert.equal(await page.locator('.tv-message img').count(),0,'Custom messages must be escaped');
  assert.equal(await page.locator('[data-tv-tabs] button').count(),4);
@@ -124,6 +125,24 @@ try{
  assert.equal(await forecast.count(),7,'El pronóstico guardado sigue visible');
  assert.equal(await cityDays.count(),7,'Santiago se conserva al reabrir');
  assert.deepEqual(weatherRequests,{andina:1,santiago:1},'La caché es independiente para cada ubicación');
+ const portal=page.getByRole('link',{name:'Abrir portal oficial'});
+ assert.equal(await portal.getAttribute('href'),'https://deve.codelco.cl/');
+ assert.equal(await portal.getAttribute('rel'),'noopener noreferrer');
+ await portal.focus();
+ await portal.press('Tab');
+ assert.equal(await page.evaluate(()=>document.activeElement.dataset.tvAction),'close');
+ await page.context().route('https://deve.codelco.cl/',route=>route.fulfill({
+  headers:{'Content-Security-Policy':"frame-ancestors 'self'",'X-Frame-Options':'SAMEORIGIN'},
+  body:'Portal DEVE de prueba',
+ }));
+ const [opened]=await Promise.all([
+  page.context().waitForEvent('page'),
+  portal.click(),
+ ]);
+ await opened.waitForURL('https://deve.codelco.cl/');
+ assert.equal(opened.url(),'https://deve.codelco.cl/');
+ assert.equal(await page.locator('#stainher-tv').count(),1);
+ await opened.close();
  await page.setViewportSize({width:390,height:844});assert.equal(await page.locator('#stainher-tv').evaluate(n=>n.scrollWidth<=n.clientWidth),true);
  await page.evaluate(()=>{state.profile.rol='tecnico';StainherTV.install()});assert.equal(await page.locator('#stainher-tv').count(),0,'Revoking admin closes TV');
  console.log('R397: admin-only entry, server authorization, live widgets, escaping, editing, shared persistence, conflict handling, rotation controls, mobile overflow and cleanup passed.');

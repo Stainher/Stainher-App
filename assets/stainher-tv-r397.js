@@ -4,7 +4,8 @@
 if(window.StainherTV)return;
 const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12;
 const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj analógico',calendario:'Calendario mensual',clima:'Pronóstico semanal',
- contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube'};
+ contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube',portal:'Portal DEVE · Codelco'};
+const DEVE_URL='https://deve.codelco.cl/';
 const COLORS=['#087f8c','#176fc1','#ff7a2f','#7162cc','#729ec1','#50b2a7','#b28bcc','#aabfce'];
 let root=null,config=null,draft=null,data=null,screen=0,playing=false,rotation=null,refresh=null,clock=null,busy=false,configStamp=null,epoch=0,unsubscribe=null,priorFocus=null,inertNodes=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -292,6 +293,16 @@ function content(w){
  case 'aviso':return `<div class="tv-message">${esc(w.text||'Agrega un mensaje desde Editar pantallas.').replace(/\n/g,'<br>')}</div>`;
  case 'reloj':return clockContent();
  case 'calendario':return '<div data-tv-calendar></div>';
+ case 'portal':return `<div class="tv-portal">
+  <span class="tv-portal-icon" aria-hidden="true">↗</span>
+  <div>
+   <h3>Centro Divisional de Alertas</h3>
+   <p>Codelco · División Andina</p>
+   <p class="tv-portal-address">deve.codelco.cl</p>
+   <a class="tv-primary tv-portal-link" href="${DEVE_URL}" target="_blank" rel="noopener noreferrer">Abrir portal oficial <span aria-hidden="true">↗</span></a>
+   <small>Se abre en otra pestaña.</small>
+  </div>
+ </div>`;
  case 'clima':return `<div data-tv-weather="${weatherLocation(w.text)}"></div>`;
  default:return '';
  }
@@ -311,7 +322,7 @@ function render(){
  }else{
   // Mantener los widgets independientes de los datos durante las actualizaciones.
   s.widgets.forEach((w,i)=>{
-   if(!['youtube','reloj','calendario'].includes(w.type))grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
+   if(!['youtube','reloj','calendario','portal'].includes(w.type))grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
   });
  }
  root.querySelector('[data-tv-count]').textContent=`${screen+1} / ${config.screens.length}`;
@@ -498,7 +509,7 @@ async function action(e){
  if(a==='down'&&i<s.widgets.length-1)[s.widgets[i+1],s.widgets[i]]=[s.widgets[i],s.widgets[i+1]];
  editor();
 }
-function keydown(e){if(!root)return;if(e.key==='Escape'){e.preventDefault();if(draft)cancelEdit();else close();return}if(e.key==='Tab'){const scope=draft?root.querySelector('[data-tv-editor]'):root;const nodes=[...scope.querySelectorAll('button:not([disabled]),input,select,textarea')].filter(n=>n.getClientRects().length);if(!nodes.length)return;if(e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus()}}if(draft||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key==='ArrowRight')selectScreen((screen+1)%config.screens.length);if(e.key==='ArrowLeft')selectScreen((screen+config.screens.length-1)%config.screens.length)}
+function keydown(e){if(!root)return;if(e.key==='Escape'){e.preventDefault();if(draft)cancelEdit();else close();return}if(e.key==='Tab'){const scope=draft?root.querySelector('[data-tv-editor]'):root;const nodes=[...scope.querySelectorAll('button:not([disabled]),a[href],input,select,textarea')].filter(n=>n.getClientRects().length);if(!nodes.length)return;if(e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus()}}if(draft||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key==='ArrowRight')selectScreen((screen+1)%config.screens.length);if(e.key==='ArrowLeft')selectScreen((screen+config.screens.length-1)%config.screens.length)}
 async function open(){
  if(root||busy)return;busy=true;const token=++epoch;
  try{await authorize();await readConfig();const next=await loadData();if(token!==epoch)return;data=next;priorFocus=document.activeElement;
@@ -514,7 +525,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r408',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r409',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);
