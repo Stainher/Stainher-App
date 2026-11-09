@@ -148,3 +148,11 @@ body.stainher-tv-open{overflow:hidden!important}
 #stainher-tv .tv-weather-temperatures small{font-size:.64em;color:#45677d}
 #stainher-tv .tv-weather-source{color:#41647c;font-size:.8em}
 #stainher-tv .tv-weather-source a{color:inherit}
+
+#stainher-tv .tv-portal{display:flex;align-items:flex-start;gap:16px;min-width:0;padding:clamp(14px,1.5vw,26px);border:1px solid #b5d3e5;border-radius:14px;background:linear-gradient(130deg,#eef8fb,#e2edf7)}
+#stainher-tv .tv-portal-icon{display:grid;place-items:center;flex:none;width:2.2em;height:2.2em;border-radius:10px;background:#17647d;color:#fff;font-size:1.2em;font-weight:750}
+#stainher-tv .tv-portal h3{font-size:1.15em;font-weight:750}
+#stainher-tv .tv-portal-address,#stainher-tv .tv-portal small{color:#45677d;overflow-wrap:anywhere}
+#stainher-tv .tv-portal-link{display:inline-flex;align-items:center;gap:.5em;min-height:44px;padding:.6em .85em;margin:.65em 0 .3em;border:1px solid #087f8c;border-radius:9px;color:#fff;text-decoration:none;font-weight:700}
+#stainher-tv .tv-portal-link:focus-visible{outline:3px solid #e86427;outline-offset:2px}
+#stainher-tv .tv-portal small{display:block}

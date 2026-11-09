@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R408')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R409')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R408';
+  window.__STAINHER_HP_LOADER_VERSION__='R409';
 
-  const BUILD='20261109-r408-tv-calendario-grande';
+  const BUILD='20261109-r409-tv-portal-deve';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

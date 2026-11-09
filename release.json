@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R408",
-  "build": "20261109-r408-tv-calendario-grande",
+  "revision": "R409",
+  "build": "20261109-r409-tv-portal-deve",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {
