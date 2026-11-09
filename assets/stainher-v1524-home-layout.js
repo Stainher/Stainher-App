@@ -100,16 +100,16 @@
     // Preserve the current server-calculated balance.
     const candidates=[staffingPanel,alertsPanel].filter(Boolean).sort((a,b)=>a===b?0:a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1);
     if(!candidates.length)return;
-    const marker=document.createComment('stainher-home-panels');page.insertBefore(marker,candidates[0]);
-    if(vacationPanel)page.insertBefore(directChild(page,vacationPanel),marker);
-    if(staffingPanel)page.insertBefore(staffingPanel,marker);
-    if(alertsPanel)page.insertBefore(alertsPanel,marker);
+    let cursor=candidates[0];
+    for(const panel of [vacationPanel&&directChild(page,vacationPanel),staffingPanel,alertsPanel].filter(Boolean)){
+      if(panel===cursor)cursor=cursor.nextElementSibling;
+      else if(panel.nextElementSibling!==cursor)page.insertBefore(panel,cursor);
+    }
     page.querySelectorAll('details').forEach(details=>{
       const title=String(details.querySelector(':scope>summary')?.textContent||'').replace(/\s+/g,' ').trim();
       const content=String(details.querySelector(':scope>.stainher-disclosure-content')?.textContent||'').replace(/\s+/g,' ').trim();
       if(title==='Detalles'&&!content)details.remove();
     });
-    marker.remove();
   }
   async function addBalanceToAccount(){
     const modal=document.querySelector('#modalRoot .modal');if(!modal)return;
@@ -129,7 +129,7 @@
       const base=window.renderInicio;
       const wrapped=async function(...args){
         const page=document.getElementById('page-inicio');
-        page?.classList.add('stainher-home-rendering-r203');
+        if(!page?.querySelector('[data-home-staffing-content]'))page?.classList.add('stainher-home-rendering-r203');
         try{
           const result=await base.apply(this,args);
           arrangeHome();
