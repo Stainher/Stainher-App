@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R412')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R413')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R412';
+  window.__STAINHER_HP_LOADER_VERSION__='R413';
 
-  const BUILD='20261109-r412-formulario-recordatorio';
+  const BUILD='20261109-r413-pausa-oficina';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
