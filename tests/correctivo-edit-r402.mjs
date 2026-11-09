@@ -73,15 +73,15 @@ try{
  const edit=()=>page.getByRole('button',{name:'Editar',exact:true}).click();
  const save=()=>form.getByRole('button',{name:'Guardar cambios'}).click();
  await edit();
- assert.equal(await form.getByLabel('Observaciones').inputValue(),'Subsistema: Control\n<observación original>');
- assert.equal(await form.getByLabel('Equipo',{exact:true}).locator('option:checked').textContent(),'Equipo importado');
+ assert.equal(await form.getByLabel('Observaciones',{exact:true}).inputValue(),'Subsistema: Control\n<observación original>');
+ assert.equal(await form.locator('select[name=equipo_id]').locator('option:checked').textContent(),'Equipo importado');
  await form.getByLabel('Fecha de término').fill('2026-11-08');
  await save();
  await form.getByRole('alert').filter({hasText:'El término no puede ser anterior al inicio.'}).waitFor();
  assert.equal(await page.evaluate(()=>writes.length),0);
  await form.getByLabel('Fecha de término').fill('2026-11-09');
  await form.getByLabel('Hora de término').fill('02:15');
- await form.getByLabel('Observaciones').fill('Subsistema: Control\nNueva observación');
+ await form.getByLabel('Observaciones',{exact:true}).fill('Subsistema: Control\nNueva observación');
  await save();
  await form.waitFor({state:'detached'});
  await page.getByText('3.3 h',{exact:true}).waitFor();
@@ -91,7 +91,7 @@ try{
  });
  assert.equal(await page.evaluate(()=>row.excluir_kpi&&row.clave_unica==='r364-import-1'),true);
  await edit();
- await form.getByLabel('Observaciones').fill('Mi edición');
+ await form.getByLabel('Observaciones',{exact:true}).fill('Mi edición');
  await page.evaluate(()=>{row.observaciones='Edición de otra sesión'});
  await save();
  await form.getByRole('alert').filter({hasText:'El registro cambió'}).waitFor();
