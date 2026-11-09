@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R405')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R406')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R405';
+  window.__STAINHER_HP_LOADER_VERSION__='R406';
 
-  const BUILD='20261109-r405-actualizacion-recordatorios';
+  const BUILD='20261109-r406-tv-pronostico';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

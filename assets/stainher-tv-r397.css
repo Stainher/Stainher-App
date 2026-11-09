@@ -128,3 +128,17 @@ body.stainher-tv-open{overflow:hidden!important}
 #stainher-tv .tv-youtube-results small{display:block;color:#46647d}
 #stainher-tv .tv-youtube-search a{color:#176493}
 @media(max-width:500px){#stainher-tv .tv-youtube-search{grid-template-columns:minmax(0,1fr)}}
+
+#stainher-tv .tv-weather-place{color:#17617d;font-size:.95em;font-weight:700}
+#stainher-tv .tv-weather-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,112px),1fr));gap:9px;margin:12px 0;padding:0;list-style:none}
+#stainher-tv .tv-weather-day{display:grid;justify-items:center;align-content:start;gap:6px;min-width:0;padding:10px 5px;border:1px solid #bdd9e8;border-radius:12px;background:#eff7fb;color:#183b54;text-align:center}
+#stainher-tv .tv-weather-today{border-color:#1889a1;background:#d9f2f5}
+#stainher-tv .tv-weather-day time{font-size:.85em;font-weight:750}
+#stainher-tv .tv-weather-day svg{width:clamp(38px,4.2vw,70px);max-width:100%;stroke:#25718e;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;fill:none}
+#stainher-tv .tv-weather-day .tv-weather-sun{stroke:#a85d12}
+#stainher-tv .tv-weather-day .tv-weather-cloud{fill:#dcecf6}
+#stainher-tv .tv-weather-condition{font-size:.82em;min-height:2.5em}
+#stainher-tv .tv-weather-temperatures{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;font-variant-numeric:tabular-nums}
+#stainher-tv .tv-weather-temperatures small{font-size:.64em;color:#45677d}
+#stainher-tv .tv-weather-source{color:#41647c;font-size:.8em}
+#stainher-tv .tv-weather-source a{color:inherit}
