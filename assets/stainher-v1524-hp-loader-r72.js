@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R411')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R412')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R411';
+  window.__STAINHER_HP_LOADER_VERSION__='R412';
 
-  const BUILD='20261109-r411-recordatorios-inicio';
+  const BUILD='20261109-r412-formulario-recordatorio';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
