@@ -4,7 +4,8 @@
 if(window.StainherTV)return;
 const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12;
 const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj analógico',calendario:'Calendario mensual',clima:'Pronóstico semanal',
- contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube',portal:'Portal DEVE · Codelco'};
+ contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube',portal:'Portal DEVE · Codelco',desafio:'Desafío de sobremesa',aplausos:'Un aplauso para…'};
+const social=window.StainherTVSocial;
 const DEVE_URL='https://deve.codelco.cl/';
 const DEVE_TTL=5*60*1000;
 let portalData=null,portalPending=false,portalRetryAt=0;
@@ -91,7 +92,7 @@ async function loadExpenses(types,year,month,edpYear,edpMonth){
  }
  return Object.fromEntries(await Promise.all(jobs));
 }
-function defaults(){return {version:1,seconds:25,screens:[{id:uid(),title:'Resumen del contrato',widgets:[widget('resumen',12),widget('equipos',6),widget('preventivo',6),widget('liderazgo',6),{...widget('aviso',6,'Información del contrato'),text:'Mantenimiento y Certificación para Ascensores y Montacargas · Contrato 4600029879'}]},{id:uid(),title:'Turnos · programación del día',widgets:[widget('turnos',4),widget('nomina',8),widget('reloj',12)]},{id:uid(),title:'Personal · nuestro equipo',widgets:[widget('personal',4),widget('directorio',8)]}]}}
+function defaults(){return {version:1,seconds:25,screens:[{id:uid(),title:'Resumen del contrato',widgets:[widget('resumen',12),widget('equipos',6),widget('preventivo',6),widget('liderazgo',6),{...widget('aviso',6,'Información del contrato'),text:'Mantenimiento y Certificación para Ascensores y Montacargas · Contrato 4600029879'}]},{id:uid(),title:'Turnos · programación del día',widgets:[widget('turnos',4),widget('nomina',8),widget('reloj',12)]},{id:uid(),title:'Personal · nuestro equipo',widgets:[widget('personal',4),widget('directorio',8)]},...(social?[{id:uid(),title:'Pausa de oficina',widgets:[widget('desafio'),widget('aplausos')]}]:[])]}}
 function widgetTitle(w){
  if(w.type==='youtube'&&w.title==='Video de YouTube en bucle')return TYPES.youtube;
  if(w.type==='reloj'&&['Fecha y hora','Reloj digital'].includes(w.title))return TYPES.reloj;
@@ -351,6 +352,8 @@ function content(w){
  case 'calendario':return '<div data-tv-calendar></div>';
  case 'portal':return `<div data-tv-portal>${portalContent()}</div>`;
  case 'clima':return `<div data-tv-weather="${weatherLocation(w.text)}"></div>`;
+ case 'desafio':
+ case 'aplausos':return social?`<div data-tv-social="${w.type}"></div>`:missing();
  default:return '';
  }
 }
@@ -369,7 +372,7 @@ function render(){
  }else{
   // Mantener los widgets independientes de los datos durante las actualizaciones.
   s.widgets.forEach((w,i)=>{
-   if(!['youtube','reloj','calendario'].includes(w.type))grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
+   if(!['youtube','reloj','calendario','desafio','aplausos'].includes(w.type))grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
   });
  }
  root.querySelector('[data-tv-count]').textContent=`${screen+1} / ${config.screens.length}`;
@@ -383,6 +386,7 @@ function render(){
 function fitPresentation(){if(!root)return;const grid=root.querySelector('[data-tv-grid]');grid.style.zoom='';if(!root.classList.contains('tv-presenting'))return;const footer=root.querySelector('.tv-footer');const available=root.clientHeight-grid.getBoundingClientRect().top-footer.offsetHeight-12;const ratio=Math.min(1,available/Math.max(1,grid.scrollHeight));grid.style.zoom=String(Math.max(.25,ratio))}
 function tick(){
  if(!root)return false;
+ social?.tick(root,fitPresentation);
  const clocks=root.querySelectorAll('[data-tv-clock]');
  const calendars=root.querySelectorAll('[data-tv-calendar]');
  const weather=root.querySelectorAll('[data-tv-weather]');
@@ -427,7 +431,19 @@ function tick(){
  }
  return dayChanged;
 }
-function schedule(){clearTimeout(rotation);if(playing&&!draft&&root)rotation=setTimeout(()=>{screen=(screen+1)%config.screens.length;render();schedule()},config.seconds*1000);root?.querySelector('[data-tv-action="play"]')?.setAttribute('aria-pressed',String(playing));const b=root?.querySelector('[data-tv-action="play"]');if(b)b.textContent=playing?'Pausar rotación':'Iniciar rotación'}
+function schedule(){
+ clearTimeout(rotation);
+ if(playing&&!draft&&root){
+  const advance=()=>{
+   const remaining=social?.remainingForRotation(root)||0;
+   if(remaining>0){rotation=setTimeout(advance,remaining);return}
+   screen=(screen+1)%config.screens.length;render();schedule();
+  };
+  rotation=setTimeout(advance,config.seconds*1000);
+ }
+ const button=root?.querySelector('[data-tv-action="play"]');
+ if(button){button.setAttribute('aria-pressed',String(playing));button.textContent=playing?'Pausar rotación':'Iniciar rotación'}
+}
 async function refreshData(){
  if(!root||busy||draft)return;
  clearTimeout(refresh);busy=true;
@@ -537,6 +553,11 @@ async function action(e){
  const screenButton=e.target.closest('[data-tv-screen]');if(screenButton){selectScreen(Number(screenButton.dataset.tvScreen));return}
  const b=e.target.closest('[data-tv-action]');if(!b)return;const a=b.dataset.tvAction;
  if(a==='close')return close();if(a==='edit')return editor();if(a==='cancel')return cancelEdit();
+ if(a==='social')return social?.manage(root,()=>{
+  const target=config.screens.findIndex(screen=>screen.widgets.some(widget=>widget.type==='desafio'));
+  if(target>=0)selectScreen(target);
+  else showStatus('Desafío iniciado. Agrega el widget Desafío de sobremesa para verlo.');
+ });
  if(a==='play'){playing=!playing;return schedule()}if(a==='next')return selectScreen((screen+1)%config.screens.length);if(a==='previous')return selectScreen((screen+config.screens.length-1)%config.screens.length);
  if(a==='refresh'){clearTimeout(refresh);return refreshData()}
  if(a==='controls'){root.classList.remove('tv-presenting');fitPresentation();return}
@@ -557,17 +578,18 @@ async function action(e){
  if(a==='down'&&i<s.widgets.length-1)[s.widgets[i+1],s.widgets[i]]=[s.widgets[i],s.widgets[i+1]];
  editor();
 }
-function keydown(e){if(!root)return;if(e.key==='Escape'){e.preventDefault();if(draft)cancelEdit();else close();return}if(e.key==='Tab'){const scope=draft?root.querySelector('[data-tv-editor]'):root;const nodes=[...scope.querySelectorAll('button:not([disabled]),a[href],input,select,textarea')].filter(n=>n.getClientRects().length);if(!nodes.length)return;if(e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus()}}if(draft||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key==='ArrowRight')selectScreen((screen+1)%config.screens.length);if(e.key==='ArrowLeft')selectScreen((screen+config.screens.length-1)%config.screens.length)}
+function keydown(e){if(!root||e.target.closest?.('[data-tv-social-dialog]'))return;if(e.key==='Escape'){e.preventDefault();if(draft)cancelEdit();else close();return}if(e.key==='Tab'){const scope=draft?root.querySelector('[data-tv-editor]'):root;const nodes=[...scope.querySelectorAll('button:not([disabled]),a[href],input,select,textarea')].filter(n=>n.getClientRects().length);if(!nodes.length)return;if(e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus()}}if(draft||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key==='ArrowRight')selectScreen((screen+1)%config.screens.length);if(e.key==='ArrowLeft')selectScreen((screen+config.screens.length-1)%config.screens.length)}
 async function open(){
  if(root||busy)return;busy=true;const token=++epoch;
  try{await authorize();await readConfig();const next=await loadData();if(token!==epoch)return;data=next;priorFocus=document.activeElement;
  root=document.createElement('section');root.id='stainher-tv';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Diario mural Stainher App');
- root.innerHTML=`<header class="tv-header"><div class="tv-brand"><div class="tv-brandmark">S</div><div><strong>STAINHER APP</strong><small>Gestión Integral de Contratos</small></div></div><div class="tv-site">CODELCO · DIVISIÓN ANDINA</div><button type="button" data-tv-action="controls" class="tv-show-controls">Mostrar controles</button><button type="button" data-tv-action="close">Salir del modo TV</button></header><div class="tv-heading"><div><h1 data-tv-title></h1><p data-tv-contract></p></div><span data-tv-count></span></div><nav class="tv-toolbar" aria-label="Pantallas TV"><div data-tv-tabs></div><div class="tv-tools"><button type="button" data-tv-action="previous" aria-label="Pantalla anterior">←</button><button type="button" data-tv-action="next" aria-label="Pantalla siguiente">→</button><button type="button" data-tv-action="play">Iniciar rotación</button><button type="button" data-tv-action="refresh">Actualizar datos</button><button type="button" data-tv-action="fullscreen">Pantalla completa</button><button type="button" data-tv-action="edit" class="tv-primary">Editar pantallas</button></div></nav><main class="tv-grid" data-tv-grid></main><footer class="tv-footer"><span data-tv-status role="status"></span><span>Diario mural · America/Santiago</span></footer><section class="tv-editor" data-tv-editor hidden aria-label="Editor de pantallas"></section>`;
+ root.innerHTML=`<header class="tv-header"><div class="tv-brand"><div class="tv-brandmark">S</div><div><strong>STAINHER APP</strong><small>Gestión Integral de Contratos</small></div></div><div class="tv-site">CODELCO · DIVISIÓN ANDINA</div><button type="button" data-tv-action="controls" class="tv-show-controls">Mostrar controles</button><button type="button" data-tv-action="close">Salir del modo TV</button></header><div class="tv-heading"><div><h1 data-tv-title></h1><p data-tv-contract></p></div><span data-tv-count></span></div><nav class="tv-toolbar" aria-label="Pantallas TV"><div data-tv-tabs></div><div class="tv-tools"><button type="button" data-tv-action="previous" aria-label="Pantalla anterior">←</button><button type="button" data-tv-action="next" aria-label="Pantalla siguiente">→</button><button type="button" data-tv-action="play">Iniciar rotación</button><button type="button" data-tv-action="refresh">Actualizar datos</button><button type="button" data-tv-action="fullscreen">Pantalla completa</button>${social?'<button type="button" data-tv-action="social">Gestionar dinámicas</button>':''}<button type="button" data-tv-action="edit" class="tv-primary">Editar pantallas</button></div></nav><main class="tv-grid" data-tv-grid></main><footer class="tv-footer"><span data-tv-status role="status"></span><span>Diario mural · America/Santiago</span></footer><section class="tv-editor" data-tv-editor hidden aria-label="Editor de pantallas"></section>`;
  document.body.append(root);inertNodes=[...document.body.children].filter(n=>n!==root&&n instanceof HTMLElement&&!['SCRIPT','STYLE','LINK'].includes(n.tagName)).map(n=>({node:n,inert:n.inert}));inertNodes.forEach(x=>x.node.inert=true);document.body.classList.add('stainher-tv-open');root.addEventListener('click',action);document.addEventListener('keydown',keydown);window.v151CloseDrawer?.();screen=0;playing=false;render();root.querySelector('[data-tv-action="close"]').focus();refresh=setTimeout(refreshData,60000);clock=setInterval(()=>{if(tick())fitPresentation()},1000);
  }catch(e){if(typeof toast==='function')toast(e.message,'error');else console.error(e.message)}finally{if(token===epoch)busy=false}
 }
 function close(){++epoch;clearTimeout(rotation);clearTimeout(refresh);clearInterval(clock);playing=false;busy=false;draft=null;if(root&&document.fullscreenElement===root)document.exitFullscreen().catch(()=>{});root?.remove();root=null;inertNodes.forEach(x=>{if(x.node.isConnected)x.node.inert=x.inert});inertNodes=[];document.body.classList.remove('stainher-tv-open');document.removeEventListener('keydown',keydown);priorFocus?.focus?.()}
 function install(){
+ social?.installParticipant();
  const admin=localAdmin(),nav=document.querySelector('.sidebar .nav');let b=document.getElementById('stainher-tv-open');
  if(!admin){b?.remove();if(root)close();return}
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
@@ -575,7 +597,7 @@ function install(){
 function boot(){
  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r410',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
- if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
+ if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session){close();social?.closeParticipant()}setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);
 }
 window.StainherTV=Object.freeze({open,close,install});
