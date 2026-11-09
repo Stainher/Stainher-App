@@ -86,3 +86,13 @@ body.stainher-tv-open{overflow:hidden!important}
 #stainher-tv.tv-presenting .tv-show-controls{display:block}
 #stainher-tv.tv-presenting .tv-toolbar{display:none}
 #stainher-tv.tv-presenting{overflow:hidden}
+
+#stainher-tv .tv-contract-data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:0 0 18px}
+#stainher-tv .tv-contract-data dt{color:#49657a;font-size:.83em}
+#stainher-tv .tv-contract-data dd{margin:4px 0 0;overflow-wrap:anywhere}
+#stainher-tv .tv-money{flex-wrap:wrap;gap:6px 12px}
+#stainher-tv .tv-money strong{font-size:clamp(24px,2.6vw,44px);overflow-wrap:anywhere;min-width:0}
+#stainher-tv :is(.tv-type-contrato,.tv-type-reembolsables,.tv-type-operativos) .tv-bar{grid-template-columns:minmax(4em,1fr) minmax(16px,1.3fr) minmax(0,max-content)}
+#stainher-tv :is(.tv-type-contrato,.tv-type-reembolsables,.tv-type-operativos) .tv-bar b{white-space:nowrap;font-variant-numeric:tabular-nums}
+#stainher-tv .tv-youtube{display:block;width:100%;aspect-ratio:16/9;min-height:200px;border:0;border-radius:10px;background:#142c43}
+@media(max-width:650px){#stainher-tv .tv-contract-data{grid-template-columns:1fr}}
