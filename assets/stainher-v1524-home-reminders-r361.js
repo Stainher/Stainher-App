@@ -3,9 +3,10 @@
 'use strict';
 if(window.StainherReminderR361)return;
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
-const notify=(s,type)=>window.toast?.(s,type)||console.info('[Recordatorios]',s);
+const notify=(s,type)=>typeof window.toast==='function'?window.toast(s,type):console.info('[Recordatorios]',s);
 let saving=false;
 const previewBlocked=()=>window.v15MutationBlocked?.();
+const previewMessage='Modo prueba: vuelve al perfil real para guardar un recordatorio.';
 function style(){
  if(document.getElementById('stainher-reminder-r361-style'))return;
  const sheet=document.createElement('style');sheet.id='stainher-reminder-r361-style';
@@ -34,7 +35,6 @@ function close(){
 }
 function escapeKey(e){if(e.key==='Escape'){e.preventDefault();close()}}
 function open(){
- if(previewBlocked()){notify('Modo prueba: las acciones de escritura están bloqueadas.','warn');return}
  style();if(document.getElementById('stainher-reminder-r361'))return;
  const overlay=document.createElement('div');overlay.id='stainher-reminder-r361';overlay.setAttribute('role','presentation');
  overlay.innerHTML='<div class="r361-dialog" role="dialog" aria-modal="true" aria-labelledby="r361-title">'+
@@ -49,6 +49,12 @@ function open(){
  '<div class="r361-error" role="alert" hidden></div>'+
  '<div class="r361-actions"><button type="button" data-r361-close>Cancelar</button><button class="r361-save" type="submit">Guardar recordatorio</button></div>'+
  '</form></div>';
+ if(previewBlocked()){
+  const message=overlay.querySelector('.r361-error');
+  message.hidden=false;
+  message.textContent=previewMessage;
+  overlay.querySelector('.r361-save').disabled=true;
+ }
  document.body.appendChild(overlay);
  overlay.addEventListener('click',e=>{if(e.target===overlay||e.target.closest('[data-r361-close]'))close()});
  overlay.querySelector('form').addEventListener('submit',save);
@@ -60,9 +66,9 @@ async function save(e){
  if(saving)return;
  const form=e.currentTarget,submit=form.querySelector('[type="submit"]'),err=form.querySelector('.r361-error');
  const fd=new FormData(form),title=String(fd.get('titulo')||'').trim(),date=String(fd.get('fecha_evento')||'');
- if(title.length<3||! /^\d{4}-\d{2}-\d{2}$/.test(date)){err.hidden=false;err.textContent='Ingrese un título y una fecha válidos.';return}
+ if(!title||! /^\d{4}-\d{2}-\d{2}$/.test(date)){err.hidden=false;err.textContent='Ingrese un título y una fecha válidos.';return}
  const client=typeof sb==='undefined'?window.sb:sb;
- if(previewBlocked()){err.hidden=false;err.textContent='Modo prueba: las acciones de escritura están bloqueadas.';return}
+ if(previewBlocked()){err.hidden=false;err.textContent=previewMessage;return}
  if(!client?.rpc){err.hidden=false;err.textContent='La sesión no está disponible.';return}
  saving=true;submit.disabled=true;err.hidden=true;
  let id;
@@ -79,10 +85,17 @@ async function save(e){
  }finally{saving=false;submit.disabled=false}
  close();notify('Recordatorio / alerta creado correctamente.','success');
  try{
+  window.v152AlertFilter='recordatorios';
   if(typeof window.renderHomeAlertsV95==='function')await window.renderHomeAlertsV95();
   else if(typeof window.renderInicio==='function')await window.renderInicio();
   window.dispatchEvent(new CustomEvent('stainher:reminder-created-r361',{detail:{id}}));
  }catch(error){console.warn('[R361] Guardado correctamente; visualización diferida',error)}
 }
+window.addEventListener('click',event=>{
+ const trigger=event.target.closest?.('#page-inicio [data-home-reminder-open]');
+ if(!trigger)return;
+ event.preventDefault();
+ open();
+},true);
 window.StainherReminderR361=Object.freeze({open,close});
 })();
