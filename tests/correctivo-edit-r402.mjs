@@ -63,7 +63,8 @@ try{
    return query;
   }};
  });
- await page.addScriptTag({content:core+'\n'+renderer+'\n'+editor});
+ await page.addScriptTag({content:core+'\n'+renderer});
+ await page.addScriptTag({content:editor});
  await page.evaluate(()=>renderRows());
  await page.addScriptTag({content:disclosure+'\n'+history});
  const historySummary=page.locator('summary').filter({hasText:'Historial del período'});
