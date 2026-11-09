@@ -472,6 +472,6 @@
     setTimeout(schedule,250);setTimeout(schedule,1000);
   }
 
-  window.StainherCorrectivoHistoryR118={install,enhance,downloadHistory};
+  window.StainherCorrectivoHistoryR118={install,enhance,downloadHistory,keepHistoryVisible};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

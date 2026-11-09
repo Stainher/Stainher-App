@@ -5,6 +5,8 @@ import {chromium} from 'playwright';
 const html=readFileSync('index.html','utf8');
 const editor=readFileSync('assets/stainher-correctivo-edit-r402.js','utf8');
 const mobile=readFileSync('assets/stainher-correctivo-r10.js','utf8');
+const history=readFileSync('assets/stainher-v1524-corrective-history-r118.js','utf8');
+const disclosure=readFileSync('assets/stainher-v1524-collapsible.js','utf8');
 const supervisor=readFileSync('assets/stainher-supervisor-correctivo-r12.js','utf8');
 const core=html.slice(html.indexOf('function parseHora('),html.indexOf('function pickRaw('));
 const start=html.indexOf('renderCorrectivo=function(j){\n  let all=');
@@ -15,7 +17,7 @@ assert.match(html,/<script defer src="stainher-correctivo-edit-r402\.js\?build=/
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1440,height:900}});
- await page.setContent('<style>.hidden{display:none}</style><section id="page-correctivo"><select id="corrEquipo"><option value="">Todos</option></select><div id="corrBody"></div></section>');
+ await page.setContent('<style>.hidden{display:none}</style><div id="appView"><section class="page" id="page-correctivo"><select id="corrEquipo"><option value="">Todos</option></select><div id="corrBody"></div></section></div>');
  await page.evaluate(()=>{
   window.row={id:'averia-1',equipo_id:null,equipo_original:'Equipo importado',numero_guia:'401',
    supervisor_tecnico:'Responsable inicial',fecha_inicio:'2026-11-08',hora_inicio:'23:00',fecha_termino:'2026-11-09',
@@ -63,6 +65,9 @@ try{
  });
  await page.addScriptTag({content:core+'\n'+renderer+'\n'+editor});
  await page.evaluate(()=>renderRows());
+ await page.addScriptTag({content:disclosure+'\n'+history});
+ const historySummary=page.locator('summary').filter({hasText:'Historial del período'});
+ await historySummary.click();
  const form=page.locator('[data-corr-edit-form]');
  const edit=()=>page.getByRole('button',{name:'Editar',exact:true}).click();
  const save=()=>form.getByRole('button',{name:'Guardar cambios'}).click();
@@ -79,6 +84,7 @@ try{
  await save();
  await form.waitFor({state:'detached'});
  await page.getByText('3.3 h',{exact:true}).waitFor();
+ assert.equal(await historySummary.evaluate(summary=>summary.parentElement.open),true);
  assert.deepEqual(await page.evaluate(()=>writes[0]),{
   observaciones:'Subsistema: Control\nNueva observación',hora_termino:'02:15',duracion_minutos:195,fecha_hora_restitucion:'2026-11-09T02:15:00',
  });

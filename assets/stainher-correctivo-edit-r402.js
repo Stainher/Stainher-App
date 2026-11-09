@@ -95,6 +95,7 @@
    if(error)throw new Error(error.code==='23505'?'Ya existe una intervención con el mismo equipo, guía y horario.':error.message);
    if(!data)throw new Error('El registro cambió o ya no está disponible. Cancela y vuelve a abrir la edición.');
    const refresh=form.isConnected;
+   if(form.closest('details')?.open)window.StainherCorrectivoHistoryR118?.keepHistoryVisible?.();
    form.remove();
    if(refresh){
     try{await loadCorrectivo()}
@@ -120,6 +121,7 @@
   const form=document.createElement('form');
   form.className='panel form-grid';
   form.dataset.corrEditForm='';
+  form.dataset.noCollapse='1';
   form.setAttribute('aria-labelledby','corrEditHeadingR402');
   form.innerHTML='<p class="full" role="status">Cargando intervención…</p>';
   list.before(form);
