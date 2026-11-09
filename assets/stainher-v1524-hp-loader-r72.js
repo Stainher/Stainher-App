@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R410')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R411')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R410';
+  window.__STAINHER_HP_LOADER_VERSION__='R411';
 
-  const BUILD='20261109-r410-tv-panel-deve';
+  const BUILD='20261109-r411-recordatorios-inicio';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
