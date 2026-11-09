@@ -4,7 +4,7 @@
 if(window.StainherTV)return;
 const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12;
 const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Fecha y hora',
- contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube en bucle'};
+ contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube'};
 const COLORS=['#087f8c','#176fc1','#ff7a2f','#7162cc','#729ec1','#50b2a7','#b28bcc','#aabfce'];
 let root=null,config=null,draft=null,data=null,screen=0,playing=false,rotation=null,refresh=null,clock=null,busy=false,configStamp=null,epoch=0,unsubscribe=null,priorFocus=null,inertNodes=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -75,9 +75,13 @@ async function loadExpenses(types,year,month,edpYear,edpMonth){
  return Object.fromEntries(await Promise.all(jobs));
 }
 function defaults(){return {version:1,seconds:25,screens:[{id:uid(),title:'Resumen del contrato',widgets:[widget('resumen',12),widget('equipos',6),widget('preventivo',6),widget('liderazgo',6),{...widget('aviso',6,'Información del contrato'),text:'Mantenimiento y Certificación para Ascensores y Montacargas · Contrato 4600029879'}]},{id:uid(),title:'Turnos · programación del día',widgets:[widget('turnos',4),widget('nomina',8),widget('reloj',12)]},{id:uid(),title:'Personal · nuestro equipo',widgets:[widget('personal',4),widget('directorio',8)]}]}}
+function widgetTitle(w){
+ if(w.type==='youtube'&&w.title==='Video de YouTube en bucle')return TYPES.youtube;
+ return String(w.title||TYPES[w.type]).slice(0,80);
+}
 function normalize(value){
  if(!value||!Array.isArray(value.screens)||!value.screens.length)return defaults();
- return {version:1,seconds:Math.min(300,Math.max(10,Number(value.seconds)||25)),screens:value.screens.slice(0,MAX_SCREENS).map(s=>({id:uid(),title:String(s.title||'Pantalla').slice(0,80),widgets:(Array.isArray(s.widgets)?s.widgets:[]).filter(w=>Object.hasOwn(TYPES,w.type)).slice(0,MAX_WIDGETS).map(w=>({id:uid(),type:w.type,width:[4,6,8,12].includes(Number(w.width))?Number(w.width):6,title:String(w.title||TYPES[w.type]).slice(0,80),text:String(w.text||'').slice(0,1000)}))}))};
+ return {version:1,seconds:Math.min(300,Math.max(10,Number(value.seconds)||25)),screens:value.screens.slice(0,MAX_SCREENS).map(s=>({id:uid(),title:String(s.title||'Pantalla').slice(0,80),widgets:(Array.isArray(s.widgets)?s.widgets:[]).filter(w=>Object.hasOwn(TYPES,w.type)).slice(0,MAX_WIDGETS).map(w=>({id:uid(),type:w.type,width:[4,6,8,12].includes(Number(w.width))?Number(w.width):6,title:widgetTitle(w),text:String(w.text||'').slice(0,1000)}))}))};
 }
 function checked(result,label){if(result.error)throw new Error(`${label}: ${result.error.message||'No disponible'}`);return result.data||[]}
 async function authorize(){
@@ -142,7 +146,7 @@ function expenseContent(type){
 function videoContent(widget){
  const id=videoId(widget.text);
  if(!id)return '<p class="tv-empty">Agrega un enlace de YouTube en Editar pantallas.</p>';
- const src=`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&playsinline=1`;
+ const src=`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&playsinline=1`;
  return `<iframe class="tv-youtube" title="${esc(widget.title)}" src="${esc(src)}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
 function prevCounts(){return [{label:'Ejecutados',n:data.prev.filter(r=>r.estado==='ejecutado').length},{label:'Programados',n:data.prev.filter(r=>r.estado==='programado').length},{label:'Pendientes',n:data.prev.filter(r=>!['ejecutado','programado'].includes(r.estado)).length}]}
@@ -256,7 +260,7 @@ function widgetEditorField(widget){
    <ul class="tv-youtube-results" data-tv-youtube-results></ul>
    <a data-tv-youtube-external target="_blank" rel="noopener noreferrer" hidden>Buscar en YouTube y copiar el enlace</a>
   </div>
-  <label class="tv-wide">Enlace de YouTube<input type="url" data-tv-field="text" maxlength="1000" required value="${esc(widget.text)}" placeholder="https://www.youtube.com/watch?v=…"><small>Reproducción en bucle sin sonido. Pausa la rotación para mantener esta pantalla visible.</small></label>`;
+  <label class="tv-wide">Enlace de YouTube<input type="url" data-tv-field="text" maxlength="1000" required value="${esc(widget.text)}" placeholder="https://www.youtube.com/watch?v=…"><small>Reproducción automática sin sonido. Pausa la rotación para mantener esta pantalla visible.</small></label>`;
  return '';
 }
 function editor(){
@@ -333,7 +337,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r400',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r401',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);

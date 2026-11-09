@@ -95,6 +95,8 @@ body.stainher-tv-open{overflow:hidden!important}
 #stainher-tv :is(.tv-type-contrato,.tv-type-reembolsables,.tv-type-operativos) .tv-bar{grid-template-columns:minmax(4em,1fr) minmax(16px,1.3fr) minmax(0,max-content)}
 #stainher-tv :is(.tv-type-contrato,.tv-type-reembolsables,.tv-type-operativos) .tv-bar b{white-space:nowrap;font-variant-numeric:tabular-nums}
 #stainher-tv .tv-youtube{display:block;width:100%;aspect-ratio:16/9;min-height:200px;border:0;border-radius:10px;background:#142c43}
+/* El ancho máximo mantiene el video al 54 % de la altura de la TV en formato 16:9. */
+#stainher-tv.tv-presenting .tv-youtube{width:min(100%,96vh);width:min(100%,96dvh);height:auto;min-height:0;margin-inline:auto}
 @media(max-width:650px){#stainher-tv .tv-contract-data{grid-template-columns:1fr}}
 
 #stainher-tv .tv-youtube-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:end}
