@@ -5,7 +5,7 @@ import {chromium} from 'playwright';
 const watcher=readFileSync('assets/stainher-v1524-release-refresh-r231.js','utf8');
 const site='https://stainher-qa.invalid/Stainher-App';
 const documentFor=revision=>`<!doctype html><html data-stainher-revision="${revision}"><head>
- <base href="${site}/assets/"><title>Stainher App V15.24 ${revision}</title>
+ <meta charset="utf-8"><base href="${site}/assets/"><title>Stainher App V15.24 ${revision}</title>
  <script defer src="stainher-v1524-release-refresh-r231.js"></script></head>
  <body><h1>${revision}</h1></body></html>`;
 const browser=await chromium.launch({headless:true});
@@ -18,8 +18,8 @@ try{
  await page.route(site+'/**',route=>{
   const url=new URL(route.request().url());
   if(url.pathname.endsWith('/release.json'))return route.fulfill({json:{revision:manifest}});
-  if(url.pathname.endsWith('.js'))return route.fulfill({contentType:'text/javascript',body:watcher});
-  return route.fulfill({contentType:'text/html',body:documentFor(available)});
+  if(url.pathname.endsWith('.js'))return route.fulfill({contentType:'text/javascript; charset=utf-8',body:watcher});
+  return route.fulfill({contentType:'text/html; charset=utf-8',body:documentFor(available)});
  });
  await page.goto(site+'/index.html');
  await page.evaluate(()=>{
@@ -42,7 +42,7 @@ try{
  assert.equal(await page.evaluate(()=>window.previousDocument),true);
  available='R406';
  try{
-  await notice.getByRole('button',{name:'Reintentar actualización'}).click({noWaitAfter:true});
+  await notice.getByRole('button',{name:'Reintentar actualización'}).click({noWaitAfter:true,timeout:5000});
   await page.getByRole('heading',{name:'R406'}).waitFor({timeout:10000});
   assert.ok(new URL(page.url()).searchParams.has('verify'));
  }catch(error){
