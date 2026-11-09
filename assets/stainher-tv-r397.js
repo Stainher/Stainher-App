@@ -6,6 +6,8 @@ const TABLE='tv_pantallas_r397',KEY='diario-mural',MAX_SCREENS=12,MAX_WIDGETS=12
 const TYPES={resumen:'Indicadores de mantenimiento',equipos:'Parque de equipos',preventivo:'Gráfico preventivo',turnos:'Gráfico de turnos',nomina:'Personas por turno',personal:'Gráfico de perfiles',directorio:'Directorio por rol',liderazgo:'Controles de liderazgo',aviso:'Aviso personalizado',reloj:'Reloj analógico',calendario:'Calendario mensual',clima:'Pronóstico semanal',
  contrato:'Datos del contrato',reembolsables:'Gastos reembolsables',operativos:'Gastos operativos',youtube:'Video de YouTube',portal:'Portal DEVE · Codelco'};
 const DEVE_URL='https://deve.codelco.cl/';
+const DEVE_TTL=5*60*1000;
+let portalData=null,portalPending=false,portalRetryAt=0;
 const COLORS=['#087f8c','#176fc1','#ff7a2f','#7162cc','#729ec1','#50b2a7','#b28bcc','#aabfce'];
 let root=null,config=null,draft=null,data=null,screen=0,playing=false,rotation=null,refresh=null,clock=null,busy=false,configStamp=null,epoch=0,unsubscribe=null,priorFocus=null,inertNodes=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -276,6 +278,60 @@ async function refreshWeather(location){
  root?.querySelectorAll(`[data-tv-weather="${location}"]`).forEach(node=>{node.innerHTML=weatherContent(location)});
  requestAnimationFrame(fitPresentation);
 }
+function portalDocumentUrl(value){
+ try{
+  const url=new URL(value);
+  if(url.origin===new URL(DEVE_URL).origin&&!url.username&&!url.password&&
+     url.pathname.startsWith('/deve/site/docs/')&&/\.(pdf|pptx)$/i.test(url.pathname))return url.href;
+ }catch{}
+ return '';
+}
+function portalContent(){
+ const data=portalData;
+ const valid=data&&Date.now()<Date.parse(data.consultedAt)+DEVE_TTL;
+ const details=valid?`
+  <section class="tv-portal-alert">
+   <h3>Aviso publicado por DEVE</h3>
+   <p>${esc(data.alert||'Sin texto de alerta disponible en la consulta.')}</p>
+   <small>Confirma la vigencia del aviso con DEVE para decisiones operacionales.</small>
+  </section>
+  ${data.documents.length?`<h3>Documentos oficiales</h3><ul class="tv-portal-documents">
+   ${data.documents.map(doc=>`<li><a href="${esc(doc.url)}" target="_blank" rel="noopener noreferrer">${esc(doc.label)} ↗</a></li>`).join('')}
+  </ul>`:''}
+  <small>Fuente: Codelco DEVE · Consultado ${esc(weatherUpdateFormatter.format(new Date(data.consultedAt)))} (Santiago).</small>`
+  :`<p class="tv-portal-status" role="status">${portalRetryAt?'Información de DEVE temporalmente no disponible.':'Consultando la información publicada por DEVE…'}</p>`;
+ return `<div class="tv-portal">
+  <div class="tv-portal-head"><span class="tv-portal-icon" aria-hidden="true">↗</span>
+   <div><h3>Centro Divisional de Alertas</h3><p>Codelco · División Andina</p></div>
+  </div>
+  ${details}
+  <a class="tv-primary tv-portal-link" href="${DEVE_URL}" target="_blank" rel="noopener noreferrer">Abrir portal oficial <span aria-hidden="true">↗</span></a>
+ </div>`;
+}
+async function refreshPortal(){
+ const node=root?.querySelector('[data-tv-portal]');
+ const now=Date.now();
+ if(!node||portalPending||now<portalRetryAt||(portalData&&now<Date.parse(portalData.consultedAt)+DEVE_TTL))return;
+ portalPending=true;
+ try{
+  const url=new URL('/functions/v1/tv-portal-deve',window.STAINHER_CONFIG.SUPABASE_URL);
+  const response=await fetch(url,{signal:AbortSignal.timeout(10000)});
+  if(!response.ok)throw new Error('DEVE no disponible');
+  const data=await response.json();
+  if(!Number.isFinite(Date.parse(data.consultedAt))||!Array.isArray(data.documents))throw new Error('Respuesta DEVE inválida');
+  const documents=data.documents.flatMap(doc=>{
+   const url=portalDocumentUrl(doc?.url);
+   return url&&typeof doc.label==='string'?[{url,label:doc.label}]:[];
+  });
+  portalData={alert:typeof data.alert==='string'?data.alert:null,consultedAt:data.consultedAt,documents};
+  portalRetryAt=0;
+ }catch{
+  portalData=null;
+  portalRetryAt=Date.now()+60000;
+ }finally{portalPending=false}
+ root?.querySelectorAll('[data-tv-portal]').forEach(panel=>{panel.innerHTML=portalContent()});
+ requestAnimationFrame(fitPresentation);
+}
 function content(w){
  switch(w.type){
  case 'contrato':return contractContent();
@@ -293,16 +349,7 @@ function content(w){
  case 'aviso':return `<div class="tv-message">${esc(w.text||'Agrega un mensaje desde Editar pantallas.').replace(/\n/g,'<br>')}</div>`;
  case 'reloj':return clockContent();
  case 'calendario':return '<div data-tv-calendar></div>';
- case 'portal':return `<div class="tv-portal">
-  <span class="tv-portal-icon" aria-hidden="true">↗</span>
-  <div>
-   <h3>Centro Divisional de Alertas</h3>
-   <p>Codelco · División Andina</p>
-   <p class="tv-portal-address">deve.codelco.cl</p>
-   <a class="tv-primary tv-portal-link" href="${DEVE_URL}" target="_blank" rel="noopener noreferrer">Abrir portal oficial <span aria-hidden="true">↗</span></a>
-   <small>Se abre en otra pestaña.</small>
-  </div>
- </div>`;
+ case 'portal':return `<div data-tv-portal>${portalContent()}</div>`;
  case 'clima':return `<div data-tv-weather="${weatherLocation(w.text)}"></div>`;
  default:return '';
  }
@@ -322,7 +369,7 @@ function render(){
  }else{
   // Mantener los widgets independientes de los datos durante las actualizaciones.
   s.widgets.forEach((w,i)=>{
-   if(!['youtube','reloj','calendario','portal'].includes(w.type))grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
+   if(!['youtube','reloj','calendario'].includes(w.type))grid.children[i].querySelector('.tv-widget-content').innerHTML=content(w);
   });
  }
  root.querySelector('[data-tv-count]').textContent=`${screen+1} / ${config.screens.length}`;
@@ -330,6 +377,7 @@ function render(){
  tick();
  const locations=new Set([...grid.querySelectorAll('[data-tv-weather]')].map(node=>node.dataset.tvWeather));
  for(const location of locations)void refreshWeather(location);
+ void refreshPortal();
  requestAnimationFrame(fitPresentation);
 }
 function fitPresentation(){if(!root)return;const grid=root.querySelector('[data-tv-grid]');grid.style.zoom='';if(!root.classList.contains('tv-presenting'))return;const footer=root.querySelector('.tv-footer');const available=root.clientHeight-grid.getBoundingClientRect().top-footer.offsetHeight-12;const ratio=Math.min(1,available/Math.max(1,grid.scrollHeight));grid.style.zoom=String(Math.max(.25,ratio))}
@@ -525,7 +573,7 @@ function install(){
  if(nav&&!b){b=document.createElement('button');b.type='button';b.id='stainher-tv-open';b.textContent='▣ Diario mural · TV';b.onclick=open;nav.append(b)}
 }
 function boot(){
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r409',document.currentScript?.src||document.baseURI).href;document.head.append(link);
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('stainher-tv-r397.css?build=20261109-r410',document.currentScript?.src||document.baseURI).href;document.head.append(link);
  let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;install()})}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
  if(typeof sb!=='undefined')unsubscribe=sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session)close();setTimeout(install,0)}).data?.subscription;
  install();window.addEventListener('stainher:modules-ready',install);window.addEventListener('resize',fitPresentation);document.addEventListener('fullscreenchange',fitPresentation);

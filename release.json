@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R409",
-  "build": "20261109-r409-tv-portal-deve",
+  "revision": "R410",
+  "build": "20261109-r410-tv-panel-deve",
   "path": "./",
   "publishedAt": "2026-11-09",
   "operationalStatus": {

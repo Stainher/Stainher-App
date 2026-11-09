@@ -22,6 +22,15 @@ try{
    })),
   }});
  });
+ await page.route('https://pronostico-fixture.invalid/functions/v1/tv-portal-deve',route=>route.fulfill({
+  headers:{'Access-Control-Allow-Origin':'*'},json:{
+   consultedAt:'2026-12-01T02:59:50Z',alert:'Aviso de prueba <img src=x>',
+   documents:[
+    {label:'Pronóstico semanal',url:'https://deve.codelco.cl/deve/site/docs/semana.pdf'},
+    {label:'Destino inválido',url:'https://example.invalid/archivo.pdf'},
+   ],
+  },
+ }));
  await page.addStyleTag({content:css});await page.addScriptTag({content:fixture});
  await page.evaluate(()=>{window.STAINHER_CONFIG={SUPABASE_URL:'https://pronostico-fixture.invalid'}});
  await page.addScriptTag({content:js});
@@ -125,6 +134,12 @@ try{
  assert.equal(await forecast.count(),7,'El pronóstico guardado sigue visible');
  assert.equal(await cityDays.count(),7,'Santiago se conserva al reabrir');
  assert.deepEqual(weatherRequests,{andina:1,santiago:1},'La caché es independiente para cada ubicación');
+ const panel=page.locator('[data-tv-portal]');
+ await panel.getByText('Aviso de prueba <img src=x>',{exact:true}).waitFor();
+ assert.equal(await panel.locator('img').count(),0);
+ assert.equal(await panel.getByRole('link',{name:/Pronóstico semanal/}).getAttribute('href'),'https://deve.codelco.cl/deve/site/docs/semana.pdf');
+ assert.equal(await panel.getByText('Destino inválido').count(),0);
+ assert.match(await panel.innerText(),/Fuente: Codelco DEVE/);
  const portal=page.getByRole('link',{name:'Abrir portal oficial'});
  assert.equal(await portal.getAttribute('href'),'https://deve.codelco.cl/');
  assert.equal(await portal.getAttribute('rel'),'noopener noreferrer');
