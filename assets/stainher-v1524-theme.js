@@ -1467,7 +1467,7 @@
     }
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
-      script.src=new URL(file,source).href+'?build='+(file==='stainher-v1524-date-picker.js'?'20261025-r279-single-date-shell':file==='stainher-v1524-home-layout.js'?'20261109-r412-formulario-recordatorio':file==='stainher-v1524-navigation-stability.js'?'20261107-r396-boletas-drawer-unlock-r398-audit':'20261102-r318-navigation-version-fix');script.async=false;script.dataset.stainherModule=file;
+      script.src=new URL(file,source).href+'?build='+(window.STAINHER_BUILD || (file==='stainher-v1524-date-picker.js'?'20261025-r279-single-date-shell':file==='stainher-v1524-home-layout.js'?'20261109-r412-formulario-recordatorio':file==='stainher-v1524-navigation-stability.js'?'20261107-r396-boletas-drawer-unlock-r398-audit':'20261102-r318-navigation-version-fix'));script.async=false;script.dataset.stainherModule=file;
       script.addEventListener('load',()=>{script.dataset.stainherLoaded='1';resolve()},{once:true});
       script.addEventListener('error',()=>reject(new Error(`No se pudo cargar ${file}`)),{once:true});
       document.head.appendChild(script);

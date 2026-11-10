@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-stainher-revision="R416">
+<html lang="es" data-stainher-revision="R417" data-stainher-native-staffing>
 <head>
   <base href="./assets/">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -7,7 +7,7 @@
   <meta http-equiv="Expires" content="0">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <script defer src="stainher-v1524-release-refresh-r231.js?build=20261110-r416-controles-supervisor"></script>
+  <script defer src="stainher-v1524-release-refresh-r231.js?build=20261110-r417-inicio-estable"></script>
   <style id="home-reminder-style">
     #stainher-reminder-r361{position:fixed;inset:0;margin:auto;width:min(560px,calc(100% - 30px));max-height:min(90dvh,750px);overflow:auto;background:var(--panel,#f8fbff);border:1px solid #94aec6;border-radius:16px;box-shadow:0 18px 70px rgba(0,0,0,.3);color:var(--text,#163450);padding:20px;box-sizing:border-box}
     #stainher-reminder-r361::backdrop{background:rgba(9,24,39,.65)}
@@ -35,7 +35,37 @@
     }
   </style>
   <!-- Stainher App V15.24 r19 · revisión modular 02-09-2026 · Desarrollado por Ismael Gálvez -->
-  <title>Stainher App V15.24 R416</title>
+  <title>Stainher App V15.24 R417</title>
+  <script>
+  (() => {
+    const revision = document.documentElement.dataset.stainherRevision;
+    const version = 'V15.24';
+    const build = '20261110-r417-inicio-estable';
+    window.STAINHER_RELEASE = Object.freeze({version, revision, build});
+    window.STAINHER_BUILD = build;
+    // Los renderizadores históricos no definen la revisión del documento.
+    const canonical = `Stainher App ${version} ${revision}`;
+    let proto = Object.getPrototypeOf(document);
+    let descriptor;
+    while (proto && !descriptor) {
+      descriptor = Object.getOwnPropertyDescriptor(proto, 'title');
+      proto = Object.getPrototypeOf(proto);
+    }
+    if (!descriptor?.get || !descriptor?.set) return;
+    const getter = () => canonical;
+    getter.__stainherLocked = true;
+    try {
+      Object.defineProperty(document, 'title', {
+        configurable: true, enumerable: true, get: getter,
+        set() {
+          if (descriptor.get.call(document) !== canonical) descriptor.set.call(document, canonical);
+        }
+      });
+    } catch (error) {
+      console.warn('[Stainher] Título de la revisión', error);
+    }
+  })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -48,7 +78,6 @@
   SUPABASE_URL: 'https://xeqoooouoknpbgyazjkj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_iNXnSXRWpajeEAEWuRyWLw_PtjPurF0'
 };
-window.STAINHER_BUILD = '20261110-r416-controles-supervisor';
 
 /* Stainher App V15.24 r19 · arranque visual estable en Inicio.
  * Este bloque se ejecuta desde config.js antes del primer renderizado visible.
@@ -105,7 +134,7 @@ window.STAINHER_BUILD = '20261110-r416-controles-supervisor';
     });
     if(title.textContent!=='⌂ Inicio')title.textContent='⌂ Inicio';
     const version=title.closest('.v151-mobile-title')?.querySelector('small');
-    if(version)version.textContent='Stainher App · V15.24 r19';
+    if(version)version.textContent=`Stainher App · ${window.STAINHER_RELEASE.version} · ${window.STAINHER_RELEASE.revision}`;
 
     requestAnimationFrame(()=>{
       document.documentElement.dataset.stainherInitialRouteReady='1';
@@ -184,7 +213,7 @@ window.STAINHER_BUILD = '20261110-r416-controles-supervisor';
       {id:'stainher-v1524-reliability-actions-d20-script',src:'stainher-v1524-reliability-actions.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'confiabilidad'},
       {id:'stainher-v1524-admin-crud-d20-script',src:'stainher-v1524-admin-crud.js?build=20260909-r24-devengo-al-consultar-home-final',domain:'administracion'},
       {id:'stainher-v1524-fixed-monday-thursday-d20-script',src:'stainher-v1524-fixed-monday-thursday.js?build=20260909-r29-data-only',domain:'turnos'},
-      {id:'stainher-v1524-theme-d20-script',src:'stainher-v1524-theme.js?build=20261110-r416-controles-supervisor',domain:'tema'},
+      {id:'stainher-v1524-theme-d20-script',src:'stainher-v1524-theme.js?build=20261110-r417-inicio-estable',domain:'tema'},
       {id:'stainher-v1524-runtime-audit-d20-script',src:'stainher-v1524-runtime-audit.js?build=20260924-r112-loader-consolidation',domain:'diagnostico'},
       {id:'stainher-reliability-charts-dark-r19-d20-script',src:'stainher-reliability-charts-dark-r19.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'confiabilidad-graficos'},
       {id:'stainher-v1524-signature-upload-d20-script',src:'stainher-v1524-signature-upload.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'firmas'},
@@ -197,7 +226,7 @@ window.STAINHER_BUILD = '20261110-r416-controles-supervisor';
     try{if(!window.state&&typeof state!=='undefined')window.state=state}catch(_){ }
     try{if(!window.sb&&typeof sb!=='undefined')window.sb=sb}catch(_){ }
   }
-  const RUNTIME_BUILD='20261031-r310-boot-refresh';
+  const RUNTIME_BUILD=window.STAINHER_BUILD;
   function runtimeUrl(source){
     const url=new URL(source,document.baseURI);
     if(url.origin===location.origin)url.searchParams.set('app_build',RUNTIME_BUILD);
@@ -339,13 +368,13 @@ window.STAINHER_BUILD = '20261110-r416-controles-supervisor';
 }
 
 </style>
-<link rel="stylesheet" href="stainher-tv-social-r413.css?build=20261110-r416-controles-supervisor">
-<script defer src="stainher-v1524-control-supervisor-r416.js?build=20261110-r416-controles-supervisor"></script>
-<script defer data-stainher-module="stainher-v1524-custom-control-builder.js" src="stainher-v1524-custom-control-builder.js?build=20261110-r416-controles-supervisor"></script>
-<script defer data-stainher-module="stainher-v1524-leadership-execution-access.js" src="stainher-v1524-leadership-execution-access.js?build=20261110-r416-controles-supervisor"></script>
-<script defer src="stainher-tv-social-r413.js?build=20261110-r416-controles-supervisor"></script>
-<script defer src="stainher-tv-r397.js?build=20261110-r416-controles-supervisor"></script>
-<script defer src="stainher-correctivo-edit-r402.js?build=20261110-r416-controles-supervisor"></script>
+<link rel="stylesheet" href="stainher-tv-social-r413.css?build=20261110-r417-inicio-estable">
+<script defer src="stainher-v1524-control-supervisor-r416.js?build=20261110-r417-inicio-estable"></script>
+<script defer data-stainher-module="stainher-v1524-custom-control-builder.js" src="stainher-v1524-custom-control-builder.js?build=20261110-r417-inicio-estable"></script>
+<script defer data-stainher-module="stainher-v1524-leadership-execution-access.js" src="stainher-v1524-leadership-execution-access.js?build=20261110-r417-inicio-estable"></script>
+<script defer src="stainher-tv-social-r413.js?build=20261110-r417-inicio-estable"></script>
+<script defer src="stainher-tv-r397.js?build=20261110-r417-inicio-estable"></script>
+<script defer src="stainher-correctivo-edit-r402.js?build=20261110-r417-inicio-estable"></script>
 </head>
 <body class="v156-login-mode">
 <div id="loginView" class="login-wrap">
@@ -11109,10 +11138,16 @@ showApp=async function(){
 /* Inicio directo: alertas/hitos + disponibilidad del día. */
 renderInicio=async function(){
   const p=document.getElementById('page-inicio');if(!p||!state.session)return;
-  if(!p.querySelector('#homeImpactAlerts')||!p.querySelector('[data-home-staffing-content]'))p.innerHTML=`<div class="topbar"><div><h2>Inicio</h2><p>Alertas, próximos hitos, recordatorios y personal de turno del día.</p></div></div><div class="panel v153-home-alert-panel"><div id="homeImpactAlerts"><div class="empty">Cargando alertas…</div></div></div><section class="panel v1521-home-turn" data-home-staffing-content><h3>Personal de turno hoy</h3><div class="muted">Cargando programación actual…</div></section>`;
+  if(!p.querySelector('#homeImpactAlerts')||!p.querySelector('[data-home-staffing-content]'))p.innerHTML=`<div class="topbar"><div><h2>Inicio</h2><p>Alertas, próximos hitos, recordatorios y personal de turno del día.</p><div class="global-meta"><span class="meta-chip" data-stainher-version>Stainher App · ${window.STAINHER_RELEASE.version} · ${window.STAINHER_RELEASE.revision}</span><span class="meta-chip">${v1520Date(v1520DateIso(new Date()))}</span></div></div></div><div class="panel v153-home-alert-panel"><div id="homeImpactAlerts"><div class="empty">Cargando alertas…</div></div></div><details class="panel stainher-disclosure stainher-home-staffing" data-stainher-home-panel="staffing" data-stainher-disclosure="1" aria-label="Dotación en turno hoy"><summary class="stainher-disclosure-summary"><span class="stainher-disclosure-marker" aria-hidden="true"></span><span class="stainher-disclosure-title">Dotación en turno hoy</span></summary><div class="stainher-disclosure-content"><div class="v1521-home-turn" data-home-staffing-content data-no-collapse="1"><div class="muted">Cargando programación actual…</div></div></div></details>`;
   Promise.resolve(renderHomeAlertsV95?.()).catch(e=>{v1523RecordError('inicio/alertas',e);const b=document.getElementById('homeImpactAlerts');if(b)b.innerHTML='<div class="notice error">No fue posible cargar las alertas.</div>'});
-  const host=p.querySelector('[data-home-staffing-content]');try{const today=v1520DateIso(new Date()),[dq,mq,eq]=await Promise.all([sb.from('dotacion_contrato').select('user_id,nombre,cargo,estado,aplica_turnos,orden').eq('estado','activo').eq('aplica_turnos',true),sb.from('turnos_malla_v1512').select('user_id,turno_base').eq('fecha',today),sb.from('turnos_novedades_v15').select('user_id,tipo').lte('fecha_inicio',today).gte('fecha_fin',today)]);if(dq.error||mq.error||eq.error)throw(dq.error||mq.error||eq.error);const shifts=new Map((mq.data||[]).map(x=>[String(x.user_id),x.turno_base])),abs=new Set((eq.data||[]).filter(x=>['vacaciones','licencia_medica','permiso','falta'].includes(x.tipo)).map(x=>String(x.user_id))),priority=c=>/supervisor/i.test(c||'')?0:/prevencion|apr/i.test(c||'')?2:1,people=(dq.data||[]).filter(x=>['A','C'].includes(shifts.get(String(x.user_id)))&&!abs.has(String(x.user_id))).sort((a,b)=>priority(a.cargo)-priority(b.cargo)||(Number(a.orden)||999)-(Number(b.orden)||999)||String(a.nombre).localeCompare(String(b.nombre),'es')),group=t=>people.filter(x=>shifts.get(String(x.user_id))===t);host.innerHTML=`<div class="row-between"><div><h3>Personal de turno hoy</h3><div class="muted">${v1520Date(today)} · actualización automática</div></div>${canViewV11('turnos')?'<button class="btn" onclick="v1519Navigate(\'turnos\')">Ver programación</button>':''}</div><div class="v1522-home-shifts">${['A','C'].map(t=>`<section class="v1522-home-group"><h4>Turno ${t} · ${group(t).length}</h4><div class="v1522-home-grid">${group(t).map(x=>`<div class="v1522-home-person"><b>${esc(x.nombre)}</b><small>${/supervisor/i.test(x.cargo||'')?'Supervisor':/prevencion|apr/i.test(x.cargo||'')?'APR':'Técnico'}</small></div>`).join('')||'<div class="empty">Sin personal disponible.</div>'}</div></section>`).join('')}</div>`}catch(e){v1523RecordError('inicio/turnos',e);host.innerHTML='<h3>Personal de turno hoy</h3><div class="notice error">No fue posible cargar la programación actual.</div>'}v1523Version();
+  await window.StainherHomeStaffing?.refresh(p.querySelector('[data-home-staffing-content]'));
 };
+
+window.addEventListener('stainher:modules-error',()=>{
+  if(window.StainherHomeStaffing)return;
+  const host=document.querySelector('#page-inicio [data-home-staffing-content]');
+  if(host)host.innerHTML='<div class="notice error">No fue posible iniciar el panel de dotación.</div>';
+});
 
 /* Solicitudes directo: una consulta, una carga de estados de correo y acciones exactas. */
 async function v1523AssignManagerModal(id){
@@ -12094,7 +12129,7 @@ openPlanModal=async function(){
   document.getElementById('planForm').onsubmit=async event=>{event.preventDefault();const values=Object.fromEntries(new FormData(event.target));if(!dateInEdp(values.fecha_programada,period.year,period.month))return toast(`La fecha debe quedar entre ${fmtDateCL(range.start)} y ${fmtDateCL(range.end)}.`,'error');values.anio=period.year;values.mes=period.month;const query=await sb.from('programacion_preventiva').insert(values);if(query.error)return toast(query.error.message,'error');state.v1519PlanCatalogLoaded=false;closeModal();await renderPreventivo();toast('Actividad programada dentro del período contractual','success')};
 };
 </script>
-<script>(function(){window.STAINHER_RELEASE={version:'V15.24',revision:'R416',build:'20261110-r416-controles-supervisor'};const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');const build=file==='stainher-turnos-direct-r18.js'?'20260909-r29-calendar-groups':file==='stainher-turn-pdf-final-r18.js'?'20260924-r112-loader-consolidation':file==='stainher-vehicle-expiry-alerts-r18.js'?'20260924-r109-vehicle-control-gases' :'20261031-r310-boot-refresh';s.src=file+'?build='+build+'&app_build=R416';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.catch(error=>console.error('[r112]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
+<script>(function(){const files=["stainher-home-tabs-desktop-r15.js","stainher-correctivo-r10.js","stainher-dotacion-scope-r10.js","stainher-supervisor-correctivo-r12.js","stainher-reliability-ai-r16.js","stainher-turnos-direct-r18.js","stainher-turnos-light-contrast-r18.js","stainher-turnos-holidays-r18.js","stainher-turn-pdf-final-r18.js","stainher-plan-assistant-responsive-r18.js","stainher-vehicle-expiry-alerts-r18.js","stainher-reliability-ai-diagnostics-r18.js","stainher-reliability-ai-loading-r18.js"];let started=false;function load(){if(started)return;started=true;let chain=Promise.resolve();for(const file of files)chain=chain.then(()=>new Promise((resolve,reject)=>{const s=document.createElement('script');const build=file==='stainher-turnos-direct-r18.js'?'20260909-r29-calendar-groups':file==='stainher-turn-pdf-final-r18.js'?'20260924-r112-loader-consolidation':file==='stainher-vehicle-expiry-alerts-r18.js'?'20260924-r109-vehicle-control-gases' :'20261031-r310-boot-refresh';s.src=file+'?build='+build+'&app_build='+window.STAINHER_BUILD;s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('No se pudo cargar '+file));document.head.appendChild(s)}));chain.catch(error=>console.error('[r112]',error))}if(window.STAINHER_LOADER_STATUS&&window.STAINHER_LOADER_STATUS.state==='ready')load();else window.addEventListener('stainher:modules-ready',load,{once:true});})();</script>
 <script id="stainher-permission-selector-r304">
 /* R319: selector de novedades sin observadores ni bucles de renderizado. */
 (function(){

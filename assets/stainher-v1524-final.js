@@ -65,12 +65,12 @@
   }
 
   function applyVersion(){
-    document.title = `Stainher App ${VERSION}`;
+    if(!window.STAINHER_RELEASE?.revision)document.title = `Stainher App ${VERSION}`;
     document.querySelectorAll('.v151-mobile-title small,.v1514-global-meta span:first-child,.version-chip,.v15-version-chip,.v1513-version-meta span:first-child').forEach(el => {
       const t = String(el.textContent || '');
       if (/V15\.\d+(?:\.\d+)*/.test(t)) el.textContent = t.replace(/V15\.\d+(?:\.\d+)*/g,VERSION);
     });
-    document.querySelectorAll('[data-stainher-version]').forEach(el => { el.textContent = VERSION; });
+    document.querySelectorAll('[data-stainher-version]').forEach(el => { el.textContent = window.STAINHER_RELEASE?.revision ? `Stainher App · ${VERSION} · ${window.STAINHER_RELEASE.revision}` : VERSION; });
   }
 
   function eventDates(ev, from, to){
@@ -270,14 +270,33 @@
     return {show:false,key:'free',label:'Libre',effective:false,section:'FUERA'};
   }
 
-  async function enhanceHome(){
-    const page=document.getElementById('page-inicio');if(!page||!window.state?.session)return;
-    const host=page.querySelector('.v1521-home-turn');if(!host)return;
+  const homeRequests = new WeakMap();
+  function refreshHome(host) {
+    const uid = userId();
+    if(!host || !uid)return;
+    const pending = homeRequests.get(host);
+    if(pending?.uid === uid)return pending.promise;
+    if(host.dataset.staffingUser && host.dataset.staffingUser !== uid){
+      host.innerHTML='<div class="muted">Cargando programación actual…</div>';
+    }
+    host.dataset.staffingUser = uid;
+    const request = {uid};
+    request.promise = renderHomeStaffing(host,uid).finally(()=>{
+      if(homeRequests.get(host) === request)homeRequests.delete(host);
+    });
+    homeRequests.set(host,request);
+    return request.promise;
+  }
+
+  async function renderHomeStaffing(host,uid){
+    const current=()=>host.isConnected&&userId()===uid;
     try{
       const today=dateIso(new Date()),people=await visiblePeopleForHome(),ids=people.map(p=>String(p.user_id));
+      if(!current())return;
       if(!ids.length){host.innerHTML='<h3>Dotación en turno hoy</h3><div class="empty">No hay usuarios de turno asociados a este perfil.</div>';return}
       let sq=window.sb.from('turnos_malla_v1512').select('user_id,turno_base,estado_publicacion').eq('fecha',today).in('user_id',ids);
       const [shiftsQ,eventsQ]=await Promise.all([sq,window.sb.from('turnos_novedades_v15').select('user_id,tipo,turno_base,motivo,observacion').lte('fecha_inicio',today).gte('fecha_fin',today).in('user_id',ids)]);
+      if(!current())return;
       if(shiftsQ.error||eventsQ.error)throw(shiftsQ.error||eventsQ.error);
       let shifts=shiftsQ.data||[];
       if(!canSeeDrafts())shifts=shifts.filter(x=>x.estado_publicacion==='publicado');
@@ -291,8 +310,7 @@
       const effective=rows.filter(x=>x.status.effective).length;
       const section=(key,title)=>{const arr=rows.filter(x=>x.status.section===key);return `<section class="v1524-home-group"><h4>${escHtml(title)} · ${arr.length}</h4><div class="v1524-home-grid">${arr.map(x=>`<div class="v1524-home-person ${x.status.key==='suspended'?'suspended':''}"><div><b>${escHtml(x.nombre)}</b><small>${escHtml(homeRoleLabel(x))} · Base ${escHtml(x.base)}</small></div><span class="v1524-home-badge ${x.status.key}">${escHtml(x.status.label)}</span></div>`).join('')||'<div class="empty">Sin personal.</div>'}</div></section>`};
       host.innerHTML=`<div class="row-between"><div><h3>Dotación en turno hoy</h3><div class="muted">${fmtDate(today)} · programación ${canSeeDrafts()?'publicada y borrador visible para gestión':'publicada'} · actualización automática</div></div>${window.canViewV11?.('turnos')?'<button class="btn" onclick="v1519Navigate(\'turnos\')">Ver programación</button>':''}</div><div class="v1524-home-kpis"><div class="v1524-home-kpi"><span>Operativos hoy</span><b>${effective}</b></div><div class="v1524-home-kpi"><span>Turno normal</span><b>${count('normal')}</b></div><div class="v1524-home-kpi"><span>Encierro dentro de turno</span><b>${count('inside')}</b></div><div class="v1524-home-kpi"><span>Encierro fuera de turno</span><b>${count('outside')}</b></div><div class="v1524-home-kpi"><span>Suspendidos por encierro</span><b>${count('suspended')}</b></div></div><div class="v1524-home-shifts">${section('A','Turno A')}${section('C','Turno C')}${section('FUERA','Fuera de turno / adicional')}</div>`;
-    }catch(error){host.innerHTML=`<h3>Dotación en turno hoy</h3><div class="notice error">No se pudo cargar el detalle operacional: ${escHtml(error.message||String(error))}</div>`}
-    applyVersion();
+    }catch(error){if(!current()||host.querySelector('.v1524-home-kpis'))return;host.innerHTML=`<h3>Dotación en turno hoy</h3><div class="notice error">No se pudo cargar el detalle operacional: ${escHtml(error.message||String(error))}</div>`}
   }
 
   function enhanceSystem(){
@@ -318,9 +336,9 @@
       const base=window.renderTurnosV15;
       const fn=async function(){const out=await base.apply(this,arguments);enhanceTurnosPage();return out};fn.__v1524final=true;window.renderTurnosV15=fn;
     }
-    if(typeof window.renderInicio==='function'&&!window.renderInicio.__v1524final){
+    if(!document.documentElement.hasAttribute('data-stainher-native-staffing')&&typeof window.renderInicio==='function'&&!window.renderInicio.__v1524final){
       const base=window.renderInicio;
-      const fn=async function(){const out=await base.apply(this,arguments);await enhanceHome();return out};fn.__v1524final=true;window.renderInicio=fn;
+      const fn=async function(){const out=await base.apply(this,arguments);await refreshHome(document.querySelector('#page-inicio .v1521-home-turn'));return out};fn.__v1524final=true;window.renderInicio=fn;
     }
     if(typeof window.renderSistema==='function'&&!window.renderSistema.__v1524final){
       const base=window.renderSistema;
@@ -341,7 +359,10 @@
     }
     installTurnDataVisibility();installCoverageLogic();installTypeLabels();connectDirectCellEditing();connectReport();installVersionAliases();wrapRenderers();applyVersion();
     if(document.getElementById('page-turnos')?.classList.contains('active'))window.renderTurnosV15?.();
-    if(document.getElementById('page-inicio')?.classList.contains('active'))window.renderInicio?.();
+    window.StainherHomeStaffing = Object.freeze({refresh:refreshHome});
+    if(document.documentElement.hasAttribute('data-stainher-native-staffing')){
+      void refreshHome(document.querySelector('#page-inicio [data-home-staffing-content]'));
+    }else if(document.getElementById('page-inicio')?.classList.contains('active'))window.renderInicio?.();
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

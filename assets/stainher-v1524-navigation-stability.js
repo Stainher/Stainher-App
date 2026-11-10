@@ -4,7 +4,7 @@
   if(window.__STAINHER_NAVIGATION_STABILITY__)return;
   window.__STAINHER_NAVIGATION_STABILITY__=true;
   const VERSION='V15.24';
-  const REVISION=(document.querySelector('head > title')?.textContent?.match(/R[0-9]{2,4}/)?.[0] || window.STAINHER_RELEASE?.revision || 'R318');
+  const REVISION=(document.documentElement.dataset.stainherRevision || window.STAINHER_RELEASE?.revision || document.querySelector('head > title')?.textContent?.match(/R[0-9]{2,4}/)?.[0] || 'R318');
   let activePage='inicio',sequence=0,baseNavigate=null,queued=false;
 
   function lockBrowserTitle(){
@@ -240,7 +240,8 @@
       staffingPanel.classList.add('stainher-home-staffing');
       staffingPanel.dataset.stainherHomePanel='staffing';
       staffingPanel.setAttribute('aria-label','Dotación en turno hoy');
-      const summary=staffingPanel.querySelector(':scope>summary .stainher-disclosure-title,:scope>summary>span:first-of-type');
+      const summary=staffingPanel.querySelector(':scope>summary .stainher-disclosure-title')
+        ||staffingPanel.querySelector(':scope>summary>span:not(.stainher-disclosure-marker):not(.stainher-home-collapse-chevron)');
       if(summary){if(summary.textContent!=='Dotación en turno hoy')summary.textContent='Dotación en turno hoy';summary.dataset.stainherFixedTitle='staffing'}
       staffingPanel.querySelectorAll('h3').forEach(title=>{if(/Personal de turno hoy|Detalles/i.test(title.textContent||''))title.textContent='Dotación en turno hoy'});
     }
@@ -466,7 +467,7 @@
     const browserTitle=document.querySelector('head > title');
     if(browserTitle){
       const canonicalTitle=`Stainher App ${VERSION} ${REVISION}`;
-      new MutationObserver(()=>{if(document.title!==canonicalTitle)document.title=canonicalTitle})
+      new MutationObserver(()=>{if(browserTitle.textContent!==canonicalTitle)document.title=canonicalTitle})
         .observe(browserTitle,{childList:true,characterData:true,subtree:true});
     }
     new MutationObserver(records=>{if(records.some(record=>record.addedNodes.length||record.type==='characterData'))schedule()}).observe(document.body,{childList:true,subtree:true,characterData:true});

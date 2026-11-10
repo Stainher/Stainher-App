@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R416",
-  "build": "20261110-r416-controles-supervisor",
+  "revision": "R417",
+  "build": "20261110-r417-inicio-estable",
   "path": "./",
   "publishedAt": "2026-11-10",
   "operationalStatus": {
