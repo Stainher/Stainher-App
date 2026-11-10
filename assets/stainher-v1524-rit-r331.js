@@ -88,7 +88,7 @@ function markup(){
 let h='<div class="rt-bar"><h3>Reunión de Inicio de Turno (RIT)</h3><div class="rt-row"><button data-act="new">Nuevo RIT</button><button data-act="history">Historial</button></div></div>';
 if(view==="history")return h+'<div class="rt-box"><p class="rt-info" id="rt-template-state">Verificando plantilla oficial incluida en Stainher App…</p></div><div id="rt-history-list">Cargando registros…</div>';
 h+='<div class="rt-steps">Etapa '+(stage+1)+' de 6 · '+esc(S[stage])+'</div><div class="rt-box">';
-if(stage===0)h+='<div class="rt-grid">'+field("Centro de trabajo","centro")+field("Gerencia","gerencia")+field("Superintendencia / Empresa contratista","empresa")+field("Área / Frente de trabajo","area")+dateField()+field("Turno","turno")+field("Supervisor a cargo","supervisor")+field("Nº asistentes","asistentes","number",'min="0" max="999"')+'</div>'+participantMarkup();
+if(stage===0)h+='<div class="rt-grid">'+field("Centro de trabajo","centro")+field("Gerencia","gerencia")+field("Superintendencia / Empresa contratista","empresa")+field("Área / Frente de trabajo","area")+dateField()+field("Turno","turno")+(window.StainherControlSupervisor?'<label>Supervisor a cargo<select id="v416RitSupervisor" data-field="supervisor"></select></label>':field("Supervisor a cargo","supervisor"))+field("Nº asistentes","asistentes","number",'min="0" max="999"')+'</div>'+participantMarkup();
 if(stage===1)h+='<p>Marque solamente los riesgos presentes y verificados por el supervisor.</p><div class="rt-risks">'+RF.map(r=>'<label><input type="checkbox" data-risk="'+r[0]+'" '+(record.riesgos.includes(r[0])?"checked":"")+'>'+r[0]+' · '+esc(r[1])+'</label>').join("")+'</div>';
 if(stage===2)h+=record.actividades.map((a,i)=>'<div class="rt-box"><div class="rt-bar"><b>Actividad '+(i+1)+'</b><button data-remove="'+i+'">Quitar</button></div><label>Descripción<textarea data-activity="'+i+'" data-prop="nombre">'+esc(a.nombre)+'</textarea></label><div class="rt-grid3">'+ITEMS.map(item=>'<label>'+item+'<select data-prep="'+i+'" data-item="'+item+'">'+opt([["","Sin evaluar"],["si","Sí"],["no","No"]],a.preparacion[item]||"")+'</select></label>').join("")+'</div></div>').join("")+'<button data-act="add" '+(record.actividades.length>=6?"disabled":"")+'>Añadir actividad (máx. 6)</button>';
 if(stage===3&&!record.riesgos.length)h+='<p class="rt-error">Seleccione primero los riesgos de fatalidad en la etapa 2.</p>';
@@ -199,6 +199,7 @@ function render(){const root=host();if(!root)return;style();let el=document.getE
  if(slot){slot.querySelector(".r390-loading")?.remove();slot.appendChild(el);el.dataset.r390Modal="1";}
  else ritStaging(root).appendChild(el);
  }el.innerHTML=markup();
+ void window.StainherControlSupervisor?.fill(el.querySelector("#v416RitSupervisor"),{byName:true,initial:record.supervisor});
  const status=el.querySelector("#rt-template-state");
  if(status){
   window.StainherRITPDF?.hasTemplate().then(ready=>{

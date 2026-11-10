@@ -240,7 +240,7 @@
     root.innerHTML=`<div class="modal-bg"><div class="modal modal-wide-v9">
       <div class="row-between"><div><h3>${esc(template.nombre)}</h3><div class="muted">${esc(template.descripcion||'')}</div></div><div class="v1524-published-control-actions">${canManage()?'<button type="button" class="btn" id="v1524EditPublishedControl">Editar control</button>':''}<button class="btn" type="button" onclick="closeModal()">Cerrar</button></div></div>
       <form id="v1524GenericForm">
-        <div class="section-v95"><div class="terrain-form-grid-v95"><label>Fecha<input class="field" name="fecha" type="date" value="${today}" required></label><label>Área / Equipo<input class="field" name="area"></label></div></div>
+        <div class="section-v95"><div class="terrain-form-grid-v95">${window.StainherControlSupervisor?'<label>Supervisor<select id="v416GenericSupervisor" class="field"></select></label>':''}<label>Fecha<input class="field" name="fecha" type="date" value="${today}" required></label><label>Área / Equipo<input class="field" name="area"></label></div></div>
         <div class="section-v95"><h4>Formulario</h4><div class="v1524-generic-checklist">${fields.map(responseControl).join('')||'<div class="empty">Este control no tiene campos configurados.</div>'}</div></div>
         <div class="section-v95"><label>Observaciones generales<textarea class="field" name="obs" rows="4" style="width:100%"></textarea></label></div>
         <div class="section-v95 v1512-signature-frame"><h4>Firma</h4><canvas id="v1524GenericSig" class="v12-signature" width="1000" height="220"></canvas></div>
@@ -249,6 +249,7 @@
     </div></div>`;
     document.getElementById('v1524EditPublishedControl')?.addEventListener('click',()=>window.v1524OpenEditTemplateModal?.(template.id));
     window.v12SetupSig?.('v1524GenericSig');window.v154InstallSignatureFullscreen?.('v1524GenericSig','Firma');
+    void window.StainherControlSupervisor?.fill('v416GenericSupervisor');
     const form=document.getElementById('v1524GenericForm');
     form.onsubmit=async event=>{
       event.preventDefault();
@@ -258,14 +259,14 @@
         const missing=responses.find(x=>x.field.requerido&&!x.value);if(missing)throw new Error(`Completa el campo “${missing.field.label}”.`);
         const rows=responses.map(x=>[x.field.label,x.value||'—']),hasNonConformity=responses.some(x=>x.value==='No conforme'),date=String(values.fecha||today),dt=new Date(date+'T12:00:00'),free=window.v1512LeadershipFreeRole?.()||!template.requiere_programacion;
         const payload={
-          supervisor_user_id:null,supervisor_nombre:window.state?.profile?.nombre||'',control_codigo:template.codigo,control_nombre:template.nombre,
+          ...(window.StainherControlSupervisor?.read('v416GenericSupervisor') || {supervisor_user_id:null,supervisor_nombre:window.state?.profile?.nombre||''}),control_codigo:template.codigo,control_nombre:template.nombre,
           fecha:date,anio:dt.getFullYear(),mes:dt.getMonth()+1,estado:'realizado',created_by:window.state?.session?.user?.id,
           fuera_programacion:free,ejecutado_por_user_id:window.state?.session?.user?.id,ejecutado_por_nombre:window.state?.profile?.nombre||window.state?.session?.user?.email,
           ejecutado_por_rol:window.v11Role?.(),detalle:{area:String(values.area||''),items:rows,campos:responses.map(x=>({id:x.field.id,label:x.field.label,tipo:x.field.tipo,valor:x.value})),observaciones:String(values.obs||'')},
           firma_data:window.v12SigData?.('v1524GenericSig')
         };
         const query=await window.sb.from('liderazgo_cumplimiento').insert(payload);if(query.error)throw query.error;
-        const doc=window.v1512GenericPdf?.(template,{usuario:payload.ejecutado_por_nombre,fecha:date,area:values.area,resultado:hasNonConformity?'CON OBSERVACIONES':'REGISTRADO',rows,obs:values.obs,firma:payload.firma_data});
+        const doc=window.v1512GenericPdf?.(template,{usuario:payload.ejecutado_por_nombre,supervisor:payload.supervisor_nombre,fecha:date,area:values.area,resultado:hasNonConformity?'CON OBSERVACIONES':'REGISTRADO',rows,obs:values.obs,firma:payload.firma_data});
         if(doc)doc.save(`${template.codigo}_${date}.pdf`);
         window.closeModal?.();await window.renderLiderazgoV95?.();window.toast?.('Control registrado.','success');
       }catch(error){window.toast?.(error?.message||'No se pudo registrar el control.','error')}

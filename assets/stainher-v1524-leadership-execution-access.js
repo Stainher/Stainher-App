@@ -1,6 +1,5 @@
 /* Stainher App V15.24 · acceso de ejecución para Liderazgo en Terreno.
- * Prevención y perfiles administrativos con acceso a Liderazgo pueden ejecutar controles libremente.
- * R377: Supervisor y Técnico también pueden ejecutar controles de forma libre.
+ * Los perfiles activos pueden ejecutar controles libremente.
  * La gestión de metas y plantillas permanece protegida por RLS.
  */
 (()=>{
@@ -29,14 +28,7 @@
   }
 
   function isLeadershipExecutor(){
-    if(!window.state?.session?.user?.id)return false;
-    // La programación define metas; la autorización para ejecutar la da el permiso de Liderazgo.
-    try{
-      if(window.canViewV11?.('liderazgo')||window.canEditV11?.('liderazgo'))return true;
-    }catch(_){ }
-    const role=profileText();
-    if(!role)return false;
-    return /(^|\b)(administrador|administrativo|administrativa|administracion|confiabilidad|planificacion|planificador|planificadora|programacion|programador|programadora|prevencion|prevencionista|experto en prevencion|experta en prevencion|apr|supervisor|tecnico|tecnica)(\b|$)/.test(role);
+    return !!window.state?.session?.user?.id && !!window.state.profile && window.state.profile.activo !== false;
   }
 
   let baseCanExecute=typeof window.canExecuteLeadershipV11==='function'?window.canExecuteLeadershipV11:null;
@@ -110,7 +102,7 @@
   window.__STAINHER_RIT_R331_LOADER__=true;
   const tag=document.createElement('script');
   const src=document.currentScript?.src||location.href;
-  tag.src=new URL('stainher-v1524-rit-r331.js',src).href+'?build=r391-20261106-rit-hidden';
+  tag.src=new URL('stainher-v1524-rit-r331.js',src).href+'?build=r391-20261106-rit-hidden&release=r416';
   tag.async=false;tag.dataset.stainherModule='stainher-v1524-rit-r331.js';
   tag.onerror=()=>console.error('[Stainher RIT] Falló la carga del asistente R331');
   document.head.appendChild(tag);

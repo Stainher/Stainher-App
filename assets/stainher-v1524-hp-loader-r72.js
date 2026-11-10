@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R415')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R416')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R415';
+  window.__STAINHER_HP_LOADER_VERSION__='R416';
 
-  const BUILD='20261109-r415-partidas-mural';
+  const BUILD='20261110-r416-controles-supervisor';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){
@@ -94,18 +94,21 @@
     }catch(error){console.warn('[R379] Sensor de fatiga en camionetas',error)}
   }
   async function refreshExtintoresSupervisorR386(){
+    if(window.StainherControlSupervisor)return;
     try{
       await load('stainher-extintores-supervisor-r386','stainher-v1524-extintores-supervisor-r386.js');
       window.StainherExtintoresSupervisorR386?.install?.();
     }catch(error){console.warn('[R386] Supervisor Extintores',error)}
   }
   async function refreshExtintoresSupervisorR385(){
+    if(window.StainherControlSupervisor)return;
     try{
       await load('stainher-extintores-supervisor-r385','stainher-v1524-extintores-supervisor-r385.js');
       window.StainherExtintoresSupervisorR385?.install?.();
     }catch(error){console.warn('[R385] Selector Supervisor de Extintores',error)}
   }
   async function refreshExtintoresSupervisorR383(){
+    if(window.StainherControlSupervisor)return;
     try{
       await load('stainher-extintores-supervisor-r383','stainher-v1524-extintores-supervisor-r383.js');
       window.StainherExtintoresSupervisorR383?.install?.();
@@ -520,6 +523,7 @@
     }catch(error){console.warn('[Visual KPI R362]',error)}
   }
   async function refreshTerrainSupervisorR376(){
+    if(window.StainherControlSupervisor)return;
     try{
       await load('stainher-terrain-supervisor-r376','stainher-v1524-terrain-supervisor-r376.js');
       window.StainherTerrainSupervisorR376?.install?.();

@@ -1,10 +1,10 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R415",
-  "build": "20261109-r415-partidas-mural",
+  "revision": "R416",
+  "build": "20261110-r416-controles-supervisor",
   "path": "./",
-  "publishedAt": "2026-11-09",
+  "publishedAt": "2026-11-10",
   "operationalStatus": {
     "status": "base funcional confirmada",
     "confirmedBy": "Ismael Gálvez",
