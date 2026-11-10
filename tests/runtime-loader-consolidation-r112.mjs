@@ -42,7 +42,7 @@ assert.doesNotMatch(index,/"stainher-v1524-turn-report-onepage\.js"/,'el exporta
 assert.match(index,/stainher-v1524-runtime-audit\.js/,'El runtime audit continúa en el entrypoint');
 assert.match(index,/stainher-v1524-ux-runtime\.js/,'El runtime UX continúa en el entrypoint');
 const release=JSON.parse(fs.readFileSync(new URL('../release.json',import.meta.url),'utf8'));
-assert.match(index,new RegExp("revision:'"+release.revision+"'"),'La versión del entrypoint coincide con el manifiesto actual');
+assert.match(index,new RegExp('data-stainher-revision="'+release.revision+'"'),'La versión del entrypoint coincide con el manifiesto actual');
 assert.match(index,/function runtimeUrl\(source\)/,'El cargador debe prevenir archivos antiguos en la caché');
 
 console.log('runtime-loader-consolidation-r112: ok');
