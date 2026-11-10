@@ -31,8 +31,9 @@
   function setDisclosureTitle(panel,title){
     if(!panel)return;
     const disclosure=panel.matches('details')?panel:panel.closest('details');
-    const titleNode=disclosure?.querySelector(':scope > summary .stainher-disclosure-title,:scope > summary > span:first-of-type');
-    if(titleNode)titleNode.textContent=title;
+    const titleNode=disclosure?.querySelector(':scope > summary .stainher-disclosure-title')
+      ||disclosure?.querySelector(':scope > summary > span:not(.stainher-disclosure-marker):not(.stainher-home-collapse-chevron)');
+    if(titleNode&&titleNode.textContent!==title)titleNode.textContent=title;
     panel.querySelectorAll?.(':scope h3,.v1512-home-turn h3,.row-between h3').forEach(node=>node.textContent=title);
     panel.setAttribute('aria-label',title);
   }
