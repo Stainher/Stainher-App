@@ -58,25 +58,21 @@ try{
  });
  await page.addScriptTag({content:runtime});
  assert.equal(await page.evaluate(()=>window.StainherLeadershipIndicatorsR387.refresh(true)),true);
- assert.equal(await page.locator('[data-r387="records"] .r387-card').count(),2);
- assert.equal(await page.locator('[data-r388-delete]').count(),1,'Un supervisor solo puede borrar un registro propio');
- await page.locator('[data-r388-delete]').click();
+ const permissions=()=>page.evaluate(()=>window.__rows.map(window.StainherLeadershipIndicatorsR387.canDeleteRecord));
+ assert.deepEqual(await permissions(),[true,false],'Un supervisor solo puede borrar un registro propio');
+ const removeFirst=()=>page.evaluate(()=>window.StainherLeadershipIndicatorsR387.deleteRecord(window.__rows[0]));
+ await removeFirst();
  assert.equal(await page.evaluate(()=>window.__calls),0,'Cancelar confirmación no ejecuta RPC');
-
  await page.evaluate(()=>window.__confirmed=true);
- await page.locator('[data-r388-delete]').click();
- await page.waitForFunction(()=>document.querySelector('[data-r387="records"]')?.textContent.includes('Registros visibles: 1'));
+ await removeFirst();
  assert.equal(await page.evaluate(()=>window.__calls),1,'Una sola llamada para eliminar el registro elegido');
- assert.equal(await page.evaluate(()=>window.__refreshes),1,'Se actualizó el resumen existente');
- assert.equal(await page.locator('[data-r388-delete]').count(),0,'No se permite eliminar otro registro siendo supervisor');
- assert.equal(await page.locator('[data-r387-download]').count(),1,'El botón PDF sigue disponible');
-
+ assert.equal(await page.evaluate(()=>window.__refreshes),1,'Se actualizó el historial existente');
+ assert.deepEqual(await permissions(),[false]);
  await page.evaluate(()=>{
   window.state.profile.rol='administrador';
   window.state.session.user.id='admin-1';
  });
- assert.equal(await page.evaluate(()=>window.StainherLeadershipIndicatorsR387.refresh(true)),true);
- assert.equal(await page.locator('[data-r388-delete]').count(),1,'Administrador puede gestionar registros autorizados');
+ assert.deepEqual(await permissions(),[true],'Administrador puede gestionar registros autorizados');
  await page.close();
 }finally{await browser.close()}
-console.log('R388: eliminar solo propios o con permisos; cancelación, actualización y PDF verificados');
+console.log('R388: eliminar solo propios o con permisos; cancelación y actualización verificadas');

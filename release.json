@@ -1,10 +1,10 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R417",
-  "build": "20261110-r417-inicio-estable",
+  "revision": "R418",
+  "build": "20261111-r418-historial-controles",
   "path": "./",
-  "publishedAt": "2026-11-10",
+  "publishedAt": "2026-11-11",
   "operationalStatus": {
     "status": "base funcional confirmada",
     "confirmedBy": "Ismael Gálvez",
