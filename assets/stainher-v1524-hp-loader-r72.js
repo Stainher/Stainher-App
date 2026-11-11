@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R417')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R418')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R417';
+  window.__STAINHER_HP_LOADER_VERSION__='R418';
 
-  const BUILD='20261110-r417-inicio-estable';
+  const BUILD='20261111-r418-historial-controles';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

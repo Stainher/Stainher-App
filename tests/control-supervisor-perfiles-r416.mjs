@@ -35,6 +35,12 @@ test('Los perfiles activos pueden seleccionar y registrar al responsable desde l
           const qaProfiles=${JSON.stringify(profiles)};
           const qaTemplate=${JSON.stringify(template)};
           window.qaWrites=[];
+          const actor=qaProfiles[0];
+          const qaRecords=['propio','ajeno'].map((id,index)=>({
+            id,created_by:qaProfiles[index].id,ejecutado_por_user_id:actor.id,
+            ejecutado_por_nombre:actor.nombre,ejecutado_por_rol:actor.rol,
+            control_nombre:'Control '+id,fecha:'2026-11-10',estado:'realizado'
+          }));
           window.supabase={createClient:()=>({
             auth:{
               getSession:async()=>({data:{session:{user:qaProfiles[0],access_token:'test'}}}),
@@ -43,7 +49,7 @@ test('Los perfiles activos pueden seleccionar y registrar al responsable desde l
             from(table){
               let single=false;
               const chain=new Proxy({}, {get(_target,key){
-                if(key==='then') return resolve=>resolve({data:table==='perfiles'&&single?qaProfiles[0]:table==='liderazgo_plantillas_v1512'?[qaTemplate]:[],error:null,count:0});
+                if(key==='then') return resolve=>resolve({data:table==='perfiles'&&single?qaProfiles[0]:table==='liderazgo_plantillas_v1512'?[qaTemplate]:table==='liderazgo_cumplimiento'?qaRecords:[],error:null,count:0});
                 return (...args)=>{
                   if(key==='single'||key==='maybeSingle')single=true;
                   if(key==='insert')window.qaWrites.push({table,payload:args[0]});
@@ -86,6 +92,31 @@ test('Los perfiles activos pueden seleccionar y registrar al responsable desde l
       assert.equal(await page.evaluate(() => canViewV11('liderazgo') && canExecuteLeadershipV11()),true,profile.rol);
       await page.evaluate(async () => {applyPermissionsV11();await v1519Navigate('liderazgo');v1512LeadSwitch('controles');});
       await page.locator('#v1512Lead_controles').waitFor({state:'visible'});
+      if (profile.rol==='supervisor'||profile.rol==='administrador') {
+        await page.waitForFunction(()=>window.StainherLeadershipR86&&window.StainherLeadershipR87&&window.StainherLeadershipIndicatorsR387);
+        await page.evaluate(async()=>{
+          v1512LeadSwitch('indicadores');
+          const history=document.querySelector('[data-leadership-records]');
+          if(history.closest('details'))history.closest('details').open=true;
+          await window.StainherLeadershipR87.enhanceDone();
+          await window.StainherLeadershipIndicatorsR387.refresh(true);
+          window.v1524DownloadLeadershipRecordPdf=id=>{window.qaPdf=id;};
+        });
+        const table=page.locator('[data-leadership-records]');
+        const row=table.locator('tbody tr').filter({hasText:'Control propio'});
+        assert.equal(await table.getByText('Acciones',{exact:true}).count(),1);
+        assert.equal(await row.locator('[data-record-action=pdf]').count(),1,await table.innerHTML());
+        assert.equal(await row.locator('[data-record-action=delete]').count(),1);
+        assert.equal(await page.getByText(/Registros visibles:/i).count(),0);
+        if(profile.rol==='supervisor'){
+          const other=table.locator('tbody tr').filter({hasText:'Control ajeno'});
+          assert.equal(await other.count(),1);
+          assert.equal(await other.locator('[data-record-action=delete]').count(),0);
+        }
+        await row.locator('[data-record-action=pdf]').evaluate(button=>button.click());
+        assert.equal(await page.evaluate(()=>window.qaPdf),'propio');
+        await page.evaluate(()=>v1512LeadSwitch('controles'));
+      }
       if (profile.rol === 'recursos_humanos') {
         assert.equal(await page.locator('#v1512Lead_indicadores').count(),0);
       }

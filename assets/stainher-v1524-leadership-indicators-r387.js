@@ -2,7 +2,7 @@
    Sin MutationObservers, sin modificaciones de registros, PDF o permisos. */
 (()=>{
  'use strict';
- if(window.StainherLeadershipIndicatorsR387?.build==='R388')return;
+ if(window.StainherLeadershipIndicatorsR387?.build==='R418')return;
  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const getPage=()=>document.getElementById('page-liderazgo');
@@ -101,9 +101,9 @@
    return !restricted&&!!window.canEditV11?.('liderazgo');
   }catch(_){return false}
  }
- async function deleteRecord(id,button){
+ async function deleteRecord(record,button){
+  const id=String(record?.id||'');
   if(!id||removing.has(id))return;
-  const record=cache?.done?.find(r=>String(r.id)===String(id));
   if(!canDeleteRecord(record)){
    window.toast?.('No tienes autorización para eliminar este control.','error');return;
   }
@@ -128,48 +128,23 @@
    if(button?.isConnected){button.disabled=false;button.textContent=previous}
   }finally{removing.delete(id)}
  }
- function renderRecords(node,rows,periodName){
-  if(!node)return;
-  const records=rows.filter(x=>!x.estado||x.estado==='realizado');
-  node.innerHTML='<div class="r387-top"><b>Registros visibles: '+records.length+'</b><small>'+esc(periodName)+'</small></div>'+
-   (records.length?'<div class="r387-grid">'+records.map(r=>
-    '<article class="r387-card"><strong>'+esc(r.control_nombre||r.control_codigo||'Control Stainher')+'</strong>'+
-    '<p>'+esc(dateCL(r.fecha))+' · '+esc(r.ejecutado_por_nombre||r.supervisor_nombre||'Sin nombre')+'</p>'+
-    '<p class="r387-muted">'+(r.fuera_programacion?'Ejecución libre':'Programado')+'</p>'+
-    (r.id?'<div class="r388-actions"><button type="button" class="btn r387-download" data-r387-download="'+esc(r.id)+'">Descargar PDF</button>'+
-     (canDeleteRecord(r)?'<button type="button" class="btn r388-delete" data-r388-delete="'+esc(r.id)+'" aria-label="Eliminar control realizado">Eliminar</button>':'')+'</div>':'')+
-    '</article>').join('')+'</div>':
-    '<p class="r387-muted">No hay controles visibles para este perfil durante el período.</p>')+
-   '<p class="r387-foot">Los controles libres no requieren una meta mensual para aparecer en el historial.</p>';
-  if(!node.__r387Bound){
-   node.__r387Bound=true;
-   node.addEventListener('click',event=>{
-    const remove=event.target?.closest?.('[data-r388-delete]');
-    if(remove){void deleteRecord(remove.dataset.r388Delete,remove);return}
-    const target=event.target?.closest?.('[data-r387-download]');
-    if(target&&window.v1524DownloadLeadershipRecordPdf)window.v1524DownloadLeadershipRecordPdf(target.dataset.r387Download);
-   });
-  }
- }
  async function refresh(force=false){
   const page=getPage();if(!page||page.classList.contains('hidden'))return false;
   const users=mount('cumplimiento por usuario','users');
-  const records=mount('controles realizados','records');
-  if(!users&&!records)return false;
-  const p=period();if(!force&&lastRender===p.key&&records?.dataset.r387Ready==='1')return true;
-  showMessage(users,'Consultando indicadores…');showMessage(records,'Consultando registros…');
+  page.querySelectorAll('[data-r387="records"]').forEach(node=>node.remove());
+  if(!users)return false;
+  const p=period();if(!force&&lastRender===p.key&&users.dataset.r387Ready==='1')return true;
+  showMessage(users,'Consultando indicadores…');
   try{
    const data=await read(p.year,p.month,force);
    if(period().key!==p.key)return false;
    const label=new Date(p.year,p.month-1,1).toLocaleDateString('es-CL',{month:'long',year:'numeric'});
    renderUsers(users,data.done,data.goals,label);
-   renderRecords(records,data.done,label);
-   if(records)records.dataset.r387Ready='1';lastRender=p.key;
+   users.dataset.r387Ready='1';lastRender=p.key;
    return true;
   }catch(error){
    console.warn('[Stainher Liderazgo R387]',error);
    showMessage(users,'No se pudo cargar el cumplimiento: '+(error.message||error));
-   showMessage(records,'No se pudo cargar el historial: '+(error.message||error));
    return false;
   }
  }
@@ -184,10 +159,6 @@
    '#page-liderazgo .r387-card p{margin:5px 0;font-size:13px;line-height:1.45}',
    '#page-liderazgo .r387-muted{color:var(--muted,#516b84);font-size:13px;line-height:1.45}',
    '#page-liderazgo .r387-foot{color:var(--muted,#516b84);font-size:11px;margin:10px 0 0}',
-   '#page-liderazgo .r387-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:9px}',
-   '#page-liderazgo .r387-download{margin-top:6px;padding:8px}',
-   '#page-liderazgo .r388-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}',
-   '#page-liderazgo .r388-actions .btn{margin:0;min-height:36px}',
    '#page-liderazgo .r388-delete{background:#fff3f2!important;color:#9f2433!important;-webkit-text-fill-color:#9f2433!important;border:1px solid #d6a5aa!important}',
    '#page-liderazgo .r388-delete:disabled{opacity:.6!important;cursor:wait}',
    '@media(max-width:600px){#page-liderazgo .r387-grid{grid-template-columns:minmax(0,1fr)}}'
@@ -228,7 +199,7 @@
   window.addEventListener('stainher:modules-ready',()=>{wrapRender();lastRender='';schedule()});
   schedule();
  }
- window.StainherLeadershipIndicatorsR387=Object.freeze({build:'R388',install,refresh,period,read,canDeleteRecord,deleteRecord});
+ window.StainherLeadershipIndicatorsR387=Object.freeze({build:'R418',install,refresh,period,read,canDeleteRecord,deleteRecord});
  install();
  [350,1100,2600].forEach(ms=>setTimeout(()=>{wrapRender();schedule()},ms));
 })();

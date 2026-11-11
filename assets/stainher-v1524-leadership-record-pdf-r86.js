@@ -75,7 +75,7 @@
   async function enhanceActions(){
     const section=document.getElementById('v1512Lead_indicadores');if(!section)return;
     const panel=[...section.querySelectorAll('.panel')].find(x=>x.querySelector('h3')?.textContent.trim()==='Controles realizados');
-    const table=panel?.querySelector('table');if(!table)return;
+    const table=panel?.querySelector('table');if(!table||table.hasAttribute('data-leadership-records'))return;
     const data=typeof window.v1512LoadLeadershipData==='function'?await window.v1512LoadLeadershipData():null;
     if(!data||data.error)return;const rows=data.done||[];
     const head=table.querySelector('thead tr');

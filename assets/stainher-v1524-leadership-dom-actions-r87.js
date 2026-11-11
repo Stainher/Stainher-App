@@ -52,7 +52,7 @@
     const root=page();if(!root)return false;
     const panel=panelByTitle(/controles realizados/);
     const table=panel?.querySelector('table')||tableByHeaders(['fecha','usuario','control','tipo','acciones']);
-    if(!table)return false;
+    if(!table||table.hasAttribute('data-leadership-records'))return false;
     const d=await data();if(!d)return false;
     const rows=d.done||[];
     const trs=[...table.querySelectorAll('tbody tr')];
