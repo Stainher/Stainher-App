@@ -135,6 +135,7 @@ const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.
 function transferStatus(row){
  if(Number(row.reembolso_personal_monto)>=Number(row.monto)){
   if(row.transferencia_id)return '<button type="button" class="r420-transferred" data-r342="open-transfer" data-id="'+esc(row.transferencia_id)+'" aria-label="Transferido, ver transferencia">Transferido</button>';
+  if(isManager())return '<button type="button" class="r420-transferred" data-r342="reopen-legacy" data-id="'+esc(row.id)+'" aria-label="Transferido, regularizar reembolso histórico">Transferido</button>';
   return '<span class="r420-transferred">Transferido</span>';
  }
  return Number(row.reembolso_personal_monto)>0?'Parcial<br>'+money(row.reembolso_personal_monto):'Pendiente';
@@ -318,6 +319,23 @@ if(cmd==='new'){if(!isManager())return;editing=true;document.getElementById('r34
 if(cmd==='edit'&&r){editing=r;document.getElementById('r342-body').innerHTML=form(r);document.getElementById('r342-form').onsubmit=save}
 if(cmd==='cancel'){editing=null;render()}
 if(cmd==='history'||cmd==='reimb'){subtab=cmd==='history'?'historial':'reembolsos';editing=null;render()}
+if(cmd==='reopen-legacy'&&isManager()&&r&&!r.anulado&&!r.transferencia_id&&Number(r.reembolso_personal_monto)>=Number(r.monto)){
+ if(!confirm('¿Dejar este gasto pendiente para registrar la fecha real de la transferencia y adjuntar su comprobante?'))return;
+ b.disabled=true;
+ try{
+  const result=await window.sb.from(TABLE).update({
+   reembolso_personal_monto:0,reembolso_personal_fecha:null,reembolso_personal_por:'',
+   medio_reembolso_personal:'pendiente',updated_at:new Date().toISOString()
+  }).eq('id',r.id).eq('anulado',false).is('transferencia_id',null)
+   .eq('reembolso_personal_monto',r.reembolso_personal_monto).select('id').maybeSingle();
+  if(result.error)throw result.error;
+  if(!result.data)throw Error('El estado del gasto cambió. Actualice la vista e intente nuevamente.');
+  transferPerson=personKey(r);
+  subtab='reembolsos';editing=null;
+  await render();
+ }catch(error){window.toast?.(error.message,'error');b.disabled=false}
+ return;
+}
 if(cmd==='open-transfer'){
  subtab='reembolsos';editing=null;
  await render();
