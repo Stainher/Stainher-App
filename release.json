@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R419",
-  "build": "20261113-r419-resumen-boletas",
+  "revision": "R420",
+  "build": "20261113-r420-comprobantes-gastos",
   "path": "./",
   "publishedAt": "2026-11-13",
   "operationalStatus": {
