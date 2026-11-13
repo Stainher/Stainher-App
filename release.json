@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R420",
-  "build": "20261113-r420-comprobantes-gastos",
+  "revision": "R421",
+  "build": "20261113-r421-transferido-uniforme",
   "path": "./",
   "publishedAt": "2026-11-13",
   "operationalStatus": {

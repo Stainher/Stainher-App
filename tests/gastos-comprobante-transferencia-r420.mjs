@@ -9,6 +9,7 @@ try{
  await page.goto('https://gastos.test/');
  await page.evaluate(()=>{
   const docs=['a','b'].map(id=>({id,fecha:'2026-11-10',monto:5000,realizado_por:'me',realizado_por_nombre:'Persona',numero_documento:id,tipo_documento:'boleta'}));
+  docs.push({id:'historico',fecha:'2026-11-10',monto:1000,reembolso_personal_monto:1000,numero_documento:'histórico'});
   const transfers=[{id:'anulada',anulada:true,monto_total:100}];
   window.state={profile:{rol:'administrador'},contractTab:'gastos_operacionales_r342'};
   window.uploads=[];
@@ -18,14 +19,14 @@ try{
    from(table){
     let unpaid=false;
     return {select(){return this;},gte(){return this;},lt(){return this;},eq(){return this;},is(){unpaid=true;return this;},order(){return this;},limit(){return this;},in(){return this;},
-     then(resolve){return Promise.resolve({data:table==='gastos_operacionales_r342'?docs.filter(row=>!unpaid||!row.transferencia_id):table==='gastos_transferencias_r348'?transfers:[]}).then(resolve);}
+     then(resolve){return Promise.resolve({data:table==='gastos_operacionales_r342'?docs.filter(row=>!unpaid||(!row.transferencia_id&&!row.reembolso_personal_monto)):table==='gastos_transferencias_r348'?transfers:[]}).then(resolve);}
     };
    },
    storage:{from(bucket){return {upload:async path=>{window.uploads.push({bucket,path});return {};}};}},
    rpc:async(name,args)=>{
     window.calls.push({name,args});
     transfers.push({id:'nueva',monto_total:10000,comprobante_path:args.p_archivo});
-    docs.forEach(row=>{row.transferencia_id='nueva';row.reembolso_personal_monto=row.monto;});
+    docs.filter(row=>args.p_gastos.includes(row.id)).forEach(row=>{row.transferencia_id='nueva';row.reembolso_personal_monto=row.monto;});
     return {data:'nueva'};
    }
   };
@@ -49,6 +50,12 @@ try{
  await status.first().waitFor();
  assert.equal(await status.count(),2);
  assert.equal(await status.first().evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(20, 102, 64)');
+ const styles=await page.locator('.r420-transferred').evaluateAll(nodes=>nodes.map(node=>{
+  const css=getComputedStyle(node),rect=node.getBoundingClientRect();
+  return [rect.width,rect.height,css.fontFamily,css.fontSize,css.fontWeight,css.color,css.backgroundColor];
+ }));
+ assert.equal(styles.length,3);
+ assert.deepEqual(styles[0],styles[2]);
  await status.first().click();
  await page.getByRole('button',{name:'Ver comprobante'}).waitFor();
 }finally{await browser.close();}
