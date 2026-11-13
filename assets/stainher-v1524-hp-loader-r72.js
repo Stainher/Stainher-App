@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R420')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R421')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R420';
+  window.__STAINHER_HP_LOADER_VERSION__='R421';
 
-  const BUILD='20261113-r420-comprobantes-gastos';
+  const BUILD='20261113-r421-transferido-uniforme';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

@@ -65,8 +65,10 @@ const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r342-table-wrap{width:100%;overflow-x:auto}
 #contractContent .r342-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 #contractContent .r342-table th,#contractContent .r342-table td{padding:9px;border-bottom:1px solid var(--line,#ccc);text-align:left}
-#contractContent .r420-transferred{display:inline-flex;align-items:center;padding:6px 11px;border:1px solid #11633d;border-radius:8px;background:#146640!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:750;white-space:nowrap}
+#contractContent .r420-transferred{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:36px;padding:6px 11px;margin:0;border:1px solid #11633d;border-radius:8px;background:#146640!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-family:inherit;font-size:12px;font-weight:750;line-height:1.2;white-space:nowrap}
 #contractContent span.r420-transferred{cursor:default}
+#contractContent button.r420-transferred{appearance:none;cursor:pointer}
+#contractContent button.r420-transferred:focus-visible{outline:2px solid #208d59;outline-offset:2px}
 #contractContent .r420-proof{display:grid;gap:6px;margin:10px 0}
 #contractContent .r420-proof input{max-width:100%;min-width:0}
 #contractContent .r342-note{font-size:12px;color:var(--muted)}
@@ -116,7 +118,7 @@ const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.
 }
 function transferStatus(row){
  if(Number(row.reembolso_personal_monto)>=Number(row.monto)){
-  if(row.transferencia_id)return '<button type="button" class="btn r420-transferred" data-r342="open-transfer" data-id="'+esc(row.transferencia_id)+'" aria-label="Transferido, ver transferencia">Transferido</button>';
+  if(row.transferencia_id)return '<button type="button" class="r420-transferred" data-r342="open-transfer" data-id="'+esc(row.transferencia_id)+'" aria-label="Transferido, ver transferencia">Transferido</button>';
   return '<span class="r420-transferred">Transferido</span>';
  }
  return Number(row.reembolso_personal_monto)>0?'Parcial<br>'+money(row.reembolso_personal_monto):'Pendiente';
