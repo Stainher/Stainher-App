@@ -8,6 +8,8 @@ const money=v=>'$'+Number(v||0).toLocaleString('es-CL');
 const date=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 const toast=(s,type='info')=>window.toast?.(s,type);
 let uid=null,profile=null,items=[],payments=[],busy=false;
+const transferProofs=new Set();
+const transferProofFolder=()=>uid+'/comprobantes-transferencia';
 const manager=()=>uid===ISMAEL;
 const page=()=>document.getElementById('page-'+PAGE);
 /* R392: ocultar únicamente el título técnico duplicado "boletas-rendir".
@@ -158,6 +160,19 @@ async function fetchData(){
   const b=await window.sb.from('boletas_reintegros_r354').select('*').order('created_at',{ascending:false}).limit(200);
   if(b.error)throw b.error;payments=b.data||[];
  }else payments=[];
+ transferProofs.clear();
+ if(reportAllowed()){
+  try{
+   const bucket=window.sb.storage.from(BUCKET);
+   const limit=100;
+   for(let offset=0;;offset+=limit){
+    const {data,error}=await bucket.list(transferProofFolder(),{limit,offset,sortBy:{column:'name',order:'asc'}});
+    if(error)throw error;
+    for(const file of data)transferProofs.add(file.name);
+    if(data.length<limit)break;
+   }
+  }catch(error){toast('No se pudieron consultar los comprobantes de transferencia: '+error.message,'error')}
+ }
 }
 function kpis(){
  const sum=a=>a.reduce((n,r)=>n+Number(r.monto||0),0);
@@ -191,7 +206,7 @@ function history(){
   '<strong id="r419-report-total" aria-live="polite"></strong></div>':'')+
  '<div class="r354-scroll"><table><thead><tr>'+
  (reporting?'<th><input type="checkbox" id="r419-report-all" aria-label="Seleccionar todas las boletas del filtro"></th>':'')+
- (manager()?'<th>Solicitante</th>':'')+'<th>Fecha</th><th>Detalle</th><th>Documento</th><th>Monto</th><th>Estado</th><th>Comprobante</th></tr></thead>'+
+ (manager()?'<th>Solicitante</th>':'')+'<th>Fecha</th><th>Detalle</th><th>Documento</th><th>Monto</th><th>Estado</th><th>Boleta</th>'+(reporting?'<th>Comprobante</th>':'')+'</tr></thead>'+
  '<tbody id="r419-history-rows">'+historyRows(items,reporting)+'</tbody></table></div></section>';
 }
 function historyRows(rows,reporting){
@@ -199,8 +214,45 @@ function historyRows(rows,reporting){
  (reporting?'<td><input type="checkbox" data-r419-report-row value="'+esc(r.id)+'" aria-label="Seleccionar documento '+esc(receiptDocument(r)||r.fecha_gasto)+'"></td>':'')+
  (manager()?'<td>'+esc(r.nombre_solicitante)+'</td>':'')+
  '<td>'+esc(r.fecha_gasto)+'</td><td>'+esc(r.concepto)+'</td><td>'+esc(receiptDocument(r))+'</td><td>'+money(r.monto)+'</td>'+
- '<td>'+(r.estado==='reintegrado'?'<button type="button" class="r354-transferred" data-r354="transfer" data-id="'+esc(r.id)+'">Transferido</button>':receiptStatus(r))+'</td><td><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td></tr>').join('')||
- '<tr><td colspan="'+(reporting?8:manager()?7:6)+'">Sin boletas registradas.</td></tr>';
+ '<td>'+(r.estado==='reintegrado'?'<button type="button" class="r354-transferred" data-r354="transfer" data-id="'+esc(r.id)+'">Transferido</button>':receiptStatus(r))+'</td><td><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td>'+
+ (reporting?'<td>'+transferProofCell(r)+'</td>':'')+'</tr>').join('')||
+ '<tr><td colspan="'+(reporting?9:manager()?7:6)+'">Sin boletas registradas.</td></tr>';
+}
+function transferProofCell(receipt){
+ if(receipt.estado!=='reintegrado')return '—';
+ const key=esc(receipt.transferencia_id||receipt.id);
+ return transferProofs.has(key)
+  ?'<button type="button" class="r354-btn" data-r354="transfer-proof" data-id="'+key+'">Ver</button>'
+  :'<button type="button" class="r354-btn" data-r354="attach-transfer-proof" data-id="'+key+'">Adjuntar</button>';
+}
+function chooseTransferProof(button){
+ const input=document.createElement('input');
+ input.type='file';
+ input.accept='application/pdf,image/jpeg,image/png,image/webp';
+ input.onchange=async()=>{
+  const file=input.files[0];
+  if(!file)return;
+  if(!file.size||file.size>10485760||!input.accept.split(',').includes(file.type)){
+   return toast('Adjunta un PDF o una imagen válida de hasta 10 MB.','error');
+  }
+  if(!reportAllowed())return;
+  button.disabled=true;
+  const key=button.dataset.id;
+  try{
+   const {error}=await window.sb.storage.from(BUCKET).upload(transferProofFolder()+'/'+key,file,{contentType:file.type,upsert:false});
+   if(error)throw error;
+   transferProofs.add(key);
+   page()?.querySelectorAll('[data-r354="attach-transfer-proof"]').forEach(control=>{
+    if(control.dataset.id!==key)return;
+    control.dataset.r354='transfer-proof';
+    control.textContent='Ver';
+    control.disabled=false;
+   });
+   toast('Comprobante de transferencia adjuntado.','success');
+  }catch(error){toast('No se pudo adjuntar el comprobante: '+error.message,'error')}
+  finally{button.disabled=false}
+ };
+ input.click();
 }
 function reportRows(){
  const root=page();
@@ -323,6 +375,12 @@ async function click(e){
   const item=items.find(x=>x.id===btn.dataset.id&&x.estado==='reintegrado');if(!item)return;
   const payment=payments.find(x=>x.id===item.transferencia_id);
   alert(['Transferido',receiptDocument(item),money(item.monto),payment?.fecha_transferencia].filter(Boolean).join('\n'));
+ }
+ if(action==='attach-transfer-proof'&&reportAllowed())chooseTransferProof(btn);
+ if(action==='transfer-proof'&&reportAllowed()){
+  const {data,error}=await window.sb.storage.from(BUCKET).createSignedUrl(transferProofFolder()+'/'+btn.dataset.id,90);
+  if(error)return toast(error.message,'error');
+  window.open(data.signedUrl,'_blank','noopener,noreferrer');
  }
  if(action==='file'){
   const item=items.find(x=>x.id===btn.dataset.id);if(!item)return;
