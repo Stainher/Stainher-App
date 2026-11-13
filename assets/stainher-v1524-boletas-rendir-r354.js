@@ -64,6 +64,8 @@ function mount(){
   '#page-boletas-rendir .r354-muted{color:var(--muted,#586c80);font-size:13px;margin:7px 0 15px}',
   '#page-boletas-rendir .r354-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}',
   '#page-boletas-rendir .r354-btn{border:1px solid #afc5da;border-radius:9px;padding:9px 13px;min-height:42px;background:#fff;color:#1a4164;cursor:pointer;font-size:13px;font-weight:650}',
+  '#page-boletas-rendir .r354-transferred{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:36px;padding:6px 11px;border:1px solid #11633d;border-radius:8px;background:#146640!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-family:inherit;font-size:12px;font-weight:750;line-height:1.2;white-space:nowrap;cursor:pointer}',
+  '#page-boletas-rendir .r354-transferred:focus-visible{outline:2px solid #208d59;outline-offset:2px}',
   '#page-boletas-rendir .r354-btn.primary{background:linear-gradient(135deg,#0c619e,#217ec0);color:#fff;border-color:#1268a7}',
   '#page-boletas-rendir .r354-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}',
   '#page-boletas-rendir .r354-kpi{padding:15px;background:linear-gradient(135deg,#123d64,#2376af);border-radius:12px;color:#fff}',
@@ -197,7 +199,7 @@ function historyRows(rows,reporting){
  (reporting?'<td><input type="checkbox" data-r419-report-row value="'+esc(r.id)+'" aria-label="Seleccionar documento '+esc(receiptDocument(r)||r.fecha_gasto)+'"></td>':'')+
  (manager()?'<td>'+esc(r.nombre_solicitante)+'</td>':'')+
  '<td>'+esc(r.fecha_gasto)+'</td><td>'+esc(r.concepto)+'</td><td>'+esc(receiptDocument(r))+'</td><td>'+money(r.monto)+'</td>'+
- '<td>'+receiptStatus(r)+'</td><td><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td></tr>').join('')||
+ '<td>'+(r.estado==='reintegrado'?'<button type="button" class="r354-transferred" data-r354="transfer" data-id="'+esc(r.id)+'">Transferido</button>':receiptStatus(r))+'</td><td><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td></tr>').join('')||
  '<tr><td colspan="'+(reporting?8:manager()?7:6)+'">Sin boletas registradas.</td></tr>';
 }
 function reportRows(){
@@ -317,6 +319,11 @@ async function click(e){
  if(action==='refresh')await render();
  if(action==='pay')await pay();
  if(action==='report')downloadReport();
+ if(action==='transfer'){
+  const item=items.find(x=>x.id===btn.dataset.id&&x.estado==='reintegrado');if(!item)return;
+  const payment=payments.find(x=>x.id===item.transferencia_id);
+  alert(['Transferido',receiptDocument(item),money(item.monto),payment?.fecha_transferencia].filter(Boolean).join('\n'));
+ }
  if(action==='file'){
   const item=items.find(x=>x.id===btn.dataset.id);if(!item)return;
   const q=await window.sb.storage.from(BUCKET).createSignedUrl(item.comprobante_path,90);
