@@ -3,6 +3,8 @@
 'use strict';
 if(window.StainherGastosR342)return;
 const TAB='gastos_operacionales_r342',TABLE='gastos_operacionales_r342',BUCKET='gastos-operacionales-r342';
+const PROOF_BUCKET='comprobantes-transferencias';
+const PROOF_TYPES=['image/jpeg','image/png','image/webp','application/pdf'];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'$'+Math.round(Number(v)||0).toLocaleString('es-CL');
 const month=()=>new Date().toLocaleDateString('en-CA').slice(0,7);
@@ -63,6 +65,10 @@ const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r342-table-wrap{width:100%;overflow-x:auto}
 #contractContent .r342-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 #contractContent .r342-table th,#contractContent .r342-table td{padding:9px;border-bottom:1px solid var(--line,#ccc);text-align:left}
+#contractContent .r420-transferred{display:inline-flex;align-items:center;padding:6px 11px;border:1px solid #11633d;border-radius:8px;background:#146640!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:750;white-space:nowrap}
+#contractContent span.r420-transferred{cursor:default}
+#contractContent .r420-proof{display:grid;gap:6px;margin:10px 0}
+#contractContent .r420-proof input{max-width:100%;min-width:0}
 #contractContent .r342-note{font-size:12px;color:var(--muted)}
 #contractContent .r342-error{color:#dd5252}
 @media(max-width:850px){#contractContent .r342-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#contractContent .r342-form{grid-template-columns:1fr}#contractContent .r342-kpi strong{font-size:16px}}
@@ -91,8 +97,8 @@ if(!window.sb)throw Error('Conexión Supabase no disponible');
 const a=await window.sb.from(TABLE).select('*').gte('fecha',period+'-01').lt('fecha',nextMonth(period)).order('fecha',{ascending:false});
 if(a.error)throw a.error;rows=a.data||[];
 if(subtab==='reembolsos'){
- const t=await window.sb.from('gastos_transferencias_r348').select('*').order('fecha',{ascending:false}).limit(200);
- if(t.error)throw t.error;transfers=t.data||[];
+ const t=await window.sb.from('gastos_transferencias_r348').select('*').eq('anulada',false).order('fecha',{ascending:false}).limit(200);
+ if(t.error)throw t.error;transfers=(t.data||[]).filter(t=>!t.anulada);
  const u=await window.sb.from(TABLE).select('*').eq('anulado',false).is('transferencia_id',null).eq('reembolso_personal_monto',0).order('fecha',{ascending:false}).limit(500);
  if(u.error)throw u.error;unpaidRows=u.data||[];
  if(!unpaidRows.some(x=>(x.realizado_por||'externo:'+x.realizado_por_nombre.toLocaleLowerCase('es-CL'))===transferPerson))transferPerson=unpaidRows[0]?(unpaidRows[0].realizado_por||'externo:'+unpaidRows[0].realizado_por_nombre.toLocaleLowerCase('es-CL')):'';
@@ -108,14 +114,20 @@ function nextMonth(s){const [y,m]=s.split('-').map(Number);return new Date(Date.
 function totals(){
 const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.monto),0),personal:all.reduce((s,r)=>s+Math.max(0,Number(r.monto)-Number(r.reembolso_personal_monto||0)),0),devuelto:all.reduce((s,r)=>s+Math.min(Number(r.monto),Number(r.reembolso_personal_monto||0)),0)}
 }
-const stateText=(p,t)=>Number(p)>=Number(t)?'Completo':Number(p)>0?'Parcial':'Pendiente';
+function transferStatus(row){
+ if(Number(row.reembolso_personal_monto)>=Number(row.monto)){
+  if(row.transferencia_id)return '<button type="button" class="btn r420-transferred" data-r342="open-transfer" data-id="'+esc(row.transferencia_id)+'" aria-label="Transferido, ver transferencia">Transferido</button>';
+  return '<span class="r420-transferred">Transferido</span>';
+ }
+ return Number(row.reembolso_personal_monto)>0?'Parcial<br>'+money(row.reembolso_personal_monto):'Pendiente';
+}
 function header(){
 const t=totals();return `<div class="r342-toolbar"><div class="r349-toolbar-intro"><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label class="r349-period-label">Mes ${r345MonthSelector()}</label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
 <div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small>Pendiente al personal</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small>Devuelto al personal</small><strong>${money(t.devuelto)}</strong></div></div>
 <div class="r342-actions"><button class="btn ${subtab==='historial'?'primary':''}" data-r342="history">Historial</button><button class="btn ${subtab==='reembolsos'?'primary':''}" data-r342="reimb">Reembolsos</button></div>`}
 function history(){
 const filtered=rows.filter(r=>!r.anulado);
-return `<div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Tipo / detalle</th><th>Realizado por</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Devolución al personal</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>${filtered.map(r=>`<tr style="${r.anulado?'opacity:.5':''}"><td>${esc(r.fecha)}</td><td>${esc(r.categoria)}<br><small>${esc(r.detalle)}</small></td><td>${esc(r.realizado_por_nombre)}</td><td>${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td>${money(r.monto)}</td><td>${r.ofertable_codelco?'Sí':'No'}</td><td>${stateText(r.reembolso_personal_monto,r.monto)}<br>${money(r.reembolso_personal_monto)}</td><td>${r.comprobante_path?'<button class="btn" data-r342="file" data-id="'+esc(r.id)+'">Ver</button>':'—'}</td><td>${isManager()&&!r.anulado?'<button class="btn" data-r342="edit" data-id="'+esc(r.id)+'">Editar</button> <button class="btn" data-r342="void" data-id="'+esc(r.id)+'">Anular</button>':r.anulado?'Anulado':'—'}</td></tr>`).join('')||'<tr><td colspan="9">Sin gastos para el período seleccionado.</td></tr>'}</tbody></table></div>`}
+return `<div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Tipo / detalle</th><th>Realizado por</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Devolución al personal</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>${filtered.map(r=>`<tr style="${r.anulado?'opacity:.5':''}"><td>${esc(r.fecha)}</td><td>${esc(r.categoria)}<br><small>${esc(r.detalle)}</small></td><td>${esc(r.realizado_por_nombre)}</td><td>${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td>${money(r.monto)}</td><td>${r.ofertable_codelco?'Sí':'No'}</td><td>${transferStatus(r)}</td><td>${r.comprobante_path?'<button class="btn" data-r342="file" data-id="'+esc(r.id)+'">Ver</button>':'—'}</td><td>${isManager()&&!r.anulado?'<button class="btn" data-r342="edit" data-id="'+esc(r.id)+'">Editar</button> <button class="btn" data-r342="void" data-id="'+esc(r.id)+'">Anular</button>':r.anulado?'Anulado':'—'}</td></tr>`).join('')||'<tr><td colspan="9">Sin gastos para el período seleccionado.</td></tr>'}</tbody></table></div>`}
 function personOptions(v){return '<option value="">Seleccionar</option>'+people.map(p=>`<option value="${esc(p.id)}" ${p.id===v?'selected':''}>${esc(p.nombre)}</option>`).join('')}
 function opt(a,v){return a.map(s=>`<option ${s===v?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}
 
@@ -185,9 +197,17 @@ function transferMarkup(){
  const candidates=unpaidRows.filter(r=>(r.realizado_por||'externo:'+r.realizado_por_nombre.toLocaleLowerCase('es-CL'))===transferPerson);
  const selector=persons.map(([id,name])=>'<option value="'+esc(id)+'" '+(id===transferPerson?'selected':'')+'>'+esc(name)+'</option>').join('');
  const items=candidates.map(r=>'<label class="r348-item"><input type="checkbox" data-r348-check name="gastos" value="'+esc(r.id)+'"><span>'+esc(r.fecha)+' · '+esc(r.tipo_documento)+' '+esc(r.numero_documento)+'<small>'+esc(r.detalle)+'</small></span><b>'+money(r.monto)+'</b></label>').join('');
- const form=isManager()?'<form id="r348-transfer-form"><div class="r348-fields"><label>Trabajador<select class="field" id="r348-person">'+selector+'</select></label><label>Fecha de transferencia'+r345DateField('fecha_transferencia',new Date().toISOString().slice(0,10))+'</label><label>Transferido por<input class="field" name="pagado_por" value="Cristian Lagos" required></label></div><div class="r348-list">'+(items||'<div class="r342-note">No existen documentos pendientes.</div>')+'</div><div class="r348-total"><b>Total de transferencia: <span id="r348-total">$0</span></b><button type="submit" class="btn primary">Registrar transferencia</button></div></form>':'';
- const historyRows=transfers.map(t=>'<tr><td>'+esc(t.fecha)+'</td><td>'+esc(t.realizado_por_nombre)+'</td><td>'+esc(t.pagado_por)+'</td><td>'+(t.anulada?'Anulada: '+esc(t.motivo_anulacion||''):linkedDocs.filter(r=>r.transferencia_id===t.id).map(r=>esc(r.numero_documento||r.detalle)).join(', '))+'</td><td>'+money(t.monto_total)+'</td><td>'+(t.anulada?'Anulada':isManager()?'<button class="btn" type="button" data-r342="cancel-transfer" data-id="'+esc(t.id)+'">Eliminar transferencia</button>':'Registrada')+'</td></tr>').join('');
- return '<section class="r348-panel"><h3>Transferencias agrupadas</h3><p class="r342-note">Seleccione las boletas o facturas de una persona. El importe total se calcula automáticamente y cada documento puede reembolsarse una sola vez.</p>'+form+'<h3>Historial de transferencias</h3><div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Trabajador</th><th>Transferido por</th><th>Boletas y facturas</th><th>Total devuelto</th><th>Acciones</th></tr></thead><tbody>'+(historyRows||'<tr><td colspan="6">Sin transferencias registradas.</td></tr>')+'</tbody></table></div></section>';
+ const form=isManager()?'<form id="r348-transfer-form"><div class="r348-fields"><label>Trabajador<select class="field" id="r348-person">'+selector+'</select></label><label>Fecha de transferencia'+r345DateField('fecha_transferencia',new Date().toISOString().slice(0,10))+'</label><label>Transferido por<input class="field" name="pagado_por" value="Cristian Lagos" required></label></div><div class="r348-list">'+(items||'<div class="r342-note">No existen documentos pendientes.</div>')+'</div><label class="r420-proof">Comprobante de transferencia (opcional · PDF o imagen · máximo 10 MB)<input type="file" name="transfer_proof" accept="'+PROOF_TYPES.join(',')+'"></label><div class="r348-total"><b>Total de transferencia: <span id="r348-total">$0</span></b><button type="submit" class="btn primary">Registrar transferencia</button></div></form>':'';
+ const historyRows=transfers.map(t=>{
+  const id=esc(t.id);
+  const documents=linkedDocs.filter(r=>r.transferencia_id===t.id).map(r=>esc(r.numero_documento||r.detalle)).join(', ');
+  const proof=t.comprobante_path
+   ?'<button type="button" class="btn" data-r342="view-transfer-proof" data-id="'+id+'">Ver comprobante</button>'
+   :isManager()?'<button type="button" class="btn" data-r342="attach-transfer-proof" data-id="'+id+'">Adjuntar comprobante</button>':'—';
+  const cancel=isManager()?'<button class="btn" type="button" data-r342="cancel-transfer" data-id="'+id+'">Eliminar transferencia</button>':'—';
+  return '<tr data-r420-transfer="'+id+'"><td>'+esc(t.fecha)+'</td><td>'+esc(t.realizado_por_nombre)+'</td><td>'+esc(t.pagado_por)+'</td><td>'+documents+'</td><td>'+money(t.monto_total)+'</td><td>'+proof+'</td><td>'+cancel+'</td></tr>';
+ }).join('');
+ return '<section class="r348-panel"><h3>Transferencias agrupadas</h3><p class="r342-note">Seleccione las boletas o facturas de una persona. El total suma los documentos seleccionados. Un comprobante puede respaldar todas las boletas y facturas de la transferencia.</p>'+form+'<h3>Historial de transferencias</h3><div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Trabajador</th><th>Transferido por</th><th>Boletas y facturas</th><th>Total devuelto</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>'+(historyRows||'<tr><td colspan="7">Sin transferencias registradas.</td></tr>')+'</tbody></table></div></section>';
 }
 function transferTotal(){
  const el=document.getElementById('r348-total'),form=document.getElementById('r348-transfer-form');
@@ -195,15 +215,53 @@ function transferTotal(){
  const ids=new Set([...form.querySelectorAll('[data-r348-check]:checked')].map(x=>x.value));
  el.textContent=money(unpaidRows.filter(r=>ids.has(r.id)).reduce((sum,r)=>sum+Number(r.monto),0));
 }
+async function withTransferProof(file,commit){
+ if(!file?.size||file.size>10485760||!PROOF_TYPES.includes(file.type))throw Error('Seleccione un PDF o una imagen de hasta 10 MB.');
+ const me=(await window.sb.auth.getUser()).data?.user?.id;
+ if(!me)throw Error('Sesión expirada.');
+ const path=me+'/'+crypto.randomUUID();
+ const storage=window.sb.storage.from(PROOF_BUCKET);
+ const upload=await storage.upload(path,file,{contentType:file.type,upsert:false});
+ if(upload.error)throw upload.error;
+ const saved=await commit(path);
+ if(saved.error){
+  // La política impide borrar el objeto si el servidor alcanzó a vincularlo.
+  try{await storage.remove([path])}catch(_){}
+  throw saved.error;
+ }
+}
+function attachTransferProof(id){
+ const picker=document.createElement('input');
+ picker.type='file';
+ picker.accept=PROOF_TYPES.join(',');
+ picker.onchange=async()=>{
+  const file=picker.files?.[0];
+  if(!file||!isManager())return;
+  try{
+   await withTransferProof(file,path=>window.sb.rpc('adjuntar_comprobante_transferencia_r420',{p_transferencia:id,p_archivo:path}));
+   window.toast?.('Comprobante adjuntado.','success');
+   await render();
+  }catch(error){window.toast?.(error.message,'error')}
+ };
+ picker.click();
+}
+
 async function submitTransfer(e){
  e.preventDefault();if(!isManager())return;
  const form=e.currentTarget,ids=[...form.querySelectorAll('[data-r348-check]:checked')].map(x=>x.value);
  const date=form.querySelector('[name="fecha_transferencia"]')?.value,payer=String(form.querySelector('[name="pagado_por"]')?.value||'').trim();
  if(!ids.length||!date||!payer)return window.toast?.('Seleccione boletas, fecha y quien transfirió.','error');
- const button=form.querySelector('[type="submit"]');button.disabled=true;
+ const button=form.querySelector('[type="submit"]');
+ if(button.disabled)return;
+ button.disabled=true;
  try{
-  const q=await window.sb.rpc('registrar_transferencia_gastos_r348',{p_gastos:ids,p_fecha:date,p_pagado_por:payer});
-  if(q.error)throw q.error;
+  const args={p_gastos:ids,p_fecha:date,p_pagado_por:payer};
+  const file=form.querySelector('[name="transfer_proof"]')?.files?.[0];
+  if(file)await withTransferProof(file,path=>window.sb.rpc('registrar_transferencia_gastos_r420',{...args,p_archivo:path}));
+  else{
+   const q=await window.sb.rpc('registrar_transferencia_gastos_r348',args);
+   if(q.error)throw q.error;
+  }
   window.toast?.('Transferencia registrada con el total de los documentos.','success');
   await render();
  }catch(error){window.toast?.(error.message,'error');button.disabled=false}
@@ -242,6 +300,22 @@ if(cmd==='new'){if(!isManager())return;editing=true;document.getElementById('r34
 if(cmd==='edit'&&r){editing=r;document.getElementById('r342-body').innerHTML=form(r);document.getElementById('r342-form').onsubmit=save}
 if(cmd==='cancel'){editing=null;render()}
 if(cmd==='history'||cmd==='reimb'){subtab=cmd==='history'?'historial':'reembolsos';editing=null;render()}
+if(cmd==='open-transfer'){
+ subtab='reembolsos';editing=null;
+ await render();
+ document.querySelector('[data-r420-transfer="'+CSS.escape(id)+'"]')?.scrollIntoView({block:'nearest'});
+ return;
+}
+if(cmd==='attach-transfer-proof'&&isManager()&&transfers.some(t=>t.id===id&&!t.comprobante_path)){
+ attachTransferProof(id);return;
+}
+if(cmd==='view-transfer-proof'){
+ const path=transfers.find(t=>t.id===id)?.comprobante_path;
+ if(!path)return;
+ const q=await window.sb.storage.from(PROOF_BUCKET).createSignedUrl(path,60);
+ if(q.error)return window.toast?.(q.error.message,'error');
+ window.open(q.data.signedUrl,'_blank','noopener,noreferrer');return;
+}
 if(cmd==='cancel-transfer'&&isManager()){const t=transfers.find(x=>x.id===id);if(!t||t.anulada)return;const reason=prompt('Motivo de anulación de transferencia:');if(reason===null)return;if(reason.trim().length<5)return window.toast?.('Ingrese un motivo válido.','error');if(!confirm('¿Anular esta transferencia y liberar sus boletas?'))return;const out=await window.sb.rpc('anular_transferencia_gastos_r352',{p_transferencia:id,p_motivo:reason.trim()});if(out.error)return window.toast?.(out.error.message,'error');window.toast?.('Transferencia anulada y boletas liberadas.','success');await render();return}
 if(cmd==='file'&&r?.comprobante_path){const q=await window.sb.storage.from(BUCKET).createSignedUrl(r.comprobante_path,60);if(q.error)return window.toast?.(q.error.message,'error');window.open(q.data.signedUrl,'_blank','noopener')}
 if(cmd==='void'&&r&&isManager()){if(r.transferencia_id)return window.toast?.('El gasto está vinculado a una transferencia y no puede anularse.','error');const reason=prompt('Motivo de anulación (el historial se conserva):');if(!reason?.trim())return;const q=await window.sb.from(TABLE).update({anulado:true,motivo_anulacion:reason.trim()}).eq('id',r.id);if(q.error)return window.toast?.(q.error.message,'error');render()}
