@@ -137,9 +137,21 @@ async function identify(){
 }
 async function fetchData(){
  await identify();
- let q=window.sb.from(TABLE).select('*').order('created_at',{ascending:false}).limit(500);
- if(!manager())q=q.eq('user_id',uid);
- const a=await q;if(a.error)throw a.error;items=a.data||[];
+ const receiptQuery=()=>window.sb.from(TABLE).select('*').order('created_at',{ascending:false}).order('id');
+ const batchSize=500;
+ const first=await (manager()?receiptQuery():receiptQuery().eq('user_id',uid)).limit(batchSize);
+ if(first.error)throw first.error;
+ const receipts=first.data||[];
+ if(reportAllowed()){
+  let count=receipts.length;
+  for(let offset=batchSize;count===batchSize;offset+=batchSize){
+   const batch=await receiptQuery().range(offset,offset+batchSize-1);
+   if(batch.error)throw batch.error;
+   count=batch.data?.length||0;
+   receipts.push(...(batch.data||[]));
+  }
+ }
+ items=receipts;
  if(manager()){
   const b=await window.sb.from('boletas_reintegros_r354').select('*').order('created_at',{ascending:false}).limit(200);
   if(b.error)throw b.error;payments=b.data||[];
@@ -161,13 +173,85 @@ function form(){
  '<label class="wide">Adjuntar fotografía o PDF de la boleta/factura (máximo 10 MB)<input type="file" name="comprobante" accept="image/jpeg,image/png,image/webp,application/pdf" required></label>'+
  '<div class="r354-actions wide"><button class="r354-btn primary" type="submit">Enviar a rendición</button><button class="r354-btn" type="button" data-r354="cancel">Cancelar</button></div></form></div>';
 }
+const receiptStatus=r=>r.estado==='reintegrado'?'Reintegrado':'Pendiente';
+const receiptDocument=r=>[r.tipo_documento,r.numero_documento].filter(Boolean).join(' ');
+function reportAllowed(){
+ return manager()&&window.state?.session?.user?.id===uid&&!window.state?.v15PreviewRole;
+}
 function history(){
- return '<section class="r354-panel"><h3>'+(manager()?'Todas las rendiciones':'Mis boletas a rendir')+'</h3><div class="r354-scroll"><table><thead><tr>'+
- (manager()?'<th>Solicitante</th>':'')+'<th>Fecha</th><th>Detalle</th><th>Documento</th><th>Monto</th><th>Estado</th><th>Comprobante</th></tr></thead><tbody>'+
- (items.map(r=>'<tr>'+(manager()?'<td>'+esc(r.nombre_solicitante)+'</td>':'')+
- '<td>'+esc(r.fecha_gasto)+'</td><td>'+esc(r.concepto)+'</td><td>'+esc(r.tipo_documento)+' '+esc(r.numero_documento)+'</td><td>'+money(r.monto)+'</td>'+
- '<td>'+(r.estado==='reintegrado'?'Reintegrado':'Pendiente')+'</td><td><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td></tr>').join('')||
- '<tr><td colspan="'+(manager()?7:6)+'">Sin boletas registradas.</td></tr>')+'</tbody></table></div></section>';
+ const reporting=reportAllowed();
+ const people=[...new Map(items.map(r=>[r.user_id,r.nombre_solicitante])).entries()]
+  .sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'es'));
+ return '<section class="r354-panel"><h3>'+(manager()?'Todas las rendiciones':'Mis boletas a rendir')+'</h3>'+
+ (reporting?'<div class="r354-approval"><label>Filtrar por usuario<select id="r419-report-user"><option value="">Todos los usuarios</option>'+
+  people.map(([id,name])=>'<option value="'+esc(id)+'">'+esc(name||'Usuario')+'</option>').join('')+'</select></label>'+
+  '<button type="button" class="r354-btn primary" data-r354="report" disabled>Descargar informe resumen</button>'+
+  '<strong id="r419-report-total" aria-live="polite"></strong></div>':'')+
+ '<div class="r354-scroll"><table><thead><tr>'+
+ (reporting?'<th><input type="checkbox" id="r419-report-all" aria-label="Seleccionar todas las boletas del filtro"></th>':'')+
+ (manager()?'<th>Solicitante</th>':'')+'<th>Fecha</th><th>Detalle</th><th>Documento</th><th>Monto</th><th>Estado</th><th>Comprobante</th></tr></thead>'+
+ '<tbody id="r419-history-rows">'+historyRows(items,reporting)+'</tbody></table></div></section>';
+}
+function historyRows(rows,reporting){
+ return rows.map(r=>'<tr>'+
+ (reporting?'<td><input type="checkbox" data-r419-report-row value="'+esc(r.id)+'" aria-label="Seleccionar documento '+esc(receiptDocument(r)||r.fecha_gasto)+'"></td>':'')+
+ (manager()?'<td>'+esc(r.nombre_solicitante)+'</td>':'')+
+ '<td>'+esc(r.fecha_gasto)+'</td><td>'+esc(r.concepto)+'</td><td>'+esc(receiptDocument(r))+'</td><td>'+money(r.monto)+'</td>'+
+ '<td>'+receiptStatus(r)+'</td><td><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td></tr>').join('')||
+ '<tr><td colspan="'+(reporting?8:manager()?7:6)+'">Sin boletas registradas.</td></tr>';
+}
+function reportRows(){
+ const root=page();
+ const owner=root.querySelector('#r419-report-user').value;
+ const ids=new Set([...root.querySelectorAll('[data-r419-report-row]:checked')].map(input=>input.value));
+ return items.filter(row=>ids.has(String(row.id))&&(!owner||owner===row.user_id));
+}
+const sumReceipts=rows=>rows.reduce((total,row)=>total+Number(row.monto||0),0);
+function updateReportSelection(){
+ if(!reportAllowed())return;
+ const root=page();
+ const rows=reportRows();
+ const available=root.querySelectorAll('[data-r419-report-row]').length;
+ const all=root.querySelector('#r419-report-all');
+ all.disabled=!available;
+ all.checked=available>0&&rows.length===available;
+ all.indeterminate=rows.length>0&&rows.length<available;
+ root.querySelector('[data-r354="report"]').disabled=!rows.length;
+ root.querySelector('#r419-report-total').textContent=rows.length+' seleccionadas · '+money(sumReceipts(rows));
+}
+function reportChanged(target){
+ if(!reportAllowed())return;
+ const root=page();
+ if(target.id==='r419-report-user'){
+  root.querySelector('#r419-history-rows').innerHTML=historyRows(items.filter(row=>!target.value||row.user_id===target.value),true);
+ }else if(target.id==='r419-report-all'){
+  root.querySelectorAll('[data-r419-report-row]').forEach(input=>{input.checked=target.checked});
+ }else if(!target.matches('[data-r419-report-row]'))return;
+ updateReportSelection();
+}
+function downloadReport(){
+ if(!reportAllowed())return;
+ const rows=reportRows();
+ if(!rows.length)return;
+ try{
+  const Pdf=window.ensurePdf?.();
+  if(!Pdf)throw Error('El generador PDF no está disponible.');
+  const doc=new Pdf({orientation:'landscape'});
+  if(typeof doc.autoTable!=='function')throw Error('El generador de tablas PDF no está disponible.');
+  const owner=page().querySelector('#r419-report-user').selectedOptions[0].textContent;
+  window.installCorporatePdfV95(doc,'Informe resumen de boletas a rendir',date());
+  doc.setFontSize(10);
+  doc.text('Usuario: '+owner,14,34,{maxWidth:265});
+  doc.text('Boletas seleccionadas: '+rows.length+'   |   Pendiente: '+money(sumReceipts(rows.filter(row=>row.estado==='pendiente')))+
+   '   |   Reintegrado: '+money(sumReceipts(rows.filter(row=>row.estado==='reintegrado')))+'   |   Total: '+money(sumReceipts(rows)),14,44);
+  doc.autoTable({
+   startY:49,showHead:'everyPage',rowPageBreak:'avoid',
+   head:[['Solicitante','Fecha del gasto','Documento','Detalle','Estado','Monto (CLP)']],
+   body:rows.map(row=>[row.nombre_solicitante,row.fecha_gasto,receiptDocument(row),row.concepto,receiptStatus(row),money(row.monto)]),
+   styles:{fontSize:8,overflow:'linebreak'},headStyles:{fillColor:[18,61,100]},columnStyles:{3:{cellWidth:97},5:{halign:'right'}}
+  });
+  doc.save('Boletas_a_rendir_'+date()+'.pdf');
+ }catch(error){toast(error.message,'error')}
 }
 function admin(){
  const open=items.filter(r=>r.estado==='pendiente');
@@ -232,6 +316,7 @@ async function click(e){
  if(action==='cancel')page().querySelector('#r354-form-host').innerHTML='';
  if(action==='refresh')await render();
  if(action==='pay')await pay();
+ if(action==='report')downloadReport();
  if(action==='file'){
   const item=items.find(x=>x.id===btn.dataset.id);if(!item)return;
   const q=await window.sb.storage.from(BUCKET).createSignedUrl(item.comprobante_path,90);
@@ -247,7 +332,8 @@ async function render(){
    '<div class="r354-actions"><button class="r354-btn primary" data-r354="new">+ Nueva boleta</button><button class="r354-btn" data-r354="refresh">Actualizar</button></div>'+
    kpis()+'<div id="r354-form-host"></div>'+(manager()?admin():'')+history();
   root.onclick=click;
-  root.onchange=e=>{if(e.target.id==='r354-owner')documents();if(e.target.matches('[data-r354-check]'))syncTotal()};
+  root.onchange=e=>{if(e.target.id==='r354-owner')documents();if(e.target.matches('[data-r354-check]'))syncTotal();reportChanged(e.target)};
+  if(reportAllowed())updateReportSelection();
   if(manager())documents();
  }catch(error){root.innerHTML='<h2 class="r354-head">Boletas a rendir</h2><p class="r354-muted">Error: '+esc(error.message)+'</p>'}
  finally{busy=false;scheduleSlugCleanup()}
