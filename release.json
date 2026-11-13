@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R422",
-  "build": "20261113-r422-reembolsos-mes-gasto",
+  "revision": "R423",
+  "build": "20261113-r423-transferencia-historica",
   "path": "./",
   "publishedAt": "2026-11-13",
   "operationalStatus": {

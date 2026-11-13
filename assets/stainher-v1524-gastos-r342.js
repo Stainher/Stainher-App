@@ -132,9 +132,11 @@ function nextMonth(s){const [y,m]=s.split('-').map(Number);return new Date(Date.
 function totals(){
 const all=rows.filter(r=>!r.anulado);return {total:all.reduce((s,r)=>s+Number(r.monto),0),personal:all.reduce((s,r)=>s+Math.max(0,Number(r.monto)-Number(r.reembolso_personal_monto||0)),0),devuelto:all.reduce((s,r)=>s+Math.min(Number(r.monto),Number(r.reembolso_personal_monto||0)),0)}
 }
+const canRegularize=row=>isManager()&&!row.anulado&&!row.transferencia_id&&Number(row.monto)>0&&Number(row.reembolso_personal_monto)===Number(row.monto);
 function transferStatus(row){
  if(Number(row.reembolso_personal_monto)>=Number(row.monto)){
   if(row.transferencia_id)return '<button type="button" class="r420-transferred" data-r342="open-transfer" data-id="'+esc(row.transferencia_id)+'" aria-label="Transferido, ver transferencia">Transferido</button>';
+  if(canRegularize(row))return '<button type="button" class="r420-transferred" data-r342="regularize-transfer" data-id="'+esc(row.id)+'" aria-label="Transferido, regularizar transferencia histórica">Transferido</button>';
   return '<span class="r420-transferred">Transferido</span>';
  }
  return Number(row.reembolso_personal_monto)>0?'Parcial<br>'+money(row.reembolso_personal_monto):'Pendiente';
@@ -264,6 +266,38 @@ function attachTransferProof(id){
  picker.click();
 }
 
+function openHistoricalTransfer(row){
+ const body=document.getElementById('r342-body');
+ body.innerHTML=`<h3>Regularizar transferencia histórica</h3>
+ <p>${esc(row.tipo_documento)} ${esc(row.numero_documento)} · ${esc(row.detalle)} · ${money(row.reembolso_personal_monto)}</p>
+ <form id="r342-form" class="r342-form">
+  <label>Fecha real de transferencia${r345DateField('fecha_transferencia',row.reembolso_personal_fecha)}</label>
+  <label>Transferido por<input class="field" name="pagado_por" required maxlength="160" value="${esc(row.reembolso_personal_por||'')}"></label>
+  <label>Comprobante de transferencia<input type="file" name="transfer_proof" required accept="${PROOF_TYPES.join(',')}"></label>
+  <div class="wide r342-actions">
+   <button type="submit" class="btn primary">Guardar regularización</button>
+   <button type="button" class="btn" data-r342="cancel">Cancelar</button>
+  </div>
+ </form>`;
+ const form=body.querySelector('form');
+ form.onsubmit=async event=>{
+  event.preventDefault();
+  if(!canRegularize(row))return;
+  const data=new FormData(form),fecha=data.get('fecha_transferencia'),payer=String(data.get('pagado_por')||'').trim();
+  if(!fecha||!payer)return window.toast?.('Indique la fecha real y quién realizó la transferencia.','error');
+  const button=form.querySelector('[type="submit"]');
+  if(button.disabled)return;
+  button.disabled=true;
+  try{
+   await withTransferProof(data.get('transfer_proof'),path=>window.sb.rpc('regularizar_transferencia_historica_r423',{
+    p_gasto:row.id,p_fecha:fecha,p_pagado_por:payer,p_archivo:path
+   }));
+   window.toast?.('Transferencia histórica regularizada.','success');
+   await render();
+  }catch(error){window.toast?.(error.message,'error');button.disabled=false;}
+ };
+}
+
 async function submitTransfer(e){
  e.preventDefault();if(!isManager())return;
  const form=e.currentTarget,ids=[...form.querySelectorAll('[data-r348-check]:checked')].map(x=>x.value);
@@ -318,6 +352,7 @@ if(cmd==='new'){if(!isManager())return;editing=true;document.getElementById('r34
 if(cmd==='edit'&&r){editing=r;document.getElementById('r342-body').innerHTML=form(r);document.getElementById('r342-form').onsubmit=save}
 if(cmd==='cancel'){editing=null;render()}
 if(cmd==='history'||cmd==='reimb'){subtab=cmd==='history'?'historial':'reembolsos';editing=null;render()}
+if(cmd==='regularize-transfer'&&r&&canRegularize(r)){openHistoricalTransfer(r);return}
 if(cmd==='open-transfer'){
  subtab='reembolsos';editing=null;
  await render();
