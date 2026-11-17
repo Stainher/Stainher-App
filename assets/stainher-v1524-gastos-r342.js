@@ -74,6 +74,21 @@ const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r342-note{font-size:12px;color:var(--muted)}
 #contractContent .r342-error{color:#dd5252}
 @media(max-width:850px){#contractContent .r342-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#contractContent .r342-form{grid-template-columns:1fr}#contractContent .r342-kpi strong{font-size:16px}}
+@media(max-width:850px){
+ #contractContent:has(.r342-toolbar){padding-bottom:calc(88px + env(safe-area-inset-bottom));min-width:0}
+ #contractContent .r342-kpi:first-child{grid-column:1/-1}
+ #contractContent .r342-kpi{min-height:0;padding:10px 12px}
+ #contractContent .r342-actions .btn{min-height:44px}
+ #contractContent .r342-table-wrap{overflow:visible}
+ #contractContent .r342-table,#contractContent .r342-table tbody{display:block!important;width:100%!important;min-width:0!important}
+ #contractContent .r342-table thead{display:none!important}
+ #contractContent .r342-table tbody tr{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;width:auto!important;min-width:0!important;padding:12px;margin:0 0 10px;border:1px solid var(--line,#aabfd0);border-radius:12px;background:var(--panel,#edf4fa)}
+ #contractContent .r342-table tbody td{display:block!important;width:auto!important;min-width:0!important;max-width:none!important;padding:0!important;border:0!important;white-space:normal!important;overflow-wrap:anywhere;word-break:normal!important;font-size:14px}
+ #contractContent .r342-table td[data-r342-label]::before{content:attr(data-r342-label);display:block;margin-bottom:3px;font-size:12px;font-weight:650}
+ #contractContent .r342-table td:is([colspan],[data-r342-label="Tipo / detalle"],[data-r342-label="Boletas y facturas del mes"],[data-r342-label="Devolución al personal"],[data-r342-label="Acciones"]){grid-column:1/-1}
+ #contractContent .r342-table td button{min-height:44px;max-width:100%;margin:2px 4px 2px 0;white-space:normal}
+ #contractContent .r342-table td[data-r342-label="Monto"]{font-weight:750}
+}
 `;document.head.appendChild(x);
 }
 function tabRoot(){return document.querySelector('#page-contrato .v1520-tabs')||document.querySelector('#page-contrato #v1519ContractTabs')||document.querySelector('#page-contrato .v1516-contract-tabs')||document.querySelector('#page-contrato .contract-tabs')}
@@ -146,7 +161,7 @@ const t=totals();return `<div class="r342-toolbar"><div class="r349-toolbar-intr
 <div class="r342-actions"><button class="btn ${subtab==='historial'?'primary':''}" data-r342="history">Historial</button><button class="btn ${subtab==='reembolsos'?'primary':''}" data-r342="reimb">Reembolsos</button></div>`}
 function history(){
 const filtered=rows.filter(r=>!r.anulado);
-return `<div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Tipo / detalle</th><th>Realizado por</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Devolución al personal</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>${filtered.map(r=>`<tr style="${r.anulado?'opacity:.5':''}"><td>${esc(r.fecha)}</td><td>${esc(r.categoria)}<br><small>${esc(r.detalle)}</small></td><td>${esc(r.realizado_por_nombre)}</td><td>${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td>${money(r.monto)}</td><td>${r.ofertable_codelco?'Sí':'No'}</td><td>${transferStatus(r)}</td><td>${r.comprobante_path?'<button class="btn" data-r342="file" data-id="'+esc(r.id)+'">Ver</button>':'—'}</td><td>${isManager()&&!r.anulado?'<button class="btn" data-r342="edit" data-id="'+esc(r.id)+'">Editar</button> <button class="btn" data-r342="void" data-id="'+esc(r.id)+'">Anular</button>':r.anulado?'Anulado':'—'}</td></tr>`).join('')||'<tr><td colspan="9">Sin gastos para el período seleccionado.</td></tr>'}</tbody></table></div>`}
+return `<div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha</th><th>Tipo / detalle</th><th>Realizado por</th><th>Documento</th><th>Monto</th><th>Codelco</th><th>Devolución al personal</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>${filtered.map(r=>`<tr style="${r.anulado?'opacity:.5':''}"><td data-r342-label="Fecha">${esc(r.fecha)}</td><td data-r342-label="Tipo / detalle">${esc(r.categoria)}<br><small>${esc(r.detalle)}</small></td><td data-r342-label="Realizado por">${esc(r.realizado_por_nombre)}</td><td data-r342-label="Documento">${esc(r.tipo_documento)} ${esc(r.numero_documento)}</td><td data-r342-label="Monto">${money(r.monto)}</td><td data-r342-label="Codelco">${r.ofertable_codelco?'Sí':'No'}</td><td data-r342-label="Devolución al personal">${transferStatus(r)}</td><td data-r342-label="Comprobante">${r.comprobante_path?'<button class="btn" data-r342="file" data-id="'+esc(r.id)+'">Ver</button>':'—'}</td><td data-r342-label="Acciones">${isManager()&&!r.anulado?'<button class="btn" data-r342="edit" data-id="'+esc(r.id)+'">Editar</button> <button class="btn" data-r342="void" data-id="'+esc(r.id)+'">Anular</button>':r.anulado?'Anulado':'—'}</td></tr>`).join('')||'<tr><td colspan="9">Sin gastos para el período seleccionado.</td></tr>'}</tbody></table></div>`}
 function personOptions(v){return '<option value="">Seleccionar</option>'+people.map(p=>`<option value="${esc(p.id)}" ${p.id===v?'selected':''}>${esc(p.nombre)}</option>`).join('')}
 function opt(a,v){return a.map(s=>`<option ${s===v?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}
 
@@ -224,7 +239,7 @@ function transferMarkup(){
    ?'<button type="button" class="btn" data-r342="view-transfer-proof" data-id="'+id+'">Ver comprobante</button>'
    :isManager()?'<button type="button" class="btn" data-r342="attach-transfer-proof" data-id="'+id+'">Adjuntar comprobante</button>':'—';
   const cancel=isManager()?'<button class="btn" type="button" data-r342="cancel-transfer" data-id="'+id+'">Eliminar transferencia</button>':'—';
-  return '<tr data-r420-transfer="'+id+'"><td>'+esc(t.fecha)+'</td><td>'+esc(t.realizado_por_nombre)+'</td><td>'+esc(t.pagado_por)+'</td><td>'+documents+'</td><td>'+money(t.periodTotal)+'</td><td>'+proof+'</td><td>'+cancel+'</td></tr>';
+  return '<tr data-r420-transfer="'+id+'"><td data-r342-label="Fecha de transferencia">'+esc(t.fecha)+'</td><td data-r342-label="Trabajador">'+esc(t.realizado_por_nombre)+'</td><td data-r342-label="Transferido por">'+esc(t.pagado_por)+'</td><td data-r342-label="Boletas y facturas del mes">'+documents+'</td><td data-r342-label="Devuelto por gastos del mes">'+money(t.periodTotal)+'</td><td data-r342-label="Comprobante">'+proof+'</td><td data-r342-label="Acciones">'+cancel+'</td></tr>';
  }).join('');
  return '<section class="r348-panel"><h3>Transferencias agrupadas</h3><p class="r342-note">Seleccione las boletas o facturas del mes del gasto. El historial muestra el importe devuelto por los documentos de ese mes. Un comprobante puede respaldar varias boletas o facturas.</p>'+form+'<h3>Historial de transferencias</h3><div class="r342-table-wrap"><table class="r342-table"><thead><tr><th>Fecha de transferencia</th><th>Trabajador</th><th>Transferido por</th><th>Boletas y facturas del mes</th><th>Devuelto por gastos del mes</th><th>Comprobante</th><th>Acciones</th></tr></thead><tbody>'+(historyRows||'<tr><td colspan="7">Sin transferencias registradas.</td></tr>')+'</tbody></table></div></section>';
 }
