@@ -100,6 +100,8 @@ function mount(){
   '#page-boletas-rendir .r354-approval{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:12px 0}',
   '#page-boletas-rendir .r354-approval label{display:grid;gap:5px;font-size:13px;min-width:180px}',
   '#page-boletas-rendir .r354-approval input[type="checkbox"]{width:20px;height:20px}',
+  "#page-boletas-rendir .r354-history .r354-select-all span{display:none}",
+  "@media(max-width:800px){\n#page-boletas-rendir{padding-inline:8px!important;padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}\n#page-boletas-rendir .r354-panel{padding:12px;min-width:0}\n#page-boletas-rendir .r354-approval label{flex:1 1 100%;min-width:0}\n#page-boletas-rendir .r354-scroll:not(.r354-history) table{min-width:480px!important;table-layout:auto!important}\n#page-boletas-rendir .r354-history :is(table,thead,tbody,tr){display:block!important;width:100%!important;min-width:0!important;max-width:100%!important}\n#page-boletas-rendir .r354-history thead th:not(.r354-select-all){display:none!important}\n#page-boletas-rendir .r354-history .r354-select-all{display:block!important}\n#page-boletas-rendir .r354-history .r354-select-all label{display:flex;align-items:center;gap:8px;min-height:44px}\n#page-boletas-rendir .r354-history .r354-select-all span{display:inline}\n#page-boletas-rendir .r354-history tbody tr{box-sizing:border-box;border:1px solid var(--line,#bdd0df);border-radius:10px;margin:8px 0;padding:6px 8px}\n#page-boletas-rendir .r354-history tbody td[data-label]{display:grid!important;grid-template-columns:minmax(90px,31%) minmax(0,1fr);align-items:center;gap:8px;width:auto!important;min-width:0!important;max-width:none!important;overflow-wrap:break-word;word-break:normal!important;font-size:14px;text-align:left!important}\n#page-boletas-rendir .r354-history tbody td[data-label]::before{content:attr(data-label);font-size:12px;font-weight:650}\n#page-boletas-rendir .r354-history tbody td:last-child{border-bottom:0!important}\n#page-boletas-rendir .r354-history tbody td button{justify-self:start;min-height:44px;max-width:100%}\n}",
   '@media(max-width:800px){#page-boletas-rendir{padding:12px}#page-boletas-rendir .r354-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#page-boletas-rendir .r354-form{grid-template-columns:1fr}}',
   '@media(max-width:420px){#page-boletas-rendir .r354-grid{grid-template-columns:1fr}}'
   ].join('\n');document.head.appendChild(s);
@@ -204,18 +206,18 @@ function history(){
   people.map(([id,name])=>'<option value="'+esc(id)+'">'+esc(name||'Usuario')+'</option>').join('')+'</select></label>'+
   '<button type="button" class="r354-btn primary" data-r354="report" disabled>Descargar informe resumen</button>'+
   '<strong id="r419-report-total" aria-live="polite"></strong></div>':'')+
- '<div class="r354-scroll"><table><thead><tr>'+
- (reporting?'<th><input type="checkbox" id="r419-report-all" aria-label="Seleccionar todas las boletas del filtro"></th>':'')+
+ '<div class="r354-scroll r354-history"><table><thead><tr>'+
+ (reporting?'<th class="r354-select-all"><label><input type="checkbox" id="r419-report-all" aria-label="Seleccionar todas las boletas del filtro"><span>Seleccionar todas</span></label></th>':'')+
  (manager()?'<th>Solicitante</th>':'')+'<th>Fecha</th><th>Detalle</th><th>Documento</th><th>Monto</th><th>Estado</th><th>Boleta</th>'+(reporting?'<th>Comprobante</th>':'')+'</tr></thead>'+
  '<tbody id="r419-history-rows">'+historyRows(items,reporting)+'</tbody></table></div></section>';
 }
 function historyRows(rows,reporting){
  return rows.map(r=>'<tr>'+
- (reporting?'<td><input type="checkbox" data-r419-report-row value="'+esc(r.id)+'" aria-label="Seleccionar documento '+esc(receiptDocument(r)||r.fecha_gasto)+'"></td>':'')+
- (manager()?'<td>'+esc(r.nombre_solicitante)+'</td>':'')+
- '<td>'+esc(r.fecha_gasto)+'</td><td>'+esc(r.concepto)+'</td><td>'+esc(receiptDocument(r))+'</td><td>'+money(r.monto)+'</td>'+
- '<td>'+(r.estado==='reintegrado'?'<button type="button" class="r354-transferred" data-r354="transfer" data-id="'+esc(r.id)+'">Transferido</button>':receiptStatus(r))+'</td><td><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td>'+
- (reporting?'<td>'+transferProofCell(r)+'</td>':'')+'</tr>').join('')||
+ (reporting?'<td data-label="Seleccionar"><input type="checkbox" data-r419-report-row value="'+esc(r.id)+'" aria-label="Seleccionar documento '+esc(receiptDocument(r)||r.fecha_gasto)+'"></td>':'')+
+ (manager()?'<td data-label="Solicitante">'+esc(r.nombre_solicitante)+'</td>':'')+
+ '<td data-label="Fecha">'+esc(r.fecha_gasto)+'</td><td data-label="Detalle">'+esc(r.concepto)+'</td><td data-label="Documento">'+esc(receiptDocument(r))+'</td><td data-label="Monto">'+money(r.monto)+'</td>'+
+ '<td data-label="Estado">'+(r.estado==='reintegrado'?'<button type="button" class="r354-transferred" data-r354="transfer" data-id="'+esc(r.id)+'">Transferido</button>':receiptStatus(r))+'</td><td data-label="Boleta"><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td>'+
+ (reporting?'<td data-label="Comprobante">'+transferProofCell(r)+'</td>':'')+'</tr>').join('')||
  '<tr><td colspan="'+(reporting?9:manager()?7:6)+'">Sin boletas registradas.</td></tr>';
 }
 function transferProofCell(receipt){
