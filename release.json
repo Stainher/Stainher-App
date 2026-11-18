@@ -1,8 +1,8 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R425",
-  "build": "20261118-r425-directorio-dotacion",
+  "revision": "R426",
+  "build": "20261118-r426-vista-dotacion",
   "path": "./",
   "publishedAt": "2026-11-18",
   "operationalStatus": {
