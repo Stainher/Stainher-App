@@ -16,6 +16,7 @@ function scan(){
   page.querySelectorAll('small,span,label,div').forEach(e=>{
    const title=String(e.textContent||'').trim().replace(/\s+/g,' ');
    if(title.length>31||!patterns[id].test(title))return;
+   if(id==='page-preventivo'&&e.closest('.v1520-kpis'))return;
    let node=e.parentElement;
    for(let k=0;k<3&&node&&node!==page;k++,node=node.parentElement){
     if(node.matches('.kpi,.mini-stat,.v1524-home-kpi,[class*="prev-kpi"],[class*="prev-stat"],[class*="corr-kpi"]')||

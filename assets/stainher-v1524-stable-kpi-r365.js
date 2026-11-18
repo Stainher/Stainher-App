@@ -7,15 +7,15 @@
  if(window.StainherStableKpiR365)return;
  const TILE_SELECTORS=[
   '#page-inicio :is(.kpi,.mini-stat,.v1524-home-kpi)',
-  '#page-preventivo :is(.kpi,.mini-stat,.v1523-prev-kpi)',
+  '#page-preventivo :is(.kpi,.mini-stat,.v1523-prev-kpi,.v1520-kpis > .v1520-kpi)',
   '#page-correctivo :is(.kpi,.mini-stat,.v1523-corr-kpi)',
   '#page-liderazgo :is(.v1512-mini-kpi,.stainher-leadership-kpi-r214)',
   '#page-estandarizacion .std-kpi',
-  '#page-dotacion :is(.kpi,.mini-stat,.stat-card,.metric-card,.v1512-mini-kpi,.v1520-kpi)',
+  '#page-dotacion :is(.kpi,.mini-stat,.stat-card,.metric-card,.v1512-mini-kpi,.v1520-kpi,.v1523-dot-summary > .contract-card)',
   '#page-contrato :is(.v1520-kpi,.kpi,.mini-stat,.r342-kpi)',
   '#page-sistema :is(.system-stat,.usage-stat,.supabase-stat,.kpi)',
   '#page-vehiculos :is(.kpi,.mini-stat)',
-  '#page-turnos :is(.kpi,.mini-stat)',
+  '#page-turnos :is(.kpi,.mini-stat,.r18-kpis > .r18-kpi,.v1524-encierro-kpis > .v1520-kpi)',
   '#page-solicitudes :is(.kpi,.mini-stat)',
   '#page-boletas-rendir .r354-kpi'
  ];
