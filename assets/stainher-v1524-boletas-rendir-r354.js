@@ -9,7 +9,7 @@ const date=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1
 const toast=(s,type='info')=>window.toast?.(s,type);
 let uid=null,profile=null,items=[],payments=[],busy=false;
 const transferProofs=new Set();
-const transferProofFolder=()=>uid+'/comprobantes-transferencia';
+const transferProofFolder=()=>ISMAEL+'/comprobantes-transferencia';
 const manager=()=>uid===ISMAEL;
 const page=()=>document.getElementById('page-'+PAGE);
 /* R392: ocultar únicamente el título técnico duplicado "boletas-rendir".
@@ -163,7 +163,7 @@ async function fetchData(){
   if(b.error)throw b.error;payments=b.data||[];
  }else payments=[];
  transferProofs.clear();
- if(reportAllowed()){
+ if(items.some(receipt=>receipt.estado==='reintegrado')&&!window.state?.v15PreviewRole){
   try{
    const bucket=window.sb.storage.from(BUCKET);
    const limit=100;
@@ -208,7 +208,7 @@ function history(){
   '<strong id="r419-report-total" aria-live="polite"></strong></div>':'')+
  '<div class="r354-scroll r354-history"><table><thead><tr>'+
  (reporting?'<th class="r354-select-all"><label><input type="checkbox" id="r419-report-all" aria-label="Seleccionar todas las boletas del filtro"><span>Seleccionar todas</span></label></th>':'')+
- (manager()?'<th>Solicitante</th>':'')+'<th>Fecha</th><th>Detalle</th><th>Documento</th><th>Monto</th><th>Estado</th><th>Boleta</th>'+(reporting?'<th>Comprobante</th>':'')+'</tr></thead>'+
+ (manager()?'<th>Solicitante</th>':'')+'<th>Fecha</th><th>Detalle</th><th>Documento</th><th>Monto</th><th>Estado</th><th>Boleta</th>'+'<th>Comprobante</th>'+'</tr></thead>'+
  '<tbody id="r419-history-rows">'+historyRows(items,reporting)+'</tbody></table></div></section>';
 }
 function historyRows(rows,reporting){
@@ -217,15 +217,15 @@ function historyRows(rows,reporting){
  (manager()?'<td data-label="Solicitante">'+esc(r.nombre_solicitante)+'</td>':'')+
  '<td data-label="Fecha">'+esc(r.fecha_gasto)+'</td><td data-label="Detalle">'+esc(r.concepto)+'</td><td data-label="Documento">'+esc(receiptDocument(r))+'</td><td data-label="Monto">'+money(r.monto)+'</td>'+
  '<td data-label="Estado">'+(r.estado==='reintegrado'?'<button type="button" class="r354-transferred" data-r354="transfer" data-id="'+esc(r.id)+'">Transferido</button>':receiptStatus(r))+'</td><td data-label="Boleta"><button type="button" class="r354-btn" data-r354="file" data-id="'+esc(r.id)+'">Ver</button></td>'+
- (reporting?'<td data-label="Comprobante">'+transferProofCell(r)+'</td>':'')+'</tr>').join('')||
- '<tr><td colspan="'+(reporting?9:manager()?7:6)+'">Sin boletas registradas.</td></tr>';
+ '<td data-label="Comprobante">'+transferProofCell(r,reporting)+'</td>'+'</tr>').join('')||
+ '<tr><td colspan="'+(reporting?9:manager()?8:7)+'">Sin boletas registradas.</td></tr>';
 }
-function transferProofCell(receipt){
+function transferProofCell(receipt,canAttach){
  if(receipt.estado!=='reintegrado')return '—';
- const key=esc(receipt.transferencia_id||receipt.id);
+ const key=receipt.transferencia_id||receipt.id;
  return transferProofs.has(key)
-  ?'<button type="button" class="r354-btn" data-r354="transfer-proof" data-id="'+key+'">Ver</button>'
-  :'<button type="button" class="r354-btn" data-r354="attach-transfer-proof" data-id="'+key+'">Adjuntar</button>';
+  ?'<button type="button" class="r354-btn" data-r354="transfer-proof" data-id="'+esc(key)+'">Ver</button>'
+  :canAttach?'<button type="button" class="r354-btn" data-r354="attach-transfer-proof" data-id="'+esc(key)+'">Adjuntar</button>':'Sin comprobante';
 }
 function chooseTransferProof(button){
  const input=document.createElement('input');
@@ -379,8 +379,10 @@ async function click(e){
   alert(['Transferido',receiptDocument(item),money(item.monto),payment?.fecha_transferencia].filter(Boolean).join('\n'));
  }
  if(action==='attach-transfer-proof'&&reportAllowed())chooseTransferProof(btn);
- if(action==='transfer-proof'&&reportAllowed()){
-  const {data,error}=await window.sb.storage.from(BUCKET).createSignedUrl(transferProofFolder()+'/'+btn.dataset.id,90);
+ if(action==='transfer-proof'&&!window.state?.v15PreviewRole&&window.state?.session?.user?.id===uid){
+  const key=btn.dataset.id;
+  if(!transferProofs.has(key)||!items.some(item=>item.estado==='reintegrado'&&(item.transferencia_id||item.id)===key&&(manager()||item.user_id===uid)))return;
+  const {data,error}=await window.sb.storage.from(BUCKET).createSignedUrl(transferProofFolder()+'/'+key,90);
   if(error)return toast(error.message,'error');
   window.open(data.signedUrl,'_blank','noopener,noreferrer');
  }
