@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-stainher-revision="R424" data-stainher-native-staffing>
+<html lang="es" data-stainher-revision="R425" data-stainher-native-staffing>
 <head>
   <base href="./assets/">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -7,7 +7,7 @@
   <meta http-equiv="Expires" content="0">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <script defer src="stainher-v1524-release-refresh-r231.js?build=20261118-r424-transiciones"></script>
+  <script defer src="stainher-v1524-release-refresh-r231.js?build=20261118-r425-directorio-dotacion"></script>
   <style id="home-reminder-style">
     #stainher-reminder-r361{position:fixed;inset:0;margin:auto;width:min(560px,calc(100% - 30px));max-height:min(90dvh,750px);overflow:auto;background:var(--panel,#f8fbff);border:1px solid #94aec6;border-radius:16px;box-shadow:0 18px 70px rgba(0,0,0,.3);color:var(--text,#163450);padding:20px;box-sizing:border-box}
     #stainher-reminder-r361::backdrop{background:rgba(9,24,39,.65)}
@@ -35,12 +35,12 @@
     }
   </style>
   <!-- Stainher App V15.24 r19 · revisión modular 02-09-2026 · Desarrollado por Ismael Gálvez -->
-  <title>Stainher App V15.24 R424</title>
+  <title>Stainher App V15.24 R425</title>
   <script>
   (() => {
     const revision = document.documentElement.dataset.stainherRevision;
     const version = 'V15.24';
-    const build = '20261118-r424-transiciones';
+    const build = '20261118-r425-directorio-dotacion';
     window.STAINHER_RELEASE = Object.freeze({version, revision, build});
     window.STAINHER_BUILD = build;
     // Los renderizadores históricos no definen la revisión del documento.
@@ -213,7 +213,7 @@
       {id:'stainher-v1524-reliability-actions-d20-script',src:'stainher-v1524-reliability-actions.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'confiabilidad'},
       {id:'stainher-v1524-admin-crud-d20-script',src:'stainher-v1524-admin-crud.js?build=20260909-r24-devengo-al-consultar-home-final',domain:'administracion'},
       {id:'stainher-v1524-fixed-monday-thursday-d20-script',src:'stainher-v1524-fixed-monday-thursday.js?build=20260909-r29-data-only',domain:'turnos'},
-      {id:'stainher-v1524-theme-d20-script',src:'stainher-v1524-theme.js?build=20261118-r424-transiciones',domain:'tema'},
+      {id:'stainher-v1524-theme-d20-script',src:'stainher-v1524-theme.js?build=20261118-r425-directorio-dotacion',domain:'tema'},
       {id:'stainher-v1524-runtime-audit-d20-script',src:'stainher-v1524-runtime-audit.js?build=20260924-r112-loader-consolidation',domain:'diagnostico'},
       {id:'stainher-reliability-charts-dark-r19-d20-script',src:'stainher-reliability-charts-dark-r19.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'confiabilidad-graficos'},
       {id:'stainher-v1524-signature-upload-d20-script',src:'stainher-v1524-signature-upload.js?build=20260907-d20-r19-restauracion-funcional-integral',domain:'firmas'},
@@ -368,13 +368,55 @@
 }
 
 </style>
-<link rel="stylesheet" href="stainher-tv-social-r413.css?build=20261118-r424-transiciones">
-<script defer src="stainher-v1524-control-supervisor-r416.js?build=20261118-r424-transiciones"></script>
-<script defer data-stainher-module="stainher-v1524-custom-control-builder.js" src="stainher-v1524-custom-control-builder.js?build=20261118-r424-transiciones"></script>
-<script defer data-stainher-module="stainher-v1524-leadership-execution-access.js" src="stainher-v1524-leadership-execution-access.js?build=20261118-r424-transiciones"></script>
-<script defer src="stainher-tv-social-r413.js?build=20261118-r424-transiciones"></script>
-<script defer src="stainher-tv-r397.js?build=20261118-r424-transiciones"></script>
-<script defer src="stainher-correctivo-edit-r402.js?build=20261118-r424-transiciones"></script>
+<link rel="stylesheet" href="stainher-tv-social-r413.css?build=20261118-r425-directorio-dotacion">
+<script defer src="stainher-v1524-control-supervisor-r416.js?build=20261118-r425-directorio-dotacion"></script>
+<script defer data-stainher-module="stainher-v1524-custom-control-builder.js" src="stainher-v1524-custom-control-builder.js?build=20261118-r425-directorio-dotacion"></script>
+<script defer data-stainher-module="stainher-v1524-leadership-execution-access.js" src="stainher-v1524-leadership-execution-access.js?build=20261118-r425-directorio-dotacion"></script>
+<script defer src="stainher-tv-social-r413.js?build=20261118-r425-directorio-dotacion"></script>
+<script defer src="stainher-tv-r397.js?build=20261118-r425-directorio-dotacion"></script>
+<script defer src="stainher-correctivo-edit-r402.js?build=20261118-r425-directorio-dotacion"></script>
+<style id="stainher-dot-directory">
+#appView #page-dotacion .v1523-dot-summary > .contract-card{
+  background:linear-gradient(125deg,#12446e 0%,#1a6094 52%,#287eb3 100%)!important;
+  color:#fff!important;border-color:#ffffff30!important;border-radius:13px
+}
+#appView #page-dotacion .v1523-dot-summary > .contract-card :is(.contract-label,.contract-kpi,small){
+  color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important
+}
+#appView #page-dotacion .v1523-dot-summary small[data-dot-expired="true"]{
+  color:#ffe4ba!important;-webkit-text-fill-color:#ffe4ba!important
+}
+#page-dotacion .v1523-dot-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 12px}
+#page-dotacion .v1523-dot-toolbar h2{font-size:1rem;margin:0}
+#page-dotacion .v1523-dot-search{width:min(100%,320px)}
+#page-dotacion .v1523-dot-directory .v157-group-body{display:block;padding:4px 9px}
+#page-dotacion .v1523-dot-person + .v1523-dot-person{border-top:1px solid var(--line)}
+#page-dotacion .v1523-dot-row{
+  display:grid;grid-template-columns:35px minmax(0,1fr) auto;align-items:center;gap:11px;
+  text-align:left;width:100%;min-height:52px;background:transparent;color:var(--text);
+  border:0;border-radius:8px;padding:8px;cursor:pointer;font:inherit
+}
+#page-dotacion .v1523-dot-row:hover{background:var(--panel2)}
+#page-dotacion .v1523-dot-row:focus-visible{outline:2px solid #2885ba;outline-offset:-2px}
+#page-dotacion .v1523-dot-initials{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#dceafa;color:#1a567f;font-weight:750;font-size:.75rem}
+#page-dotacion .v1523-dot-row :is(strong,small){display:block;overflow-wrap:anywhere}
+#page-dotacion .v1523-dot-row small{color:var(--muted);margin-top:2px}
+#page-dotacion .v1523-dot-row > span:last-child{font-size:1.3rem}
+#page-dotacion .v1523-dot-directory[hidden],#page-dotacion .v1523-dot-directory [hidden],#page-dotacion .v1523-dot-empty[hidden]{display:none!important}
+#page-dotacion .v1523-dot-drawer{
+  position:fixed;inset:0 0 0 auto;margin:0;width:min(100%,440px);height:100%;max-width:100%;max-height:none;
+  border:0;padding:0;background:var(--panel);color:var(--text);box-shadow:-12px 0 48px #10263a45
+}
+#page-dotacion .v1523-dot-drawer::backdrop{background:#10263a70}
+#page-dotacion .v1523-dot-drawer-head{padding:24px;background:linear-gradient(125deg,#12446e,#237eaf);color:white}
+#page-dotacion .v1523-dot-drawer-head h2{font-size:1.55rem;margin:17px 0 5px;color:white}
+#page-dotacion .v1523-dot-role{margin:0;color:white}
+#page-dotacion .v1523-dot-docs{padding:20px}
+@media(max-width:600px){
+  #page-dotacion .v1523-dot-toolbar{flex-direction:column;align-items:stretch}
+  #page-dotacion .v1523-dot-search,#page-dotacion .v1523-dot-drawer{width:100%}
+}
+</style>
 </head>
 <body class="v156-login-mode">
 <div id="loginView" class="login-wrap">
@@ -11298,12 +11340,56 @@ renderStandaloneVehiculos=async function(){
 
 /* Dotación directa: una sola fuente y privacidad consistente para consulta. */
 async function v1523LoadDotacion(){let q;if(v1520CanEdit('dotacion'))q=await sb.from('dotacion_contrato').select('*').order('area').order('orden');else q=await sb.rpc('dotacion_consulta_v121');if(q.error)throw q.error;state.contractData=state.contractData||{};state.contractData.dotacion=q.data||[];return state.contractData.dotacion}
-function v1523DotPerson(p,editable){const docs=typeof v157DocRows==='function'?v157DocRows(p):'<div class="muted">Sin detalle documental.</div>';return `<div class="v157-person"><div class="v157-person-name">${esc(p.nombre||'Sin nombre')}</div><div class="v157-person-role">${esc(p.cargo||'')}</div><details class="v157-person-detail"><summary>Ver detalle</summary><div class="v157-doc-list">${docs}</div>${editable?`<div class="v157-edit-actions"><button class="btn primary" onclick="openPersonModal('${p.id}')">Editar datos</button></div>`:''}</details></div>`}
+function v1523DotPerson(p,editable){
+  const name=p.nombre||'Sin nombre',role=p.cargo||'';
+  const initials=name.trim().split(/\s+/).slice(0,2).map(word=>Array.from(word)[0]||'').join('').toUpperCase();
+  const docs=typeof v157DocRows==='function'?v157DocRows(p):'<div class="muted">Sin detalle documental.</div>';
+  return `<div class="v1523-dot-person"><button type="button" class="v1523-dot-row" aria-haspopup="dialog"><span class="v1523-dot-initials" aria-hidden="true">${esc(initials)}</span><span><strong>${esc(name)}</strong><small>${esc(role)}</small></span><span aria-hidden="true">›</span></button><template><div class="v157-doc-list">${docs}</div>${editable?`<div class="v157-edit-actions"><button type="button" class="btn primary" data-dot-edit="${esc(p.id)}">Editar datos</button></div>`:''}</template></div>`;
+}
+function v1523BindDotDirectory(page){
+  const directory=page.querySelector('.v1523-dot-directory');
+  const search=page.querySelector('.v1523-dot-search');
+  const drawer=page.querySelector('.v1523-dot-drawer');
+  const rows=[...directory.querySelectorAll('.v1523-dot-person')];
+  const groups=[...directory.querySelectorAll('.v157-group')];
+  const normalize=value=>value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const searchable=rows.map(row=>normalize([...row.querySelectorAll('.v1523-dot-row :is(strong,small)')].map(node=>node.textContent).join(' ')));
+  let expanded=null;
+  search.addEventListener('input',()=>{
+    const query=normalize(search.value);
+    if(query&&!expanded)expanded=groups.map(group=>group.open);
+    let matches=0;
+    rows.forEach((row,index)=>{
+      row.hidden=!!query&&!searchable[index].includes(query);
+      if(!row.hidden)matches++;
+    });
+    groups.forEach((group,index)=>{
+      group.hidden=!!query&&!group.querySelector('.v1523-dot-person:not([hidden])');
+      if(query)group.open=!group.hidden;
+      else if(expanded)group.open=expanded[index];
+    });
+    if(!query)expanded=null;
+    directory.hidden=!!query&&!matches;
+    page.querySelector('.v1523-dot-empty').hidden=!query||matches>0;
+  });
+  directory.addEventListener('click',event=>{
+    const button=event.target.closest('.v1523-dot-row');if(!button)return;
+    drawer.querySelector('h2').textContent=button.querySelector('strong').textContent;
+    drawer.querySelector('.v1523-dot-role').textContent=button.querySelector('small').textContent;
+    drawer.querySelector('.v1523-dot-docs').replaceChildren(button.parentElement.querySelector('template').content.cloneNode(true));
+    drawer.showModal();
+  });
+  drawer.addEventListener('click',event=>{
+    const edit=event.target.closest('[data-dot-edit]');if(!edit)return;
+    drawer.close();
+    openPersonModal(edit.dataset.dotEdit);
+  });
+}
 async function v1523DeletePerson(id){if(!v15ActualAdmin?.()||state.v15PreviewRole||!confirm('¿Eliminar definitivamente a esta persona de Dotación?'))return;return v1523RequestLock(`dotacion:${id}:eliminar`,async()=>{try{const q=await sb.from('dotacion_contrato').delete().eq('id',id);if(q.error)throw q.error}catch(error){v1523RecordError('dotación/eliminación',error);toast('No se pudo eliminar la persona: '+(error.message||String(error)),'error');return}closeModal();try{await renderStandaloneDotacion();toast('Persona eliminada','success')}catch(error){v1523RecordError('dotación/recarga',error);toast('Persona eliminada; la recarga visual quedó pendiente.','warn')}})}
 const _v1523OpenPersonModal=openPersonModal;openPersonModal=function(id=''){const out=_v1523OpenPersonModal(id);if(id&&v15ActualAdmin?.()&&!state.v15PreviewRole){const modal=document.querySelector('#modalRoot .modal');if(modal&&!modal.querySelector('#v1523DeletePerson'))modal.insertAdjacentHTML('beforeend',`<div class="v157-delete-zone"><div class="row-between"><div><b>Eliminar colaborador</b><div class="muted" style="font-size:10px;margin-top:3px">Elimina el registro de Dotación; requiere confirmación.</div></div><button id="v1523DeletePerson" type="button" class="btn danger-btn" onclick="v1523DeletePerson('${id}')">Eliminar persona</button></div></div>`)}return out};
 renderStandaloneDotacion=async function(){
   if(!canViewV11('dotacion'))return;const p=document.getElementById('page-dotacion');if(!p)return;p.innerHTML='<div class="empty">Cargando dotación…</div>';let rows=await v1523LoadDotacion();rows=v156VisibleDotation?.(rows)||rows;state.v1519ContractCache=state.v1519ContractCache||{};state.v1519ContractCache.dotacion=[...(state.contractData?.dotacion||[])];const editable=v1520CanEdit('dotacion'),restricted=['supervisor','tecnico'].includes(String(v11Role?.()||'')),tech=rows.filter(x=>x.area==='tecnico'),adm=rows.filter(x=>['administrativo_apoyo','administrativo'].includes(x.area)),prev=rows.filter(x=>x.area==='prevencion'),sups=tech.filter(x=>v13Norm(x.cargo).includes('supervisor')),assigned=new Set(),groups=sups.map((s,i)=>{const crew=tech.filter(t=>t.id!==s.id&&!v13Norm(t.cargo).includes('supervisor')&&v13SupervisorNameMatch(t.supervisor_nombre,s.nombre));crew.forEach(x=>assigned.add(String(x.id)));return `<details class="v157-group"><summary><div class="v157-group-head"><b>${restricted?'Mi Grupo':'Grupo '+(i+1)}</b><span>1 Supervisor · ${crew.length} Técnico${crew.length===1?'':'s'}</span></div></summary><div class="v157-group-body">${v1523DotPerson(s,editable)}${crew.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="v1523-empty-group">Sin técnicos asociados.</div>'}</div></details>`}).join(''),unassigned=tech.filter(x=>!v13Norm(x.cargo).includes('supervisor')&&!assigned.has(String(x.id))),dates=rows.flatMap(x=>(typeof V13_EXP_FIELDS!=='undefined'?V13_EXP_FIELDS:[]).map(([k])=>x[k]).filter(Boolean)),due=dates.filter(d=>{const n=v12Days(d);return n>=0&&n<=60}).length,expired=dates.filter(d=>v12Days(d)<0).length,active=rows.filter(x=>x.estado==='activo').length,vac=rows.filter(x=>x.estado==='vacante').length;
-  p.innerHTML=`<div class="topbar"><div></div><div class="v1523-page-actions"><button class="btn" onclick="downloadDotacionReportV8()">↓ Informe dotación PDF</button>${editable?'<button class="btn primary" onclick="openPersonModal()">+ Nuevo colaborador</button>':''}</div></div>${!editable?'<div class="v1520-readonly">Modo lectura: no se muestran RUT ni fecha de nacimiento.</div>':''}<div class="v12-doc-summary v1523-dot-summary"><div class="contract-card"><div class="contract-label">Dotación visible</div><div class="contract-kpi">${rows.length}</div></div><div class="contract-card"><div class="contract-label">Activos</div><div class="contract-kpi">${active}</div></div><div class="contract-card"><div class="contract-label">Vacantes</div><div class="contract-kpi accent-yellow">${vac}</div></div><div class="contract-card"><div class="contract-label">Documentos ≤ 60 días</div><div class="contract-kpi accent-yellow">${due}</div><small class="muted">${expired} vencido${expired===1?'':'s'}</small></div></div><div class="panel"><h3>Personal Técnico</h3><div class="v157-group-grid">${groups||'<div class="empty">Sin supervisores visibles.</div>'}${unassigned.length&&!restricted?`<details class="v157-group"><summary><div class="v157-group-head"><b>Sin supervisor asignado</b><span>${unassigned.length} colaborador${unassigned.length===1?'':'es'}</span></div></summary><div class="v157-group-body">${unassigned.map(x=>v1523DotPerson(x,editable)).join('')}</div></details>`:''}</div></div>${restricted?'':`<div class="v157-secondary-grid"><details class="v157-group"><summary><div class="v157-group-head"><b>Administrativo</b><span>${adm.length}</span></div></summary><div class="v157-group-body">${adm.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="empty">Sin registros.</div>'}</div></details><details class="v157-group"><summary><div class="v157-group-head"><b>Prevención de Riesgos</b><span>${prev.length}</span></div></summary><div class="v157-group-body">${prev.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="empty">Sin registros.</div>'}</div></details></div>`}`;v1514SetGlobalHeader?.('dotacion');
+  p.innerHTML=`<div class="topbar"><div></div><div class="v1523-page-actions"><button class="btn" onclick="downloadDotacionReportV8()">↓ Informe dotación PDF</button>${editable?'<button class="btn primary" onclick="openPersonModal()">+ Nuevo colaborador</button>':''}</div></div>${!editable?'<div class="v1520-readonly">Modo lectura: no se muestran RUT ni fecha de nacimiento.</div>':''}<div class="v12-doc-summary v1523-dot-summary"><div class="contract-card"><div class="contract-label">Dotación visible</div><div class="contract-kpi">${rows.length}</div></div><div class="contract-card"><div class="contract-label">Activos</div><div class="contract-kpi">${active}</div></div><div class="contract-card"><div class="contract-label">Vacantes</div><div class="contract-kpi accent-yellow">${vac}</div></div><div class="contract-card"><div class="contract-label">Documentos ≤ 60 días</div><div class="contract-kpi accent-yellow">${due}</div><small class="muted" data-dot-expired="${expired>0}">${expired} vencido${expired===1?'':'s'}</small></div></div><div class="v1523-dot-toolbar"><h2>Directorio por área</h2><input class="field v1523-dot-search" type="search" placeholder="Buscar por nombre o cargo" aria-label="Buscar por nombre o cargo"></div><div class="v1523-dot-directory"><div class="panel"><h3>Personal Técnico</h3><div class="v157-group-grid">${groups||'<div class="empty">Sin supervisores visibles.</div>'}${unassigned.length&&!restricted?`<details class="v157-group"><summary><div class="v157-group-head"><b>Sin supervisor asignado</b><span>${unassigned.length} colaborador${unassigned.length===1?'':'es'}</span></div></summary><div class="v157-group-body">${unassigned.map(x=>v1523DotPerson(x,editable)).join('')}</div></details>`:''}</div></div>${restricted?'':`<div class="v157-secondary-grid"><details class="v157-group" open><summary><div class="v157-group-head"><b>Administrativo</b><span>${adm.length}</span></div></summary><div class="v157-group-body">${adm.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="empty">Sin registros.</div>'}</div></details><details class="v157-group" open><summary><div class="v157-group-head"><b>Prevención de Riesgos</b><span>${prev.length}</span></div></summary><div class="v157-group-body">${prev.map(x=>v1523DotPerson(x,editable)).join('')||'<div class="empty">Sin registros.</div>'}</div></details></div>`}</div><p class="empty v1523-dot-empty" role="status" hidden>Sin coincidencias.</p><dialog class="v1523-dot-drawer" aria-labelledby="v1523-dot-name"><header class="v1523-dot-drawer-head"><form method="dialog"><button type="submit" class="btn">Cerrar ficha</button></form><h2 id="v1523-dot-name"></h2><p class="v1523-dot-role"></p></header><div class="v1523-dot-docs"></div></dialog>`;v1523BindDotDirectory(p);v1514SetGlobalHeader?.('dotacion');
 };
 
 /* Correctivo directo: la consulta se espera, descarta respuestas obsoletas y propaga errores. */
