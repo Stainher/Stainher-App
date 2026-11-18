@@ -11,6 +11,7 @@
   const PAGE_ID='reporte-hp';
   const VIEW_ROLES=new Set(['administrador','gerente','confiabilidad','planificador','prevencion','recursos_humanos']);
   let hpRendering=false;
+  const routerScript=document.currentScript;
 
   const norm=v=>String(v||'').trim().toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -61,7 +62,23 @@
     hpRendering=true;
     try{
       content.innerHTML=`<section id="page-${PAGE_ID}"><div class="empty">Cargando Reporte Semanal HP…</div></section>`;
-      const renderer=resolveHpRenderer();
+      let renderer=resolveHpRenderer();
+      if(!renderer&&window.StainherHPR72?.refresh){
+        await window.StainherHPR72.refresh();
+        renderer=resolveHpRenderer();
+      }else if(!renderer&&routerScript?.src){
+        await new Promise((resolve,reject)=>{
+          const script=document.createElement('script');
+          const url=new URL('stainher-v1524-weekly-hp-report.js',routerScript.src);
+          url.searchParams.set('build','20261118-hp-first-render');
+          script.src=url.href;
+          script.onload=resolve;
+          script.onerror=()=>{script.remove();reject(new Error('No se pudo cargar el módulo HP.'))};
+          document.head.appendChild(script);
+        });
+        renderer=resolveHpRenderer();
+      }
+      if(!content.isConnected||window.state?.v1520TurnTab!=='hp')return;
       if(!renderer){
         content.innerHTML='<div class="notice error">Reporte Semanal HP no está disponible. Recarga la aplicación e inténtalo nuevamente.</div>';
         return;
@@ -146,6 +163,8 @@
     observer.observe(page,{childList:true,subtree:false});
     page.__stainherHpR71Observer=observer;
   }
+
+  window.StainherHPTurnos={enhance:enhanceTurnos};
 
   function boot(){
     mountStyle();

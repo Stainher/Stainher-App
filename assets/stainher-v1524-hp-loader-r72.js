@@ -393,7 +393,13 @@
     }
   }
 
-  async function refresh(){
+  let hpLoad;
+  function refresh(){
+    hpLoad??=loadHpModules().finally(()=>{hpLoad=null});
+    return hpLoad;
+  }
+
+  async function loadHpModules(){
     const modules=[
       ['stainher-weekly-hp-runtime-r117','stainher-v1524-weekly-hp-report.js'],
       ['stainher-hp-history-runtime-r117','stainher-v1524-hp-history-r71.js'],
@@ -401,8 +407,9 @@
       ['stainher-hp-layout-runtime-r78','stainher-v1524-hp-layout-r78.js'],
       ['stainher-weekly-hp-router-r78','stainher-v1524-hp-router-r57.js']
     ];
-    // Un fallo en un módulo auxiliar no debe impedir montar el comparativo histórico.
+    // Un fallo en un módulo auxiliar no debe impedir cargar las demás funciones de HP.
     for(const [id,file] of modules){
+      if(file==='stainher-v1524-hp-router-r57.js'&&window.StainherHPTurnos)continue;
       try{await load(id,file)}
       catch(error){console.error('[Stainher HP] No se pudo cargar '+file,error)}
     }

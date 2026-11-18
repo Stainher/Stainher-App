@@ -12,6 +12,28 @@
   const LABELS={encierro_planificado:'Encierro dentro de turno',encierro_no_planificado:'Encierro fuera de turno',suspendido_encierro:'Suspendido por encierro',dia_adicional:'Día adicional',hora_extra:'Horas extra',feriado:'Horas feriado',vacaciones:'Vacaciones',licencia_medica:'Licencia médica',permiso:'Permiso / ausencia',falta:'Falta / ausencia',capacitacion:'Capacitación',otro:'Otra novedad',encierro:'Encierro'};
   const CODES={encierro_planificado:'ET',encierro_no_planificado:'EF',suspendido_encierro:'SE',dia_adicional:'DA',hora_extra:'HE',feriado:'HF',vacaciones:'V',licencia_medica:'LM',permiso:'P',falta:'F',capacitacion:'CAP',otro:'EV',encierro:'ENC'};
   let seq=0;
+  const directScript=document.currentScript;
+  let hpNavigationLoad;
+
+  function loadHpNavigation(){
+    if(window.StainherHPTurnos||!directScript?.src)return Promise.resolve();
+    if(!hpNavigationLoad){
+      hpNavigationLoad=new Promise(resolve=>{
+        const url=new URL('stainher-v1524-hp-router-r57.js',directScript.src);
+        url.searchParams.set('build','20261118-hp-first-render');
+        const script=document.createElement('script');
+        script.src=url.href;
+        script.onload=resolve;
+        script.onerror=()=>{
+          hpNavigationLoad=null;
+          script.remove();
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+    }
+    return hpNavigationLoad;
+  }
 
   const esc=value=>String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const iso=(y,m,d)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -218,7 +240,9 @@
     page.innerHTML='<div class="empty">Cargando Turnos y Novedades…</div>';
     try{
       if(typeof window.v1520LoadTurnData!=='function')throw new Error('No está disponible la capa de datos de Turnos.');
-      const loadStart=performance.now(),d=await window.v1520LoadTurnData();if(token!==seq)return;
+      const loadStart=performance.now();
+      const [d]=await Promise.all([window.v1520LoadTurnData(),loadHpNavigation()]);
+      if(token!==seq)return;
       const loadMs=Math.round(performance.now()-loadStart);window.state.v1520TurnData=d;window.state.v1512TurnData=d;
       const y=Number(window.state.turnYearV1512),m=Number(window.state.turnMonthV1512),idx=makeIndexes(d,y,m),edit=canEdit();
       const now=new Date(),todayIso=iso(now.getFullYear(),now.getMonth()+1,now.getDate()),ref=todayIso>=d.range.start&&todayIso<=d.range.end?todayIso:d.range.start,cov=coverage(d,idx,ref);
@@ -236,6 +260,7 @@
       const buildMs=Math.round(performance.now()-buildStart),domStart=performance.now();page.innerHTML=html;const domMs=Math.round(performance.now()-domStart);
       page.querySelector('.r18-turn-meta')?.insertAdjacentHTML('beforeend',`<span>render ${buildMs} ms · DOM ${domMs} ms · total ${Math.round(performance.now()-start)} ms</span>`);
       bind(page,d,edit);
+      window.StainherHPTurnos?.enhance();
       try{window.v1514SetGlobalHeader?.('turnos')}catch(_){ }
     }catch(error){if(token!==seq)return;console.error('[Turnos directos r18]',error);page.innerHTML=`<div class="notice error"><b>No fue posible cargar Turnos y Novedades.</b><br>${esc(error?.message||String(error))}<br><small>Renderizador directo r18 · ${BUILD}</small></div>`}
   }
