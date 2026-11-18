@@ -35,7 +35,25 @@
     }
     return ritLoad;
   }
+  let leadershipTabsObserved=false;
+  function prepareLeadershipTabs(){
+    const root=document.getElementById('page-liderazgo');
+    if(!root||leadershipTabsObserved)return;
+    leadershipTabsObserved=true;
+    const orderTabs=()=>{
+      const tabs=root.querySelector('.v1512-lead-tabs');
+      if(!tabs)return;
+      const controls=tabs.querySelector(':scope > button[data-tab="controles"]');
+      const indicators=tabs.querySelector(':scope > button[data-tab="indicadores"]');
+      if(controls&&tabs.firstElementChild!==controls)tabs.prepend(controls);
+      if(indicators&&tabs.lastElementChild!==indicators)tabs.append(indicators);
+    };
+    // La vista base reemplaza los hijos directos al renderizar.
+    new MutationObserver(orderTabs).observe(root,{childList:true});
+    orderTabs();
+  }
   function prepareLeadership(){
+    prepareLeadershipTabs();
     const render=window.renderLiderazgoV95;
     if(typeof render!=='function'||render.__stainherR390||render.__stainherRitReady)return;
     const ready=async function(...args){
