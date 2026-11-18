@@ -8,7 +8,7 @@ test('R373: RPC correcto seguido de falla al refrescar no debe decir que falló 
  const browser=await chromium.launch({headless:true});
  try{
  const page=await browser.newPage();
- await page.setContent('<html><body><div id="page-correctivo"><div id="corrBody"></div></div></body></html>');
+ await page.setContent('<html><body><div id="page-correctivo"><div id="corrBody"></div></div><div id="page-confiabilidad"></div></body></html>');
  await page.evaluate(()=>{
   window.state={profile:{rol:'administrador'},session:{user:{id:'test'}}};
   window.__notices=[];
@@ -26,7 +26,7 @@ test('R373: RPC correcto seguido de falla al refrescar no debe decir que falló 
   window.renderCorrectivo=async()=>{throw new TypeError("Cannot read properties of undefined (reading 'rows')")};
  });
  await page.addScriptTag({content:src});
- const file=page.locator('[data-r369-file]');
+ const file=page.locator('#page-confiabilidad [data-r369-file]');
  await file.setInputFiles({name:'Planilla.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:Buffer.from('fake')});
  await page.waitForFunction(()=>document.querySelector('.r369-status')?.textContent.includes('No repita la importación'));
  const result=await page.evaluate(()=>({status:document.querySelector('.r369-status').textContent,notices:window.__notices}));

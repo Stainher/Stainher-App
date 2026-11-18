@@ -19,24 +19,21 @@ assert.ok(Number(loader.match(/window\.__STAINHER_HP_LOADER_VERSION__='R(\d+)'/)
 assert.match(loader,/\['stainher-weekly-hp-runtime-r117','stainher-v1524-weekly-hp-report\.js'\]/,'El cargador autenticado conserva HP en la lista de carga secuencial');
 assert.match(loader,/async function bootstrapR\d+\(\)/,'El cargador conserva el bootstrap autenticado');
 assert.match(loader,/window\.StainherHPR112=api/);
-const ordered=[
-  'await refreshAccessR107()',
-  'await refreshBudgets()',
-  'await refreshContractForecast()',
-  'await refreshTurnReport()',
-  'await refreshVehicleExpiryR109()',
-  'await refreshLeadership()',
-  'await refreshSystem()',
-  'await refreshSignature()',
-  'await refreshFreeReport()',
-  'await refresh()'
-];
-let previous=-1;
-for(const call of ordered){
-  const position=loader.indexOf(call);
-  assert.ok(position>previous,`${call} debe mantener el orden determinista`);
-  previous=position;
+const bootstrap=loader.match(/async function bootstrapR\d+\(\)\{([\s\S]*?)\n  \}/)?.[1]??'';
+const contractTabs=loader.match(/function loadContractTabs\(\)\{([\s\S]*?)\n  \}/)?.[1]??'';
+assert.match(contractTabs,/await refreshBudgets\(\)[\s\S]*?await refreshContractForecast\(\)[\s\S]*?await refreshFreeReport\(\)/,'Contrato conserva su carga secuencial');
+for(const [page,refresh] of Object.entries({
+  solicitudes:'refreshAccessR107',
+  liderazgo:'refreshLeadership',
+  vehiculos:'refreshVehicleExpiryR109',
+  sistema:'refreshSystem'
+})){
+  const loadPage=bootstrap.indexOf(`await loadPageExtensions('${page}')`);
+  assert.ok(loadPage>=0,`El bootstrap debe esperar los complementos de ${page}`);
+  const extension=loader.match(new RegExp(`\\b${page}:async\\(\\)=>\\{([\\s\\S]*?)\\n    \\}`))?.[1]??'';
+  assert.ok(extension.includes(`await ${refresh}()`),`${page} debe esperar ${refresh}`);
 }
+assert.match(bootstrap,/await loadContractTabs\(\)[\s\S]*?await refreshTurnReport\(\)[\s\S]*?await refreshSignature\(\)[\s\S]*?await refresh\(\)/);
 
 assert.doesNotMatch(index,/"stainher-v1524-turn-report-onepage\.js"/,'el exportador antiguo no debe cargarse');
 assert.match(index,/stainher-v1524-runtime-audit\.js/,'El runtime audit continúa en el entrypoint');
