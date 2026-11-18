@@ -7,11 +7,11 @@
  */
 (()=>{
   'use strict';
-  if(window.__STAINHER_HP_LOADER_VERSION__==='R423')return;
+  if(window.__STAINHER_HP_LOADER_VERSION__==='R424')return;
   window.__STAINHER_HP_LOADER_R72__=true;
-  window.__STAINHER_HP_LOADER_VERSION__='R423';
+  window.__STAINHER_HP_LOADER_VERSION__='R424';
 
-  const BUILD='20261113-r423-reembolso-historico';
+  const BUILD='20261118-r424-transiciones';
 
   document.documentElement.classList.add('stainher-r184-request-loading');
   if(!document.getElementById('stainher-r184-request-boot-style')){

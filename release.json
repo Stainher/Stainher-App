@@ -1,10 +1,10 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R423",
-  "build": "20261113-r423-reembolso-historico",
+  "revision": "R424",
+  "build": "20261118-r424-transiciones",
   "path": "./",
-  "publishedAt": "2026-11-13",
+  "publishedAt": "2026-11-18",
   "operationalStatus": {
     "status": "base funcional confirmada",
     "confirmedBy": "Ismael Gálvez",
