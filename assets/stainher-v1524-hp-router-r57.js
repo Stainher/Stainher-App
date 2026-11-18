@@ -1,7 +1,6 @@
 /* Stainher V15.24 · R71 · Reporte Semanal HP dentro de Turnos y Novedades.
  * El reporte deja de ser una ruta visible independiente y se presenta como
  * tercera pestaña del renderer autoritativo de Turnos (r18).
- * R71 monta la comparación histórica local bajo el resumen mensual.
  * No modifica login/sesión ni instala interceptores globales.
  */
 (()=>{
@@ -69,22 +68,16 @@
       }
       await renderer();
       const page=content.querySelector(`#page-${PAGE_ID}`);
-      // El módulo histórico puede llegar después del renderer HP: no perder el montaje.
       let retries=0;
-      const ensureComparison=()=>{
+      const mountMonthlyDetails=()=>{
         if(!page?.isConnected)return;
         if(typeof window.StainherHPHistory?.mount==='function'){
-          try{window.StainherHPHistory.mount(page);window.StainherHPAdminDetail?.mount?.(page)}catch(error){console.error('[Stainher HP] Comparación histórica / horas administrativas.',error)}
+          try{window.StainherHPHistory.mount(page);window.StainherHPAdminDetail?.mount?.(page)}catch(error){console.error('[Stainher HP] Resumen mensual / horas administrativas.',error)}
           return;
         }
-        if(++retries<=40){setTimeout(ensureComparison,250);return;}
-        if(!page.querySelector('[data-hp-history-error]')){
-          const warning=document.createElement('div');warning.className='notice warn';warning.dataset.hpHistoryError='1';
-          warning.textContent='No se pudo cargar el comparativo de los últimos tres meses. Reabre el reporte para reintentar.';
-          page.appendChild(warning);
-        }
+        if(++retries<=40){setTimeout(mountMonthlyDetails,250);return;}
       };
-      ensureComparison();
+      mountMonthlyDetails();
     }catch(error){
       console.error('[Stainher HP R71] Render dentro de Turnos.',error);
       content.innerHTML=`<div class="notice error">No fue posible cargar Reporte Semanal HP: ${String(error?.message||error||'Error desconocido')}</div>`;

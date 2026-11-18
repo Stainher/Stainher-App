@@ -1,6 +1,5 @@
 /* Stainher V15.24 · R78 · layout estable para horas administrativas HP.
  * - Un solo botón/chevrón para desplegar.
- * - Mueve carga y detalle mensual bajo la comparación histórica.
  * - Sin MutationObserver ni reordenamientos repetitivos.
  * - No modifica cálculos HP/FTE, Teletrabajo, Excel ni login/sesión.
  */
@@ -106,8 +105,6 @@
       body.appendChild(detail);
     }
 
-    const history=page.querySelector('#hpHistoryR71');
-    if(history&&history.nextElementSibling!==block)history.insertAdjacentElement('afterend',block);
   }
 
   function schedule(page){setTimeout(()=>organize(page),120)}
