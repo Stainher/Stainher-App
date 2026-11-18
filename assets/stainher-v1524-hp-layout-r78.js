@@ -21,14 +21,16 @@
       #${PAGE_ID} .hp-summary thead th:last-child{text-align:center!important;vertical-align:middle!important}
       #${PAGE_ID} .hp-summary tbody td{font-variant-numeric:tabular-nums}
       #${PAGE_ID} #${BLOCK_ID}{margin-top:14px;padding:0!important;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
-      #${PAGE_ID} .hp-manual-toggle-r78{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
-      #${PAGE_ID} .hp-manual-toggle-r78:hover{background:var(--panel2)}
+      #${PAGE_ID} .hp-manual-toggle-r78{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;border:0;background:linear-gradient(115deg,#175da8,#124d8a)!important;color:#fff!important;text-align:left;cursor:pointer;font:inherit}
+      #${PAGE_ID} .hp-manual-toggle-r78:hover{background:linear-gradient(115deg,#124d8a,#103e70)!important}
+      #${PAGE_ID} .hp-manual-toggle-r78:focus-visible{outline:2px solid #fff;outline-offset:-4px}
+      #${PAGE_ID} .hp-manual-toggle-r78 :is(.hp-manual-chevron-r78,.hp-manual-title-r78 strong,.hp-manual-title-r78 span){color:#fff!important}
       #${PAGE_ID} .hp-manual-toggle-main-r78{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
-      #${PAGE_ID} .hp-manual-chevron-r78{width:18px;flex:0 0 18px;text-align:center;color:var(--muted);font-size:14px;line-height:1;transition:transform .16s ease}
+      #${PAGE_ID} .hp-manual-chevron-r78{width:18px;flex:0 0 18px;text-align:center;font-size:14px;line-height:1;transition:transform .16s ease}
       #${PAGE_ID} .hp-manual-toggle-r78[aria-expanded="true"] .hp-manual-chevron-r78{transform:rotate(90deg)}
       #${PAGE_ID} .hp-manual-title-r78{display:grid;gap:3px;min-width:0}
       #${PAGE_ID} .hp-manual-title-r78 strong{font-size:14px}
-      #${PAGE_ID} .hp-manual-title-r78 span{font-size:11px;color:var(--muted);white-space:normal}
+      #${PAGE_ID} .hp-manual-title-r78 span{font-size:12px;white-space:normal}
       #${PAGE_ID} .hp-manual-body-r78{display:grid;gap:14px;padding:16px 18px 18px;border-top:1px solid var(--line)}
       #${PAGE_ID} .hp-manual-body-r78[hidden]{display:none!important}
       #${PAGE_ID} .hp-manual-entry-r78,
