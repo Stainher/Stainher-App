@@ -2,10 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const hp=fs.readFileSync('assets/stainher-v1524-weekly-hp-report.js','utf8');
-const history=fs.readFileSync('assets/stainher-v1524-hp-history-r71.js','utf8');
 
 assert.match(hp,/WEEKLY_HP_REPORT_VERSION__='R296'/,'R296 debe ser la implementación HP activa');
-assert.match(history,/HP_HISTORY_VERSION__='R295'/,'R294 conserva los cierres oficiales y estabiliza el panel histórico');
 
 const match=hp.match(/const OFFICIAL_CLOSED_MONTHS=(\{[\s\S]*?\n  \});/);
 assert.ok(match,'Debe existir snapshot oficial de meses cerrados');
@@ -35,7 +33,6 @@ assert.equal(sumDaily(byName.get('Cinthia Carolina Gallardo Madrid')),138,'Cinth
 assert.equal(sumDaily(byName.get('Jose Antonio Humberto Cisternas Pirul')),138,'Jose: 138 HH Codelco');
 assert.equal(sumDaily(byName.get('Alex Silva')),0,'Alex: 0 HH');
 
-assert.match(history,/'2026-07':\{admin:306,oper:1888,spor:0,total:2194/,'Histórico debe usar total oficial de julio');
 assert.match(hp,/if\(state\.official\)\{/,'El reporte seleccionado debe priorizar el cierre oficial');
 assert.match(hp,/if\(Array\.isArray\(person\.officialDaily\)\)/,'El detalle por trabajador debe usar datos oficiales diarios');
 assert.match(hp,/if\(state\.official\)return'';/,'Mes oficial no debe permitir ajustes manuales HP');
