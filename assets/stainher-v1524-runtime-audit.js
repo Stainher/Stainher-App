@@ -51,6 +51,37 @@
   window.StainherLoadRITModal=loadRit;
   prepareLeadership();
   window.addEventListener('stainher:modules-ready',prepareLeadership);
+  let authenticatedLoader;
+  function prepareContractNavigation(){
+    const resolveRenderer=window.v1523Renderer;
+    if(typeof resolveRenderer!=='function'||resolveRenderer.__stainherContractReady)return;
+    const resolve=function(page){
+      if(page!=='contrato'||!hasSession())return resolveRenderer.apply(this,arguments);
+      return async ()=>{
+        const seq=window.state?.v1523RenderSeq;
+        await authenticatedLoader;
+        await window.StainherLoadContractTabs?.();
+        if(seq!==window.state?.v1523RenderSeq)return;
+        const root=document.getElementById('page-contrato');
+        root?.setAttribute('data-stainher-contract-rendering','');
+        try{
+          return await resolveRenderer.call(this,page)?.();
+        }finally{
+          if(seq===window.state?.v1523RenderSeq||root?.classList.contains('hidden'))root?.removeAttribute('data-stainher-contract-rendering');
+        }
+      };
+    };
+    resolve.__stainherContractReady=true;
+    window.v1523Renderer=resolve;
+    if(!document.getElementById('stainher-contract-first-render-style')){
+      const style=document.createElement('style');
+      style.id='stainher-contract-first-render-style';
+      style.textContent='#page-contrato[data-stainher-contract-rendering] .v1520-tabs{visibility:hidden}';
+      document.head.appendChild(style);
+    }
+  }
+  prepareContractNavigation();
+  window.addEventListener('stainher:modules-ready',prepareContractNavigation);
   function start(){
     if(started||!hasSession())return false;
     started=true;
@@ -61,7 +92,17 @@
     load('stainher-home-no-vacation-r112',`stainher-v1524-home-no-vacation-r57.js?build=${BUILD}`);
     load('stainher-turnos-teletrabajo-r112',`stainher-turnos-teletrabajo-r75.js?build=${BUILD}-${Date.now()}`);
     load('stainher-turnos-event-grid-r112',`stainher-turnos-event-grid-r79.js?build=${BUILD}-${Date.now()}`);
-    load('stainher-hp-loader-r112',`stainher-v1524-hp-loader-r72.js?build=${BUILD}-${Date.now()}`);
+    authenticatedLoader=new Promise(resolve=>{
+      const script=document.createElement('script');
+      script.id='stainher-hp-loader-r112';
+      script.src=`stainher-v1524-hp-loader-r72.js?build=${BUILD}-${Date.now()}`;
+      script.onload=resolve;
+      script.onerror=()=>{
+        console.warn('[Stainher] No se pudo cargar el complemento de módulos autenticados.');
+        resolve();
+      };
+      document.head.appendChild(script);
+    });
     load('stainher-leadership-orphan-runtime-r112',`stainher-v1524-leadership-orphan-filter.js?build=${BUILD}`);
     return true;
   }

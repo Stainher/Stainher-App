@@ -555,6 +555,17 @@
       window.StainherBoletasR354?.install?.();
     }catch(error){console.warn('[Boletas a rendir R354]',error)}
   }
+  let contractTabsReady;
+  function loadContractTabs(){
+    contractTabsReady??=(async()=>{
+      await refreshBudgets();
+      await refreshContractForecast();
+      await refreshFreeReport();
+    })();
+    return contractTabsReady;
+  }
+  window.StainherLoadContractTabs=loadContractTabs;
+
   async function bootstrapR135(){
     // Reparar valores de fecha/mes antes de los módulos autenticados.
     await load('stainher-date-picker-mobile-readable','stainher-v1524-date-picker.js');
@@ -575,8 +586,7 @@
     await refreshCorrectivoReplaceR364();
     await refreshCorrectivoCalendarR394();
     await refreshObservacionesR370();
-    await refreshBudgets();
-    await refreshContractForecast();
+    await loadContractTabs();
     await refreshTurnReport();
     await refreshVehicleExpiryR109();
     await refreshLeadership();
@@ -590,7 +600,6 @@
     await refreshVehicleFatigueR379();
     await refreshSystem();
     await refreshSignature();
-    await refreshFreeReport();
     await refreshReliabilityActionsR119();
     await load('stainher-reliability-contrast-r327','stainher-v1524-reliability-contrast-r327.js');
     await load('stainher-pareto-subsystems-r322','stainher-v1524-pareto-subsystems-r322.js');
