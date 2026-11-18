@@ -1367,6 +1367,27 @@
       display:inline-flex!important;align-items:center!important;
       letter-spacing:.02em!important;
     }
+    /* Indicadores operacionales con el mismo relleno de Inicio en todos los temas. */
+    html body #appView #page-inicio .v1524-home-kpi,
+    html body #appView #page-preventivo .v1520-kpis > .v1520-kpi,
+    html body #appView #page-dotacion .v1523-dot-summary > .contract-card,
+    html body #appView #page-turnos .r18-kpis > .r18-kpi,
+    html body #appView #page-turnos .v1524-encierro-kpis > .v1520-kpi{
+      background:linear-gradient(125deg,#12446e 0%,#1a6094 52%,#287eb3 100%)!important;
+      color:#fff!important;
+      -webkit-text-fill-color:#fff!important;
+      border-color:rgba(255,255,255,.18)!important;
+    }
+    html body #appView #page-inicio .v1524-home-kpi :is(span,b,strong,small,.contract-label,.contract-kpi,.muted),
+    html body #appView #page-preventivo .v1520-kpis > .v1520-kpi :is(span,b,strong,small,.contract-label,.contract-kpi,.muted),
+    html body #appView #page-dotacion .v1523-dot-summary > .contract-card :is(span,b,strong,small,.contract-label,.contract-kpi,.muted),
+    html body #appView #page-turnos .r18-kpis > .r18-kpi :is(span,b,strong,small,.contract-label,.contract-kpi,.muted),
+    html body #appView #page-turnos .v1524-encierro-kpis > .v1520-kpi :is(span,b,strong,small,.contract-label,.contract-kpi,.muted){
+      color:#fff!important;
+      -webkit-text-fill-color:#fff!important;
+      opacity:1!important;
+    }
+
   `;
   document.head.appendChild(vehicleStateStyleR267);
   function syncVehicleImplementStatesR267(){
