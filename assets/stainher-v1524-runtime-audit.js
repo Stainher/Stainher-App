@@ -78,10 +78,19 @@
       if(!preparedPages.has(page)||!hasSession())return resolveRenderer.apply(this,arguments);
       return async ()=>{
         const seq=window.state?.v1523RenderSeq;
-        start();
-        await authenticatedLoader;
-        if(page==='contrato')await window.StainherLoadContractTabs?.();
-        else await window.StainherLoadPageExtensions?.(page);
+        const destination=document.getElementById('page-'+page);
+        const transition=String(seq);
+        destination?.setAttribute('data-stainher-preparing-page',transition);
+        try{
+          start();
+          await authenticatedLoader;
+          if(page==='contrato')await window.StainherLoadContractTabs?.();
+          else await window.StainherLoadPageExtensions?.(page);
+        }finally{
+          if(destination?.getAttribute('data-stainher-preparing-page')===transition){
+            destination.removeAttribute('data-stainher-preparing-page');
+          }
+        }
         if(seq!==window.state?.v1523RenderSeq)return;
         if(page!=='contrato')return resolveRenderer.call(this,page)?.();
         const root=document.getElementById('page-contrato');
@@ -98,7 +107,13 @@
     if(!document.getElementById('stainher-contract-first-render-style')){
       const style=document.createElement('style');
       style.id='stainher-contract-first-render-style';
-      style.textContent='#page-contrato[data-stainher-contract-rendering] .v1520-tabs{visibility:hidden}';
+      style.textContent=`
+        #page-contrato[data-stainher-contract-rendering] .v1520-tabs{visibility:hidden}
+        .page[data-stainher-preparing-page]>*{display:none!important}
+        .page[data-stainher-preparing-page]::before{
+          content:'Cargando…';display:block;padding:2rem 1rem;text-align:center;color:var(--muted);
+        }
+      `;
       document.head.appendChild(style);
     }
   }
