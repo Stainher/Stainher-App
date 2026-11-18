@@ -182,13 +182,8 @@
       if(/^Días adicionales(?:\s*·\s*mes)?$/i.test(String(node.textContent||'').trim()))node.textContent='Días adicionales · mes';
     });
   }
-  function refreshVisibleTurnPage(){
-    const page=document.getElementById('page-turnos');
-    if(!page||page.hidden||page.classList.contains('hidden'))return;
-    if(typeof window.renderTurnosV15==='function')setTimeout(()=>window.renderTurnosV15(),0);
-  }
   function boot(){
-    if(patchCoverage())refreshVisibleTurnPage();
+    patchCoverage();
     syncLabel();
     let tries=0;
     const timer=setInterval(()=>{
@@ -199,7 +194,7 @@
     },125);
     const page=document.getElementById('page-turnos')||document.body;
     if(page)new MutationObserver(()=>{patchCoverage();syncLabel()}).observe(page,{childList:true,subtree:true});
-    window.addEventListener('stainher:modules-ready',()=>{patchCoverage();syncLabel();refreshVisibleTurnPage()});
+    window.addEventListener('stainher:modules-ready',()=>{patchCoverage();syncLabel()});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

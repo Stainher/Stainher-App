@@ -70,16 +70,20 @@
   prepareLeadership();
   window.addEventListener('stainher:modules-ready',prepareLeadership);
   let authenticatedLoader;
-  function prepareContractNavigation(){
+  const preparedPages=new Set(['contrato','solicitudes','correctivo','preventivo','equipos','vehiculos','liderazgo','sistema','estandarizacion']);
+  function preparePageNavigation(){
     const resolveRenderer=window.v1523Renderer;
-    if(typeof resolveRenderer!=='function'||resolveRenderer.__stainherContractReady)return;
+    if(typeof resolveRenderer!=='function'||resolveRenderer.__stainherPageReady)return;
     const resolve=function(page){
-      if(page!=='contrato'||!hasSession())return resolveRenderer.apply(this,arguments);
+      if(!preparedPages.has(page)||!hasSession())return resolveRenderer.apply(this,arguments);
       return async ()=>{
         const seq=window.state?.v1523RenderSeq;
+        start();
         await authenticatedLoader;
-        await window.StainherLoadContractTabs?.();
+        if(page==='contrato')await window.StainherLoadContractTabs?.();
+        else await window.StainherLoadPageExtensions?.(page);
         if(seq!==window.state?.v1523RenderSeq)return;
+        if(page!=='contrato')return resolveRenderer.call(this,page)?.();
         const root=document.getElementById('page-contrato');
         root?.setAttribute('data-stainher-contract-rendering','');
         try{
@@ -89,7 +93,7 @@
         }
       };
     };
-    resolve.__stainherContractReady=true;
+    resolve.__stainherPageReady=true;
     window.v1523Renderer=resolve;
     if(!document.getElementById('stainher-contract-first-render-style')){
       const style=document.createElement('style');
@@ -98,8 +102,8 @@
       document.head.appendChild(style);
     }
   }
-  prepareContractNavigation();
-  window.addEventListener('stainher:modules-ready',prepareContractNavigation);
+  preparePageNavigation();
+  window.addEventListener('stainher:modules-ready',preparePageNavigation);
   function start(){
     if(started||!hasSession())return false;
     started=true;

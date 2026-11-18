@@ -566,49 +566,97 @@
   }
   window.StainherLoadContractTabs=loadContractTabs;
 
+  let datePickerReady;
+  function loadDatePicker(){
+    datePickerReady??=load('stainher-date-picker-mobile-readable','stainher-v1524-date-picker.js').catch(error=>{
+      datePickerReady=null;
+      console.warn('[Stainher] Calendarios',error);
+    });;
+    return datePickerReady;
+  }
+  const pageExtensions={
+    solicitudes:async()=>{
+      await refreshSolicitudesViewR133();
+      await refreshRequestApproverR135();
+      await refreshApprovedRerouteR138();
+      await refreshMarriageLeaveR171();
+      await refreshRequestCloseR177();
+      await refreshAccessR107();
+    },
+    correctivo:async()=>{
+      await refreshCorrectivoReplaceR364();
+      await refreshCorrectivoCalendarR394();
+      await refreshObservacionesR370();
+      await refreshReliabilityActionsR119();
+      await load('stainher-reliability-contrast-r327','stainher-v1524-reliability-contrast-r327.js');
+      await load('stainher-pareto-subsystems-r322','stainher-v1524-pareto-subsystems-r322.js');
+      await refreshCorrectivoHistoryR118();
+    },
+    preventivo:async()=>{
+      await refreshPreventivoStateR137();
+      await load('stainher-preventivo-excel-r321','stainher-v1524-preventivo-excel-r321.js');
+      await refreshPreventivoDeleteScheduleR140();
+    },
+    equipos:async()=>{
+      await refreshEquipmentViewR132();
+    },
+    vehiculos:async()=>{
+      await refreshVehicleExpiryR109();
+      await refreshVehicleFatigueR379();
+    },
+    liderazgo:async()=>{
+      await refreshRITMobileR366();
+      await refreshTerrainSupervisorR376();
+      await refreshLeadership();
+      await refreshLeadershipIndicatorsR387();
+      await refreshExtintoresPdfR378();
+      await refreshExtintoresSupervisorR386();
+      await refreshLeadershipExecuteR377();
+      await refreshRITModalR390();
+    },
+    sistema:async()=>{
+      await refreshSystem();
+    },
+    estandarizacion:async()=>{
+      await refreshStandardizationR141();
+    }
+  };
+  const pageReadiness=new Map();
+  function loadPageExtensions(page){
+    if(!Object.hasOwn(pageExtensions,page))return;
+    if(!pageReadiness.has(page)){
+      const pending=loadDatePicker().then(pageExtensions[page]).catch(error=>{
+        pageReadiness.delete(page);
+        console.warn('[Stainher] Carga de complementos de '+page,error);
+      });
+      pageReadiness.set(page,pending);
+    }
+    return pageReadiness.get(page);
+  }
+  window.StainherLoadPageExtensions=loadPageExtensions;
+
   async function bootstrapR135(){
     // Reparar valores de fecha/mes antes de los módulos autenticados.
-    await load('stainher-date-picker-mobile-readable','stainher-v1524-date-picker.js');
+    await loadDatePicker();
     // Solicitudes primero: evita mostrar temporalmente el render antiguo.
-    await refreshSolicitudesViewR133();
-    await refreshRequestApproverR135();
-    await refreshApprovedRerouteR138();
-    await refreshMarriageLeaveR171();
-    await refreshRequestCloseR177();
-    await refreshAccessR107();
+    await loadPageExtensions('solicitudes');
     await refreshBoletasR354();
     await refreshDashboardVisualR359();
     // R365: no iniciar R360 ni R362; sus MutationObservers competían
     // al repintar los KPI y provocaban cambios de color visibles en móvil.
     await refreshStableKpiR365();
-    await refreshRITMobileR366();
-    await refreshTerrainSupervisorR376();
-    await refreshCorrectivoReplaceR364();
-    await refreshCorrectivoCalendarR394();
-    await refreshObservacionesR370();
+    await loadPageExtensions('liderazgo');
+    await loadPageExtensions('correctivo');
     await loadContractTabs();
     await refreshTurnReport();
-    await refreshVehicleExpiryR109();
-    await refreshLeadership();
-    await refreshLeadershipIndicatorsR387();
-    await refreshExtintoresPdfR378();
+    await loadPageExtensions('vehiculos');
     // R384: no volver a cargar el módulo R383 con observador global.
     // R386: sustituir R385; solución compatible con select o input real del wizard.
-    await refreshExtintoresSupervisorR386();
-    await refreshLeadershipExecuteR377();
-    await refreshRITModalR390();
-    await refreshVehicleFatigueR379();
-    await refreshSystem();
+    await loadPageExtensions('sistema');
     await refreshSignature();
-    await refreshReliabilityActionsR119();
-    await load('stainher-reliability-contrast-r327','stainher-v1524-reliability-contrast-r327.js');
-    await load('stainher-pareto-subsystems-r322','stainher-v1524-pareto-subsystems-r322.js');
-    await refreshCorrectivoHistoryR118();
-    await refreshEquipmentViewR132();
-    await refreshPreventivoStateR137();
-    await load('stainher-preventivo-excel-r321','stainher-v1524-preventivo-excel-r321.js');
-    await refreshPreventivoDeleteScheduleR140();
-    await refreshStandardizationR141();
+    await loadPageExtensions('equipos');
+    await loadPageExtensions('preventivo');
+    await loadPageExtensions('estandarizacion');
     await refresh();
     window.dispatchEvent(new CustomEvent('stainher:runtime-r112-ready'));
     window.dispatchEvent(new CustomEvent('stainher:runtime-r115-ready'));
