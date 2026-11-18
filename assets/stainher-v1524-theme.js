@@ -1369,6 +1369,7 @@
     }
     /* Indicadores operacionales con el mismo relleno de Inicio en todos los temas. */
     html body #appView #page-inicio .v1524-home-kpi,
+    html body #appView #stainherContractAlertsR94 .stainher-contract-alert-r94,
     html body #appView #page-preventivo .v1520-kpis > .v1520-kpi,
     html body #appView #page-dotacion .v1523-dot-summary > .contract-card,
     html body #appView #page-turnos .r18-kpis > .r18-kpi,
@@ -1378,6 +1379,19 @@
       -webkit-text-fill-color:#fff!important;
       border-color:rgba(255,255,255,.18)!important;
     }
+    html body #appView #stainherContractAlertsR94 .stainher-contract-alert-r94{
+      -webkit-text-fill-color:currentColor!important;
+    }
+    html body #appView #stainherContractAlertsR94 .stainher-contract-alert-r94 :is(p,small,h4,.stainher-contract-alert-r94-meta){
+      text-shadow:0 1px 2px rgba(0,0,0,.45);
+    }
+    html body #appView #stainherContractAlertsR94 .stainher-contract-alert-r94[data-priority="alta"]{
+      border-left-color:#e06b6b!important;
+    }
+    html body #appView #stainherContractAlertsR94 .stainher-contract-alert-r94[data-priority="media"]{
+      border-left-color:#d9ad58!important;
+    }
+    html body #appView #stainherContractAlertsR94 .stainher-contract-alert-r94 :is(p,small,.muted,h4,.stainher-contract-alert-r94-meta),
     html body #appView #page-inicio .v1524-home-kpi :is(span,b,strong,small,.contract-label,.contract-kpi,.muted),
     html body #appView #page-preventivo .v1520-kpis > .v1520-kpi :is(span,b,strong,small,.contract-label,.contract-kpi,.muted),
     html body #appView #page-dotacion .v1523-dot-summary > .contract-card :is(span,b,strong,small,.contract-label,.contract-kpi,.muted),
