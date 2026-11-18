@@ -64,6 +64,7 @@
   const dplus=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
   const inRange=(d,a,b)=>d>=a&&d<=b;
   const monthName=(y,m)=>new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric'}).format(new Date(y,m-1,1));
+  const fmtHours=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:2});
   const sum=(arr,key)=>arr.reduce((a,x)=>a+Number(x[key]||0),0);
 
   const state={year:new Date().getFullYear(),month:new Date().getMonth()+1,periods:[],people:[],profiles:new Map(),malla:[],nov:[],adjust:[],rows:[],coverage:null,official:null};
@@ -291,9 +292,9 @@
     return {admin,oper,spor,total,fte};
   }
   function summaryHtml(title){
-    const s=monthlySummary(),fmt=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:2}),fmtFte=n=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
+    const s=monthlySummary(),fmt=fmtHours,fmtFte=n=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
     const officialExtra=state.official?`<tr><th>HH Administrativas fuera de faena</th><td>${fmt(state.official.outside)}</td></tr><tr><th>TOTAL HH registradas</th><td>${fmt(state.official.registered)}</td></tr>`:'';
-    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>${esc(title.toUpperCase())}</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas en faena</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr>${officialExtra}<tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
+    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>${esc(title.toUpperCase())}</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas en faena</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr>${officialExtra}<tr><th>Cálculo FTE Codelco</th><td>${fmt(s.total)} HH ÷ ${fmt(FTE_DIVISOR)} = ${fmtFte(s.fte)} FTE</td></tr><tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
   }
 
   function renderTable(){
@@ -301,7 +302,11 @@
     const head2=state.periods.map(()=>'<th title="Horas Administrativas">Adm.</th><th title="Horas Operativas">Oper.</th><th title="Horas Operativas Esporádicas">Espor.</th>').join('');
     const cols='<col class="hp-col-role"><col class="hp-col-name">'+state.periods.map(()=>'<col class="hp-col-hour"><col class="hp-col-hour"><col class="hp-col-hour">').join('');
     const body=state.rows.map(r=>`<tr><td class="hp-role-cell">${esc((r.cargo||'').toUpperCase())}</td><td class="hp-name-cell">${esc(r.nombre)}</td>${r.periods.map(x=>`<td>${x.admin||0}</td><td>${x.oper||0}</td><td>${x.spor||0}</td>`).join('')}</tr>`).join('');
-    return `<div class="hp-table-wrap"><table class="hp-table"><colgroup>${cols}</colgroup><thead><tr><th rowspan="2">Cargo</th><th rowspan="2">Nombre Trabajador</th>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>`;
+    const totals=state.periods.map((_,index)=>{
+      const periodRows=state.rows.map(row=>row.periods[index]);
+      return ['admin','oper','spor'].map(key=>`<th>${fmtHours(sum(periodRows,key))}</th>`).join('');
+    }).join('');
+    return `<div class="hp-table-wrap"><table class="hp-table"><colgroup>${cols}</colgroup><thead><tr><th rowspan="2">Cargo</th><th rowspan="2">Nombre Trabajador</th>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody><tfoot><tr><th colspan="2" scope="row">Total HH por columna</th>${totals}</tr></tfoot></table></div>`;
   }
   function periodEditor(){
     return `<div class="panel"><div class="row-between"><div><h3>Rangos Codelco</h3><div class="muted">Los cortes son editables y se guardan por mes.</div></div>${canEdit()?'<button class="btn primary" id="hpSavePeriods">Guardar rangos</button>':''}</div><div class="hp-period-grid">${state.periods.map((p,i)=>`<div class="hp-period-card"><b>Período ${i+1}</b><label>Desde<input class="field hp-p-start" type="date" value="${p.fecha_inicio}" ${canEdit()?'':'disabled'}></label><label>Hasta<input class="field hp-p-end" type="date" value="${p.fecha_fin}" ${canEdit()?'':'disabled'}></label><label>Glosa<input class="field hp-p-label" value="${esc(p.etiqueta||'')}" placeholder="Opcional" ${canEdit()?'':'disabled'}></label></div>`).join('')}</div></div>`;
