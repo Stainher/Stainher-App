@@ -55,18 +55,15 @@ function mount(){
  // Alternativa independiente dentro de la tarjeta de importación R369.
  document.querySelectorAll('.r369-correctivo-import').forEach(box=>{
   if(box.querySelector(SEL))return;
-  const input=box.querySelector('[data-r369-file]');
-  const original=box.querySelector('[data-r369-start]');
-  if(!input||!original)return;
+  const actions=box.querySelector('.r364-actions');if(!actions)return;
+  const input=document.createElement('input');
+  input.type='file';input.accept='.xlsx,.xls,.csv';input.hidden=true;
   const b=document.createElement('button');b.type='button';b.className='r370-update-button';
   b.setAttribute('data-r370-update-observaciones','1');b.textContent='Actualizar solo observaciones existentes';
-  original.insertAdjacentElement('afterend',b);
-  b.addEventListener('click',()=>{
-   if(input.files?.length)run(input,b);else{
-    const onChange=()=>{input.removeEventListener('change',onChange);if(input.files?.length)run(input,b)};
-    input.addEventListener('change',onChange,{once:true});input.click();
-   }
-  });
+  actions.append(b,input);
+  input.addEventListener('change',()=>{if(input.files?.length)run(input,b)});
+  b.addEventListener('click',()=>{input.value='';input.click()});
+  box.hidden=false;
  });
 }
 async function run(input,button){

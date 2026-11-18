@@ -30,7 +30,7 @@ const browser=await chromium.launch({headless:true});
 try{
  for(const userRole of ['confiabilidad','tecnico']){
   const page=await browser.newPage();
-  await page.setContent('<html><body><section id="page-correctivo"><div id="corrBody"></div></section></body></html>');
+  await page.setContent('<html><body><section id="page-correctivo"><div id="corrBody"></div></section><section id="page-confiabilidad"></section></body></html>');
   await page.evaluate(role=>{
    window.state={profile:{rol:role}};
    window.XLSX={read:()=>({SheetNames:['Correctivo'],Sheets:{Correctivo:{}}}),utils:{sheet_to_json:()=>[
@@ -39,7 +39,8 @@ try{
    ]}};
   },userRole);
   await page.addScriptTag({content:src});
-  assert.equal(await page.locator('[data-r369-start]').count(),userRole==='confiabilidad'?1:0);
+  assert.equal(await page.locator('#page-correctivo [data-r369-start]').count(),0);
+  assert.equal(await page.locator('#page-confiabilidad [data-r369-start]').count(),userRole==='confiabilidad'?1:0);
   if(userRole==='confiabilidad'){
    const parsed=await page.evaluate(()=>window.StainherCorrectivoReplaceR364.parse(new Uint8Array([1])));
    assert.equal(parsed.length,1);

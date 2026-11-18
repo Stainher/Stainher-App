@@ -178,15 +178,19 @@ function mount(){
   if(document.getElementById(zoneId))continue;
   const zone=document.createElement('section');zone.id=zoneId;
   zone.className='r369-correctivo-import';
-  zone.innerHTML='<div class="r364-actions"><button type="button" class="r364-button" data-r369-start>Importar Excel y reemplazar base de averías</button><input data-r369-file type="file" accept=".xlsx,.xls,.csv" hidden></div>'+
+  const observationsOnly=pageId==='page-correctivo';
+  zone.hidden=observationsOnly;
+  zone.innerHTML=observationsOnly
+   ? '<div class="r364-actions"></div><p class="r364-hint">Actualiza las observaciones del Excel en las averías existentes.</p><div data-r370-status role="status" aria-live="polite">Listo para seleccionar archivo.</div>'
+   : '<div class="r364-actions"><button type="button" class="r364-button" data-r369-start>Importar Excel y reemplazar base de averías</button><input data-r369-file type="file" accept=".xlsx,.xls,.csv" hidden></div>'+
    '<p class="r364-hint">Se revisará el Excel antes de reemplazar. Confirmación doble, respaldo automático y recuperación ante errores.</p>'+
    '<div class="r369-status" role="status" aria-live="polite">Listo para seleccionar archivo.</div>';
   const body=page.querySelector('#corrBody')||page;
   body.prepend(zone);
-  zone.querySelector('[data-r369-start]').addEventListener('click',()=>{
+  zone.querySelector('[data-r369-start]')?.addEventListener('click',()=>{
    zone.querySelector('[data-r369-file]').click();
   });
-  zone.querySelector('[data-r369-file]').addEventListener('change',onFile);
+  zone.querySelector('[data-r369-file]')?.addEventListener('change',onFile);
  }
 }
 async function onFile(event){
