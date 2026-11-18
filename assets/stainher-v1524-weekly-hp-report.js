@@ -290,10 +290,10 @@
     const admin=sum(state.rows,'admin'),oper=sum(state.rows,'oper'),spor=sum(state.rows,'spor'),total=admin+oper+spor,fte=total/FTE_DIVISOR;
     return {admin,oper,spor,total,fte};
   }
-  function summaryHtml(){
+  function summaryHtml(title){
     const s=monthlySummary(),fmt=n=>Number(n||0).toLocaleString('es-CL',{maximumFractionDigits:2}),fmtFte=n=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
     const officialExtra=state.official?`<tr><th>HH Administrativas fuera de faena</th><td>${fmt(state.official.outside)}</td></tr><tr><th>TOTAL HH registradas</th><td>${fmt(state.official.registered)}</td></tr>`:'';
-    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>RESUMEN MENSUAL</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas en faena</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr>${officialExtra}<tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
+    return `<div class="hp-summary-wrap"><table class="hp-summary"><thead><tr><th>${esc(title.toUpperCase())}</th><th>Total</th></tr></thead><tbody><tr><th>TOTAL HH Administrativas en faena</th><td>${fmt(s.admin)}</td></tr><tr><th>TOTAL HH Operativas</th><td>${fmt(s.oper)}</td></tr><tr><th>TOTAL HH Esporádicas</th><td>${fmt(s.spor)}</td></tr><tr class="hp-summary-strong"><th>TOTAL HH EN FAENA</th><td>${fmt(s.total)}</td></tr>${officialExtra}<tr class="hp-summary-strong"><th>Total FTE</th><td>${fmtFte(s.fte)}</td></tr></tbody></table></div>`;
   }
 
   function renderTable(){
@@ -343,7 +343,8 @@
     page.innerHTML='<div class="empty">Cargando Reporte Semanal HP…</div>';
     try{
       await load();
-      page.innerHTML=`<div class="topbar"><div><h2>Reporte Semanal HP</h2><p>Horas administrativas y operativas según cortes semanales informados por Codelco.</p></div><div class="actions"><button class="btn" id="hpExport">Exportar Excel</button></div></div><div class="hp-toolbar"><label>Mes<input id="hpMonth" class="field" type="month" value="${state.year}-${String(state.month).padStart(2,'0')}"></label><span class="status ok">División Andina · ${esc(monthName(state.year,state.month))}</span></div>${rulesHtml()}${periodEditor()}${adjustmentsHtml()}<div class="panel"><h3>HP Trabajador</h3>${renderTable()}</div><div class="panel"><h3>Resumen Mensual</h3>${summaryHtml()}</div>`;
+      const monthlyTitle=`Resumen Mensual · ${monthName(state.year,state.month)}`;
+      page.innerHTML=`<div class="topbar"><div><h2>Reporte Semanal HP</h2><p>Horas administrativas y operativas según cortes semanales informados por Codelco.</p></div><div class="actions"><button class="btn" id="hpExport">Exportar Excel</button></div></div><div class="hp-toolbar"><label>Mes<input id="hpMonth" class="field" type="month" value="${state.year}-${String(state.month).padStart(2,'0')}"></label><span class="status ok">División Andina · ${esc(monthName(state.year,state.month))}</span></div>${rulesHtml()}${periodEditor()}${adjustmentsHtml()}<div class="panel"><h3>HP Trabajador</h3>${renderTable()}</div><div class="panel"><h3>${esc(monthlyTitle)}</h3>${summaryHtml(monthlyTitle)}</div>`;
       bind();
     }catch(e){page.innerHTML=`<div class="notice error">No fue posible cargar Reporte Semanal HP: ${esc(e.message||e)}</div>`}
   }
