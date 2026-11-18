@@ -15,10 +15,47 @@
   };
 
   const hasSession=()=>Boolean(window.state?.session?.user||window.state?.user?.id);
-  let started=false,checks=0,timer=null;
+  let started=false,checks=0,timer=null,ritLoad;
+  function loadRit(){
+    if(window.StainherRITModalR390)return Promise.resolve();
+    if(!ritLoad){
+      ritLoad=new Promise(resolve=>{
+        const script=document.createElement('script');
+        script.id='stainher-rit-modal-r390';
+        script.src='stainher-v1524-rit-control-modal-r390.js?build=20261118-rit-first-render';
+        script.onload=resolve;
+        script.onerror=()=>{
+          script.remove();
+          ritLoad=null;
+          console.warn('[Stainher RIT] No se pudo cargar el control.');
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+    }
+    return ritLoad;
+  }
+  function prepareLeadership(){
+    const render=window.renderLiderazgoV95;
+    if(typeof render!=='function'||render.__stainherR390||render.__stainherRitReady)return;
+    const ready=async function(...args){
+      if(hasSession())await loadRit();
+      const result=await render.apply(this,args);
+      window.StainherRITModalR390?.mount();
+      return result;
+    };
+    ready.__stainherRitReady=true;
+    ready.__base=render;
+    window.renderLiderazgoV95=ready;
+  }
+  window.StainherLoadRITModal=loadRit;
+  prepareLeadership();
+  window.addEventListener('stainher:modules-ready',prepareLeadership);
   function start(){
     if(started||!hasSession())return false;
     started=true;
+    prepareLeadership();
+    loadRit();
     if(timer){clearInterval(timer);timer=null;}
     load('stainher-runtime-audit-legacy-r112',`stainher-v1524-runtime-audit-legacy-r49.js?build=${BUILD}`);
     load('stainher-home-no-vacation-r112',`stainher-v1524-home-no-vacation-r57.js?build=${BUILD}`);

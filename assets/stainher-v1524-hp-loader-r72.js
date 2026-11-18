@@ -71,7 +71,8 @@
 
   async function refreshRITModalR390(){
     try{
-      await load('stainher-rit-modal-r390','stainher-v1524-rit-control-modal-r390.js');
+      await window.StainherLoadRITModal?.();
+      if(!window.StainherRITModalR390)await load('stainher-rit-modal-r390','stainher-v1524-rit-control-modal-r390.js');
       window.StainherRITModalR390?.install?.();
     }catch(error){console.warn('[R390] Modal RIT de Controles Stainher',error)}
   }

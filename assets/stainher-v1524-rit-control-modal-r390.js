@@ -184,11 +184,10 @@
  }
  function wrapRender(){
   const base=window.renderLiderazgoV95;
-  if(typeof base!=='function'||base.__stainherR390)return;
+  if(typeof base!=='function'||base.__stainherR390||base.__stainherRitReady)return;
   const wrapped=async function(...args){
    const result=await base.apply(this,args);
-   schedule();
-   setTimeout(mount,320);
+   mount();
    return result;
   };
   wrapped.__stainherR390=true;
@@ -208,7 +207,7 @@
    return;
   }
   const tab=e.target?.closest?.('button,[role="tab"]');
-  if(tab&&norm(tab.textContent)==='controles stainher')schedule();
+  if(tab&&norm(tab.textContent)==='controles stainher')mount();
  }
  function install(){
   styles();wrapRender();
