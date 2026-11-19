@@ -1,10 +1,10 @@
 {
   "app": "Stainher App",
   "version": "V15.24",
-  "revision": "R429",
-  "build": "20261118-r429-alertas-contrato",
+  "revision": "R430",
+  "build": "20261119-r430-presupuestos-alcance",
   "path": "./",
-  "publishedAt": "2026-11-18",
+  "publishedAt": "2026-11-19",
   "operationalStatus": {
     "status": "base funcional confirmada",
     "confirmedBy": "Ismael Gálvez",

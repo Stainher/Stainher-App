@@ -4,7 +4,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r169-grafico-columnas-presupuestos';
+  const BUILD='20261119-r430-presupuestos-alcance';
   if(window.__STAINHER_PRESUPUESTOS_R80__===BUILD)return;
   window.__STAINHER_PRESUPUESTOS_R80__=BUILD;
 
@@ -49,6 +49,8 @@
     });
     return found?`${base}-${maxSuffix+1}`:base;
   }
+  const TRANSVERSAL='Transversal al contrato';
+  const codeScope=d=>d?.equipos_ids?.length?'VARIOS-EQUIPOS':d?.equipo_nombre===TRANSVERSAL?'TRANSVERSAL':d?.equipo_nombre;
   const nextCodeFor=(equipment,date,excludeId='')=>nextCodeFromRows(equipment,date,state().rows,excludeId);
   function documentCode(d){
     if(d?.codigo)return String(d.codigo);
@@ -56,7 +58,7 @@
       const stored=state().rows.find(x=>String(x.id)===String(d.id));
       if(stored?.codigo)return String(stored.codigo);
     }
-    return nextCodeFor(d?.equipo_nombre,d?.fecha,d?.id);
+    return nextCodeFor(codeScope(d),d?.fecha,d?.id);
   }
   const uid=()=>String(window.state?.session?.user?.id||window.state?.user?.id||'');
   const role=()=>String(window.state?.profile?.rol||'').trim().toLowerCase();
@@ -87,6 +89,9 @@
       #page-contrato .r80-kpi span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}.r80-kpi b{display:block;margin-top:5px;font-size:18px;overflow-wrap:anywhere}
       #page-contrato .r80-form{display:grid;gap:14px}
       #page-contrato .r80-head{display:grid;grid-template-columns:minmax(220px,1fr) 170px minmax(250px,1fr) 130px;gap:10px;align-items:end}
+      #page-contrato #r80MultipleEquipment{margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:8px}
+      #page-contrato .r80-equipment-options{display:flex;flex-wrap:wrap;gap:8px 16px}
+      #page-contrato .r80-equipment-options label{display:inline-flex;align-items:center;gap:4px}
       #page-contrato .r80-head label,#page-contrato .r80-form>label{display:grid;gap:5px;color:var(--muted);font-size:10px}
       #page-contrato .r80-code{min-height:42px;display:flex;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);font-weight:700;overflow-wrap:anywhere}
       #page-contrato .r80-lines-panel{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel,#0d141c)}
@@ -231,14 +236,14 @@
     body.innerHTML=`<div class="r80-kpis"><div class="r80-kpi"><span>Presupuestos</span><b>${rows.length}</b></div><div class="r80-kpi"><span>Emitidos</span><b>${issued}</b></div><div class="r80-kpi"><span>Total GGRR · IVA incluido</span><b>${money(ggrrTotal)}</b></div><div class="r80-kpi"><span>Total Estandarización e Innovación · IVA incluido</span><b>${money(standardizationTotal)}</b></div><div class="r80-kpi"><span>Total general · IVA incluido</span><b>${money(total)}</b></div><div class="r80-kpi"><span>Documento</span><b>PE · PDF</b></div></div>
       <div class="r160-budget-tools">
         <label>Buscar<input class="field" id="r160BudgetSearch" type="search" placeholder="Código, equipo o detalle" value="${esc(f.search)}"></label>
-        <label>Equipo<select class="field" id="r160BudgetEquipment"><option value="">Todos</option>${equipments.map(name=>`<option value="${esc(name)}" ${f.equipment===name?'selected':''}>${esc(name)}</option>`).join('')}</select></label>
+        <label>Alcance<select class="field" id="r160BudgetEquipment"><option value="">Todos</option>${equipments.map(name=>`<option value="${esc(name)}" ${f.equipment===name?'selected':''}>${esc(name)}</option>`).join('')}</select></label>
         <label>Destino<select class="field" id="r160BudgetDestination"><option value="">Todos</option><option value="sin_asignar" ${f.destination==='sin_asignar'?'selected':''}>Sin asignar</option><option value="gasto_reembolsable" ${f.destination==='gasto_reembolsable'?'selected':''}>GGRR</option><option value="estandarizacion" ${f.destination==='estandarizacion'?'selected':''}>Estandarización</option></select></label>
         <label>Estado de Pago<select class="field" id="r160BudgetEp"><option value="">Todos</option>${epOptions}</select></label>
         <button class="btn" type="button" data-r160-clear>Limpiar</button>
       </div>
       <div class="r160-results-line"><span id="r160BudgetResultCount"></span><span>Los gráficos consideran los filtros aplicados.</span></div>
       <div class="r160-budget-charts" id="r160BudgetCharts"></div>
-      <div class="r80-list"><table><thead><tr><th>Fecha</th><th>Código</th><th>Equipo</th><th>Detalle</th><th style="text-align:right">Total neto</th><th style="text-align:right">Acciones</th></tr></thead><tbody id="r160BudgetRows"></tbody></table></div>`;
+      <div class="r80-list"><table><thead><tr><th>Fecha</th><th>Código</th><th>Alcance</th><th>Detalle</th><th style="text-align:right">Total neto</th><th style="text-align:right">Acciones</th></tr></thead><tbody id="r160BudgetRows"></tbody></table></div>`;
     const search=document.getElementById('r160BudgetSearch'),equipment=document.getElementById('r160BudgetEquipment'),destination=document.getElementById('r160BudgetDestination'),ep=document.getElementById('r160BudgetEp');
     search?.addEventListener('input',()=>{f.search=search.value;refreshBudgetResults()});
     equipment?.addEventListener('change',()=>{f.equipment=equipment.value;refreshBudgetResults()});
@@ -248,21 +253,46 @@
     refreshBudgetResults();
   }
 
-  function equipmentOptions(selected){return `<option value="">Seleccionar equipo</option>${state().equipment.map(e=>`<option value="${esc(e.id)}" data-name="${esc(e.nombre)}" ${String(e.id)===String(selected)?'selected':''}>${esc(e.nombre)}</option>`).join('')}`}
+  function equipmentOptions(d){
+    const selection=d.equipos_ids?.length?'multiple':d.equipo_nombre===TRANSVERSAL?'transversal':d.equipo_id;
+    const options=[['','Seleccionar alcance'],['transversal',TRANSVERSAL],['multiple','Varios equipos']];
+    const equipment=state().equipment;
+    if(d.equipo_id&&!equipment.some(e=>String(e.id)===String(d.equipo_id)))options.push([d.equipo_id,d.equipo_nombre]);
+    options.push(...equipment.map(e=>[e.id,e.nombre]));
+    return options.map(([id,name])=>`<option value="${esc(id)}" data-name="${esc(name)}" ${String(id)===String(selection??'')?'selected':''}>${esc(name)}</option>`).join('');
+  }
+  function multipleEquipment(d){
+    const ids=d.equipos_ids||[];
+    const equipment=[...state().equipment];
+    const savedNames=String(d.equipo_nombre||'').split(' · ');
+    ids.forEach((id,i)=>{if(!equipment.some(e=>String(e.id)===String(id)))equipment.push({id,nombre:savedNames[i]||id})});
+    return `<fieldset id="r80MultipleEquipment" ${ids.length?'':'hidden'}><legend>Selecciona al menos dos equipos</legend><div class="r80-equipment-options">${equipment.map(e=>`<label><input type="checkbox" value="${esc(e.id)}" data-equipment-name="${esc(e.nombre)}" ${ids.includes(String(e.id))?'checked':''}> ${esc(e.nombre)}</label>`).join('')}</div></fieldset>`;
+  }
+  function readScope(){
+    const select=document.getElementById('r80Equipment');
+    const choice=select?.value||'';
+    if(choice==='transversal')return {equipo_id:null,equipo_nombre:TRANSVERSAL,equipos_ids:[]};
+    if(choice==='multiple'){
+      const items=[...document.querySelectorAll('#r80MultipleEquipment input:checked')];
+      return {equipo_id:null,equipo_nombre:items.length>=2?items.map(item=>item.dataset.equipmentName).join(' · '):'',equipos_ids:items.map(item=>item.value)};
+    }
+    return {equipo_id:choice||null,equipo_nombre:choice?select.selectedOptions[0].dataset.name:'',equipos_ids:[]};
+  }
   function matRow(x={}){return `<div class="r80-line r80-mat" data-mat><input class="field" data-f="detalle" placeholder="Detalle" value="${esc(x.detalle||'')}"><input class="field" type="number" min="0" step="0.01" data-f="cantidad" value="${num(x.cantidad)||1}"><input class="field" data-f="unidad" value="${esc(x.unidad||'Unidad')}"><input class="field" type="number" min="0" step="1" data-f="precio_unitario" value="${Math.round(num(x.precio_unitario))}"><div class="r80-line-total" data-mat-total>${money(num(x.cantidad)*num(x.precio_unitario))}</div><button class="btn danger-btn r80-remove" type="button" data-remove-mat>×</button></div>`}
   function freightRow(x={}){return `<div class="r80-line r80-freight" data-freight><input class="field" data-f="detalle" placeholder="Detalle" value="${esc(x.detalle||'')}"><input class="field" type="number" min="0" step="0.01" data-f="cantidad" value="${num(x.cantidad)||1}"><input class="field" type="number" min="0" step="1" data-f="monto_total" value="${Math.round(num(x.monto_total))}"><button class="btn danger-btn r80-remove" type="button" data-remove-freight>×</button></div>`}
 
   function openEditor(id){const row=id?state().rows.find(x=>String(x.id)===String(id)):null;if(!canUse()||(row&&!canEdit(row)))return window.toast?.('No tienes permiso para editar este presupuesto.','error');state().editing=row?clone(row):blank();renderEditor()}
   function renderEditor(){
     const body=document.getElementById('r80Body');if(!body)return;const d=state().editing||blank(),k=calc(d);
-    body.innerHTML=`<div class="panel r80-form" data-no-collapse="1"><div class="row-between"><div><h3 style="margin:0">${d.id?'Editar':'Nuevo'} presupuesto</h3><div class="muted">Propuesta técnico comercial</div></div><button class="btn" type="button" data-back>← Historial</button></div><div class="r80-head"><label>Equipo<select class="field" id="r80Equipment">${equipmentOptions(d.equipo_id)}</select></label><label>Fecha<input class="field" id="r80Date" type="date" value="${esc(d.fecha||today())}"></label><label>Código del documento<div class="r80-code" id="r80Code">${esc(documentCode(d))}</div></label><label>Utilidad %<input class="field" id="r80Margin" type="number" min="0" step="0.1" value="${num(d.utilidad_pct)}"></label></div><div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de materiales</h4><button class="btn" type="button" data-add-mat>+ Material</button></div><div id="r80Mats">${(d.materiales?.length?d.materiales:[{}]).map(matRow).join('')}</div></div><div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de fletes o transportes</h4><button class="btn" type="button" data-add-freight>+ Flete</button></div><div id="r80Freights">${(d.fletes?.length?d.fletes:[{}]).map(freightRow).join('')}</div></div><label>Observación<textarea class="field" id="r80Observation" rows="3">${esc(d.observacion||'')}</textarea></label><div class="r80-summary"><div class="r80-summary-card"><h4>Resumen de costos</h4><div class="r80-summary-row"><span>Materiales</span><b id="r80MatSum">${money(k.subtotal_materiales)}</b></div><div class="r80-summary-row"><span>Fletes</span><b id="r80FreightSum">${money(k.subtotal_fletes)}</b></div><div class="r80-summary-row total"><span>Total costos netos</span><b id="r80Costs">${money(k.total_costos_netos)}</b></div><div class="r80-summary-row"><span>Utilidad</span><b id="r80Utility">${money(k.utilidad)}</b></div><div class="r80-summary-row total"><span>Subtotal</span><b id="r80Net">${money(k.venta_neta)}</b></div></div><div class="r80-summary-card"><h4>Venta final</h4><div class="r80-summary-row"><span>Total venta neta</span><b id="r80FinalNet">${money(k.venta_neta)}</b></div><div class="r80-summary-row"><span>IVA (19%)</span><b id="r80Iva">${money(k.iva)}</b></div><div class="r80-summary-row grand"><span>TOTAL</span><b id="r80Total">${money(k.total_final)}</b></div></div></div><div class="r80-actions"><button class="btn" type="button" data-preview>↓ Generar PDF</button><button class="btn primary" type="button" data-save>Guardar presupuesto</button></div></div>`;bindEditor();
+    body.innerHTML=`<div class="panel r80-form" data-no-collapse="1"><div class="row-between"><div><h3 style="margin:0">${d.id?'Editar':'Nuevo'} presupuesto</h3><div class="muted">Propuesta técnico comercial</div></div><button class="btn" type="button" data-back>← Historial</button></div><div class="r80-head"><label>Alcance<select class="field" id="r80Equipment">${equipmentOptions(d)}</select></label><label>Fecha<input class="field" id="r80Date" type="date" value="${esc(d.fecha||today())}"></label><label>Código del documento<div class="r80-code" id="r80Code">${esc(documentCode(d))}</div></label><label>Utilidad %<input class="field" id="r80Margin" type="number" min="0" step="0.1" value="${num(d.utilidad_pct)}"></label></div>${multipleEquipment(d)}<div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de materiales</h4><button class="btn" type="button" data-add-mat>+ Material</button></div><div id="r80Mats">${(d.materiales?.length?d.materiales:[{}]).map(matRow).join('')}</div></div><div class="r80-lines-panel"><div class="r80-lines-head"><h4>Costo de fletes o transportes</h4><button class="btn" type="button" data-add-freight>+ Flete</button></div><div id="r80Freights">${(d.fletes?.length?d.fletes:[{}]).map(freightRow).join('')}</div></div><label>Observación<textarea class="field" id="r80Observation" rows="3">${esc(d.observacion||'')}</textarea></label><div class="r80-summary"><div class="r80-summary-card"><h4>Resumen de costos</h4><div class="r80-summary-row"><span>Materiales</span><b id="r80MatSum">${money(k.subtotal_materiales)}</b></div><div class="r80-summary-row"><span>Fletes</span><b id="r80FreightSum">${money(k.subtotal_fletes)}</b></div><div class="r80-summary-row total"><span>Total costos netos</span><b id="r80Costs">${money(k.total_costos_netos)}</b></div><div class="r80-summary-row"><span>Utilidad</span><b id="r80Utility">${money(k.utilidad)}</b></div><div class="r80-summary-row total"><span>Subtotal</span><b id="r80Net">${money(k.venta_neta)}</b></div></div><div class="r80-summary-card"><h4>Venta final</h4><div class="r80-summary-row"><span>Total venta neta</span><b id="r80FinalNet">${money(k.venta_neta)}</b></div><div class="r80-summary-row"><span>IVA (19%)</span><b id="r80Iva">${money(k.iva)}</b></div><div class="r80-summary-row grand"><span>TOTAL</span><b id="r80Total">${money(k.total_final)}</b></div></div></div><div class="r80-actions"><button class="btn" type="button" data-preview>↓ Generar PDF</button><button class="btn primary" type="button" data-save>Guardar presupuesto</button></div></div>`;bindEditor();
   }
 
   function readDraft(){
-    const sel=document.getElementById('r80Equipment'),opt=sel?.selectedOptions?.[0];
-    return{id:state().editing?.id||null,equipo_id:sel?.value||'',equipo_nombre:opt?.dataset?.name||'',fecha:document.getElementById('r80Date')?.value||today(),utilidad_pct:num(document.getElementById('r80Margin')?.value),materiales:[...document.querySelectorAll('[data-mat]')].map(r=>({detalle:r.querySelector('[data-f="detalle"]')?.value?.trim()||'',cantidad:num(r.querySelector('[data-f="cantidad"]')?.value),unidad:r.querySelector('[data-f="unidad"]')?.value?.trim()||'Unidad',precio_unitario:num(r.querySelector('[data-f="precio_unitario"]')?.value)})).filter(x=>x.detalle||x.precio_unitario),fletes:[...document.querySelectorAll('[data-freight]')].map(r=>({detalle:r.querySelector('[data-f="detalle"]')?.value?.trim()||'',cantidad:num(r.querySelector('[data-f="cantidad"]')?.value),monto_total:num(r.querySelector('[data-f="monto_total"]')?.value)})).filter(x=>x.detalle||x.monto_total),observacion:document.getElementById('r80Observation')?.value?.trim()||'',estado:state().editing?.estado||'borrador'};
+    return{id:state().editing?.id||null,...readScope(),fecha:document.getElementById('r80Date')?.value||today(),utilidad_pct:num(document.getElementById('r80Margin')?.value),materiales:[...document.querySelectorAll('[data-mat]')].map(r=>({detalle:r.querySelector('[data-f="detalle"]')?.value?.trim()||'',cantidad:num(r.querySelector('[data-f="cantidad"]')?.value),unidad:r.querySelector('[data-f="unidad"]')?.value?.trim()||'Unidad',precio_unitario:num(r.querySelector('[data-f="precio_unitario"]')?.value)})).filter(x=>x.detalle||x.precio_unitario),fletes:[...document.querySelectorAll('[data-freight]')].map(r=>({detalle:r.querySelector('[data-f="detalle"]')?.value?.trim()||'',cantidad:num(r.querySelector('[data-f="cantidad"]')?.value),monto_total:num(r.querySelector('[data-f="monto_total"]')?.value)})).filter(x=>x.detalle||x.monto_total),observacion:document.getElementById('r80Observation')?.value?.trim()||'',estado:state().editing?.estado||'borrador'};
   }
   function sync(){
+    const equipment=document.getElementById('r80MultipleEquipment');
+    if(equipment)equipment.hidden=document.getElementById('r80Equipment')?.value!=='multiple';
     const d=readDraft(),k=calc(d),set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};set('r80Code',documentCode(d));set('r80MatSum',money(k.subtotal_materiales));set('r80FreightSum',money(k.subtotal_fletes));set('r80Costs',money(k.total_costos_netos));set('r80Utility',money(k.utilidad));set('r80Net',money(k.venta_neta));set('r80FinalNet',money(k.venta_neta));set('r80Iva',money(k.iva));set('r80Total',money(k.total_final));document.querySelectorAll('[data-mat]').forEach(r=>{const total=r.querySelector('[data-mat-total]');if(total)total.textContent=money(num(r.querySelector('[data-f="cantidad"]')?.value)*num(r.querySelector('[data-f="precio_unitario"]')?.value))})
   }
   function bindRemovers(){
@@ -300,16 +330,16 @@
   async function saveBudget(){
     const d=readDraft(),existing=d.id?state().rows.find(x=>String(x.id)===String(d.id)):null;
     if(!canUse()||(existing&&!canEdit(existing)))return window.toast?.('No tienes permiso para guardar este presupuesto.','error');
-    if(!d.equipo_id||!d.equipo_nombre)return window.toast?.('Selecciona un equipo.','error');
+    if(!d.equipo_nombre)return window.toast?.('Selecciona un equipo, al menos dos para Varios equipos, o Transversal al contrato.','error');
     if(!d.fecha)return window.toast?.('Selecciona la fecha.','error');
-    const k=calc(d),basePayload={equipo_id:d.equipo_id,equipo_nombre:d.equipo_nombre,fecha:d.fecha,materiales:d.materiales,fletes:d.fletes,utilidad_pct:d.utilidad_pct,...k,observacion:d.observacion,estado:d.estado,updated_at:new Date().toISOString()};
+    const k=calc(d),basePayload={equipo_id:d.equipo_id,equipo_nombre:d.equipo_nombre,equipos_ids:d.equipos_ids,fecha:d.fecha,materiales:d.materiales,fletes:d.fletes,utilidad_pct:d.utilidad_pct,...k,observacion:d.observacion,estado:d.estado,updated_at:new Date().toISOString()};
     let out;
     if(d.id){
       out=await window.sb.from(TABLE).update({codigo:existing?.codigo||documentCode(d),...basePayload}).eq('id',d.id).select('*').single();
     }else{
       let candidates=state().rows;
       for(let attempt=0;attempt<6;attempt++){
-        const codigo=nextCodeFromRows(d.equipo_nombre,d.fecha,candidates);
+        const codigo=nextCodeFromRows(codeScope(d),d.fecha,candidates);
         out=await window.sb.from(TABLE).insert({codigo,...basePayload,created_by:uid()}).select('*').single();
         if(!out.error||out.error.code!=='23505')break;
         const latest=await window.sb.from(TABLE).select('id,codigo');
@@ -336,10 +366,10 @@
   async function downloadSavedPdf(id){const row=state().rows.find(x=>String(x.id)===String(id));if(row)await makePdf(clone(row),true)}
 
   async function makePdf(d,markIssued){
-    if(!canUse())return window.toast?.('No tienes permiso para generar presupuestos.','error');if(!d.equipo_nombre||!d.fecha)return window.toast?.('Selecciona equipo y fecha antes de generar el PDF.','error');let signer;try{signer=await administratorSignature()}catch(error){return window.toast?.(error.message||String(error),'error')}const C=typeof window.ensurePdf==='function'?window.ensurePdf():window.jspdf?.jsPDF;if(!C)return window.toast?.('No se pudo cargar el generador PDF.','error');const k=calc(d),code=documentCode(d),doc=new C({orientation:'portrait',unit:'mm',format:'a4'});
-    if(typeof window.pdfHeader==='function')window.pdfHeader(doc,'Propuesta Técnico Comercial',`${code} · ${d.equipo_nombre}`);else{doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('STAINHER',14,16);doc.setFontSize(14);doc.text('Propuesta Técnico Comercial',14,27);doc.setDrawColor(239,91,42);doc.line(14,38,196,38)}
-    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(`CÓDIGO: ${code}`,14,47);doc.text(`EQUIPO: ${d.equipo_nombre}`,14,54);
-    doc.autoTable({startY:62,theme:'grid',head:[[{content:'COSTO DE MATERIALES',colSpan:5,styles:{halign:'center'}}],['Detalle','Cantidad','Unidad','Precio Unitario','Monto Total']],body:(d.materiales||[]).map(x=>[x.detalle||'',num(x.cantidad).toLocaleString('es-CL'),x.unidad||'',money(x.precio_unitario),money(num(x.cantidad)*num(x.precio_unitario))]).concat([['TOTAL','','','',money(k.subtotal_materiales)]]),styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[35,43,54]},columnStyles:{1:{halign:'center'},3:{halign:'right'},4:{halign:'right'}}});
+    if(!canUse())return window.toast?.('No tienes permiso para generar presupuestos.','error');if(!d.equipo_nombre||!d.fecha)return window.toast?.('Completa el alcance y la fecha antes de generar el PDF.','error');let signer;try{signer=await administratorSignature()}catch(error){return window.toast?.(error.message||String(error),'error')}const C=typeof window.ensurePdf==='function'?window.ensurePdf():window.jspdf?.jsPDF;if(!C)return window.toast?.('No se pudo cargar el generador PDF.','error');const k=calc(d),code=documentCode(d),doc=new C({orientation:'portrait',unit:'mm',format:'a4'});
+    if(typeof window.pdfHeader==='function')window.pdfHeader(doc,'Propuesta Técnico Comercial',code);else{doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('STAINHER',14,16);doc.setFontSize(14);doc.text('Propuesta Técnico Comercial',14,27);doc.setDrawColor(239,91,42);doc.line(14,38,196,38)}
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(`CÓDIGO: ${code}`,14,47);const scopeLines=doc.splitTextToSize(`ALCANCE: ${d.equipo_nombre}`,182);doc.text(scopeLines,14,54);
+    doc.autoTable({startY:58+4*scopeLines.length,theme:'grid',head:[[{content:'COSTO DE MATERIALES',colSpan:5,styles:{halign:'center'}}],['Detalle','Cantidad','Unidad','Precio Unitario','Monto Total']],body:(d.materiales||[]).map(x=>[x.detalle||'',num(x.cantidad).toLocaleString('es-CL'),x.unidad||'',money(x.precio_unitario),money(num(x.cantidad)*num(x.precio_unitario))]).concat([['TOTAL','','','',money(k.subtotal_materiales)]]),styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[35,43,54]},columnStyles:{1:{halign:'center'},3:{halign:'right'},4:{halign:'right'}}});
     let y=doc.lastAutoTable.finalY+8;doc.autoTable({startY:y,theme:'grid',head:[[{content:'COSTO DE FLETES O TRANSPORTES',colSpan:3,styles:{halign:'center'}}],['Detalle','Cantidad','Monto Total']],body:(d.fletes||[]).map(x=>[x.detalle||'',num(x.cantidad).toLocaleString('es-CL'),money(x.monto_total)]).concat([['TOTAL','',money(k.subtotal_fletes)]]),styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[35,43,54]},columnStyles:{1:{halign:'center'},2:{halign:'right'}}});
     y=doc.lastAutoTable.finalY+8;doc.autoTable({startY:y,theme:'grid',head:[[{content:'RESUMEN DE COSTOS',colSpan:2,styles:{halign:'center'}}],['Detalle','Valor Neto']],body:[['Materiales',money(k.subtotal_materiales)],['Fletes',money(k.subtotal_fletes)],['TOTAL COSTOS NETOS',money(k.total_costos_netos)],[`UTILIDAD (${num(d.utilidad_pct).toFixed(1)}%)`,money(k.utilidad)],['SUBTOTAL',money(k.venta_neta)]],styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[35,43,54]},columnStyles:{1:{halign:'right'}}});
     y=doc.lastAutoTable.finalY+8;doc.autoTable({startY:y,theme:'grid',head:[[{content:'VENTA FINAL',colSpan:2,styles:{halign:'center'}}]],body:[['TOTAL VENTA NETA',money(k.venta_neta)],['IVA (19%)',money(k.iva)],['TOTAL',money(k.total_final)]],styles:{fontSize:9,cellPadding:2},headStyles:{fillColor:[35,43,54]},columnStyles:{1:{halign:'right'}}});
