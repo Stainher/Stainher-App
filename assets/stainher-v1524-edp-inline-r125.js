@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261019-r161-edp-estandarizacion';
+  const BUILD='20261120-edp-gastos-generales';
   if(window.__STAINHER_EDP_INLINE_R125__===BUILD)return;
   window.__STAINHER_EDP_INLINE_R125__=BUILD;
 
@@ -163,16 +163,30 @@
     }
     return input;
   }
+  function ensureGeneralExpensesField(m,ep){
+    const form=m.querySelector('#v1512EdpEdit');
+    if(!form||form.elements.namedItem('gastos_generales'))return;
+    const label=document.createElement('label');
+    label.innerHTML='Gastos Generales<input class="field" name="gastos_generales" type="number" min="0" max="9999999999999999" step="1" placeholder="Automático si se deja vacío"><small class="r161-estandarizacion-note">Monto neto en CLP. Se guarda con Guardar cambios.</small>';
+    label.querySelector('input').value=ep.gastos_generales??'';
+    labelNode(m,'Mantenimiento')?.insertAdjacentElement('afterend',label);
+    form.addEventListener('formdata',event=>{
+      if(event.formData.get('gastos_generales')==='')event.formData.delete('gastos_generales');
+    });
+  }
   function baseValues(m,ep){
     const total=Number(labelInput(m,'Total Neto')?.value??ep?.total_neto??0)||0;
     const maintenance=Number(labelInput(m,'Mantenimiento')?.value??ep?.mantenimiento??0)||0;
     const ggrr=Number(labelInput(m,'Gastos Reembolsables')?.value??ep?.gastos_reembolsables??0)||0;
+    const generalInput=m.querySelector('[name="gastos_generales"]');
+    const general=generalInput?.value || ep?.gastos_generales;
     const standardization=Number(m.querySelector('[data-r161-standardization]')?.value||0)||0;
     return {
       total:Math.max(0,total),
       maintenance:Math.max(0,maintenance),
       ggrr:Math.max(0,ggrr),
-      standardization:Math.max(0,standardization)
+      standardization:Math.max(0,standardization),
+      general:general==null?null:Math.max(0,Number(general)||0)
     };
   }
   function detailsFor(epId){
@@ -189,7 +203,8 @@
     const equipment=values.reduce((a,b)=>a+b,0);
     const base=baseValues(m,ep);
     const diff=base.maintenance-equipment;
-    const operational=Math.max(0,base.total-base.ggrr-base.standardization-equipment);
+    const operational=base.general??Math.max(0,base.total-base.ggrr-base.standardization-equipment);
+    const expectedTotal=base.maintenance+operational+base.ggrr+base.standardization;
     const projected=equipment+operational+base.standardization;
     const put=(key,value)=>{
       const el=section.querySelector(`[data-r125-total="${key}"]`);
@@ -201,6 +216,7 @@
     put('ggrr',base.ggrr);
     put('standardization',base.standardization);
     put('total',base.total);
+    put('expected',expectedTotal);
     put('projected',projected);
 
     const diffEl=section.querySelector('[data-r125-diff]');
@@ -254,6 +270,7 @@
       try{standardization=await standardizationFor(ep.id)}catch(error){console.error('[Stainher EDP R161] estandarización',error)}
       m.classList.add('r125-edp-modal');
       ensureStandardizationField(m,standardization);
+      ensureGeneralExpensesField(m,ep);
 
       const section=document.createElement('section');
       section.className='r125-edp-detail';
@@ -274,10 +291,11 @@
         <div class="r125-edp-summary">
           <div class="kpi"><span>Mantenimiento EDP</span><strong data-r125-total="maintenance">—</strong></div>
           <div class="kpi"><span>Detalle equipos</span><strong data-r125-total="equipment">—</strong></div>
-          <div class="kpi"><span>Gasto Operativo / General</span><strong data-r125-total="operational">—</strong></div>
+          <div class="kpi"><span>Gastos Generales</span><strong data-r125-total="operational">—</strong></div>
           <div class="kpi"><span>GGRR</span><strong data-r125-total="ggrr">—</strong></div>
           <div class="kpi"><span>Estandarización</span><strong data-r125-total="standardization">—</strong></div>
           <div class="kpi"><span>Total Neto</span><strong data-r125-total="total">—</strong></div>
+          <div class="kpi"><span>Neto según ítems</span><strong data-r125-total="expected">—</strong></div>
         </div>
         <div class="notice r125-edp-diff" data-r125-diff style="margin-top:10px"></div>
         <div class="r125-edp-actions"><button type="button" class="btn primary" data-r125-save>Guardar desglose equipos</button></div>
@@ -289,7 +307,7 @@
       else m.appendChild(section);
 
       section.querySelectorAll('[data-r125-amount]').forEach(input=>input.addEventListener('input',()=>recalc(section,m,ep)));
-      [labelInput(m,'Total Neto'),labelInput(m,'Mantenimiento'),labelInput(m,'Gastos Reembolsables'),m.querySelector('[data-r161-standardization]')].filter(Boolean)
+      [labelInput(m,'Total Neto'),labelInput(m,'Mantenimiento'),labelInput(m,'Gastos Reembolsables'),m.querySelector('[name="gastos_generales"]'),m.querySelector('[data-r161-standardization]')].filter(Boolean)
         .forEach(input=>input.addEventListener('input',()=>recalc(section,m,ep)));
       section.querySelector('[data-r125-save]')?.addEventListener('click',()=>save(section,m,ep));
       recalc(section,m,ep);

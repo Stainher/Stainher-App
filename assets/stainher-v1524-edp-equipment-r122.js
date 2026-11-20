@@ -41,6 +41,11 @@
     const field=Math.max(0,Number(ep.mantenimiento)||0);
     const detailSum=(rows||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.monto)||0),0);
     const hasDetail=Array.isArray(rows)&&rows.length>0;
+    if(ep.gastos_generales!=null){
+      const equipment=hasDetail?detailSum:field;
+      const operational=Math.max(0,Number(ep.gastos_generales)||0);
+      return {equipment,operational,ggrr,projectable:equipment+operational,total,detailSum,hasDetail,source:'explicit'};
+    }
     if(hasDetail){
       const equipment=detailSum;
       const operational=Math.max(0,total-ggrr-equipment);
@@ -156,7 +161,9 @@
     if(summary){
       const note=document.createElement('div');
       note.className='notice r122-forecast-history-note';
-      if(split.source==='residual'){
+      if(split.source==='explicit'){
+        note.textContent='Gastos Generales informados en este EDP: '+money(split.operational)+'.';
+      }else if(split.source==='residual'){
         note.innerHTML=`<b>Conciliación R122:</b> el EDP informa Mantenimiento por ${money(Number(ep.mantenimiento)||0)} y GGRR por ${money(split.ggrr)}. El Gasto Operativo / General no se toma desde Mantenimiento; se obtiene como Total Neto − Mantenimiento − GGRR = <b>${money(split.operational)}</b>. Puedes ingresar el detalle por equipo desde Estados de Pago.`;
       }else if(split.source==='detail'){
         note.innerHTML=`<b>Conciliación R122:</b> Mantenimiento por equipos se obtiene del desglose guardado en el EDP (<b>${money(split.equipment)}</b>) y el Gasto Operativo / General se calcula por diferencia (<b>${money(split.operational)}</b>).`;
