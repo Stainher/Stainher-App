@@ -2,11 +2,11 @@
  * - Elimina inmediatamente el botón Actualizar redundante junto al año.
  * - Mantiene como único control global el botón Actualizar de Administración del Contrato.
  * - Superpone gráficos SVG determinísticos sobre los canvases para evitar paneles vacíos.
- * - Mantiene los cálculos y datos de Forecast/R122 sin modificar su origen.
+ * - Integra la programación preventiva y los precios unitarios por actividad.
  */
 (()=>{
   'use strict';
-  const BUILD='20260925-r123-forecast-runtime-stable';
+  const BUILD='20261120-r123-forecast-activity-prices';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -199,16 +199,213 @@
     });
   }
 
+
+  const legacyEquipment = new Set([
+    'jaula asea', 'nodo 3700', 'hilton 02', 'hilton 03', 'jaula otis',
+    'jaula alimak', 'eila 1', 'huinche ptp', 'eila 2'
+  ]);
+  const priceTable = 'forecast_precios_actividades';
+  const key = row => JSON.stringify([row.equipo_id, row.actividad.trim()]);
+  const legacyGroup = row => {
+    const name = row.equipos?.nombre;
+    return legacyEquipment.has(forecastNormV8(name)) ? forecastGroupV8(name) : '';
+  };
+  let forecastRequest = 0;
+
+  async function readAll(query) {
+    const rows = [];
+    const batchSize = 500;
+    for (let offset = 0; ; offset += batchSize) {
+      const {data, error} = await query().range(offset, offset + batchSize - 1);
+      if(error) throw error;
+      rows.push(...data);
+      if(data.length < batchSize) return rows;
+    }
+  }
+
+  async function loadActivityForecast() {
+    const body = document.getElementById('forecastBody');
+    const selector = document.getElementById('forecastYear');
+    if(!body || !selector) return;
+    selector.onchange = () => window.loadForecastV9();
+    const year = Number(selector.value);
+    const request = ++forecastRequest;
+    state.forecastYear = year;
+    const client = window.sb;
+    try {
+      const [scheduledRows, plans, prices] = await Promise.all([
+        readAll(() => client.from('programacion_preventiva')
+          .select('id,equipo_id,mes,actividad,equipos(nombre,estado)').eq('anio', year).order('id')),
+        readAll(() => client.from('plan_matriz_actividades')
+          .select('id,equipo_id,actividad,mes_inicio,equipos(nombre,estado)').eq('activo', true).order('id')),
+        readAll(() => client.from(priceTable).select('equipo_id,actividad,precio_unitario')
+          .order('equipo_id').order('actividad'))
+      ]);
+      if(request !== forecastRequest || !body.isConnected || selector.value !== String(year)) return;
+      const isEligible = row => row.equipos && row.equipos.estado !== 'retirado' && row.actividad?.trim();
+      const rows = scheduledRows.filter(isEligible);
+      const activePlans = plans.filter(isEligible);
+      const catalog = new Map([...activePlans, ...rows].map(row => [key(row), row]));
+      const saved = new Map(prices.map(row => [key(row), Number(row.precio_unitario)]));
+      const extraGroups = new Map();
+      const group = row => legacyGroup(row) || row.equipo_id;
+      for(const row of catalog.values()) {
+        if(!legacyGroup(row)) extraGroups.set(row.equipo_id, row.equipos.nombre);
+      }
+      const years = new Set([...selector.options].map(option => Number(option.value)));
+      for(const plan of activePlans) {
+        const starts = Number(plan.mes_inicio?.slice(0, 4));
+        if(starts) {
+          years.add(starts);
+          if(!plan.mes_inicio.endsWith('-01-01')) years.add(starts + 1);
+        }
+      }
+      selector.replaceChildren(...[...years].sort((a,b) => a-b)
+        .map(value => new Option(value, value, false, value === year)));
+
+      const excluded = forecastExcludedSetV9();
+      const months = Array.from({length:12}, (_, index) => ({
+        m:index+1, preventivo:0, operativo:0, total:0, real:0, ggrr:0, epTotal:0, detail:[]
+      }));
+      let missing = 0;
+      for(const row of rows) {
+        const mo = months[Number(row.mes)-1];
+        const groupId = group(row);
+        if(!mo || excluded.has(groupId)) continue;
+        const savedPrice = saved.get(key(row));
+        const legacyPrice = legacyGroup(row) ? forecastUnitPriceV8(row.equipos.nombre, row.actividad) : 0;
+        if(savedPrice === undefined && !legacyPrice) {
+          missing++;
+          continue;
+        }
+        const price = savedPrice ?? legacyPrice;
+        const factor = savedPrice === undefined ? forecastFactorV8(row.equipos.nombre) : 1;
+        const value = Math.round(price * factor);
+        mo.preventivo += value;
+        mo.detail.push({
+          equipo:row.equipos.nombre, group:groupId, actividad:row.actividad,
+          factor, price, value, category:forecastCategoryV9(row.actividad)
+        });
+      }
+      for(const month of contractActiveMonthsV8(year)) months[month-1].operativo = FORECAST_OP_MONTHLY_V8;
+      for(const mo of months) mo.total = mo.preventivo + mo.operativo;
+      for(const ep of state.contractData.edp || []) {
+        const mo = months[ep.mes_edp-1];
+        if(!mo || Number(ep.anio_edp) !== year) continue;
+        Object.assign(mo, {
+          ep, real:Number(ep.mantenimiento)||0, ggrr:Number(ep.gastos_reembolsables)||0,
+          epTotal:Number(ep.total_neto)||0
+        });
+      }
+      const prev = months.reduce((sum, mo) => sum + mo.preventivo, 0);
+      const op = months.reduce((sum, mo) => sum + mo.operativo, 0);
+      const real = months.reduce((sum, mo) => sum + mo.real, 0);
+      state.forecastDataV8 = {
+        months, prev, op, tot:prev+op, real, delta:real-prev-op,
+        activityPrices:{catalog, saved, extraGroups, missing}
+      };
+      window.renderForecastBodyV9();
+    } catch(error) {
+      if(request !== forecastRequest || !body.isConnected) return;
+      body.replaceChildren();
+      const notice = document.createElement('div');
+      notice.className = 'notice error';
+      notice.textContent = 'No se pudo cargar el Forecast. ' + error.message;
+      body.append(notice);
+    }
+  }
+
+  let pricesOpen = false;
+  function renderActivityPrices() {
+    const pricing = state.forecastDataV8?.activityPrices;
+    const filters = document.querySelector('#forecastBody .forecast-checks-v9');
+    if(!pricing || !filters || filters.closest('.forecast-filter-v9').nextElementSibling?.matches('[data-forecast-prices]')) return;
+    const excluded = forecastExcludedSetV9();
+    for(const [id, name] of pricing.extraGroups) {
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = !excluded.has(id);
+      input.onchange = () => toggleForecastGroupV9(id, input.checked);
+      label.append(input, ' ' + name);
+      filters.insertBefore(label, filters.querySelector('button'));
+    }
+
+    const editor = document.createElement('details');
+    editor.className = 'panel';
+    editor.dataset.forecastPrices = '';
+    editor.style.marginBlock = '12px';
+    editor.open = pricesOpen;
+    editor.ontoggle = () => { pricesOpen = editor.open; };
+    const editable = canEditV11('contrato');
+    const entries = [...pricing.catalog.entries()].sort(([,a],[,b]) =>
+      a.equipos.nombre.localeCompare(b.equipos.nombre,'es') || a.actividad.localeCompare(b.actividad,'es'));
+    const summary = pricing.missing ? ' · ' + pricing.missing + ' ocurrencias sin precio' : '';
+    editor.innerHTML = '<summary>Precios unitarios de mantenimiento' + summary + '</summary>' +
+      '<p class="muted">Precio neto en CLP por actividad y equipo. Se multiplica por las ocurrencias programadas. Las actividades sin precio quedan fuera del total.</p>' +
+      '<div class="admin-table"><table><thead><tr><th>Equipo</th><th>Actividad</th><th>Precio unitario neto</th>' +
+      (editable ? '<th>Acción</th>' : '') + '</tr></thead><tbody></tbody></table></div>';
+    const tbody = editor.querySelector('tbody');
+    for(const [id, row] of entries) {
+      const tr = tbody.insertRow();
+      tr.insertCell().textContent = row.equipos.nombre;
+      tr.insertCell().textContent = row.actividad;
+      const price = pricing.saved.get(id);
+      const reference = legacyGroup(row) ? forecastUnitPriceV8(row.equipos.nombre,row.actividad) : 0;
+      const status = reference ? 'Tarifa contractual · ' + fmtCLP(reference * forecastFactorV8(row.equipos.nombre)) : 'Sin precio';
+      const cell = tr.insertCell();
+      if(!editable) {
+        cell.textContent = price === undefined ? status : fmtCLP(price);
+        continue;
+      }
+      const input = document.createElement('input');
+      Object.assign(input, {
+        className:'field', type:'number', min:'0', max:'999999999999', step:'1', required:true,
+        value:price ?? '', placeholder:status
+      });
+      input.setAttribute('aria-label', 'Precio para ' + row.equipos.nombre + ' · ' + row.actividad);
+      cell.append(input);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn';
+      button.textContent = 'Guardar';
+      tr.insertCell().append(button);
+      button.onclick = async () => {
+        if(!input.reportValidity()) return;
+        input.disabled = button.disabled = true;
+        try {
+          const {error} = await window.sb.from(priceTable).upsert({
+            equipo_id:row.equipo_id, actividad:row.actividad.trim(), precio_unitario:Number(input.value)
+          }, {onConflict:'equipo_id,actividad'});
+          if(error) throw error;
+          window.toast?.('Precio unitario guardado','success');
+          if(editor.isConnected) await window.loadForecastV9();
+        } catch(error) {
+          window.toast?.('No se pudo guardar el precio. ' + error.message,'error');
+        } finally {
+          input.disabled = button.disabled = false;
+        }
+      };
+    }
+    if(!entries.length) {
+      const cell = tbody.insertRow().insertCell();
+      cell.colSpan = editable ? 4 : 3;
+      cell.textContent = 'Sin actividades de mantenimiento.';
+    }
+    filters.closest('.forecast-filter-v9').after(editor);
+  }
+
   function wrap(name){
     const current=window[name];
     if(typeof current!=='function'||current.__r123)return false;
     const wrapped=name==='loadForecastV9'?async function(){
       removeDuplicateRefresh();
-      const out=await current.apply(this,arguments);
+      const out=await loadActivityForecast();
       schedule();
       return out;
     }:function(){
       const out=current.apply(this,arguments);
+      if(name==='renderForecastBodyV9') renderActivityPrices();
       removeDuplicateRefresh();
       schedule();
       return out;
