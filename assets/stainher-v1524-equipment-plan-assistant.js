@@ -26,24 +26,76 @@
   }
   function row(item={}){
     const node=document.createElement('div');node.className='stainher-plan-assistant-row';
+    if(item.id)node.dataset.activityId=item.id;
     node.innerHTML=`<label>Intervención<select class="field" data-plan="tipo">${TYPES.map(x=>`<option ${x===(item.tipo_intervencion||'General')?'selected':''}>${x}</option>`).join('')}</select></label><label>Actividad<input class="field" data-plan="actividad" value="${esc(item.actividad||'')}" placeholder="Actividad preventiva" required></label><label>Frecuencia<select class="field" data-plan="frecuencia">${FREQS.map(x=>`<option ${x===(item.frecuencia||'Mensual')?'selected':''}>${x}</option>`).join('')}</select></label><label>Mes de inicio<input class="field" data-plan="mes_inicio" type="month" value="${esc(item.mes_inicio||currentMonth())}" required></label><button class="btn danger-btn" type="button" aria-label="Eliminar actividad">Eliminar</button>`;
     node.querySelector('button').onclick=()=>node.remove();return node;
   }
   function fill(list,items){list.replaceChildren(...items.map(row))}
   function values(list){return [...list.querySelectorAll('.stainher-plan-assistant-row')].map(node=>({
+    id:node.dataset.activityId || undefined,
     tipo_intervencion:node.querySelector('[data-plan="tipo"]').value,
     actividad:node.querySelector('[data-plan="actividad"]').value.trim(),
     frecuencia:node.querySelector('[data-plan="frecuencia"]').value,
     mes_inicio:node.querySelector('[data-plan="mes_inicio"]').value
   })).filter(x=>x.actividad)}
   function enhance(id=''){
-    if(id)return;
     const form=document.getElementById('equipoForm');if(!form||form.dataset.planAssistant)return;
+    if(id && (!canEditV11('equipos') || !canEditV11('preventivo') || !canPlan()))return;
     form.dataset.planAssistant='true';
     const section=document.createElement('section');section.className='full stainher-plan-assistant';
     section.innerHTML=`<div class="stainher-plan-assistant-head"><div><h4>Asistente de Plan Matriz</h4><span class="muted">Define cada intervención, su frecuencia y el mes desde el que aparecerá en Preventivo.</span></div><button class="btn" type="button" data-generate>Generar propuesta</button></div><div class="stainher-plan-assistant-list"></div><button class="btn" type="button" data-add>+ Agregar actividad</button>`;
     const submit=form.querySelector('button[type="submit"]')?.closest('.full');form.insertBefore(section,submit||null);
     const list=section.querySelector('.stainher-plan-assistant-list');
+    if(id){
+      section.querySelector('h4').textContent='Editar Plan Matriz';
+      section.querySelector('[data-generate]').remove();
+      const add=section.querySelector('[data-add]');
+      const save=document.createElement('button');
+      save.type='button';
+      save.className='btn primary';
+      save.textContent='Guardar plan de mantenimiento';
+      section.append(save);
+      add.disabled=save.disabled=true;
+      list.textContent='Cargando actividades…';
+      // El plan se guarda por separado del formulario de datos del equipo.
+      const editableRow=item=>{
+        const node=row(item);
+        node.querySelectorAll('[required]').forEach(field=>{field.required=false;});
+        return node;
+      };
+      add.onclick=()=>list.appendChild(editableRow({}));
+      save.onclick=async ()=>{
+        const activities=values(list);
+        if(activities.length!==list.children.length || activities.some(activity=>!activity.mes_inicio)){
+          window.toast?.('Completa la actividad y el mes de inicio de cada fila.','error');
+          return;
+        }
+        if(!activities.length && !confirm('¿Quitar todas las actividades del Plan Matriz?'))return;
+        save.disabled=add.disabled=true;
+        try {
+          const result=await window.sb.rpc('editar_plan_matriz_equipo',{p_equipo:id,p_actividades:activities});
+          if(result.error)throw result.error;
+          state.v1519PlanCatalogLoaded=false;
+          if(form.isConnected) window.closeModal?.();
+          await window.renderEquipos?.();
+          window.toast?.('Plan de mantenimiento actualizado','success');
+        } catch(error) {
+          window.toast?.(error.message,'error');
+        } finally {
+          save.disabled=add.disabled=false;
+        }
+      };
+      window.sb.from('plan_matriz_actividades')
+        .select('id,tipo_intervencion,actividad,frecuencia,mes_inicio')
+        .eq('equipo_id',id).eq('activo',true).order('created_at').order('id')
+        .then(({data,error})=>{
+          if(!section.isConnected)return;
+          if(error){list.textContent='No se pudo cargar el Plan Matriz. '+error.message;return;}
+          list.replaceChildren(...data.map(item=>editableRow({...item,mes_inicio:item.mes_inicio?.slice(0,7)})));
+          add.disabled=save.disabled=false;
+        });
+      return;
+    }
     fill(list,suggestions(form.elements.tipo?.value));
     section.querySelector('[data-generate]').onclick=()=>fill(list,suggestions(form.elements.tipo?.value));
     section.querySelector('[data-add]').onclick=()=>list.appendChild(row());
