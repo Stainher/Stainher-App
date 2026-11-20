@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261120-edp-gastos-generales';
+  const BUILD='20261120-edp-totales-automaticos';
   if(window.__STAINHER_EDP_INLINE_R125__===BUILD)return;
   window.__STAINHER_EDP_INLINE_R125__=BUILD;
 
@@ -174,6 +174,31 @@
       if(event.formData.get('gastos_generales')==='')event.formData.delete('gastos_generales');
     });
   }
+  function adjustedAmounts(net,maintenance,rate){
+    const adjusted=Math.round(net+maintenance*rate/100);
+    return {adjusted,withTax:Math.round(adjusted*119/100)};
+  }
+  function installAutomaticTotals(m){
+    const form=m.querySelector('#v1512EdpEdit');
+    if(!form||form.dataset.edpAutomaticTotals)return;
+    const field=name=>form.elements.namedItem(name);
+    const net=field('total_neto'),maintenance=field('mantenimiento'),rate=field('reajuste_pct');
+    const adjusted=field('total_pagar_neto'),withTax=field('total_iva_incluido');
+    if(!net||!maintenance||!rate||!adjusted||!withTax)return;
+    form.dataset.edpAutomaticTotals='1';
+    adjusted.readOnly=true;
+    withTax.readOnly=true;
+    const update=()=>{
+      const totals=adjustedAmounts(Number(net.value)||0,Number(maintenance.value)||0,Number(rate.value)||0);
+      adjusted.value=String(totals.adjusted);
+      withTax.value=String(totals.withTax);
+    };
+    for(const input of [net,maintenance,rate]){
+      input.addEventListener('input',update);
+      input.addEventListener('change',update);
+    }
+    if(!Number(adjusted.value)&&!Number(withTax.value))update();
+  }
   function baseValues(m,ep){
     const total=Number(labelInput(m,'Total Neto')?.value??ep?.total_neto??0)||0;
     const maintenance=Number(labelInput(m,'Mantenimiento')?.value??ep?.mantenimiento??0)||0;
@@ -260,6 +285,7 @@
     const m=modal();
     if(!m||!/Editar Estado de Pago/i.test(heading(m)))return false;
     const ep=currentEp(m);if(!ep)return false;
+    installAutomaticTotals(m);
     if(m.querySelector('.r125-edp-detail'))return true;
 
     busy=true;
