@@ -5,7 +5,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261120-edp-totales-automaticos';
+  const BUILD='20261120-edp-conciliacion-gg';
   if(window.__STAINHER_EDP_INLINE_R125__===BUILD)return;
   window.__STAINHER_EDP_INLINE_R125__=BUILD;
 
@@ -227,9 +227,10 @@
     const values=[...section.querySelectorAll('[data-r125-amount]')].map(input=>Math.max(0,Number(input.value)||0));
     const equipment=values.reduce((a,b)=>a+b,0);
     const base=baseValues(m,ep);
-    const diff=base.maintenance-equipment;
     const operational=base.general??Math.max(0,base.total-base.ggrr-base.standardization-equipment);
-    const expectedTotal=base.maintenance+operational+base.ggrr+base.standardization;
+    const detailedMaintenance=equipment+operational;
+    const diff=base.maintenance-detailedMaintenance;
+    const expectedTotal=detailedMaintenance+base.ggrr+base.standardization;
     const projected=equipment+operational+base.standardization;
     const put=(key,value)=>{
       const el=section.querySelector(`[data-r125-total="${key}"]`);
@@ -246,9 +247,9 @@
 
     const diffEl=section.querySelector('[data-r125-diff]');
     if(diffEl){
-      diffEl.textContent=diff===0?'El detalle por equipos concilia exactamente con Mantenimiento EDP.'
-        :diff>0?`Faltan ${money(diff)} por distribuir entre los equipos.`
-        :`El detalle excede Mantenimiento EDP en ${money(Math.abs(diff))}.`;
+      diffEl.textContent=diff===0?'El detalle de equipos y los Gastos Generales coinciden con Mantenimiento EDP.'
+        :diff>0?`Faltan ${money(diff)} por distribuir entre equipos y Gastos Generales.`
+        :`Equipos y Gastos Generales exceden Mantenimiento EDP en ${money(Math.abs(diff))}.`;
       diffEl.dataset.state=diff===0?'ok':diff>0?'warn':'bad';
     }
   }
