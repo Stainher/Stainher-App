@@ -300,7 +300,12 @@
 
   function wrap(name){
     const current=window[name];
-    if(typeof current!=='function'||current.__r128)return false;
+    if(typeof current!=='function')return false;
+    const visited=new Set();
+    for(let previous=current;typeof previous==='function'&&!visited.has(previous);previous=previous.__base){
+      if(previous.__r128)return false;
+      visited.add(previous);
+    }
     const wrapped=name==='loadForecastV9'?async function(){
       const out=await current.apply(this,arguments);
       lastSignature='';

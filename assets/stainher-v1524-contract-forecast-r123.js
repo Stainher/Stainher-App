@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261120-r123-forecast-activity-prices';
+  const BUILD='20261120-r123-forecast-stable-prices';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -142,9 +142,17 @@
     const wrap=canvas?.closest('.chart-wrap');
     if(!wrap)return false;
     wrap.classList.add('r123-svg-active');
-    wrap.querySelector('.r123-chart-overlay')?.remove();
+    const existing=wrap.querySelector('.r123-chart-overlay');
+    if(existing){
+      if(existing.__forecastMarkup!==markup){
+        existing.__forecastMarkup=markup;
+        existing.innerHTML=markup;
+      }
+      return true;
+    }
     const node=document.createElement('div');
     node.className='r123-chart-overlay';
+    node.__forecastMarkup=markup;
     node.innerHTML=markup;
     wrap.appendChild(node);
     return true;
@@ -307,6 +315,7 @@
       window.renderForecastBodyV9();
     } catch(error) {
       if(request !== forecastRequest || !body.isConnected) return;
+      console.error('[Stainher Forecast]',error);
       body.replaceChildren();
       const notice = document.createElement('div');
       notice.className = 'notice error';
@@ -397,7 +406,12 @@
 
   function wrap(name){
     const current=window[name];
-    if(typeof current!=='function'||current.__r123)return false;
+    if(typeof current!=='function')return false;
+    const visited=new Set();
+    for(let previous=current;typeof previous==='function'&&!visited.has(previous);previous=previous.__base){
+      if(previous.__r123)return false;
+      visited.add(previous);
+    }
     const wrapped=name==='loadForecastV9'?async function(){
       removeDuplicateRefresh();
       const out=await loadActivityForecast();

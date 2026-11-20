@@ -318,7 +318,11 @@
   function wrapForecast(){
     const current=window.renderForecastBodyV9;
     if(typeof current!=='function')return false;
-    if(current.__r122)return true;
+    const visited=new Set();
+    for(let previous=current;typeof previous==='function'&&!visited.has(previous);previous=previous.__base){
+      if(previous.__r122)return true;
+      visited.add(previous);
+    }
     const wrapped=function(){
       const out=current.apply(this,arguments);
       setTimeout(patchForecastHistorical,0);

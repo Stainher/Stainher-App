@@ -185,14 +185,6 @@
 
   async function refreshContractForecast(){
     try{
-      await load('stainher-contract-forecast-runtime-r95','stainher-v1524-contract-forecast-r95.js');
-      await load('stainher-contract-forecast-runtime-r96','stainher-v1524-contract-forecast-r96.js');
-      await load('stainher-contract-forecast-runtime-r98','stainher-v1524-contract-forecast-r98.js');
-      await load('stainher-contract-forecast-runtime-r100','stainher-v1524-contract-forecast-r100.js');
-      await load('stainher-contract-forecast-runtime-r103','stainher-v1524-contract-forecast-r103.js');
-      await load('stainher-contract-forecast-runtime-r104','stainher-v1524-contract-forecast-r104.js');
-      await load('stainher-contract-forecast-runtime-r105','stainher-v1524-contract-forecast-r105.js');
-      await load('stainher-contract-forecast-runtime-r121','stainher-v1524-contract-forecast-r121.js');
       await load('stainher-edp-equipment-runtime-r122','stainher-v1524-edp-equipment-r122.js');
       await load('stainher-contract-forecast-runtime-r123','stainher-v1524-contract-forecast-r123.js');
       await load('stainher-forecast-history-runtime-r128','stainher-v1524-forecast-history-r128.js');
@@ -200,14 +192,6 @@
       await load('stainher-edp-quarterly-runtime-r149','stainher-v1524-edp-quarterly-certification-r149.js');
       await load('stainher-contract-standardization-runtime-r162','stainher-v1524-contract-standardization-r162.js');
       await load('stainher-contract-gastos-runtime-r342','stainher-v1524-gastos-r342.js');
-      window.StainherContractForecastR95?.install?.();
-      window.StainherContractForecastR96?.install?.();
-      window.StainherContractForecastR98?.install?.();
-      window.StainherContractForecastR100?.install?.();
-      window.StainherContractForecastR103?.install?.();
-      window.StainherContractForecastR104?.install?.();
-      window.StainherContractForecastR105?.install?.();
-      window.StainherContractForecastR121?.install?.();
       await window.StainherEdpEquipmentR122?.install?.();
       window.StainherContractForecastR123?.install?.();
       window.StainherForecastHistoryR128?.install?.();
