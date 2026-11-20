@@ -27,6 +27,7 @@
       #forecastBody .chart-wrap{position:relative!important;min-height:310px!important;height:310px!important}
       #forecastBody .chart-wrap.r123-svg-active>canvas{opacity:0!important}
       #forecastBody .r123-chart-overlay{position:absolute!important;inset:0!important;z-index:3!important;display:block!important}
+      #forecastBody .r123-chart-overlay .r123-bar-value{fill:var(--text,#17344d)!important;stroke:var(--panel,#f7fafc);stroke-width:2px;stroke-linejoin:round;paint-order:stroke fill}
       #forecastBody .r123-chart-overlay svg{display:block!important;width:100%!important;height:100%!important;overflow:visible!important}
       #forecastBody .r123-chart-empty{display:grid!important;place-items:center!important;height:100%!important;color:var(--muted,#94a3b8)!important;font-size:13px!important}
     `;
@@ -96,7 +97,7 @@
     const bars=values.map((value,i)=>{
       const v=Number(value)||0,x=left+step*i+step/2,yy=y(v),height=Math.max(0,bottom-yy);
       const labelY=Math.max(top+11,yy-7);
-      return `<g><title>${MONTHS[i]}: ${esc(money(v))}</title><rect x="${x-bar/2}" y="${yy}" width="${bar}" height="${height}" rx="4" fill="${COLORS[i%COLORS.length]}"/><text x="${x}" y="${bottom+20}" text-anchor="middle" fill="#aeb8c5" font-size="11">${MONTHS[i]}</text>${v?`<text x="${x}" y="${labelY}" text-anchor="middle" fill="#e5edf5" font-size="10" font-weight="700">${esc(compact(v))}</text>`:''}</g>`;
+      return `<g><title>${MONTHS[i]}: ${esc(money(v))}</title><rect x="${x-bar/2}" y="${yy}" width="${bar}" height="${height}" rx="4" fill="${COLORS[i%COLORS.length]}"/><text x="${x}" y="${bottom+20}" text-anchor="middle" fill="#aeb8c5" font-size="11">${MONTHS[i]}</text>${v?`<text x="${x}" y="${labelY}" text-anchor="middle" class="r123-bar-value" font-size="11" font-weight="700">${esc(compact(v))}</text>`:''}</g>`;
     }).join('');
     return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Forecast mensual"><rect width="${w}" height="${h}" fill="transparent"/>${gridSvg(max,w,h,left,right,top,bottom)}<line x1="${left}" y1="${bottom}" x2="${w-right}" y2="${bottom}" stroke="rgba(148,163,184,.28)"/>${bars}</svg>`;
   }
