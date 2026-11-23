@@ -10712,6 +10712,20 @@ function contractKpiRange(index,value){
   });
 }
 
+function contractKpiAmounts(base,discounts){
+  if(!Number.isSafeInteger(base)||base<0||discounts.some(rate=>!Number.isFinite(rate)||rate<0)||contractKpiTotal(discounts)>100)return null;
+  let points=0,previous=0;
+  const items=discounts.map(rate=>{
+    points+=Math.round(rate*100);
+    const accumulated=Math.round(base*points/10000);
+    const amount=accumulated-previous;
+    previous=accumulated;
+    return amount;
+  });
+  return {items,total:previous,final:base-previous};
+}
+const contractKpiMoney=value=>'$'+Number(value).toLocaleString('es-CL');
+
 function downloadContractKpi(record,key){
   const Pdf=ensurePdf();
   if(!Pdf)throw Error('No se pudo cargar el generador de PDF.');
@@ -10787,9 +10801,10 @@ async function renderContractMonthlyKpi(){
     const metric=(name,value)=>`<input class="field" name="${name}" aria-label="${name.startsWith('r')?'Resultado':'Descuento'} K${Number(name.slice(1))+1}" type="number" min="0" max="100" step="0.01" value="${value??''}" required ${disabled}>`;
     body.innerHTML=`<form class="form-grid">
       <label>Número EDP<input name="edp" class="field" type="number" min="1" max="2147483647" step="1" required value="${record?.numero_edp??''}" ${disabled}></label>
-      ${record?'':'<p class="muted">Sin KPI registrados para este período.</p>'}
-      <div class="admin-table full"><table><thead><tr><th>Indicador</th><th>Resultado (%)</th><th>Descuento (%)</th></tr></thead>
-      <tbody>${CONTRACT_KPI_LABELS.map((label,i)=>`<tr><th scope="row">K${i+1} · ${label}</th><td>${metric('r'+i,record?.resultados[i])}</td><td>${metric('d'+i,record?.descuentos[i])}</td></tr>`).join('')}</tbody>
+      <label>EP base antes de descuentos (CLP)<input name="ep_base" class="field" type="number" min="0" max="99999999999" step="1" value="${record?.ep_base_clp??''}" ${disabled}></label>
+      ${record?'':'<p class="muted full">Sin KPI registrados para este período.</p>'}
+      <div class="admin-table full"><table><thead><tr><th>Indicador</th><th>Resultado (%)</th><th>Descuento (%)</th><th>Monto a descontar (CLP)</th></tr></thead>
+      <tbody>${CONTRACT_KPI_LABELS.map((label,i)=>`<tr><th scope="row">K${i+1} · ${label}</th><td>${metric('r'+i,record?.resultados[i])}</td><td>${metric('d'+i,record?.descuentos[i])}</td><td data-kpi-amount="${i}">—</td></tr>`).join('')}</tbody>
       </table></div>
       <label>Administrador de Contrato Stainher<input class="field" name="stainher" maxlength="120" value="${esc(record?.administrador_stainher||'')}" ${disabled}></label>
       <label>Administrador de Contrato Codelco<input class="field" name="codelco" maxlength="120" value="${esc(record?.administrador_codelco||'')}" ${disabled}></label>
@@ -10812,9 +10827,18 @@ async function renderContractMonthlyKpi(){
     const pdf=body.querySelector('[data-kpi-pdf]');
     const updateTotal=()=>{
       const discounts=values('d');
+      const amounts=contractKpiAmounts(form.elements.ep_base.valueAsNumber,discounts);
+      body.querySelectorAll('[data-kpi-amount]').forEach((cell,i)=>{
+        cell.textContent=amounts?contractKpiMoney(amounts.items[i]):'—';
+      });
+      if(amounts){
+        total.textContent='Total a descontar: '+contractKpiMoney(amounts.total)
+          +' ('+contractKpiPercent(contractKpiTotal(discounts))+') · EDP final: '+contractKpiMoney(amounts.final);
+        return;
+      }
       total.textContent=discounts.every(Number.isFinite)
         ? 'Descuento total: '+contractKpiPercent(contractKpiTotal(discounts))
-          +' · EDP final: '+contractKpiPercent(100-contractKpiTotal(discounts))+' del EP base'
+          +' · EDP final: '+contractKpiPercent(100-contractKpiTotal(discounts))+' del EP base. Ingresa el EP base para calcular el monto en pesos.'
         : 'Completa los descuentos de los cuatro indicadores.';
     };
     const showRanges=()=>{
@@ -10855,6 +10879,7 @@ async function renderContractMonthlyKpi(){
       try{
         const {error}=await sb.from('contrato_kpi_mensual').upsert({
           periodo:key+'-01',numero_edp:form.elements.edp.valueAsNumber,
+          ep_base_clp:form.elements.ep_base.value===''?null:form.elements.ep_base.valueAsNumber,
           resultados:values('r'),descuentos,
           administrador_stainher:form.elements.stainher.value.trim(),
           administrador_codelco:form.elements.codelco.value.trim()
