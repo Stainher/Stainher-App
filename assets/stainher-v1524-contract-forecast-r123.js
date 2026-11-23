@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261123-forecast-month-drilldown';
+  const BUILD='20261123-forecast-active-matrix-only';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -285,52 +285,32 @@
   }
 
   // Planned recurrences take precedence over the generated calendar for the same activity.
-  function forecastOccurrences(year, activeMonths, plans, scheduled) {
+  function forecastOccurrences(year, activeMonths, plans) {
     const intervals = new Map([
       ['mensual',1], ['bimestral',2], ['trimestral',3], ['semestral',6], ['anual',12]
     ]);
-    const recurring = new Map();
+    const rows = [];
     for(const plan of plans) {
       const [startYear, startMonth] = (plan.mes_inicio || '').split('-').map(Number);
+      if(!startYear || !startMonth)continue;
       const frequency = forecastNormV8(plan.frecuencia);
       const interval = intervals.get(frequency);
-      if(!startYear || !startMonth || !(interval || frequency === 'quincenal' || frequency === 'semanal')) continue;
-      recurring.set(key(plan), {plan, startYear, startMonth, frequency, interval});
-    }
-    const rows = scheduled.filter(row => {
-      const rule = recurring.get(key(row));
-      return !rule || (year - rule.startYear) * 12 + Number(row.mes) - rule.startMonth < 0;
-    });
-    for(const {plan, startYear, startMonth, frequency, interval} of recurring.values()) {
-      const start = Date.UTC(startYear, startMonth - 1, 1);
+      const start = Date.UTC(startYear,startMonth-1,1);
       for(const mes of activeMonths) {
-        const elapsed = (year - startYear) * 12 + mes - startMonth;
-        if(elapsed < 0) continue;
-        let count = interval ? Number(elapsed % interval === 0) : 2;
-        if(frequency === 'semanal') {
-          const week = 7 * 86400000;
-          const first = Date.UTC(year, mes - 1, 1), next = Date.UTC(year, mes, 1);
-          count = Math.ceil((next - start) / week) - Math.ceil((first - start) / week);
-        }
-        if(count) rows.push({...plan, mes, count});
+        const elapsed = (year-startYear)*12+mes-startMonth;
+        if(elapsed<0)continue;
+        let count=0;
+        if(interval)count=Number(elapsed%interval===0);
+        else if(frequency==='quincenal')count=2;
+        else if(frequency==='semanal'){
+          const week=7*86400000;
+          count=Math.ceil((Date.UTC(year,mes,1)-start)/week)-
+            Math.ceil((Date.UTC(year,mes-1,1)-start)/week);
+        }else if(frequency==='segun plan')count=Number(elapsed===0);
+        if(count)rows.push({...plan,mes,count});
       }
     }
     return rows;
-  }
-
-  function projectLegacySchedule(year, activeMonths, plans, history, scheduled) {
-    const planned = new Set(plans.map(plan => plan.equipo_id));
-    const programmed = new Set(scheduled.map(row => row.equipo_id));
-    const byEquipment = new Map();
-    for(const row of history) {
-      if(planned.has(row.equipo_id) || programmed.has(row.equipo_id) || !legacyGroup(row)) continue;
-      const previous = byEquipment.get(row.equipo_id);
-      if(!previous || Number(row.anio) > Number(previous[0].anio)) byEquipment.set(row.equipo_id, [row]);
-      else if(Number(row.anio) === Number(previous[0].anio)) previous.push(row);
-    }
-    const recurring = new Set(['semanal','quincenal','mensual','bimestral','trimestral','semestral','anual']);
-    return [...byEquipment.values()].flat().filter(row =>
-      activeMonths.includes(Number(row.mes)) && row.estado !== 'no_aplica' && recurring.has(forecastNormV8(row.frecuencia)));
   }
 
   async function loadActivityForecast() {
@@ -343,24 +323,18 @@
     state.forecastYear = year;
     const client = window.sb;
     try {
-      const [scheduledRows, plans, prices] = await Promise.all([
-        readAll(() => client.from('programacion_preventiva')
-          .select('id,equipo_id,anio,mes,actividad,frecuencia,estado,equipos(nombre,estado)').lte('anio', year).order('id')),
+      const [plans, prices] = await Promise.all([
         readAll(() => client.from('plan_matriz_actividades')
           .select('id,equipo_id,actividad,frecuencia,mes_inicio,equipos(nombre,estado)').eq('activo', true).order('id')),
         readAll(() => client.from(priceTable).select('equipo_id,actividad,precio_unitario')
           .order('equipo_id').order('actividad'))
       ]);
       if(request !== forecastRequest || !body.isConnected || selector.value !== String(year)) return;
-      const isEligible = row => row.equipos && row.equipos.estado !== 'retirado' && row.actividad?.trim();
-      const eligible = scheduledRows.filter(isEligible);
-      const scheduled = eligible.filter(row => Number(row.anio) === year);
+      const isEligible = row => row.equipos && row.equipos.estado === 'activo' && row.actividad?.trim();
       const activePlans = plans.filter(isEligible);
       const activeMonths = contractActiveMonthsV8(year);
-      const projected = projectLegacySchedule(year, activeMonths, activePlans,
-        eligible.filter(row => Number(row.anio) < year), scheduled);
-      const rows = forecastOccurrences(year, activeMonths, activePlans, scheduled).concat(projected);
-      const catalog = new Map([...scheduled, ...projected, ...activePlans].map(row => [key(row), row]));
+      const rows = forecastOccurrences(year, activeMonths, activePlans);
+      const catalog = new Map(activePlans.map(row => [key(row), row]));
       const saved = new Map(prices.map(row => [key(row), Number(row.precio_unitario)]));
       const extraGroups = new Map();
       const group = row => legacyGroup(row) || row.equipo_id;
@@ -423,7 +397,7 @@
       const real = months.reduce((sum, mo) => sum + mo.real, 0);
       state.forecastDataV8 = {
         months, prev, op, tot:prev+op, real, delta:real-prev-op,
-        activityPrices:{catalog, saved, extraGroups, missing, legacyProjected:projected.some(row => !excluded.has(group(row)))}
+        activityPrices:{catalog, saved, extraGroups, missing}
       };
       const oldEditor = body.querySelector('[data-forecast-prices]');
       if(oldEditor) pricesOpen = oldEditor.open;
@@ -451,12 +425,6 @@
     const body = document.getElementById('forecastBody');
     const filters = body?.querySelector('.forecast-checks-v9');
     if(!pricing || !filters || body.querySelector('[data-forecast-prices]')) return;
-    if(pricing.legacyProjected) {
-      const note = document.createElement('small');
-      note.className = 'muted';
-      note.textContent = 'Para equipos sin Plan Matriz ni programación en este año, la proyección usa las actividades recurrentes del último año programado.';
-      filters.before(note);
-    }
     const excluded = forecastExcludedSetV9();
     for(const [id, name] of pricing.extraGroups) {
       const label = document.createElement('label');
