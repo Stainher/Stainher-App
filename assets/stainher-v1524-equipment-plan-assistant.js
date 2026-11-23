@@ -201,6 +201,134 @@
     wrapped.__stainherPlanMatrixOnly=true;
     window.v1520LoadPreventivo=wrapped;
   }
+  function matrixVisits(plan,year,month){
+    const [startYear,startMonth]=String(plan.mes_inicio||'').split('-').map(Number);
+    if(!startYear||!startMonth)return 0;
+    const elapsed=(year-startYear)*12+month-startMonth;
+    if(elapsed<0)return 0;
+    const frequency=plan.frecuencia.trim().toLowerCase();
+    const intervals={mensual:1,bimestral:2,trimestral:3,semestral:6,anual:12};
+    if(intervals[frequency])return Number(elapsed%intervals[frequency]===0);
+    if(frequency==='quincenal')return 2;
+    if(frequency==='semanal'){
+      const start=Date.UTC(startYear,startMonth-1,1);
+      const week=7*86400000;
+      return Math.ceil((Date.UTC(year,month,1)-start)/week)
+        -Math.ceil((Date.UTC(year,month-1,1)-start)/week);
+    }
+    return Number((frequency==='según plan'||frequency==='segun plan')&&elapsed===0);
+  }
+
+  async function readMatrixForPdf(equipment){
+    const plans=[];
+    const pageSize=500;
+    for(let offset=0;;offset+=pageSize){
+      let query=window.sb.from('plan_matriz_actividades')
+        .select('equipo_id,actividad,frecuencia,mes_inicio,equipos!inner(nombre,estado)')
+        .eq('activo',true).eq('equipos.estado','activo').order('id');
+      if(equipment)query=query.eq('equipo_id',equipment);
+      const {data,error}=await query.range(offset,offset+pageSize-1);
+      if(error)throw error;
+      plans.push(...data);
+      if(data.length<pageSize)return plans;
+    }
+  }
+
+  function saveMatrixGantt(plans,year,month,equipmentName){
+    const months=month?[month]:Array.from({length:12},(_,index)=>index+1);
+    const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const rows=[...plans].sort((a,b)=>a.equipos.nombre.localeCompare(b.equipos.nombre,'es')||
+      a.actividad.localeCompare(b.actividad,'es')).map(plan=>{
+      const visits=months.map(number=>matrixVisits(plan,year,number));
+      return {plan,visits};
+    }).filter(row=>row.visits.some(Boolean));
+    if(!rows.length){
+      window.toast?.('No hay actividades del Plan Matriz para los filtros seleccionados.','info');
+      return;
+    }
+    const Pdf=ensurePdf();
+    if(!Pdf)throw Error('No se pudo cargar el generador de PDF.');
+    const doc=new Pdf({orientation:'landscape',unit:'mm',format:'a4'});
+    const period=month?monthNames[month-1]+' '+year:'Año '+year;
+    installCorporatePdfV95(doc,'Plan Matriz de Mantenimiento · Carta Gantt',equipmentName+' · '+period);
+    const width=doc.internal.pageSize.getWidth()-24;
+    const fixed={0:{cellWidth:39},1:{cellWidth:75},2:{cellWidth:23}};
+    const columns=Object.fromEntries(months.map((_,i)=>[i+3,{cellWidth:(width-137)/months.length,halign:'center'}]));
+    doc.setFontSize(8);
+    doc.setTextColor(50,65,80);
+    doc.text('Las celdas destacadas indican la cantidad de visitas previstas por mes contractual.',12,32);
+    doc.autoTable({
+      startY:36,margin:{left:12,right:12,top:31},showHead:'everyPage',rowPageBreak:'avoid',
+      head:[['Equipo','Actividad','Frecuencia',...months.map(number=>monthNames[number-1])]],
+      body:rows.map(({plan,visits})=>[plan.equipos.nombre,plan.actividad,plan.frecuencia,
+        ...visits.map(count=>count?String(count):'')]),
+      styles:{fontSize:8,cellPadding:2,overflow:'linebreak',valign:'middle',lineWidth:0.15,lineColor:[218,225,232]},
+      headStyles:{fillColor:[20,28,36],textColor:255},
+      alternateRowStyles:{fillColor:[246,248,250]},
+      columnStyles:{...fixed,...columns},
+      didParseCell({section,column,cell}){
+        if(column.index<3)return;
+        cell.styles.halign='center';
+        if(section==='body'&&cell.raw){
+          cell.styles.fillColor=[250,222,208];
+          cell.styles.textColor=[120,48,22];
+          cell.styles.fontStyle='bold';
+        }
+      }
+    });
+    doc.save('Plan_Matriz_Gantt_'+year+(month?'-'+String(month).padStart(2,'0'):'')+'.pdf');
+  }
+
+  function openMatrixGanttDownload(){
+    const period=v1523PreventiveEdpPeriod();
+    const equipment=(window.state.equipos||[]).filter(row=>row.estado==='activo')
+      .sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+    const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const root=document.getElementById('modalRoot');
+    root.innerHTML=`<div class="modal-bg"><div class="modal"><div class="row-between">
+      <h3>Descargar Plan Matriz</h3><button class="btn" type="button" data-close-matrix>Cerrar</button>
+      </div><form class="form-grid" data-matrix-download>
+      <label class="full">Equipo<select name="equipo" class="field"><option value="">Todos los equipos</option>${equipment.map(row=>`<option value="${esc(row.id)}">${esc(row.nombre)}</option>`).join('')}</select></label>
+      <label>Año<input class="field" name="anio" type="number" min="1900" max="2100" step="1" value="${period.year}" required></label>
+      <label>Mes contractual<select class="field" name="mes"><option value="">Año completo</option>${months.map((name,i)=>`<option value="${i+1}">${name}</option>`).join('')}</select></label>
+      <div class="full"><button class="btn primary" type="submit">Descargar PDF horizontal</button></div>
+      </form></div></div>`;
+    root.querySelector('[data-close-matrix]').onclick=()=>window.closeModal?.();
+    const form=root.querySelector('[data-matrix-download]');
+    form.onsubmit=async event=>{
+      event.preventDefault();
+      const {equipo,anio,mes}=Object.fromEntries(new FormData(form));
+      const button=form.querySelector('button[type="submit"]');
+      button.disabled=true;
+      try{
+        const plans=await readMatrixForPdf(equipo);
+        saveMatrixGantt(plans,Number(anio),Number(mes),form.elements.equipo.selectedOptions[0].textContent);
+      }catch(error){
+        window.toast?.(error.message||String(error),'error');
+      }finally{button.disabled=false;}
+    };
+  }
+
+  function installMatrixGanttDownload(){
+    const current=window.renderPreventivo;
+    if(typeof current!=='function'||current.__matrixGanttDownload)return;
+    const wrapped=async function(){
+      const result=await current.apply(this,arguments);
+      const actions=document.querySelector('#page-preventivo .topbar .actions');
+      if(!actions||actions.querySelector('[data-matrix-gantt-button]'))return result;
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='btn';
+      button.dataset.matrixGanttButton='';
+      button.textContent='↓ Plan Matriz · Carta Gantt';
+      button.onclick=openMatrixGanttDownload;
+      actions.append(button);
+      return result;
+    };
+    wrapped.__matrixGanttDownload=true;
+    window.renderPreventivo=wrapped;
+  }
+
   function style(){if(document.getElementById('stainher-plan-assistant-style'))return;const node=document.createElement('style');node.id='stainher-plan-assistant-style';node.textContent=`
     .stainher-plan-assistant{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
     .stainher-plan-assistant-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.stainher-plan-assistant-head h4{margin:0 0 4px}
@@ -210,6 +338,6 @@
     @media(max-width:980px){.stainher-plan-assistant-row{grid-template-columns:repeat(2,minmax(0,1fr))}.stainher-plan-assistant-row label:nth-child(2){grid-column:1/-1}.stainher-plan-assistant-row button{width:100%}}
     @media(max-width:760px){.stainher-plan-assistant-head{display:grid}.stainher-plan-assistant-row{grid-template-columns:1fr}.stainher-plan-assistant-row label:nth-child(2){grid-column:auto}.stainher-plan-assistant-row button{width:100%}}
   `;document.head.appendChild(node)}
-  function boot(){style();install();installCatalog();installPreventiveFilter();window.addEventListener('stainher:modules-ready',()=>{install();installCatalog();installPreventiveFilter()})}
+  function boot(){style();install();installCatalog();installPreventiveFilter();installMatrixGanttDownload();window.addEventListener('stainher:modules-ready',()=>{install();installCatalog();installPreventiveFilter();installMatrixGanttDownload()})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
