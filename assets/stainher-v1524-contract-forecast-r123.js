@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261123-forecast-fixed-charts';
+  const BUILD='20261123-forecast-legacy-projection';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -265,6 +265,21 @@
     return rows;
   }
 
+  function projectLegacySchedule(year, activeMonths, plans, history, scheduled) {
+    const planned = new Set(plans.map(plan => plan.equipo_id));
+    const programmed = new Set(scheduled.map(row => row.equipo_id));
+    const byEquipment = new Map();
+    for(const row of history) {
+      if(planned.has(row.equipo_id) || programmed.has(row.equipo_id) || !legacyGroup(row)) continue;
+      const previous = byEquipment.get(row.equipo_id);
+      if(!previous || Number(row.anio) > Number(previous[0].anio)) byEquipment.set(row.equipo_id, [row]);
+      else if(Number(row.anio) === Number(previous[0].anio)) previous.push(row);
+    }
+    const recurring = new Set(['semanal','quincenal','mensual','bimestral','trimestral','semestral','anual']);
+    return [...byEquipment.values()].flat().filter(row =>
+      activeMonths.includes(Number(row.mes)) && row.estado !== 'no_aplica' && recurring.has(forecastNormV8(row.frecuencia)));
+  }
+
   async function loadActivityForecast() {
     const body = document.getElementById('forecastBody');
     const selector = document.getElementById('forecastYear');
@@ -277,7 +292,7 @@
     try {
       const [scheduledRows, plans, prices] = await Promise.all([
         readAll(() => client.from('programacion_preventiva')
-          .select('id,equipo_id,mes,actividad,equipos(nombre,estado)').eq('anio', year).order('id')),
+          .select('id,equipo_id,anio,mes,actividad,frecuencia,estado,equipos(nombre,estado)').lte('anio', year).order('id')),
         readAll(() => client.from('plan_matriz_actividades')
           .select('id,equipo_id,actividad,frecuencia,mes_inicio,equipos(nombre,estado)').eq('activo', true).order('id')),
         readAll(() => client.from(priceTable).select('equipo_id,actividad,precio_unitario')
@@ -285,11 +300,14 @@
       ]);
       if(request !== forecastRequest || !body.isConnected || selector.value !== String(year)) return;
       const isEligible = row => row.equipos && row.equipos.estado !== 'retirado' && row.actividad?.trim();
-      const scheduled = scheduledRows.filter(isEligible);
+      const eligible = scheduledRows.filter(isEligible);
+      const scheduled = eligible.filter(row => Number(row.anio) === year);
       const activePlans = plans.filter(isEligible);
       const activeMonths = contractActiveMonthsV8(year);
-      const rows = forecastOccurrences(year, activeMonths, activePlans, scheduled);
-      const catalog = new Map([...scheduled, ...activePlans].map(row => [key(row), row]));
+      const projected = projectLegacySchedule(year, activeMonths, activePlans,
+        eligible.filter(row => Number(row.anio) < year), scheduled);
+      const rows = forecastOccurrences(year, activeMonths, activePlans, scheduled).concat(projected);
+      const catalog = new Map([...scheduled, ...projected, ...activePlans].map(row => [key(row), row]));
       const saved = new Map(prices.map(row => [key(row), Number(row.precio_unitario)]));
       const extraGroups = new Map();
       const group = row => legacyGroup(row) || row.equipo_id;
@@ -351,7 +369,7 @@
       const real = months.reduce((sum, mo) => sum + mo.real, 0);
       state.forecastDataV8 = {
         months, prev, op, tot:prev+op, real, delta:real-prev-op,
-        activityPrices:{catalog, saved, extraGroups, missing}
+        activityPrices:{catalog, saved, extraGroups, missing, legacyProjected:projected.some(row => !excluded.has(group(row)))}
       };
       const oldEditor = body.querySelector('[data-forecast-prices]');
       if(oldEditor) pricesOpen = oldEditor.open;
@@ -379,6 +397,12 @@
     const body = document.getElementById('forecastBody');
     const filters = body?.querySelector('.forecast-checks-v9');
     if(!pricing || !filters || body.querySelector('[data-forecast-prices]')) return;
+    if(pricing.legacyProjected) {
+      const note = document.createElement('small');
+      note.className = 'muted';
+      note.textContent = 'Para equipos sin Plan Matriz ni programación en este año, la proyección usa las actividades recurrentes del último año programado.';
+      filters.before(note);
+    }
     const excluded = forecastExcludedSetV9();
     for(const [id, name] of pricing.extraGroups) {
       const label = document.createElement('label');
