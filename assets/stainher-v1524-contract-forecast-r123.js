@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261123-forecast-active-matrix-only';
+  const BUILD='20261123-forecast-edp-initial-sync';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -569,6 +569,7 @@
           const panel=chart.closest('.panel');
           if(panel)panel.dataset.noCollapse='1';
         });
+        drawCharts();
         renderActivityPrices();
       }
       removeDuplicateRefresh();
@@ -608,6 +609,7 @@
       if(tries>=80)clearInterval(timer);
     },125);
     setTimeout(showWatchdogMessage,8000);
+    window.addEventListener('stainher:edp-details-updated',()=>{if(pageActive())schedule()});
     window.addEventListener('stainher:modules-ready',install);
     window.addEventListener('stainher:runtime-r123-ready',()=>{install();schedule()});
   }

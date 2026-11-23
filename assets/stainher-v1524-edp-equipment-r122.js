@@ -77,6 +77,7 @@
     window.state.contractData.edpEquipoDetalles=q.data||[];
     detailsLoaded=true;
     syncForecastMonths();
+    window.dispatchEvent(new Event('stainher:edp-details-updated'));
     return q.data||[];
   }
 

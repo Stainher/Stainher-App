@@ -135,6 +135,7 @@
       const rows=q.data||[];
       localDetails.set(key,rows);
       mergeIntoState(key,rows);
+      window.dispatchEvent(new Event('stainher:edp-details-updated'));
       fetchStatus.set(key,'loaded');
       lastSignature='';
       schedule(true);
