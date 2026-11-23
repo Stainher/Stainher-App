@@ -154,6 +154,15 @@
     const current=window.v1520LoadPreventivo;
     if(typeof current!=='function'||current.__stainherPlanMatrixOnly)return;
     const wrapped=async function(){
+      const {key}=v1523PreventiveEdpPeriod();
+      const month=key+'-01';
+      const now=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit'})
+        .formatToParts(new Date());
+      const currentMonth=now.find(part=>part.type==='year').value+'-'+now.find(part=>part.type==='month').value;
+      if(v1520Planner() && key>=currentMonth){
+        const {error}=await window.sb.rpc('generar_periodo_plan_matriz',{p_periodo:month});
+        if(error)throw error;
+      }
       const [rows,catalog]=await Promise.all([
         current.apply(this,arguments),
         window.v1519LoadPlanCatalog()
