@@ -309,24 +309,24 @@
     };
   }
 
+  let matrixDownloadObserver;
   function installMatrixGanttDownload(){
-    const current=window.renderPreventivo;
-    if(typeof current!=='function'||current.__matrixGanttDownload)return;
-    const wrapped=async function(){
-      const result=await current.apply(this,arguments);
-      const actions=document.querySelector('#page-preventivo .topbar .actions');
-      if(!actions||actions.querySelector('[data-matrix-gantt-button]'))return result;
+    const page=document.getElementById('page-preventivo');
+    if(!page||matrixDownloadObserver)return;
+    const mount=()=>{
+      const actions=page.querySelector('.topbar .actions');
+      if(!actions||actions.querySelector('[data-matrix-gantt-button]'))return;
       const button=document.createElement('button');
       button.type='button';
-      button.className='btn';
+      button.className='btn primary';
       button.dataset.matrixGanttButton='';
-      button.textContent='↓ Plan Matriz · Carta Gantt';
+      button.textContent='↓ Descargar Plan Matriz';
       button.onclick=openMatrixGanttDownload;
       actions.append(button);
-      return result;
     };
-    wrapped.__matrixGanttDownload=true;
-    window.renderPreventivo=wrapped;
+    matrixDownloadObserver=new MutationObserver(mount);
+    matrixDownloadObserver.observe(page,{childList:true,subtree:true});
+    mount();
   }
 
   function style(){if(document.getElementById('stainher-plan-assistant-style'))return;const node=document.createElement('style');node.id='stainher-plan-assistant-style';node.textContent=`
