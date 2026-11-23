@@ -150,6 +150,20 @@
     window.v1519EquipoPlanCount=id=>catalog?.get(String(id))?.length ?? 0;
   }
 
+  function installPreventiveFilter(){
+    const current=window.v1520LoadPreventivo;
+    if(typeof current!=='function'||current.__stainherPlanMatrixOnly)return;
+    const wrapped=async function(){
+      const [rows,catalog]=await Promise.all([
+        current.apply(this,arguments),
+        window.v1519LoadPlanCatalog()
+      ]);
+      return rows.filter(row=>catalog.get(String(row.equipo_id))
+        ?.some(([activity])=>activity===row.actividad));
+    };
+    wrapped.__stainherPlanMatrixOnly=true;
+    window.v1520LoadPreventivo=wrapped;
+  }
   function style(){if(document.getElementById('stainher-plan-assistant-style'))return;const node=document.createElement('style');node.id='stainher-plan-assistant-style';node.textContent=`
     .stainher-plan-assistant{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
     .stainher-plan-assistant-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.stainher-plan-assistant-head h4{margin:0 0 4px}
@@ -159,6 +173,6 @@
     @media(max-width:980px){.stainher-plan-assistant-row{grid-template-columns:repeat(2,minmax(0,1fr))}.stainher-plan-assistant-row label:nth-child(2){grid-column:1/-1}.stainher-plan-assistant-row button{width:100%}}
     @media(max-width:760px){.stainher-plan-assistant-head{display:grid}.stainher-plan-assistant-row{grid-template-columns:1fr}.stainher-plan-assistant-row label:nth-child(2){grid-column:auto}.stainher-plan-assistant-row button{width:100%}}
   `;document.head.appendChild(node)}
-  function boot(){style();install();installCatalog();window.addEventListener('stainher:modules-ready',()=>{install();installCatalog()})}
+  function boot(){style();install();installCatalog();installPreventiveFilter();window.addEventListener('stainher:modules-ready',()=>{install();installCatalog();installPreventiveFilter()})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
