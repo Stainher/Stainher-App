@@ -10754,11 +10754,12 @@ function downloadContractKpi(record,key){
   const centers=[width/4,width*3/4];
   const names=[record.administrador_stainher,record.administrador_codelco];
   const roles=['Administrador de Contrato Stainher','Administrador de Contrato Codelco'];
+  const signatureY=y+30;
   centers.forEach((center,i)=>{
-    doc.line(center-35,y+30,center+35,y+55);
+    doc.line(center-35,signatureY,center+35,signatureY);
     doc.setFontSize(9);
-    doc.text(roles[i],center,y+36,{align:'center'});
-    if(names[i])doc.text(names[i],center,y+42,{align:'center',maxWidth:75});
+    doc.text(roles[i],center,signatureY+6,{align:'center'});
+    if(names[i])doc.text(names[i],center,signatureY+12,{align:'center',maxWidth:75});
   });
   doc.save('KPI_Contrato_'+key+'_EDP'+record.numero_edp+'.pdf');
 }
