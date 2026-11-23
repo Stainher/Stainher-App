@@ -9,7 +9,7 @@
   const STATE_KEYS={chartEq:'a',chartHours:'b',chartTrend:'c'};
   let timer=0;
 
-  function theme(){return document.documentElement.dataset.theme==='light'?'light':'dark'}
+  function theme(){return document.documentElement.dataset.theme==='dark'?'dark':'light'}
   function chartFor(canvas){
     if(!canvas||!window.Chart)return null;
     const direct=typeof Chart.getChart==='function'?Chart.getChart(canvas):null;
@@ -32,9 +32,10 @@
       if(line){dataset.pointBackgroundColor=colors.border;dataset.pointBorderColor=light?'#fff':'#07111b';dataset.pointRadius=4;dataset.pointHoverRadius=6;dataset.tension=.25}
       else{dataset.hoverBackgroundColor=Array(count).fill(colors.border);dataset.borderRadius=5;dataset.maxBarThickness=72}
     }
-    const text=light?'#475467':'#d6e2ef',grid=light?'rgba(71,84,103,.16)':'rgba(151,177,204,.24)';
+    const text=light?'#26384c':'#e5eef8',grid=light?'rgba(71,84,103,.16)':'rgba(151,177,204,.24)';
     for(const scale of Object.values(chart.options?.scales||{})){
-      scale.ticks={...(scale.ticks||{}),color:text};
+      const ticks=scale.ticks||{};
+      scale.ticks={...ticks,color:text,padding:7,font:{...ticks.font,size:13,weight:'600'}};
       scale.grid={...(scale.grid||{}),color:grid};
       scale.border={...(scale.border||{}),color:grid};
     }
