@@ -150,11 +150,31 @@
     window.v1519EquipoPlanCount=id=>catalog?.get(String(id))?.length ?? 0;
   }
 
+  function numberFortnightlyVisits(rows, periodRows, catalog){
+    const visits=new Map();
+    const key=row=>JSON.stringify([row.equipo_id,row.actividad]);
+    for(const row of periodRows){
+      const activity=catalog.get(String(row.equipo_id))?.find(([name])=>name===row.actividad);
+      if(activity?.[1]?.trim().toLowerCase()!=='quincenal'||row.estado==='no_aplica')continue;
+      const group=key(row);
+      if(!visits.has(group))visits.set(group,[]);
+      visits.get(group).push(row);
+    }
+    const labels=new Map();
+    for(const group of visits.values()){
+      group.sort((a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||
+        String(a.id).localeCompare(String(b.id)));
+      group.slice(0,2).forEach((row,index)=>labels.set(row.id,index+1));
+    }
+    return rows.map(row=>labels.has(row.id)
+      ? {...row,actividad:row.actividad+' ('+labels.get(row.id)+')'} : row);
+  }
+
   function installPreventiveFilter(){
     const current=window.v1520LoadPreventivo;
     if(typeof current!=='function'||current.__stainherPlanMatrixOnly)return;
     const wrapped=async function(){
-      const {key}=v1523PreventiveEdpPeriod();
+      const {key,year,month:edpMonth}=v1523PreventiveEdpPeriod();
       const month=key+'-01';
       const now=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit'})
         .formatToParts(new Date());
@@ -167,8 +187,16 @@
         current.apply(this,arguments),
         window.v1519LoadPlanCatalog()
       ]);
-      return rows.filter(row=>catalog.get(String(row.equipo_id))
+      const active=rows.filter(row=>catalog.get(String(row.equipo_id))
         ?.some(([activity])=>activity===row.actividad));
+      let periodRows=active;
+      if(active.length && (state.v1520PrevStatus || state.v1520PrevSearch)){
+        const {data,error}=await window.sb.from('programacion_preventiva')
+          .select('id,equipo_id,actividad,estado,created_at').eq('anio',year).eq('mes',edpMonth);
+        if(error)throw error;
+        periodRows=data;
+      }
+      return numberFortnightlyVisits(active,periodRows,catalog);
     };
     wrapped.__stainherPlanMatrixOnly=true;
     window.v1520LoadPreventivo=wrapped;
