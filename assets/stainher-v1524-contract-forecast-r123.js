@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261123-forecast-operating-filter';
+  const BUILD='20261123-forecast-month-drilldown';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -28,6 +28,9 @@
       #forecastBody .chart-wrap.r123-svg-active>canvas{opacity:0!important}
       #forecastBody .r123-chart-overlay{position:absolute!important;inset:0!important;z-index:3!important;display:block!important}
       #forecastBody .r123-chart-overlay .r123-bar-value{fill:var(--text,#17344d)!important;stroke:var(--panel,#f7fafc);stroke-width:2px;stroke-linejoin:round;paint-order:stroke fill}
+      #forecastBody [data-forecast-month]{cursor:pointer}
+      #forecastBody [data-forecast-month]:hover rect:nth-of-type(2),
+      #forecastBody [data-forecast-month]:focus-visible rect:nth-of-type(2){stroke:var(--text,#17344d);stroke-width:2}
       #forecastBody .r123-chart-overlay svg{display:block!important;width:100%!important;height:100%!important;overflow:visible!important}
       #forecastBody .r123-chart-empty{display:grid!important;place-items:center!important;height:100%!important;color:var(--muted,#94a3b8)!important;font-size:13px!important}
     `;
@@ -97,9 +100,9 @@
     const bars=values.map((value,i)=>{
       const v=Number(value)||0,x=left+step*i+step/2,yy=y(v),height=Math.max(0,bottom-yy);
       const labelY=Math.max(top+11,yy-7);
-      return `<g><title>${MONTHS[i]}: ${esc(money(v))}</title><rect x="${x-bar/2}" y="${yy}" width="${bar}" height="${height}" rx="4" fill="${COLORS[i%COLORS.length]}"/><text x="${x}" y="${bottom+20}" text-anchor="middle" fill="#aeb8c5" font-size="11">${MONTHS[i]}</text>${v?`<text x="${x}" y="${labelY}" text-anchor="middle" class="r123-bar-value" font-size="11" font-weight="700">${esc(compact(v))}</text>`:''}</g>`;
+      return `<g data-forecast-month="${i}" role="button" tabindex="0" aria-label="Ver detalle de ${MONTHS[i]}, ${esc(money(v))}"><title>${MONTHS[i]}: ${esc(money(v))} · Ver detalle</title><rect x="${left+step*i}" y="${top}" width="${step}" height="${bottom-top+28}" fill="transparent"/><rect x="${x-bar/2}" y="${yy}" width="${bar}" height="${height}" rx="4" fill="${COLORS[i%COLORS.length]}"/><text x="${x}" y="${bottom+20}" text-anchor="middle" fill="#aeb8c5" font-size="11">${MONTHS[i]}</text>${v?`<text x="${x}" y="${labelY}" text-anchor="middle" class="r123-bar-value" font-size="11" font-weight="700">${esc(compact(v))}</text>`:''}</g>`;
     }).join('');
-    return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Forecast mensual"><rect width="${w}" height="${h}" fill="transparent"/>${gridSvg(max,w,h,left,right,top,bottom)}<line x1="${left}" y1="${bottom}" x2="${w-right}" y2="${bottom}" stroke="rgba(148,163,184,.28)"/>${bars}</svg>`;
+    return `<svg viewBox="0 0 ${w} ${h}" role="group" aria-label="Forecast mensual"><rect width="${w}" height="${h}" fill="transparent"/>${gridSvg(max,w,h,left,right,top,bottom)}<line x1="${left}" y1="${bottom}" x2="${w-right}" y2="${bottom}" stroke="rgba(148,163,184,.28)"/>${bars}</svg>`;
   }
 
   function historicalValue(month,index){
@@ -138,6 +141,52 @@
     return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Forecast proyectable versus EDP real histórico"><rect width="${w}" height="${h}" fill="transparent"/>${gridSvg(max,w,h,left,right,top,bottom)}<line x1="${left}" y1="${bottom}" x2="${w-right}" y2="${bottom}" stroke="rgba(148,163,184,.28)"/><g transform="translate(${left},12)"><line x1="0" y1="0" x2="28" y2="0" stroke="#38bdf8" stroke-width="3"/><text x="36" y="4" fill="#cbd5e1" font-size="11">Forecast proyectable</text><line x1="165" y1="0" x2="193" y2="0" stroke="#34d399" stroke-width="3"/><text x="201" y="4" fill="#cbd5e1" font-size="11">EDP real histórico</text></g><path d="${fp}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="${hp}" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${fDots}${hDots}${xLabels}</svg>`;
   }
 
+  function summarizeForecastActivities(detail){
+    const groups=new Map();
+    for(const row of detail){
+      const unit=Math.round(row.price*row.factor);
+      const key=JSON.stringify([row.equipo,row.actividad,unit]);
+      if(!groups.has(key))groups.set(key,{equipment:row.equipo,activity:row.actividad,unit,count:0,total:0});
+      const entry=groups.get(key);
+      entry.count+=row.count??1;
+      entry.total+=row.value;
+    }
+    return [...groups.values()].sort((a,b)=>a.equipment.localeCompare(b.equipment,'es')||a.activity.localeCompare(b.activity,'es'));
+  }
+
+  function openForecastMonth(index){
+    const state=window.state;
+    const month=state?.forecastDataV8?.months?.[index];
+    const root=document.getElementById('modalRoot');
+    if(!month||!root)return;
+    const title=new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric',timeZone:'UTC'})
+      .format(new Date(Date.UTC(state.forecastYear,index,1)));
+    const rows=summarizeForecastActivities(month.detail||[]);
+    const body=rows.map(row=>`<tr><td>${esc(row.equipment)}</td><td>${esc(row.activity)}</td><td>${row.count}</td><td>${esc(money(row.unit))}</td><td>${esc(money(row.total))}</td></tr>`).join('');
+    root.innerHTML=`<div class="modal-bg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="forecastMonthDetailTitle" style="width:min(960px,95vw);max-width:960px">
+      <div class="row-between"><h3 id="forecastMonthDetailTitle">Forecast · ${esc(title)}</h3><button class="btn" type="button" data-close-forecast-month>Cerrar</button></div>
+      <div class="table-wrap" style="overflow:auto"><table class="table">
+      <thead><tr><th>Equipo</th><th>Actividad</th><th>Visitas</th><th>Precio por visita</th><th>Subtotal</th></tr></thead>
+      <tbody>${body||'<tr><td colspan="5">Sin actividades incluidas en la proyección de este mes.</td></tr>'}</tbody>
+      <tfoot><tr><th colspan="4">Preventivo</th><td>${esc(money(month.preventivo))}</td></tr>
+      ${month.operativo?`<tr><th colspan="4">Gasto operativo</th><td>${esc(money(month.operativo))}</td></tr>`:''}
+      <tr><th colspan="4">Total proyectado</th><td><b>${esc(money(month.total))}</b></td></tr></tfoot>
+      </table></div></div></div>`;
+    const button=root.querySelector('[data-close-forecast-month]');
+    button.onclick=()=>window.closeModal?.();
+    button.focus();
+  }
+
+  function activateForecastMonth(event){
+    const bar=event.target.closest('[data-forecast-month]');
+    if(!bar)return;
+    if(event.type==='keydown'){
+      if(event.key!=='Enter'&&event.key!==' ')return;
+      event.preventDefault();
+    }
+    openForecastMonth(Number(bar.dataset.forecastMonth));
+  }
+
   function overlay(canvas,markup){
     const wrap=canvas?.closest('.chart-wrap');
     if(!wrap)return false;
@@ -154,6 +203,10 @@
     node.className='r123-chart-overlay';
     node.__forecastMarkup=markup;
     node.innerHTML=markup;
+    if(canvas.id==='forecastChartV8'){
+      node.addEventListener('click',activateForecastMonth);
+      node.addEventListener('keydown',activateForecastMonth);
+    }
     wrap.appendChild(node);
     return true;
   }
