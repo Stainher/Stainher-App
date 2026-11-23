@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261123-forecast-legacy-projection';
+  const BUILD='20261123-forecast-operating-filter';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -354,7 +354,8 @@
           factor, price, count, value, category:forecastCategoryV9(row.actividad)
         });
       }
-      for(const month of activeMonths) months[month-1].operativo = FORECAST_OP_MONTHLY_V8;
+      const operatingCost = state.forecastIncludeOperating === false ? 0 : FORECAST_OP_MONTHLY_V8;
+      for(const month of activeMonths) months[month-1].operativo = operatingCost;
       for(const mo of months) mo.total = mo.preventivo + mo.operativo;
       for(const ep of state.contractData.edp || []) {
         const mo = months[ep.mes_edp-1];
@@ -413,6 +414,17 @@
       label.append(input, ' ' + name);
       filters.insertBefore(label, filters.querySelector('button'));
     }
+
+    const operatingLabel = document.createElement('label');
+    const operatingInput = document.createElement('input');
+    operatingInput.type = 'checkbox';
+    operatingInput.checked = state.forecastIncludeOperating !== false;
+    operatingInput.onchange = () => {
+      state.forecastIncludeOperating = operatingInput.checked;
+      window.loadForecastV9();
+    };
+    operatingLabel.append(operatingInput, ' Incluir gasto operativo en la proyección');
+    filters.insertBefore(operatingLabel, filters.querySelector('button'));
 
     const editor = document.createElement('details');
     editor.className = 'panel';
