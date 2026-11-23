@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261123-r123-forecast-batch-prices';
+  const BUILD='20261123-forecast-plan-periodicity';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -231,6 +231,40 @@
     }
   }
 
+  // Planned recurrences take precedence over the generated calendar for the same activity.
+  function forecastOccurrences(year, activeMonths, plans, scheduled) {
+    const intervals = new Map([
+      ['mensual',1], ['bimestral',2], ['trimestral',3], ['semestral',6], ['anual',12]
+    ]);
+    const recurring = new Map();
+    for(const plan of plans) {
+      const [startYear, startMonth] = (plan.mes_inicio || '').split('-').map(Number);
+      const frequency = forecastNormV8(plan.frecuencia);
+      const interval = intervals.get(frequency);
+      if(!startYear || !startMonth || !(interval || frequency === 'quincenal' || frequency === 'semanal')) continue;
+      recurring.set(key(plan), {plan, startYear, startMonth, frequency, interval});
+    }
+    const rows = scheduled.filter(row => {
+      const rule = recurring.get(key(row));
+      return !rule || (year - rule.startYear) * 12 + Number(row.mes) - rule.startMonth < 0;
+    });
+    for(const {plan, startYear, startMonth, frequency, interval} of recurring.values()) {
+      const start = Date.UTC(startYear, startMonth - 1, 1);
+      for(const mes of activeMonths) {
+        const elapsed = (year - startYear) * 12 + mes - startMonth;
+        if(elapsed < 0) continue;
+        let count = interval ? Number(elapsed % interval === 0) : 2;
+        if(frequency === 'semanal') {
+          const week = 7 * 86400000;
+          const first = Date.UTC(year, mes - 1, 1), next = Date.UTC(year, mes, 1);
+          count = Math.ceil((next - start) / week) - Math.ceil((first - start) / week);
+        }
+        if(count) rows.push({...plan, mes, count});
+      }
+    }
+    return rows;
+  }
+
   async function loadActivityForecast() {
     const body = document.getElementById('forecastBody');
     const selector = document.getElementById('forecastYear');
@@ -245,15 +279,17 @@
         readAll(() => client.from('programacion_preventiva')
           .select('id,equipo_id,mes,actividad,equipos(nombre,estado)').eq('anio', year).order('id')),
         readAll(() => client.from('plan_matriz_actividades')
-          .select('id,equipo_id,actividad,mes_inicio,equipos(nombre,estado)').eq('activo', true).order('id')),
+          .select('id,equipo_id,actividad,frecuencia,mes_inicio,equipos(nombre,estado)').eq('activo', true).order('id')),
         readAll(() => client.from(priceTable).select('equipo_id,actividad,precio_unitario')
           .order('equipo_id').order('actividad'))
       ]);
       if(request !== forecastRequest || !body.isConnected || selector.value !== String(year)) return;
       const isEligible = row => row.equipos && row.equipos.estado !== 'retirado' && row.actividad?.trim();
-      const rows = scheduledRows.filter(isEligible);
+      const scheduled = scheduledRows.filter(isEligible);
       const activePlans = plans.filter(isEligible);
-      const catalog = new Map([...activePlans, ...rows].map(row => [key(row), row]));
+      const activeMonths = contractActiveMonthsV8(year);
+      const rows = forecastOccurrences(year, activeMonths, activePlans, scheduled);
+      const catalog = new Map([...scheduled, ...activePlans].map(row => [key(row), row]));
       const saved = new Map(prices.map(row => [key(row), Number(row.precio_unitario)]));
       const extraGroups = new Map();
       const group = row => legacyGroup(row) || row.equipo_id;
@@ -261,6 +297,10 @@
         if(!legacyGroup(row)) extraGroups.set(row.equipo_id, row.equipos.nombre);
       }
       const years = new Set([...selector.options].map(option => Number(option.value)));
+      const contractEnd = Number(state.contractData.contrato?.fecha_termino?.slice(0, 4));
+      if(contractEnd >= year && contractEnd - year <= 30) {
+        for(let optionYear = year; optionYear <= contractEnd; optionYear++) years.add(optionYear);
+      }
       for(const plan of activePlans) {
         const starts = Number(plan.mes_inicio?.slice(0, 4));
         if(starts) {
@@ -283,19 +323,20 @@
         const savedPrice = saved.get(key(row));
         const legacyPrice = legacyGroup(row) ? forecastUnitPriceV8(row.equipos.nombre, row.actividad) : 0;
         if(savedPrice === undefined && !legacyPrice) {
-          missing++;
+          missing += row.count ?? 1;
           continue;
         }
         const price = savedPrice ?? legacyPrice;
         const factor = savedPrice === undefined ? forecastFactorV8(row.equipos.nombre) : 1;
-        const value = Math.round(price * factor);
+        const count = row.count ?? 1;
+        const value = Math.round(price * factor) * count;
         mo.preventivo += value;
         mo.detail.push({
           equipo:row.equipos.nombre, group:groupId, actividad:row.actividad,
-          factor, price, value, category:forecastCategoryV9(row.actividad)
+          factor, price, count, value, category:forecastCategoryV9(row.actividad)
         });
       }
-      for(const month of contractActiveMonthsV8(year)) months[month-1].operativo = FORECAST_OP_MONTHLY_V8;
+      for(const month of activeMonths) months[month-1].operativo = FORECAST_OP_MONTHLY_V8;
       for(const mo of months) mo.total = mo.preventivo + mo.operativo;
       for(const ep of state.contractData.edp || []) {
         const mo = months[ep.mes_edp-1];
@@ -359,7 +400,7 @@
       a.equipos.nombre.localeCompare(b.equipos.nombre,'es') || a.actividad.localeCompare(b.actividad,'es'));
     const summary = pricing.missing ? ' · ' + pricing.missing + ' ocurrencias sin precio' : '';
     editor.innerHTML = '<summary>Precios unitarios de mantenimiento' + summary + '</summary>' +
-      '<p class="muted">Precio neto en CLP por actividad y equipo. Se multiplica por las ocurrencias programadas. Las actividades sin precio quedan fuera del total.</p>' +
+      '<p class="muted">Precio neto en CLP por actividad y equipo. Se multiplica por las ocurrencias según la frecuencia y el mes de inicio del Plan Matriz. Las actividades sin precio quedan fuera del total.</p>' +
       '<div class="admin-table"><table><thead><tr><th>Equipo</th><th>Actividad</th><th>Precio unitario neto</th>' +
       '</tr></thead><tbody></tbody></table></div>' +
       (editable ? '<div class="actions" style="position:sticky;bottom:0;padding:10px;background:var(--panel);z-index:2">' +
