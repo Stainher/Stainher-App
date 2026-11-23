@@ -10697,8 +10697,20 @@ const CONTRACT_KPI_THRESHOLDS=[
   [['Mayor a 91 %','0,0 %'],['89 a 90,9 %','0,5 %'],['87 a 88,9 %','1,0 %'],['86 a 86,9 %','1,5 %'],['85 a 85,9 %','2,0 %'],['Menor a 85 %','Revisión del Contrato']],
   [['Mayor a 89 %','0,0 %'],['77 a 88,9 %','0,5 %'],['67 a 76,9 %','1,0 %'],['Menor a 67 %','Revisión del Contrato']],
   [['Mayor a 97 %','0,0 %'],['93 a 96,9 %','0,5 %'],['89 a 92,9 %','1,0 %'],['Menor a 89 %','2,0 %']],
-  [['Mayor a 100 %','0,0 %'],['95 a 99,9 %','0,5 %'],['89 a 94,9 %','1,0 %'],['84 a 88,9 %','2,0 %'],['Menor a 84 %','Revisión del Contrato']]
+  [['100 %','0,0 %'],['95 a 99,9 %','0,5 %'],['89 a 94,9 %','1,0 %'],['84 a 88,9 %','2,0 %'],['Menor a 84 %','Revisión del Contrato']]
 ];
+
+function contractKpiRange(index,value){
+  if(!Number.isFinite(value)||value<0||value>100)return -1;
+  // EDP 17 informa descuento cero para disponibilidad de 100 %.
+  if(index===3&&value===100)return 0;
+  return CONTRACT_KPI_THRESHOLDS[index].findIndex(([label])=>{
+    const limits=label.match(/\d+(?:,\d+)?/g).map(text=>Number(text.replace(',','.')));
+    if(label.startsWith('Mayor'))return value>limits[0];
+    if(label.startsWith('Menor'))return value<limits[0];
+    return value>=limits[0]&&value<=limits[1];
+  });
+}
 
 function downloadContractKpi(record,key){
   const Pdf=ensurePdf();
@@ -10781,6 +10793,15 @@ async function renderContractMonthlyKpi(){
       <label>Administrador de Contrato Stainher<input class="field" name="stainher" maxlength="120" value="${esc(record?.administrador_stainher||'')}" ${disabled}></label>
       <label>Administrador de Contrato Codelco<input class="field" name="codelco" maxlength="120" value="${esc(record?.administrador_codelco||'')}" ${disabled}></label>
       <p class="full" data-kpi-total aria-live="polite"></p>
+      <section class="full" aria-label="Rangos de descuento">
+        <h4>Rangos de cumplimiento y descuentos</h4>
+        <div class="two-col">${CONTRACT_KPI_THRESHOLDS.map((rules,i)=>`<section class="panel" data-no-collapse="1">
+          <h4>K${i+1} · ${CONTRACT_KPI_LABELS[i]}</h4>
+          <div class="admin-table"><table><thead><tr><th>Cumplimiento</th><th>Descuento</th></tr></thead>
+          <tbody>${rules.map(([range,discount],j)=>`<tr data-kpi-rule="${i}-${j}"><th scope="row">${range}<span data-kpi-match></span></th><td>${discount}</td></tr>`).join('')}</tbody>
+          </table></div><p class="muted" data-kpi-rule-status="${i}"></p>
+        </section>`).join('')}</div>
+      </section>
       <div class="actions full">${editable?'<button class="btn primary" type="submit">Guardar KPI</button>':''}
       ${record?'<button class="btn" type="button" data-kpi-pdf>↓ Descargar PDF</button>':''}</div>
       </form>`;
@@ -10795,8 +10816,33 @@ async function renderContractMonthlyKpi(){
           +' · EDP final: '+contractKpiPercent(100-contractKpiTotal(discounts))+' del EP base'
         : 'Completa los descuentos de los cuatro indicadores.';
     };
+    const showRanges=()=>{
+      values('r').forEach((value,i)=>{
+        const match=contractKpiRange(i,value);
+        const rules=CONTRACT_KPI_THRESHOLDS[i];
+        rules.forEach((_,j)=>{
+          const row=body.querySelector('[data-kpi-rule="'+i+'-'+j+'"]');
+          row.style.fontWeight=j===match?'bold':'';
+          row.querySelector('[data-kpi-match]').textContent=j===match?' · Aplicable':'';
+        });
+        body.querySelector('[data-kpi-rule-status="'+i+'"]').textContent=
+          !Number.isFinite(value)?'':match<0?'El resultado no tiene un tramo definido. Revisa el descuento.':
+          'Según tabla: '+rules[match][1];
+      });
+    };
     updateTotal();
-    form.oninput=()=>{updateTotal();if(pdf)pdf.disabled=true;};
+    showRanges();
+    form.oninput=event=>{
+      if(/^r[0-3]$/.test(event.target.name)){
+        const index=Number(event.target.name.slice(1));
+        const match=contractKpiRange(index,event.target.valueAsNumber);
+        const discount=CONTRACT_KPI_THRESHOLDS[index][match]?.[1];
+        form.elements['d'+index].value=discount?.endsWith('%')?discount.replace('%','').trim().replace(',','.'):'';
+      }
+      showRanges();
+      updateTotal();
+      if(pdf)pdf.disabled=true;
+    };
     if(pdf)pdf.onclick=()=>{try{downloadContractKpi(record,key);}catch(error){toast(error.message,'error');}};
     form.onsubmit=async event=>{
       event.preventDefault();
