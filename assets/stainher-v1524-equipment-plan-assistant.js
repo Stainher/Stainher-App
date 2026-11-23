@@ -117,12 +117,36 @@
     wrapped.__stainherPlanAssistant=true;window.openEquipoModal=wrapped;
   }
   function installCatalog(){
-    const current=window.v1519LoadPlanCatalog;if(typeof current!=='function'||current.__stainherCatalog)return;
+    const current=window.v1519LoadPlanCatalog;
+    if(typeof current!=='function'||current.__stainherCatalog)return;
     const wrapped=async function(){
-      const map=await current.apply(this,arguments);const query=await window.sb.from('plan_matriz_actividades').select('equipo_id,actividad,frecuencia,mes_inicio').eq('activo',true);
-      if(!query.error)(query.data||[]).forEach(item=>{const key=String(item.equipo_id),rows=map.get(key)||[];if(!rows.some(x=>String(x[0]).trim().toLowerCase()===String(item.actividad).trim().toLowerCase()))rows.push([item.actividad,item.frecuencia]);map.set(key,rows)});
-      window.state.v1519PlanCatalog=map;return map;
-    };wrapped.__stainherCatalog=true;window.v1519LoadPlanCatalog=wrapped;
+      const map=await current.apply(this,arguments);
+      const explicit=new Map();
+      const pageSize=500;
+      for(let offset=0;;offset+=pageSize){
+        const {data,error}=await window.sb.from('plan_matriz_actividades')
+          .select('equipo_id,actividad,frecuencia,activo').order('id').range(offset,offset+pageSize-1);
+        if(error)return map;
+        for(const item of data){
+          const key=String(item.equipo_id);
+          if(!explicit.has(key))explicit.set(key,[]);
+          if(item.activo)explicit.get(key).push([item.actividad,item.frecuencia]);
+        }
+        if(data.length<pageSize)break;
+      }
+      for(const [key,rows] of explicit)map.set(key,rows);
+      window.state.v1519PlanCatalog=map;
+      return map;
+    };
+    wrapped.__stainherCatalog=true;
+    window.v1519LoadPlanCatalog=wrapped;
+    const count=window.v1519EquipoPlanCount;
+    if(typeof count==='function'){
+      window.v1519EquipoPlanCount=function(id){
+        const rows=window.state.v1519PlanCatalog?.get(String(id));
+        return rows?.length ?? count.call(this,id);
+      };
+    }
   }
   function style(){if(document.getElementById('stainher-plan-assistant-style'))return;const node=document.createElement('style');node.id='stainher-plan-assistant-style';node.textContent=`
     .stainher-plan-assistant{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
