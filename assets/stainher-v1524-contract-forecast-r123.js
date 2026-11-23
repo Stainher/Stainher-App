@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261120-r123-forecast-stable-prices';
+  const BUILD='20261123-r123-forecast-batch-prices';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -312,7 +312,12 @@
         months, prev, op, tot:prev+op, real, delta:real-prev-op,
         activityPrices:{catalog, saved, extraGroups, missing}
       };
+      const oldEditor = body.querySelector('[data-forecast-prices]');
+      if(oldEditor) pricesOpen = oldEditor.open;
+      const scroll = document.scrollingElement;
+      const top = scroll?.scrollTop;
       window.renderForecastBodyV9();
+      if(scroll && oldEditor?.open) scroll.scrollTop = top;
     } catch(error) {
       if(request !== forecastRequest || !body.isConnected) return;
       console.error('[Stainher Forecast]',error);
@@ -325,6 +330,9 @@
   }
 
   let pricesOpen = false;
+  let savingPrices = false;
+  let syncPriceEditor;
+  const priceDrafts = new Map();
   function renderActivityPrices() {
     const pricing = state.forecastDataV8?.activityPrices;
     const filters = document.querySelector('#forecastBody .forecast-checks-v9');
@@ -345,7 +353,7 @@
     editor.dataset.forecastPrices = '';
     editor.style.marginBlock = '12px';
     editor.open = pricesOpen;
-    editor.ontoggle = () => { pricesOpen = editor.open; };
+    editor.ontoggle = () => { if(editor.isConnected) pricesOpen = editor.open; };
     const editable = canEditV11('contrato');
     const entries = [...pricing.catalog.entries()].sort(([,a],[,b]) =>
       a.equipos.nombre.localeCompare(b.equipos.nombre,'es') || a.actividad.localeCompare(b.actividad,'es'));
@@ -353,7 +361,19 @@
     editor.innerHTML = '<summary>Precios unitarios de mantenimiento' + summary + '</summary>' +
       '<p class="muted">Precio neto en CLP por actividad y equipo. Se multiplica por las ocurrencias programadas. Las actividades sin precio quedan fuera del total.</p>' +
       '<div class="admin-table"><table><thead><tr><th>Equipo</th><th>Actividad</th><th>Precio unitario neto</th>' +
-      (editable ? '<th>Acción</th>' : '') + '</tr></thead><tbody></tbody></table></div>';
+      '</tr></thead><tbody></tbody></table></div>' +
+      (editable ? '<div class="actions" style="position:sticky;bottom:0;padding:10px;background:var(--panel);z-index:2">' +
+        '<span class="muted" aria-live="polite" data-price-count></span>' +
+        '<button class="btn primary" type="button" data-save-prices>Guardar precios</button></div>' : '');
+    const inputs = new Map();
+    const save = editor.querySelector('[data-save-prices]');
+    const updateSave = () => {
+      const count = [...inputs.keys()].filter(id => priceDrafts.has(id)).length;
+      if(save) {
+        save.disabled = savingPrices || !count;
+        editor.querySelector('[data-price-count]').textContent = count + (count === 1 ? ' cambio pendiente' : ' cambios pendientes');
+      }
+    };
     const tbody = editor.querySelector('tbody');
     for(const [id, row] of entries) {
       const tr = tbody.insertRow();
@@ -374,31 +394,53 @@
       });
       input.setAttribute('aria-label', 'Precio para ' + row.equipos.nombre + ' · ' + row.actividad);
       cell.append(input);
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'btn';
-      button.textContent = 'Guardar';
-      tr.insertCell().append(button);
-      button.onclick = async () => {
-        if(!input.reportValidity()) return;
-        input.disabled = button.disabled = true;
-        try {
-          const {error} = await window.sb.from(priceTable).upsert({
-            equipo_id:row.equipo_id, actividad:row.actividad.trim(), precio_unitario:Number(input.value)
-          }, {onConflict:'equipo_id,actividad'});
-          if(error) throw error;
-          window.toast?.('Precio unitario guardado','success');
-          if(editor.isConnected) await window.loadForecastV9();
-        } catch(error) {
-          window.toast?.('No se pudo guardar el precio. ' + error.message,'error');
-        } finally {
-          input.disabled = button.disabled = false;
-        }
+      if(priceDrafts.has(id)) input.value = priceDrafts.get(id);
+      inputs.set(id, input);
+      input.oninput = () => {
+        if(input.value === String(price ?? '') && !input.validity.badInput) priceDrafts.delete(id);
+        else priceDrafts.set(id, input.value);
+        updateSave();
       };
     }
+
+    if(save) save.onclick = async () => {
+      if(savingPrices) return;
+      const changes = [...inputs].filter(([id]) => priceDrafts.has(id));
+      if(!changes.length) return;
+      const invalid = changes.find(([, input]) => !input.checkValidity());
+      if(invalid) {
+        invalid[1].reportValidity();
+        return;
+      }
+      const payload = changes.map(([id, input]) => {
+        const row = pricing.catalog.get(id);
+        return {equipo_id:row.equipo_id, actividad:row.actividad.trim(), precio_unitario:Number(input.value)};
+      });
+      savingPrices = true;
+      syncPriceEditor();
+      try {
+        const {error} = await window.sb.from(priceTable).upsert(payload, {onConflict:'equipo_id,actividad'});
+        if(error) throw error;
+        changes.forEach(([id]) => { priceDrafts.delete(id); });
+        payload.forEach(row => pricing.saved.set(key(row), row.precio_unitario));
+        window.toast?.(payload.length + (payload.length === 1 ? ' precio guardado' : ' precios guardados'),'success');
+      } catch(error) {
+        window.toast?.('No se pudieron guardar los precios. ' + error.message,'error');
+        return;
+      } finally {
+        savingPrices = false;
+        syncPriceEditor?.();
+      }
+      if(pageActive()) await window.loadForecastV9();
+    };
+    syncPriceEditor = () => {
+      inputs.forEach(input => { input.disabled = savingPrices; });
+      updateSave();
+    };
+    syncPriceEditor();
     if(!entries.length) {
       const cell = tbody.insertRow().insertCell();
-      cell.colSpan = editable ? 4 : 3;
+      cell.colSpan = 3;
       cell.textContent = 'Sin actividades de mantenimiento.';
     }
     filters.closest('.forecast-filter-v9').after(editor);
