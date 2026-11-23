@@ -6,7 +6,7 @@
  */
 (()=>{
   'use strict';
-  const BUILD='20261123-forecast-plan-periodicity';
+  const BUILD='20261123-forecast-fixed-charts';
   if(window.__STAINHER_CONTRACT_FORECAST_R123__===BUILD)return;
   window.__STAINHER_CONTRACT_FORECAST_R123__=BUILD;
 
@@ -376,8 +376,9 @@
   const priceDrafts = new Map();
   function renderActivityPrices() {
     const pricing = state.forecastDataV8?.activityPrices;
-    const filters = document.querySelector('#forecastBody .forecast-checks-v9');
-    if(!pricing || !filters || filters.closest('.forecast-filter-v9').nextElementSibling?.matches('[data-forecast-prices]')) return;
+    const body = document.getElementById('forecastBody');
+    const filters = body?.querySelector('.forecast-checks-v9');
+    if(!pricing || !filters || body.querySelector('[data-forecast-prices]')) return;
     const excluded = forecastExcludedSetV9();
     for(const [id, name] of pricing.extraGroups) {
       const label = document.createElement('label');
@@ -392,6 +393,8 @@
     const editor = document.createElement('details');
     editor.className = 'panel';
     editor.dataset.forecastPrices = '';
+    editor.dataset.noCollapse = '1';
+    editor.dataset.noDisclosureMarker = '';
     editor.style.marginBlock = '12px';
     editor.open = pricesOpen;
     editor.ontoggle = () => { if(editor.isConnected) pricesOpen = editor.open; };
@@ -484,7 +487,7 @@
       cell.colSpan = 3;
       cell.textContent = 'Sin actividades de mantenimiento.';
     }
-    filters.closest('.forecast-filter-v9').after(editor);
+    body.append(editor);
   }
 
   function wrap(name){
@@ -502,7 +505,13 @@
       return out;
     }:function(){
       const out=current.apply(this,arguments);
-      if(name==='renderForecastBodyV9') renderActivityPrices();
+      if(name==='renderForecastBodyV9') {
+        document.querySelectorAll('#forecastChartV8,#forecastRealChartV8').forEach(chart=>{
+          const panel=chart.closest('.panel');
+          if(panel)panel.dataset.noCollapse='1';
+        });
+        renderActivityPrices();
+      }
       removeDuplicateRefresh();
       schedule();
       return out;

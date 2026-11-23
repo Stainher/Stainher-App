@@ -177,7 +177,8 @@
       panel=document.createElement('section');
       panel.className='panel r128-history-panel';
       panel.dataset.noCollapse='1';
-      if(anchor)anchor.insertAdjacentElement('afterend',panel);else body.appendChild(panel);
+      if(anchor)anchor.insertAdjacentElement('afterend',panel);
+      else body.insertBefore(panel,body.querySelector('[data-forecast-prices]'));
     }else{
       panel.classList.remove('r124-history-panel','r127-history-panel');
       panel.classList.add('r128-history-panel');
