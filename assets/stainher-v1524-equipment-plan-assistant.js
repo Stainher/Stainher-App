@@ -119,35 +119,37 @@
   function installCatalog(){
     const current=window.v1519LoadPlanCatalog;
     if(typeof current!=='function'||current.__stainherCatalog)return;
+    let catalog;
     const wrapped=async function(){
-      const map=await current.apply(this,arguments);
-      const explicit=new Map();
+      const state=window.state;
+      if(catalog && state.v1519PlanCatalogLoaded && state.v1519PlanCatalog===catalog)return catalog;
+      const active=new Map();
       const pageSize=500;
       for(let offset=0;;offset+=pageSize){
         const {data,error}=await window.sb.from('plan_matriz_actividades')
-          .select('equipo_id,actividad,frecuencia,activo').order('id').range(offset,offset+pageSize-1);
-        if(error)return map;
+          .select('equipo_id,actividad,frecuencia').eq('activo',true).order('id')
+          .range(offset,offset+pageSize-1);
+        if(error){
+          window.toast?.('No se pudo cargar el Plan Matriz de Equipos.','error');
+          return catalog ?? new Map();
+        }
         for(const item of data){
           const key=String(item.equipo_id);
-          if(!explicit.has(key))explicit.set(key,[]);
-          if(item.activo)explicit.get(key).push([item.actividad,item.frecuencia]);
+          if(!active.has(key))active.set(key,[]);
+          active.get(key).push([item.actividad,item.frecuencia]);
         }
         if(data.length<pageSize)break;
       }
-      for(const [key,rows] of explicit)map.set(key,rows);
-      window.state.v1519PlanCatalog=map;
-      return map;
+      catalog=active;
+      state.v1519PlanCatalog=catalog;
+      state.v1519PlanCatalogLoaded=true;
+      return catalog;
     };
     wrapped.__stainherCatalog=true;
     window.v1519LoadPlanCatalog=wrapped;
-    const count=window.v1519EquipoPlanCount;
-    if(typeof count==='function'){
-      window.v1519EquipoPlanCount=function(id){
-        const rows=window.state.v1519PlanCatalog?.get(String(id));
-        return rows?.length ?? count.call(this,id);
-      };
-    }
+    window.v1519EquipoPlanCount=id=>catalog?.get(String(id))?.length ?? 0;
   }
+
   function style(){if(document.getElementById('stainher-plan-assistant-style'))return;const node=document.createElement('style');node.id='stainher-plan-assistant-style';node.textContent=`
     .stainher-plan-assistant{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
     .stainher-plan-assistant-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.stainher-plan-assistant-head h4{margin:0 0 4px}
