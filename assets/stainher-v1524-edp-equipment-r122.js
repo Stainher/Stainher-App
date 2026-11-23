@@ -368,6 +368,11 @@
     I:'Cumplimiento Normativo', J:'Gastos Reembolsables'
   };
   const declaredBase = 5506993265;
+  const previousPricePayments = [
+    [1,'junio 2025',36872256], [2,'julio 2025',51678742], [3,'agosto 2025',44422458],
+    [4,'septiembre 2025',45919184], [5,'octubre 2025',108521758]
+  ];
+  const previousPriceTotal = previousPricePayments.reduce((total,[,,amount])=>total+amount,0);
   const currency = new Intl.NumberFormat('es-CL', {style:'currency',currency:'CLP'});
   const quantity = new Intl.NumberFormat('es-CL', {maximumFractionDigits:3,useGrouping:false});
   const percent = new Intl.NumberFormat('es-CL', {style:'percent',maximumFractionDigits:2});
@@ -411,7 +416,13 @@
         <label>Estado de Pago <select class="field" data-avance-month></select></label>
         ${editable?'<button type="button" class="btn primary" data-avance-save>Guardar cantidades</button>':''}
       </div>
-      <p class="muted">Base anterior al EDP 18 según planilla. Las partidas informadas suman ${money(baseSum)} de ${money(declaredBase)} del contrato base. Diferencia: ${money(declaredBase-baseSum)}.</p>
+      <p class="muted">Partidas informadas: ${money(baseSum)}. Facturación con precios anteriores a la modificación contractual (EP1 a EP5): ${money(previousPriceTotal)}. Total conciliado: ${money(baseSum+previousPriceTotal)}. Total declarado: ${money(declaredBase)}. Diferencia residual: ${money(Math.abs(baseSum+previousPriceTotal-declaredBase))}.</p>
+      <details data-no-collapse="1"><summary>Ver facturación a precios anteriores</summary>
+        <table><thead><tr><th>Estado de Pago</th><th>Período</th><th>Monto facturado</th></tr></thead>
+          <tbody>${previousPricePayments.map(([ep,period,amount])=>`<tr><td>EP${ep}</td><td>${period}</td><td>${money(amount)}</td></tr>`).join('')}</tbody>
+          <tfoot><tr><th colspan="2" scope="row">Total</th><td>${money(previousPriceTotal)}</td></tr></tfoot>
+        </table>
+      </details>
       <p role="status" data-avance-status></p>
       <div style="overflow-x:auto" tabindex="0" aria-label="Tabla de avance por partida">
         <table style="min-width:1320px;width:100%;white-space:nowrap">
