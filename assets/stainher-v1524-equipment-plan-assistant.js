@@ -252,22 +252,23 @@
     const period=month?monthNames[month-1]+' '+year:'Año '+year;
     installCorporatePdfV95(doc,'Plan Matriz de Mantenimiento · Carta Gantt',equipmentName+' · '+period);
     const width=doc.internal.pageSize.getWidth()-24;
-    const fixed={0:{cellWidth:39},1:{cellWidth:75},2:{cellWidth:23}};
-    const columns=Object.fromEntries(months.map((_,i)=>[i+3,{cellWidth:(width-137)/months.length,halign:'center'}]));
+    const fixed={0:{cellWidth:35},1:{cellWidth:68},2:{cellWidth:20,halign:'center'},3:{cellWidth:23}};
+    const columns=Object.fromEntries(months.map((_,i)=>[i+4,{cellWidth:(width-146)/months.length,halign:'center'}]));
     doc.setFontSize(8);
     doc.setTextColor(50,65,80);
     doc.text('Las celdas destacadas indican la cantidad de visitas previstas por mes contractual.',12,32);
     doc.autoTable({
       startY:36,margin:{left:12,right:12,top:31},showHead:'everyPage',rowPageBreak:'avoid',
-      head:[['Equipo','Actividad','Frecuencia',...months.map(number=>monthNames[number-1])]],
-      body:rows.map(({plan,visits})=>[plan.equipos.nombre,plan.actividad,plan.frecuencia,
+      head:[['Equipo','Actividad','Total visitas','Frecuencia',...months.map(number=>monthNames[number-1])]],
+      body:rows.map(({plan,visits})=>[plan.equipos.nombre,plan.actividad,String(visits.reduce((sum,count)=>sum+count,0)),plan.frecuencia,
         ...visits.map(count=>count?String(count):'')]),
       styles:{fontSize:8,cellPadding:2,overflow:'linebreak',valign:'middle',lineWidth:0.15,lineColor:[218,225,232]},
       headStyles:{fillColor:[20,28,36],textColor:255},
       alternateRowStyles:{fillColor:[246,248,250]},
       columnStyles:{...fixed,...columns},
       didParseCell({section,column,cell}){
-        if(column.index<3)return;
+        if(section==='body'&&column.index===2)cell.styles.fontStyle='bold';
+        if(column.index<4)return;
         cell.styles.halign='center';
         if(section==='body'&&cell.raw){
           cell.styles.fillColor=[250,222,208];
