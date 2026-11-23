@@ -42,8 +42,10 @@
     const detailSum=(rows||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.monto)||0),0);
     const hasDetail=Array.isArray(rows)&&rows.length>0;
     if(ep.gastos_generales!=null){
-      const equipment=hasDetail?detailSum:field;
       const operational=Math.max(0,Number(ep.gastos_generales)||0);
+      // Some EDPs store maintenance and general expenses together in mantenimiento.
+      const combined=total>0&&field===total-ggrr&&field>=operational;
+      const equipment=hasDetail?detailSum:combined?field-operational:field;
       return {equipment,operational,ggrr,projectable:equipment+operational,total,detailSum,hasDetail,source:'explicit'};
     }
     if(hasDetail){

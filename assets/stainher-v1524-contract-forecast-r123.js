@@ -114,6 +114,8 @@
         if(!status?.historical)return null;
       }
     }catch(_){}
+    const split=window.StainherEdpEquipmentR122?.splitReal?.(month.ep);
+    if(split)return split.projectable;
     if(Number.isFinite(Number(month.__r122Projectable)))return Number(month.__r122Projectable);
     return Number(month.real)||0;
   }
