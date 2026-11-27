@@ -19,6 +19,10 @@ const x=document.createElement('style');x.id='r342-css';x.textContent=`
 #contractContent .r342-kpi small,#contractContent .r342-kpi small *{display:block;color:#eaf4ff!important;opacity:1!important;font-size:12px!important;font-weight:600!important;line-height:1.35!important;margin-bottom:7px}
 #contractContent .r342-kpi strong,#contractContent .r342-kpi strong *{display:block;color:#ffffff!important;opacity:1!important;font-size:clamp(20px,2.2vw,29px)!important;line-height:1.15!important;font-weight:800!important;font-variant-numeric:tabular-nums!important;text-shadow:0 1px 2px rgba(0,0,0,.16)}
 #contractContent .r342-kpi:hover{filter:brightness(1.06)}
+#contractContent .r342-kpi-state::after{content:"";display:inline-block;width:9px;height:9px;margin-inline-start:8px;border-radius:50%;vertical-align:middle;background:var(--r342-state-color)}
+#contractContent .r342-kpi-pending{--r342-state-color:#ff7070}
+#contractContent .r342-kpi-returned{--r342-state-color:#65eb83}
+#contractContent .r342-kpi-clear{--r342-state-color:#c2cfda}
 @media(prefers-reduced-motion:no-preference){#contractContent .r342-kpi{transition:filter .16s ease}}
 #contractContent .r342-toolbar{display:grid!important;grid-template-columns:minmax(240px,1fr) minmax(205px,320px) max-content max-content;align-items:end!important;gap:12px!important;margin:14px 0 18px;max-width:100%;box-sizing:border-box}
 #contractContent .r342-toolbar .r349-toolbar-intro{align-self:center;min-width:0}
@@ -157,7 +161,7 @@ function transferStatus(row){
 }
 function header(){
 const t=totals();return `<div class="r342-toolbar"><div class="r349-toolbar-intro"><h3>Gastos Operacionales</h3><div class="r342-note">Contrato 4600029879 · Los reembolsos no duplican el gasto.</div></div><label class="r349-period-label">Mes ${r345MonthSelector()}</label>${isManager()?'<button type="button" class="btn primary" data-r342="new">+ Registrar gasto</button>':''}<button type="button" class="btn" data-r342="pdf">Generar informe PDF</button></div>
-<div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small>Pendiente al personal</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small>Devuelto al personal</small><strong>${money(t.devuelto)}</strong></div></div>
+<div class="r342-grid"><div class="r342-kpi"><small>Total del mes</small><strong>${money(t.total)}</strong></div><div class="r342-kpi"><small class="r342-kpi-state ${t.personal>0?'r342-kpi-pending':'r342-kpi-clear'}">${t.personal>0?'Pendiente al personal':'Sin pendientes'}</small><strong>${money(t.personal)}</strong></div><div class="r342-kpi"><small class="r342-kpi-state r342-kpi-returned">Devuelto al personal</small><strong>${money(t.devuelto)}</strong></div></div>
 <div class="r342-actions"><button class="btn ${subtab==='historial'?'primary':''}" data-r342="history">Historial</button><button class="btn ${subtab==='reembolsos'?'primary':''}" data-r342="reimb">Reembolsos</button></div>`}
 function history(){
 const filtered=rows.filter(r=>!r.anulado);
